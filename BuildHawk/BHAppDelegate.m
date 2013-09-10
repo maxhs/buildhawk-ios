@@ -7,15 +7,100 @@
 //
 
 #import "BHAppDelegate.h"
+#import <RestKit/RestKit.h>
+#import "BHUser.h"
+#import "BHCompany.h"
+#import "BHProject.h"
+#import "BHProjectCollection.h"
+#import "Constants.h"
 
 @implementation BHAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    //let AFNetworking manage the activity indicator
+    [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
+    
+    // Initialize HTTPClient
+    NSURL *baseURL = [NSURL URLWithString:@"http://www.buildhawk.com/api/v1"];
+    AFHTTPClient* client = [[AFHTTPClient alloc] initWithBaseURL:baseURL];
+    
+    //we want to work with JSON-Data
+    [client setDefaultHeader:@"Accept" value:RKMIMETypeJSON];
+    
+    // Initialize RestKit
+    RKObjectManager *objectManager = [[RKObjectManager alloc] initWithHTTPClient:client];
+    
+    // Setup our object mappings
+    RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[BHUser class]];
+    [userMapping addAttributeMappingsFromDictionary:@{
+     @"_id":@"identifier"
+     }];
+    
+    RKObjectMapping *projectMapping = [RKObjectMapping mappingForClass:[BHProject class]];
+    [projectMapping addAttributeMappingsFromDictionary:@{
+     @"id" : @"statusID",
+     @"created_at" : @"createdAt",
+     @"text" : @"text",
+     @"url" : @"urlString",
+     @"in_reply_to_screen_name" : @"inReplyToScreenName",
+     @"favorited" : @"isFavorited",
+     }];
+    RKRelationshipMapping* relationShipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"user"
+                                                                                             toKeyPath:@"user"
+                                                                                           withMapping:userMapping];
+    [projectMapping addPropertyMapping:relationShipMapping];
+    
+    // Update date format so that we can parse Twitter dates properly
+    // Wed Sep 29 15:31:08 +0000 2010
+    [RKObjectMapping addDefaultDateFormatterForString:@"E MMM d HH:mm:ss Z y" inTimeZone:nil];
+    
+    // Register our mappings with the provider using a response descriptor
+    /*RKResponseDescriptor *responseDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:projectMapping
+                                                                                            method:RKRequestMethodGET
+                                                                                       pathPattern:@"/project/:id"
+                                                                                           keyPath:nil
+                                                                                       statusCodes:[NSIndexSet indexSetWithIndex:200]];
+    [objectManager addResponseDescriptor:responseDescriptor];*/
+    
+    [self customizeAppearance];
+    [self.window makeKeyAndVisible];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
+        UIStoryboard *iphoneStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
+        UIViewController *revealVC = [iphoneStoryboard instantiateViewControllerWithIdentifier:@"Reveal"];
+        UINavigationController *navigationController = (UINavigationController *)revealVC;
+        self.window.rootViewController = navigationController;
+    }
     return YES;
 }
-							
+
+- (void)customizeAppearance {
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"] forBarMetrics:UIBarMetricsDefault];
+    UIImage *empty = [UIImage imageNamed:@"empty"];
+    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
+                         NSForegroundColorAttributeName : [UIColor clearColor],
+                               NSForegroundColorAttributeName : [UIColor blackColor],
+     } forState:UIControlStateNormal];
+    [[UISearchBar appearance] setBackgroundImage:empty];
+    [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];
+    [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"tabBarBackground"]];
+    [[UITabBarItem appearance] setTitleTextAttributes: @{
+                    NSForegroundColorAttributeName : [UIColor whiteColor],
+                                NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:12.0],
+    } forState:UIControlStateNormal];
+    [[UITabBarItem appearance] setTitleTextAttributes:@{
+                 NSForegroundColorAttributeName : [UIColor blackColor],
+                            NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:12.0],
+        } forState:UIControlStateSelected];
+    [[UITabBar appearance] setTintColor:[UIColor blackColor]];
+    [[UITabBar appearance] setSelectedImageTintColor:[UIColor blackColor]];
+    [[UITabBar appearance] setSelectionIndicatorImage:[UIImage imageNamed:@"whiteTabBackground"]];
+}
+
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
