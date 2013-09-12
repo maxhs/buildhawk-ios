@@ -10,4 +10,7 @@
 
 @interface BHPunchlistItemCell : UITableViewCell
 
+@property (weak, nonatomic) IBOutlet UILabel *itemLabel;
+@property (weak, nonatomic) IBOutlet UIImageView *itemImageView;
+
 @end

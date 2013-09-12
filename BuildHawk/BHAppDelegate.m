@@ -82,8 +82,7 @@
     [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
-                         NSForegroundColorAttributeName : [UIColor clearColor],
-                               NSForegroundColorAttributeName : [UIColor blackColor],
+                                    NSForegroundColorAttributeName : [UIColor blackColor]
      } forState:UIControlStateNormal];
     [[UISearchBar appearance] setBackgroundImage:empty];
     [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];

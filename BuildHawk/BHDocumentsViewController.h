@@ -10,4 +10,7 @@
 
 @interface BHDocumentsViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (strong, nonatomic) NSMutableArray *documentFolders;
+
 @end

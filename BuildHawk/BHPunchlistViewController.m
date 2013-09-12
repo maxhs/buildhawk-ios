@@ -7,22 +7,21 @@
 //
 
 #import "BHPunchlistViewController.h"
+#import "BHPunchlistItemCell.h"
+#import "BHPunchlistItemViewController.h"
 
-@interface BHPunchlistViewController ()
+@interface BHPunchlistViewController () <UITableViewDelegate, UITableViewDataSource>
 - (IBAction)backToDashboard;
 @end
 
 @implementation BHPunchlistViewController
 
+@synthesize punchlists;
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    self.tableView.tableHeaderView = self.segmentContainerView;
 }
 
 - (void)didReceiveMemoryWarning
@@ -35,22 +34,28 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 0;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 0;
+    return 3;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    
-    // Configure the cell...
+    static NSString *CellIdentifier = @"PunchlistItemCell";
+    BHPunchlistItemCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPunchlistItemCell" owner:self options:nil] lastObject];
+    }
+    [cell.itemLabel setText:@"This is a punchlist item"];
     
     return cell;
+}
+
+- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 88;
 }
 
 /*
@@ -96,13 +101,19 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
+    [self performSegueWithIdentifier:@"PunchlistItem" sender:self];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"CreateItem"]) {
+        BHPunchlistItemViewController *vc = segue.destinationViewController;
+        [vc setTitle:@"Create Punchlist Item"];
+    } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
+        BHPunchlistItemViewController *vc = segue.destinationViewController;
+        [vc setTitle:@"View Punchlist Item"];
+    }
+        
 }
 
 - (IBAction)backToDashboard {

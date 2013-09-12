@@ -90,8 +90,7 @@
 }
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Project"]) {
-        UIButton *button = (UIButton*) sender;
-        NSLog(@"button.tag: %i",button.tag);
+        
     } else if ([segue.identifier isEqualToString:@"DashboardRevealed"]) {
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
         [detailVC setProjectTitle:[[projects objectAtIndex:self.tableView.indexPathForSelectedRow.row] streetAddress1]];

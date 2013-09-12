@@ -52,6 +52,9 @@
 		F203967E17D3E648001CFF61 /* whiteTabBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */; };
 		F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */; };
 		F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */; };
+		F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */; };
+		F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */; };
+		F228707A17DFC89300A88475 /* BHPunchlistItemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */; };
 		F239BB9F17D877C7003097E6 /* BHReportSectionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F239BB9E17D877C7003097E6 /* BHReportSectionCell.m */; };
 		F239BBA217D877D9003097E6 /* BHReportPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F239BBA117D877D9003097E6 /* BHReportPickerCell.m */; };
 		F239BBA517D8CA6A003097E6 /* BHReportPickerCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */; };
@@ -145,6 +148,11 @@
 		F228706717DE8DA600A88475 /* BHPunchlistItemCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItemCell.h; sourceTree = "<group>"; };
 		F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItemCell.m; sourceTree = "<group>"; };
 		F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHPunchlistItemCell.xib; sourceTree = "<group>"; };
+		F228707317DFBCC300A88475 /* BHPhotoPickerCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPhotoPickerCell.h; sourceTree = "<group>"; };
+		F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPhotoPickerCell.m; sourceTree = "<group>"; };
+		F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHPhotoPickerCell.xib; sourceTree = "<group>"; };
+		F228707817DFC89300A88475 /* BHPunchlistItemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItemViewController.h; sourceTree = "<group>"; };
+		F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItemViewController.m; sourceTree = "<group>"; };
 		F239BB9D17D877C7003097E6 /* BHReportSectionCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportSectionCell.h; sourceTree = "<group>"; };
 		F239BB9E17D877C7003097E6 /* BHReportSectionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportSectionCell.m; sourceTree = "<group>"; };
 		F239BBA017D877D9003097E6 /* BHReportPickerCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportPickerCell.h; sourceTree = "<group>"; };
@@ -228,6 +236,9 @@
 				F228706717DE8DA600A88475 /* BHPunchlistItemCell.h */,
 				F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */,
 				F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */,
+				F228707317DFBCC300A88475 /* BHPhotoPickerCell.h */,
+				F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */,
+				F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */,
 			);
 			name = Cells;
 			sourceTree = "<group>";
@@ -292,8 +303,8 @@
 				F2B29FD417D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard */,
 				F2B29FD717D0F31B00F09C6F /* MainStoryboard_iPad.storyboard */,
 				F239BB9C17D875DE003097E6 /* Models */,
-				F2B29FF717D0FACE00F09C6F /* Project */,
 				F228706617DE8C3200A88475 /* Cells */,
+				F2B29FF717D0FACE00F09C6F /* Project */,
 				F2B29FED17D0F9DA00F09C6F /* BHLoginViewController.h */,
 				F2B29FEE17D0F9DA00F09C6F /* BHLoginViewController.m */,
 				F203964017D3B483001CFF61 /* BHDashboardProjectCell.h */,
@@ -385,6 +396,8 @@
 				F203965B17D3DD6B001CFF61 /* BHPunchlistViewController.m */,
 				F203965D17D3DD7C001CFF61 /* BHReportsViewController.h */,
 				F203965E17D3DD7C001CFF61 /* BHReportsViewController.m */,
+				F228707817DFC89300A88475 /* BHPunchlistItemViewController.h */,
+				F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */,
 			);
 			name = Project;
 			sourceTree = "<group>";
@@ -490,6 +503,7 @@
 				F203966A17D3E052001CFF61 /* documents.png in Resources */,
 				F203966B17D3E052001CFF61 /* documents@2x.png in Resources */,
 				F203966C17D3E052001CFF61 /* punchlists.png in Resources */,
+				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
 				F203966D17D3E052001CFF61 /* punchlists@2x.png in Resources */,
 				F203966E17D3E052001CFF61 /* reports.png in Resources */,
 				F203966F17D3E052001CFF61 /* reports@2x.png in Resources */,
@@ -554,6 +568,7 @@
 				F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */,
 				F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */,
 				F2B29FFD17D0FAE200F09C6F /* SVProgressHUD.m in Sources */,
+				F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */,
 				F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */,
 				F203961B17D12FC6001CFF61 /* BHUser.m in Sources */,
 				F203961E17D12FF4001CFF61 /* BHCompany.m in Sources */,
@@ -568,6 +583,7 @@
 				F203964217D3B484001CFF61 /* BHDashboardProjectCell.m in Sources */,
 				F239BB9F17D877C7003097E6 /* BHReportSectionCell.m in Sources */,
 				F203965917D3DCEB001CFF61 /* BHReport.m in Sources */,
+				F228707A17DFC89300A88475 /* BHPunchlistItemViewController.m in Sources */,
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
 				F203965F17D3DD7C001CFF61 /* BHReportsViewController.m in Sources */,
 				F203967217D3E1E8001CFF61 /* BHTabBarViewController.m in Sources */,
@@ -666,6 +682,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7CE765D888B94A02BF4CAA11 /* Pods.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -675,6 +692,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
+				VALID_ARCHS = "armv7 armv7s";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -683,6 +701,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7CE765D888B94A02BF4CAA11 /* Pods.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -692,6 +711,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
+				VALID_ARCHS = "armv7 armv7s";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

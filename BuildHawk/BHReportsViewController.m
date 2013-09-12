@@ -175,7 +175,7 @@
     if ([self.view viewWithTag:9]) {
         return;
     }
-    CGRect toolbarTargetFrame = CGRectMake(0, self.view.bounds.size.height-216-44-49, 320, 44);
+    //CGRect toolbarTargetFrame = CGRectMake(0, self.view.bounds.size.height-216-44-49, 320, 44);
     CGRect datePickerTargetFrame = CGRectMake(0, self.view.bounds.size.height-216-49, 320, 216);
     
     UIView *buttonLayer = [[UIView alloc] initWithFrame:self.view.bounds];
@@ -197,20 +197,20 @@
     [backgroundLayer addSubview:datePicker];
     [self.view addSubview:backgroundLayer];
     
-    UIToolbar *toolBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height, 320, 44)];
+    /*UIToolbar *toolBar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, self.view.bounds.size.height, 320, 44)];
     toolBar.tag = 11;
     [toolBar setBarStyle:UIBarStyleDefault];
     UIBarButtonItem *spacer = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
     UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(dismissDatePicker:)];
     [doneButton setTintColor:[UIColor blackColor]];
     [toolBar setItems:[NSArray arrayWithObjects:spacer, doneButton, nil]];
-    [self.view addSubview:toolBar];
+    [self.view addSubview:toolBar];*/
     
     [self.navigationController setNavigationBarHidden:YES animated:YES];
     [UIView animateWithDuration:.35 delay:0 usingSpringWithDamping:1 initialSpringVelocity:0.5 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        toolBar.frame = toolbarTargetFrame;
+        //toolBar.frame = toolbarTargetFrame;
         backgroundLayer.frame = datePickerTargetFrame;
-        buttonLayer.alpha = 0.8;
+        buttonLayer.alpha = 0.7;
     } completion:^(BOOL finished) {
         
     }];

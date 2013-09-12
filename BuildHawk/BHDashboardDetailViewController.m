@@ -123,22 +123,17 @@
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
     UIView* headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 44.0)];
-    //headerView.contentMode = UIViewContentModeScaleToFill;
+    [headerView setBackgroundColor:[UIColor colorWithWhite:.5 alpha:.10]];
     
     // Add the label
-    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 320.0, 34.0)];
-    [headerView setBackgroundColor:[UIColor colorWithWhite:.25 alpha:.15]];
+    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 320.0, 20.0)];
     headerLabel.backgroundColor = [UIColor clearColor];
-    headerLabel.opaque = NO;
-    headerLabel.textColor = [UIColor blackColor];
-    headerLabel.highlightedTextColor = [UIColor lightGrayColor];
+    headerLabel.textColor = [UIColor lightGrayColor];
     headerLabel.font = [UIFont fontWithName:kHelveticaNeueLight size:16];
-    
-    headerLabel.shadowColor = [UIColor clearColor];
-    headerLabel.shadowOffset = CGSizeMake(0.0, 1.0);
     headerLabel.numberOfLines = 0;
     headerLabel.textAlignment = NSTextAlignmentCenter;
     [headerView addSubview: headerLabel];
+    
     switch (section) {
         case 0:
             [headerLabel setText:@"Notifications"];
