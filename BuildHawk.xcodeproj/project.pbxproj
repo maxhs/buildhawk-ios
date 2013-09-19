@@ -50,11 +50,14 @@
 		F203967A17D3E4F6001CFF61 /* reportsSelected@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203967817D3E4F6001CFF61 /* reportsSelected@2x.png */; };
 		F203967D17D3E648001CFF61 /* whiteTabBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = F203967B17D3E648001CFF61 /* whiteTabBackground.png */; };
 		F203967E17D3E648001CFF61 /* whiteTabBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */; };
+		F21DC9C617EAB43300280C5B /* BHChecklistItem.m in Sources */ = {isa = PBXBuildFile; fileRef = F21DC9C517EAB43300280C5B /* BHChecklistItem.m */; };
 		F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */; };
 		F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */; };
 		F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */; };
 		F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */; };
 		F228707A17DFC89300A88475 /* BHPunchlistItemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */; };
+		F230674F17E63779006536B8 /* BHAddress.m in Sources */ = {isa = PBXBuildFile; fileRef = F230674E17E63779006536B8 /* BHAddress.m */; };
+		F230675217E63F0C006536B8 /* BHPunchlist.m in Sources */ = {isa = PBXBuildFile; fileRef = F230675117E63F0C006536B8 /* BHPunchlist.m */; };
 		F239BB9F17D877C7003097E6 /* BHReportSectionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F239BB9E17D877C7003097E6 /* BHReportSectionCell.m */; };
 		F239BBA217D877D9003097E6 /* BHReportPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F239BBA117D877D9003097E6 /* BHReportPickerCell.m */; };
 		F239BBA517D8CA6A003097E6 /* BHReportPickerCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */; };
@@ -64,7 +67,7 @@
 		F2B1F0E817D7BE820007A4E3 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */; };
 		F2B1F0EA17D7C0770007A4E3 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2B1F0E917D7C0770007A4E3 /* QuartzCore.framework */; };
 		F2B1F0ED17D7D3760007A4E3 /* BHSearchBar.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B1F0EC17D7D3760007A4E3 /* BHSearchBar.m */; };
-		F2B1F0F017D7D3E10007A4E3 /* BHItem.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B1F0EF17D7D3E10007A4E3 /* BHItem.m */; };
+		F2B1F0F017D7D3E10007A4E3 /* BHPunchlistItem.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B1F0EF17D7D3E10007A4E3 /* BHPunchlistItem.m */; };
 		F2B1F0F317D7DD660007A4E3 /* BHCategoryChecklistViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B1F0F217D7DD660007A4E3 /* BHCategoryChecklistViewController.m */; };
 		F2B29FBD17D0F31B00F09C6F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2B29FBC17D0F31B00F09C6F /* UIKit.framework */; };
 		F2B29FBF17D0F31B00F09C6F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2B29FBE17D0F31B00F09C6F /* Foundation.framework */; };
@@ -79,8 +82,6 @@
 		F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FEE17D0F9DA00F09C6F /* BHLoginViewController.m */; };
 		F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */; };
 		F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FF417D0F9FC00F09C6F /* BHDashboardDetailViewController.m */; };
-		F2B29FFC17D0FAE200F09C6F /* SVProgressHUD.bundle in Resources */ = {isa = PBXBuildFile; fileRef = F2B29FF917D0FAE200F09C6F /* SVProgressHUD.bundle */; };
-		F2B29FFD17D0FAE200F09C6F /* SVProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FFB17D0FAE200F09C6F /* SVProgressHUD.m */; };
 		F2D7502C17D7B830006375CD /* BuildHawk_app_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502817D7B830006375CD /* BuildHawk_app_icon_57.png */; };
 		F2D7502D17D7B830006375CD /* BuildHawk_app_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502917D7B830006375CD /* BuildHawk_app_icon_114.png */; };
 		F2D7502E17D7B830006375CD /* BuildHawk_app_icon_120.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502A17D7B830006375CD /* BuildHawk_app_icon_120.png */; };
@@ -145,6 +146,8 @@
 		F203967817D3E4F6001CFF61 /* reportsSelected@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reportsSelected@2x.png"; sourceTree = "<group>"; };
 		F203967B17D3E648001CFF61 /* whiteTabBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteTabBackground.png; sourceTree = "<group>"; };
 		F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "whiteTabBackground@2x.png"; sourceTree = "<group>"; };
+		F21DC9C417EAB43300280C5B /* BHChecklistItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistItem.h; sourceTree = "<group>"; };
+		F21DC9C517EAB43300280C5B /* BHChecklistItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistItem.m; sourceTree = "<group>"; };
 		F228706717DE8DA600A88475 /* BHPunchlistItemCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItemCell.h; sourceTree = "<group>"; };
 		F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItemCell.m; sourceTree = "<group>"; };
 		F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHPunchlistItemCell.xib; sourceTree = "<group>"; };
@@ -153,6 +156,10 @@
 		F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHPhotoPickerCell.xib; sourceTree = "<group>"; };
 		F228707817DFC89300A88475 /* BHPunchlistItemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItemViewController.h; sourceTree = "<group>"; };
 		F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItemViewController.m; sourceTree = "<group>"; };
+		F230674D17E63779006536B8 /* BHAddress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHAddress.h; sourceTree = "<group>"; };
+		F230674E17E63779006536B8 /* BHAddress.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHAddress.m; sourceTree = "<group>"; };
+		F230675017E63F0C006536B8 /* BHPunchlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlist.h; sourceTree = "<group>"; };
+		F230675117E63F0C006536B8 /* BHPunchlist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlist.m; sourceTree = "<group>"; };
 		F239BB9D17D877C7003097E6 /* BHReportSectionCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportSectionCell.h; sourceTree = "<group>"; };
 		F239BB9E17D877C7003097E6 /* BHReportSectionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportSectionCell.m; sourceTree = "<group>"; };
 		F239BBA017D877D9003097E6 /* BHReportPickerCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportPickerCell.h; sourceTree = "<group>"; };
@@ -165,8 +172,8 @@
 		F2B1F0E917D7C0770007A4E3 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		F2B1F0EB17D7D3760007A4E3 /* BHSearchBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSearchBar.h; sourceTree = "<group>"; };
 		F2B1F0EC17D7D3760007A4E3 /* BHSearchBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSearchBar.m; sourceTree = "<group>"; };
-		F2B1F0EE17D7D3E10007A4E3 /* BHItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHItem.h; sourceTree = "<group>"; };
-		F2B1F0EF17D7D3E10007A4E3 /* BHItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHItem.m; sourceTree = "<group>"; };
+		F2B1F0EE17D7D3E10007A4E3 /* BHPunchlistItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItem.h; sourceTree = "<group>"; };
+		F2B1F0EF17D7D3E10007A4E3 /* BHPunchlistItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItem.m; sourceTree = "<group>"; };
 		F2B1F0F117D7DD660007A4E3 /* BHCategoryChecklistViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHCategoryChecklistViewController.h; sourceTree = "<group>"; };
 		F2B1F0F217D7DD660007A4E3 /* BHCategoryChecklistViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHCategoryChecklistViewController.m; sourceTree = "<group>"; };
 		F2B29FB917D0F31B00F09C6F /* BuildHawk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BuildHawk.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -191,9 +198,6 @@
 		F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardViewController.m; sourceTree = "<group>"; };
 		F2B29FF317D0F9FC00F09C6F /* BHDashboardDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDashboardDetailViewController.h; sourceTree = "<group>"; };
 		F2B29FF417D0F9FC00F09C6F /* BHDashboardDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardDetailViewController.m; sourceTree = "<group>"; };
-		F2B29FF917D0FAE200F09C6F /* SVProgressHUD.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = SVProgressHUD.bundle; sourceTree = "<group>"; };
-		F2B29FFA17D0FAE200F09C6F /* SVProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVProgressHUD.h; sourceTree = "<group>"; };
-		F2B29FFB17D0FAE200F09C6F /* SVProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVProgressHUD.m; sourceTree = "<group>"; };
 		F2D7502817D7B830006375CD /* BuildHawk_app_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_57.png; sourceTree = "<group>"; };
 		F2D7502917D7B830006375CD /* BuildHawk_app_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_114.png; sourceTree = "<group>"; };
 		F2D7502A17D7B830006375CD /* BuildHawk_app_icon_120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_120.png; sourceTree = "<group>"; };
@@ -219,7 +223,6 @@
 		F203961817D12FA4001CFF61 /* Vendors */ = {
 			isa = PBXGroup;
 			children = (
-				F2B29FF817D0FAE200F09C6F /* SVProgressHUD */,
 			);
 			name = Vendors;
 			sourceTree = "<group>";
@@ -258,8 +261,14 @@
 				F203962017D12FFF001CFF61 /* BHProject.m */,
 				F203965717D3DCE9001CFF61 /* BHReport.h */,
 				F203965817D3DCEA001CFF61 /* BHReport.m */,
-				F2B1F0EE17D7D3E10007A4E3 /* BHItem.h */,
-				F2B1F0EF17D7D3E10007A4E3 /* BHItem.m */,
+				F2B1F0EE17D7D3E10007A4E3 /* BHPunchlistItem.h */,
+				F2B1F0EF17D7D3E10007A4E3 /* BHPunchlistItem.m */,
+				F21DC9C417EAB43300280C5B /* BHChecklistItem.h */,
+				F21DC9C517EAB43300280C5B /* BHChecklistItem.m */,
+				F230674D17E63779006536B8 /* BHAddress.h */,
+				F230674E17E63779006536B8 /* BHAddress.m */,
+				F230675017E63F0C006536B8 /* BHPunchlist.h */,
+				F230675117E63F0C006536B8 /* BHPunchlist.m */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -307,9 +316,6 @@
 				F2B29FF717D0FACE00F09C6F /* Project */,
 				F2B29FED17D0F9DA00F09C6F /* BHLoginViewController.h */,
 				F2B29FEE17D0F9DA00F09C6F /* BHLoginViewController.m */,
-				F203964017D3B483001CFF61 /* BHDashboardProjectCell.h */,
-				F203964117D3B484001CFF61 /* BHDashboardProjectCell.m */,
-				F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */,
 				F203967017D3E1E8001CFF61 /* BHTabBarViewController.h */,
 				F203967117D3E1E8001CFF61 /* BHTabBarViewController.m */,
 				F2B1F0EB17D7D3760007A4E3 /* BHSearchBar.h */,
@@ -386,6 +392,9 @@
 		F2B29FF717D0FACE00F09C6F /* Project */ = {
 			isa = PBXGroup;
 			children = (
+				F203964017D3B483001CFF61 /* BHDashboardProjectCell.h */,
+				F203964117D3B484001CFF61 /* BHDashboardProjectCell.m */,
+				F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */,
 				F2B29FDA17D0F31B00F09C6F /* BHChecklistViewController.h */,
 				F2B29FDB17D0F31B00F09C6F /* BHChecklistViewController.m */,
 				F2B1F0F117D7DD660007A4E3 /* BHCategoryChecklistViewController.h */,
@@ -400,16 +409,6 @@
 				F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */,
 			);
 			name = Project;
-			sourceTree = "<group>";
-		};
-		F2B29FF817D0FAE200F09C6F /* SVProgressHUD */ = {
-			isa = PBXGroup;
-			children = (
-				F2B29FF917D0FAE200F09C6F /* SVProgressHUD.bundle */,
-				F2B29FFA17D0FAE200F09C6F /* SVProgressHUD.h */,
-				F2B29FFB17D0FAE200F09C6F /* SVProgressHUD.m */,
-			);
-			path = SVProgressHUD;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -475,7 +474,6 @@
 				F2B29FD617D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard in Resources */,
 				F2B29FD917D0F31B00F09C6F /* MainStoryboard_iPad.storyboard in Resources */,
 				F2D7502C17D7B830006375CD /* BuildHawk_app_icon_57.png in Resources */,
-				F2B29FFC17D0FAE200F09C6F /* SVProgressHUD.bundle in Resources */,
 				F203962D17D171CF001CFF61 /* logo.png in Resources */,
 				F203962E17D171CF001CFF61 /* logo@2x.png in Resources */,
 				F2B1F0E617D7BE820007A4E3 /* Default.png in Resources */,
@@ -567,11 +565,13 @@
 				F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */,
 				F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */,
 				F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */,
-				F2B29FFD17D0FAE200F09C6F /* SVProgressHUD.m in Sources */,
 				F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */,
 				F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */,
+				F230674F17E63779006536B8 /* BHAddress.m in Sources */,
+				F21DC9C617EAB43300280C5B /* BHChecklistItem.m in Sources */,
 				F203961B17D12FC6001CFF61 /* BHUser.m in Sources */,
 				F203961E17D12FF4001CFF61 /* BHCompany.m in Sources */,
+				F230675217E63F0C006536B8 /* BHPunchlist.m in Sources */,
 				F203962117D12FFF001CFF61 /* BHProject.m in Sources */,
 				F203962417D1300A001CFF61 /* BHProjectCollection.m in Sources */,
 				F203962717D16D9C001CFF61 /* BHTimestamp.m in Sources */,
@@ -579,7 +579,7 @@
 				F2B1F0F317D7DD660007A4E3 /* BHCategoryChecklistViewController.m in Sources */,
 				F203963217D2C09F001CFF61 /* BHMenuViewController.m in Sources */,
 				F239BBA217D877D9003097E6 /* BHReportPickerCell.m in Sources */,
-				F2B1F0F017D7D3E10007A4E3 /* BHItem.m in Sources */,
+				F2B1F0F017D7D3E10007A4E3 /* BHPunchlistItem.m in Sources */,
 				F203964217D3B484001CFF61 /* BHDashboardProjectCell.m in Sources */,
 				F239BB9F17D877C7003097E6 /* BHReportSectionCell.m in Sources */,
 				F203965917D3DCEB001CFF61 /* BHReport.m in Sources */,

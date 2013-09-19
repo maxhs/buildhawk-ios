@@ -7,18 +7,8 @@
 //  https://github.com/samvermette/SVProgressHUD
 //
 
-#if !__has_feature(objc_arc)
-#error SVProgressHUD is ARC only. Either turn on ARC for the project or use -fobjc-arc flag
-#endif
-
 #import "SVProgressHUD.h"
 #import <QuartzCore/QuartzCore.h>
-
-NSString * const SVProgressHUDDidReceiveTouchEventNotification = @"SVProgressHUDDidReceiveTouchEventNotification";
-NSString * const SVProgressHUDWillDisappearNotification = @"SVProgressHUDWillDisappearNotification";
-NSString * const SVProgressHUDDidDisappearNotification = @"SVProgressHUDDidDisappearNotification";
-
-NSString * const SVProgressHUDStatusUserInfoKey = @"SVProgressHUDStatusUserInfoKey";
 
 CGFloat SVProgressHUDRingRadius = 14;
 CGFloat SVProgressHUDRingThickness = 6;
@@ -28,22 +18,21 @@ CGFloat SVProgressHUDRingThickness = 6;
 @property (nonatomic, readwrite) SVProgressHUDMaskType maskType;
 @property (nonatomic, strong, readonly) NSTimer *fadeOutTimer;
 
-@property (nonatomic, strong, readonly) UIButton *overlayView;
+@property (nonatomic, strong, readonly) UIWindow *overlayWindow;
 @property (nonatomic, strong, readonly) UIView *hudView;
 @property (nonatomic, strong, readonly) UILabel *stringLabel;
 @property (nonatomic, strong, readonly) UIImageView *imageView;
 @property (nonatomic, strong, readonly) UIActivityIndicatorView *spinnerView;
 
 @property (nonatomic, readwrite) CGFloat progress;
-@property (nonatomic, readwrite) NSUInteger activityCount;
 @property (nonatomic, strong) CAShapeLayer *backgroundRingLayer;
 @property (nonatomic, strong) CAShapeLayer *ringLayer;
 
 @property (nonatomic, readonly) CGFloat visibleKeyboardHeight;
 
-/*- (void)showProgress:(float)progress
+- (void)showProgress:(float)progress
               status:(NSString*)string
-            maskType:(SVProgressHUDMaskType)hudMaskType;*/
+            maskType:(SVProgressHUDMaskType)hudMaskType;
 
 - (void)showImage:(UIImage*)image
            status:(NSString*)status
@@ -55,15 +44,12 @@ CGFloat SVProgressHUDRingThickness = 6;
 - (void)registerNotifications;
 - (void)moveToPoint:(CGPoint)newCenter rotateAngle:(CGFloat)angle;
 - (void)positionHUD:(NSNotification*)notification;
-- (NSTimeInterval)displayDurationForString:(NSString*)string;
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 50000
 - (UIColor *)hudBackgroundColor;
 - (UIColor *)hudForegroundColor;
 - (UIColor *)hudStatusShadowColor;
 - (UIFont *)hudFont;
-- (UIImage *)hudSuccessImage;
-- (UIImage *)hudErrorImage;
 #endif
 
 @end
@@ -71,85 +57,76 @@ CGFloat SVProgressHUDRingThickness = 6;
 
 @implementation SVProgressHUD
 
-@synthesize overlayView, hudView, maskType, fadeOutTimer, stringLabel, imageView, spinnerView, visibleKeyboardHeight;
+@synthesize overlayWindow, hudView, maskType, fadeOutTimer, stringLabel, imageView, spinnerView, visibleKeyboardHeight;
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
 @synthesize hudBackgroundColor = _uiHudBgColor;
 @synthesize hudForegroundColor = _uiHudFgColor;
 @synthesize hudStatusShadowColor = _uiHudStatusShColor;
 @synthesize hudFont = _uiHudFont;
-@synthesize hudSuccessImage = _uiHudSuccessImage;
-@synthesize hudErrorImage = _uiHudErrorImage;
 #endif
 
 
 + (SVProgressHUD*)sharedView {
     static dispatch_once_t once;
     static SVProgressHUD *sharedView;
-    dispatch_once(&once, ^ { sharedView = [[self alloc] initWithFrame:[[UIScreen mainScreen] bounds]]; });
+    dispatch_once(&once, ^ { sharedView = [[SVProgressHUD alloc] initWithFrame:[[UIScreen mainScreen] bounds]]; });
     return sharedView;
 }
 
 
 + (void)setStatus:(NSString *)string {
-	[[self sharedView] setStatus:string];
+	[[SVProgressHUD sharedView] setStatus:string];
 }
 
 #pragma mark - Show Methods
 
 + (void)show {
-    [[self sharedView] showProgress:-1 status:nil maskType:SVProgressHUDMaskTypeNone];
+    [[SVProgressHUD sharedView] showProgress:-1 status:nil maskType:SVProgressHUDMaskTypeNone];
 }
 
 + (void)showWithStatus:(NSString *)status {
-    [[self sharedView] showProgress:-1 status:status maskType:SVProgressHUDMaskTypeNone];
+    [[SVProgressHUD sharedView] showProgress:-1 status:status maskType:SVProgressHUDMaskTypeNone];
 }
 
 + (void)showWithMaskType:(SVProgressHUDMaskType)maskType {
-    [[self sharedView] showProgress:-1 status:nil maskType:maskType];
+    [[SVProgressHUD sharedView] showProgress:-1 status:nil maskType:maskType];
 }
 
 + (void)showWithStatus:(NSString*)status maskType:(SVProgressHUDMaskType)maskType {
-    [[self sharedView] showProgress:-1 status:status maskType:maskType];
+    [[SVProgressHUD sharedView] showProgress:-1 status:status maskType:maskType];
 }
 
 + (void)showProgress:(CGFloat)progress {
-    [[self sharedView] showProgress:progress status:nil maskType:SVProgressHUDMaskTypeNone];
+    [[SVProgressHUD sharedView] showProgress:progress status:nil maskType:SVProgressHUDMaskTypeNone];
 }
 
 + (void)showProgress:(CGFloat)progress status:(NSString *)status {
-    [[self sharedView] showProgress:progress status:status maskType:SVProgressHUDMaskTypeNone];
+    [[SVProgressHUD sharedView] showProgress:progress status:status maskType:SVProgressHUDMaskTypeNone];
 }
 
 + (void)showProgress:(CGFloat)progress status:(NSString *)status maskType:(SVProgressHUDMaskType)maskType {
-    [[self sharedView] showProgress:progress status:status maskType:maskType];
+    [[SVProgressHUD sharedView] showProgress:progress status:status maskType:maskType];
 }
 
 #pragma mark - Show then dismiss methods
 
 + (void)showSuccessWithStatus:(NSString *)string {
-    [self showImage:[[self sharedView] hudSuccessImage] status:string];
+    [SVProgressHUD showImage:[UIImage imageNamed:@"SVProgressHUD.bundle/success.png"] status:string];
 }
 
 + (void)showErrorWithStatus:(NSString *)string {
-    [self showImage:[[self sharedView] hudErrorImage] status:string];
+    [SVProgressHUD showImage:[UIImage imageNamed:@"SVProgressHUD.bundle/error.png"] status:string];
 }
 
 + (void)showImage:(UIImage *)image status:(NSString *)string {
-    NSTimeInterval displayInterval = [[SVProgressHUD sharedView] displayDurationForString:string];
-    [[self sharedView] showImage:image status:string duration:displayInterval];
+    [[SVProgressHUD sharedView] showImage:image status:string duration:1.0];
 }
 
 
 #pragma mark - Dismiss Methods
 
-+ (void)popActivity {
-    [self sharedView].activityCount--;
-    if([self sharedView].activityCount == 0)
-        [[self sharedView] dismiss];
-}
-
 + (void)dismiss {
-	[[self sharedView] dismiss];
+	[[SVProgressHUD sharedView] dismiss];
 }
 
 
@@ -162,7 +139,6 @@ CGFloat SVProgressHUDRingThickness = 6;
         self.backgroundColor = [UIColor clearColor];
 		self.alpha = 0;
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        self.activityCount = 0;
     }
 	
     return self;
@@ -372,12 +348,11 @@ CGFloat SVProgressHUDRingThickness = 6;
     } 
     
     if(notification) {
-        SVProgressHUD *__weak weakSelf=self;
         [UIView animateWithDuration:animationDuration 
                               delay:0 
                             options:UIViewAnimationOptionAllowUserInteraction 
                          animations:^{
-                             [weakSelf moveToPoint:newCenter rotateAngle:rotateAngle];
+                             [self moveToPoint:newCenter rotateAngle:rotateAngle];
                          } completion:NULL];
     } 
     
@@ -392,26 +367,11 @@ CGFloat SVProgressHUDRingThickness = 6;
     self.hudView.center = newCenter;
 }
 
-- (void)overlayViewDidReceiveTouchEvent {
-    [[NSNotificationCenter defaultCenter] postNotificationName:SVProgressHUDDidReceiveTouchEventNotification object:nil];
-}
-
 #pragma mark - Master show/dismiss methods
 
 - (void)showProgress:(float)progress status:(NSString*)string maskType:(SVProgressHUDMaskType)hudMaskType {
-    
-    if(!self.overlayView.superview){
-        NSEnumerator *frontToBackWindows = [[[UIApplication sharedApplication]windows]reverseObjectEnumerator];
-        
-        for (UIWindow *window in frontToBackWindows)
-            if (window.windowLevel == UIWindowLevelNormal) {
-                [window addSubview:self.overlayView];
-                break;
-            }
-    }
-    
     if(!self.superview)
-        [self.overlayView addSubview:self];
+        [self.overlayWindow addSubview:self];
     
     self.fadeOutTimer = nil;
     self.imageView.hidden = YES;
@@ -426,44 +386,39 @@ CGFloat SVProgressHUDRingThickness = 6;
         self.imageView.hidden = NO;
         [self.spinnerView stopAnimating];
         self.ringLayer.strokeEnd = progress;
-        
-        if(progress == 0)
-            self.activityCount++;
     }
     else {
-        self.activityCount++;
         [self cancelRingLayerAnimation];
         [self.spinnerView startAnimating];
     }
     
     if(self.maskType != SVProgressHUDMaskTypeNone) {
-        self.overlayView.userInteractionEnabled = YES;
+        self.overlayWindow.userInteractionEnabled = YES;
         self.accessibilityLabel = string;
         self.isAccessibilityElement = YES;
     }
     else {
-        self.overlayView.userInteractionEnabled = NO;
+        self.overlayWindow.userInteractionEnabled = NO;
         self.hudView.accessibilityLabel = string;
         self.hudView.isAccessibilityElement = YES;
     }
 
-    [self.overlayView setHidden:NO];
+    [self.overlayWindow setHidden:NO];
     [self positionHUD:nil];
     
     if(self.alpha != 1) {
         [self registerNotifications];
         self.hudView.transform = CGAffineTransformScale(self.hudView.transform, 1.3, 1.3);
-        SVProgressHUD *__weak weakSelf=self;
+
         [UIView animateWithDuration:0.15
                               delay:0
                             options:UIViewAnimationOptionAllowUserInteraction | UIViewAnimationCurveEaseOut | UIViewAnimationOptionBeginFromCurrentState
                          animations:^{
-                             weakSelf.hudView.transform = CGAffineTransformScale(self.hudView.transform, 1/1.3, 1/1.3);
-                             weakSelf.alpha = 1;
+                             self.hudView.transform = CGAffineTransformScale(self.hudView.transform, 1/1.3, 1/1.3);
+                             self.alpha = 1;
                          }
                          completion:^(BOOL finished){
-                             UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
-                             UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, string);
+                             UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, string);
                          }];
         
         [self setNeedsDisplay];
@@ -475,8 +430,8 @@ CGFloat SVProgressHUDRingThickness = 6;
     self.progress = -1;
     [self cancelRingLayerAnimation];
     
-    if(![self.class isVisible])
-        [self.class show];
+    if(![SVProgressHUD isVisible])
+        [SVProgressHUD show];
     
     self.imageView.image = image;
     self.imageView.hidden = NO;
@@ -484,52 +439,39 @@ CGFloat SVProgressHUDRingThickness = 6;
     [self updatePosition];
     [self.spinnerView stopAnimating];
     
-    if(self.maskType != SVProgressHUDMaskTypeNone) {
-        self.accessibilityLabel = string;
-        self.isAccessibilityElement = YES;
-    } else {
-        self.hudView.accessibilityLabel = string;
-        self.hudView.isAccessibilityElement = YES;
-    }
-
-    UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
-    UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, string);
-    
     self.fadeOutTimer = [NSTimer timerWithTimeInterval:duration target:self selector:@selector(dismiss) userInfo:nil repeats:NO];
     [[NSRunLoop mainRunLoop] addTimer:self.fadeOutTimer forMode:NSRunLoopCommonModes];
 }
 
+
 - (void)dismiss {
-    NSDictionary *notificationUserInfo = (self.stringLabel.text ? @{SVProgressHUDStatusUserInfoKey : self.stringLabel.text} : nil);
-    [[NSNotificationCenter defaultCenter] postNotificationName:SVProgressHUDWillDisappearNotification
-                                                        object:nil
-                                                      userInfo:notificationUserInfo];
-    
-    self.activityCount = 0;
-     SVProgressHUD *__weak weakSelf=self;
     [UIView animateWithDuration:0.15
                           delay:0
                         options:UIViewAnimationCurveEaseIn | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
-                         weakSelf.hudView.transform = CGAffineTransformScale(self.hudView.transform, 0.8, 0.8);
-                         weakSelf.alpha = 0;
+                         self.hudView.transform = CGAffineTransformScale(self.hudView.transform, 0.8, 0.8);
+                         self.alpha = 0;
                      }
                      completion:^(BOOL finished){
-                         if(weakSelf.alpha == 0) {
-                             [[NSNotificationCenter defaultCenter] removeObserver:weakSelf];
-                             [weakSelf cancelRingLayerAnimation];
+                         if(self.alpha == 0) {
+                             [[NSNotificationCenter defaultCenter] removeObserver:self];
+                             [self cancelRingLayerAnimation];
                              [hudView removeFromSuperview];
                              hudView = nil;
                              
-                             [overlayView removeFromSuperview];
-                             overlayView = nil;
+                             [overlayWindow removeFromSuperview];
+                             overlayWindow = nil;
+                             
+                             // fixes bug where keyboard wouldn't return as keyWindow upon dismissal of HUD
+                             [[UIApplication sharedApplication].windows enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id window, NSUInteger idx, BOOL *stop) {
+                                 if([window isMemberOfClass:[UIWindow class]]) {
+                                     [window makeKeyWindow];
+                                     *stop = YES;
+                                 }
+                             }];
 
                              UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
 
-                             [[NSNotificationCenter defaultCenter] postNotificationName:SVProgressHUDDidDisappearNotification
-                                                                                 object:nil
-                                                                               userInfo:notificationUserInfo];
-                             
                              // uncomment to make sure UIWindow is gone from app.windows
                              //NSLog(@"%@", [UIApplication sharedApplication].windows);
                              //NSLog(@"keyWindow = %@", [UIApplication sharedApplication].keyWindow);
@@ -625,34 +567,28 @@ CGFloat SVProgressHUDRingThickness = 6;
 #pragma mark - Utilities
 
 + (BOOL)isVisible {
-    return ([self sharedView].alpha == 1);
+    return ([SVProgressHUD sharedView].alpha == 1);
 }
 
 
 #pragma mark - Getters
 
-- (NSTimeInterval)displayDurationForString:(NSString*)string {
-    return MIN((float)string.length*0.06 + 0.3, 5.0);
-}
-
-- (UIButton *)overlayView {
-    if(!overlayView) {
-        overlayView = [[UIButton alloc] initWithFrame:[UIScreen mainScreen].bounds];
-        overlayView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        overlayView.backgroundColor = [UIColor clearColor];
-        [overlayView addTarget:self action:@selector(overlayViewDidReceiveTouchEvent) forControlEvents:UIControlEventTouchDown];
-        [overlayView setBackgroundImage:[UIImage new] forState:UIControlStateNormal];
-        [overlayView setBackgroundImage:[UIImage new] forState:UIControlStateDisabled];
+- (UIWindow *)overlayWindow {
+    if(!overlayWindow) {
+        overlayWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        overlayWindow.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        overlayWindow.backgroundColor = [UIColor clearColor];
+        overlayWindow.userInteractionEnabled = NO;
+        overlayWindow.windowLevel = UIWindowLevelStatusBar;
     }
-    return overlayView;
+    return overlayWindow;
 }
 
 - (UIView *)hudView {
     if(!hudView) {
         hudView = [[UIView alloc] initWithFrame:CGRectZero];
         hudView.layer.cornerRadius = 10;
-        hudView.layer.masksToBounds = YES;
-        
+
         // UIAppearance is used when iOS >= 5.0
 		hudView.backgroundColor = self.hudBackgroundColor;
 
@@ -706,9 +642,9 @@ CGFloat SVProgressHUDRingThickness = 6;
         spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
 		spinnerView.hidesWhenStopped = YES;
 		spinnerView.bounds = CGRectMake(0, 0, 37, 37);
-        
-        if([spinnerView respondsToSelector:@selector(setColor:)]) // setColor is iOS 5+
-            spinnerView.color = self.hudForegroundColor;
+
+        // UIAppearance is used when iOS >= 5.0
+        spinnerView.color = self.hudForegroundColor;
     }
     
     if(!spinnerView.superview)
@@ -790,35 +726,7 @@ CGFloat SVProgressHUDRingThickness = 6;
     }
 #endif
     
-    return [UIFont fontWithName:@"HelveticaNeue-Light" size:16];
-}
-
-- (UIImage *)hudSuccessImage {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
-    if(_uiHudSuccessImage == nil) {
-        _uiHudSuccessImage = [[[self class] appearance] hudSuccessImage];
-    }
-
-    if(_uiHudSuccessImage != nil) {
-        return _uiHudSuccessImage;
-    }
-#endif
-
-    return [UIImage imageNamed:@"SVProgressHUD.bundle/success.png"];
-}
-
-- (UIImage *)hudErrorImage {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
-    if(_uiHudErrorImage == nil) {
-        _uiHudErrorImage = [[[self class] appearance] hudErrorImage];
-    }
-
-    if(_uiHudErrorImage != nil) {
-        return _uiHudErrorImage;
-    }
-#endif
-
-    return [UIImage imageNamed:@"SVProgressHUD.bundle/error.png"];
+    return [UIFont boldSystemFontOfSize:16];
 }
 
 @end

@@ -18,5 +18,9 @@
 #define kUserDefaultsPhotoUrl100 @"userPhoto100"
 
 #define kHelveticaNeueLight @"HelveticaNeue-Light"
+#define kHelveticaNeueMedium @"HelveticaNeue-Medium"
+
+#define kLightGrayColor [UIColor colorWithWhite:.96 alpha:1.0]
+#define kDarkGrayColor [UIColor colorWithWhite:.15 alpha:1.0]
 
 #endif

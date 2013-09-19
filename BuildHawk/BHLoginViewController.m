@@ -15,7 +15,9 @@
 #import "Constants.h"
 #import "SVProgressHUD.h"
 
-@interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate>
+@interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
+    BOOL iPhone5;
+}
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIView *logoContainerView;
@@ -38,6 +40,13 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        iPhone5 = YES;
+    } else {
+        iPhone5 = NO;
+        self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
+        self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
+    }
 }
 
 - (IBAction)login{
@@ -65,13 +74,7 @@
     [SVProgressHUD showWithStatus:@"Logging in..."];
     // POST to create
     [manager postObject:user path:@"login" parameters:@{@"email":self.emailTextField.text, @"password":self.passwordTextField.text} success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
-        NSLog(@"mapping result: %@",mappingResult);
         BHUser *loggedInUser = [mappingResult firstObject];
-        NSLog(@"lname: %@",loggedInUser.lname);
-        NSLog(@"fname: %@",loggedInUser.fname);
-        NSLog(@"timestamps: %@",loggedInUser.timestamps);
-        NSLog(@"id: %@",loggedInUser.identifier);
-        NSLog(@"photo array: %@",loggedInUser.photo);
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.fname forKey:kUserDefaultsFirstName];
@@ -80,7 +83,7 @@
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.password forKey:kUserDefaultsPassword];
         [[NSUserDefaults standardUserDefaults] setObject:[[loggedInUser.photo valueForKeyPath:@"urls.100x100"] objectAtIndex:0] forKey:kUserDefaultsPhotoUrl100];
         NSLog(@"user photo default?: %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPhotoUrl100]);
-        
+        [[NSUserDefaults standardUserDefaults] synchronize];
         [UIView animateWithDuration:.3 animations:^{
             self.loginContainerView.transform = CGAffineTransformIdentity;
             self.logoContainerView.transform = CGAffineTransformIdentity;
@@ -95,7 +98,7 @@
         [SVProgressHUD dismiss];
         NSLog(@"Failure logging in: %@",error.localizedRecoverySuggestion);
         if ([error.localizedRecoverySuggestion isEqualToString:@"[{\"email\":\"Please enter a valid email.\"}]"]) {
-            [[[UIAlertView alloc] initWithTitle:nil message:@"Your email was not formatted correctly. Please try again" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find that email address. Please try again" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         } else if ([error.localizedRecoverySuggestion isEqualToString:@"[{\"password\":\"Please use a valid password.\"}]"]) {
             [[[UIAlertView alloc] initWithTitle:nil message:@"Your password was incorrect. Please try again" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         } else {
@@ -106,8 +109,13 @@
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
-        self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -180);
+        if (iPhone5){
+            self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
+            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -180);
+        } else {
+            self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -286);
+            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -210);
+        }
     } completion:^(BOOL finished) {
         
     }];

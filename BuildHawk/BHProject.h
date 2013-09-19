@@ -7,14 +7,15 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "BHAddress.h"
+#import "BHCompany.h"
 
 @interface BHProject : NSObject
-@property (nonatomic, copy) NSString *streetAddress1;
-@property (nonatomic, copy) NSString *streetAddress2;
-@property (nonatomic, copy) NSString *city;
-@property (nonatomic, copy) NSString *state;
-@property (nonatomic, copy) NSString *zip;
-@property (nonatomic, copy) NSMutableArray *assignees;
-
+@property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSMutableArray *assignees;
+@property (nonatomic, strong) BHAddress *address;
+@property (nonatomic, strong) BHCompany *company;
+@property BOOL active;
 
 @end

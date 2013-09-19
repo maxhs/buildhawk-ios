@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHProject.h"
 
 @interface BHDashboardDetailViewController : UITableViewController
-@property (strong, nonatomic) NSString *projectTitle;
+@property (strong, nonatomic) BHProject *project;
 @end

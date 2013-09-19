@@ -10,6 +10,7 @@
 
 @interface BHPhoto : NSObject
 
-@property (nonatomic, copy) NSArray *urls;
+@property (nonatomic, copy) NSString *url100;
+@property (nonatomic, copy) NSString *url200;
 
 @end

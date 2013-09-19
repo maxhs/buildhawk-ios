@@ -24,6 +24,11 @@
 			<key>orderHint</key>
 			<integer>3</integer>
 		</dict>
+		<key>Pods-SVProgressHUD.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>9</integer>
+		</dict>
 		<key>Pods-SWRevealViewController.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -112,6 +117,11 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>39E559F606874B7F93B5B350</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>3A80C89A5C5D441791DE68B3</key>
 		<dict>
 			<key>primary</key>
@@ -152,6 +162,11 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>62A33092CE764651A2B44035</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>64241714D5DA4431A6ABB14F</key>
 		<dict>
 			<key>primary</key>
@@ -187,7 +202,17 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>965AF2140163433A89627884</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>96DD45C9C5FB44A284B21CAC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>9977D62B418B4D69972360BC</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -202,7 +227,22 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>A086CABBBAE84B4D90BF32B4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>B4817777AD2940E4BF616BE0</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B962B4527B19480DAEFC86F4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>C1489E344CDD42E1811337D7</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -213,6 +253,11 @@
 			<true/>
 		</dict>
 		<key>DDD4F6F59029466496AE5AAD</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>E4EF6701ECE342C8BEE98D5B</key>
 		<dict>
 			<key>primary</key>
 			<true/>
@@ -228,6 +273,11 @@
 			<true/>
 		</dict>
 		<key>EF1704433DEC41F2BE0079B8</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>F13E605322FB4C4683C39C6C</key>
 		<dict>
 			<key>primary</key>
 			<true/>

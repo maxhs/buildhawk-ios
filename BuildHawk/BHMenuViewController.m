@@ -8,8 +8,10 @@
 
 #import "BHMenuViewController.h"
 #import "Constants.h"
+#import "BHLoginViewController.h"
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <QuartzCore/QuartzCore.h>
+#import "BHAppDelegate.h"
 
 @interface BHMenuViewController ()
 @property (strong, nonatomic) UISwitch *emailPermissionsSwitch;
@@ -24,14 +26,19 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor colorWithWhite:.15 alpha:1.0];
-    self.tableView.backgroundColor = [UIColor colorWithWhite:.15 alpha:1.0];
+    self.view.backgroundColor = kDarkGrayColor;
+    self.tableView.backgroundColor = kDarkGrayColor;
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        
+    } else {
+        self.logoutButton.transform = CGAffineTransformMakeTranslation(0, -88);
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -101,16 +108,16 @@
 }
 
 - (IBAction)logout {
-    NSLog(@"should be logging out");
     NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
     [NSUserDefaults resetStandardUserDefaults];
-    NSLog(@"current navigation controller? %@",self.navigationController);
-    [self dismissViewControllerAnimated:YES completion:^{
+    if ([self.presentingViewController isKindOfClass:[BHLoginViewController class]]){
+        [self dismissViewControllerAnimated:YES completion:^{}];
+    } else {
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
         UIViewController *initialVC = [storyboard instantiateInitialViewController];
         [self presentViewController:initialVC animated:YES completion:nil];
-    }];
+    }
 }
 
 /*
@@ -156,13 +163,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
+
 }
 
 @end

@@ -10,5 +10,5 @@
 
 @interface BHChecklistViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-
+@property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
 @end

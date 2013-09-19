@@ -8,9 +8,11 @@
 
 #import "BHDocumentsViewController.h"
 #import "BHPhotoPickerCell.h"
+#import "BHTabBarViewController.h"
+#import "Constants.h"
 
 @interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate> {
-    
+    BOOL iPhone5;
 }
 
 -(IBAction)backToDashboard;
@@ -23,10 +25,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[[(BHTabBarViewController*)self.tabBarController project] name]];
 	// Do any additional setup after loading the view, typically from a nib.
     if (!self.documentFolders) self.documentFolders = [NSMutableArray array];
     [self.documentFolders addObject:@"Blueprints"];
     [self.documentFolders addObject:@"Financials"];
+    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        iPhone5 = YES;
+    } else {
+        iPhone5 = NO;
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -61,6 +69,10 @@
         [cell.dateButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
         [cell.userButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
         
+        [self buttonTreatment:cell.categoryButton];
+        [self buttonTreatment:cell.dateButton];
+        [self buttonTreatment:cell.userButton];
+        
         return cell;
     } else {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"DocumentFolder"];
@@ -69,9 +81,22 @@
     }
 }
 
+- (void)buttonTreatment:(UIButton*)button {
+    button.layer.cornerRadius = 5.0f;
+    button.clipsToBounds = YES;
+    button.backgroundColor = [UIColor whiteColor];
+    button.layer.borderColor = [UIColor lightGrayColor].CGColor;
+    button.layer.borderWidth = 0.5;
+}
+
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0)return 200;
     else return 88;
+}
+
+- (UIView*)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    if (section == 1) return [UIView new];
+    else return nil;
 }
 
 /*

@@ -9,10 +9,16 @@
 #import "BHReportsViewController.h"
 #import "BHReportPickerCell.h"
 #import "BHReportSectionCell.h"
+#import <RestKit/RestKit.h>
+#import <SVProgressHUD/SVProgressHUD.h>
+#import "BHTabBarViewController.h"
+#import "BHProject.h"
 
-@interface BHReportsViewController () <UIActionSheetDelegate, UITextViewDelegate, UIScrollViewDelegate>
-
-@property (strong, nonatomic) NSDateFormatter *dateFormatter;
+@interface BHReportsViewController () <UIActionSheetDelegate, UITextViewDelegate, UIScrollViewDelegate> {
+    NSMutableArray *reports;
+    NSDateFormatter *dateFormatter;
+    BOOL iPhone5;
+}
 
 - (IBAction)backToDashboard;
 @end
@@ -33,13 +39,17 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        iPhone5 = YES;
+    } else {
+        NSLog(@"self view origin y: %f and scrollview origin: %f",self.view.frame.origin.y, self.scrollView.frame.origin.y);
+        iPhone5 = NO;
+    }
 	// Do any additional setup after loading the view.
-    self.dateFormatter = [[NSDateFormatter alloc] init];
-    [self.dateFormatter setDateStyle:NSDateFormatterMediumStyle];
-    
-    _report = [[BHReport alloc] init];
-    _report.type = @"Daily";
-    _report.dateString = [self.dateFormatter stringFromDate:[NSDate date]];
+    self.navigationItem.title = [NSString stringWithFormat:@"%@: Reports",[[(BHTabBarViewController*)self.tabBarController project] name]];
+    dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
+    if (!reports) reports = [NSMutableArray array];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     [self.tableViewLeft setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     [self.tableViewRight setSeparatorStyle:UITableViewCellSeparatorStyleNone];
@@ -51,12 +61,81 @@
     
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [SVProgressHUD showWithStatus:@"Fetching reports..."];
+    [self loadReportsForProject:[(BHTabBarViewController*)self.tabBarController project]];
+}
+
+
 - (void)loadNext {
-    
+    [SVProgressHUD showWithStatus:@"Loading next report..."];
+    [self performSelector:@selector(dismissOverlay) withObject:nil afterDelay:1.0];
 }
 
 - (void)loadPrevious {
+    [SVProgressHUD showWithStatus:@"Loading previous report..."];
+    [self performSelector:@selector(dismissOverlay) withObject:nil afterDelay:1.0];
+}
 
+- (void)dismissOverlay {
+    [SVProgressHUD dismiss];
+    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldnt' find a report that fit those criteria" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+}
+
+- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    static NSInteger previousPage = 0;
+    CGFloat pageWidth = scrollView.frame.size.width;
+    float fractionalPage = scrollView.contentOffset.x / pageWidth;
+    NSInteger page = lround(fractionalPage);
+    if (previousPage != page) {
+        NSLog(@"page changed! %i",page);
+        if (page == 1) [self loadNext];
+        else if (page == -1) [self loadPrevious];
+        previousPage = page;
+    }
+}
+
+- (void)loadReportsForProject:(BHProject*)project {
+    RKObjectManager *manager = [RKObjectManager sharedManager];
+    
+    RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[BHUser class]];
+    [userMapping addAttributeMappingsFromDictionary:@{
+                                                         @"_id":@"identifier",
+                                                         @"fullname":@"fullname"
+                                                         }];
+    
+    RKObjectMapping *reportsMapping = [RKObjectMapping mappingForClass:[BHReport class]];
+    [reportsMapping addAttributeMappingsFromArray:@[@"title", @"type",@"createdOn", @"body"]];
+    [reportsMapping addAttributeMappingsFromDictionary:@{
+                                                         @"_id" : @"identifier",
+                                                         }];
+    RKRelationshipMapping *relationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"user"
+                                                                                             toKeyPath:@"user"
+                                                                                           withMapping:userMapping];
+    [reportsMapping addPropertyMapping:relationshipMapping];
+    
+    NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
+    RKResponseDescriptor *reportsDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:reportsMapping method:RKRequestMethodAny pathPattern:@"reports" keyPath:@"rows" statusCodes:statusCodes];
+    
+
+    /*RKObjectMapping *projectMapping = [RKObjectMapping requestMapping];
+    [projectMapping addAttributeMappingsFromDictionary:@{@"project":project}];
+    RKRequestDescriptor *requestDescriptor = [RKRequestDescriptor requestDescriptorWithMapping:projectMapping objectClass:[BHProject class] rootKeyPath:nil method:RKRequestMethodAny];
+    [manager addRequestDescriptor:requestDescriptor];*/
+    
+    [SVProgressHUD showWithStatus:@"Fetching projects..."];
+    [manager addResponseDescriptor:reportsDescriptor];
+    [manager getObjectsAtPath:@"reports" parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
+        NSLog(@"mapping result for reports: %@",mappingResult.firstObject);
+        reports = [mappingResult.array mutableCopy];
+        [SVProgressHUD dismiss];
+        _report = [reports objectAtIndex:0];
+        [self.tableView reloadData];
+    } failure:^(RKObjectRequestOperation *operation, NSError *error) {
+        NSLog(@"Error fetching projects for dashboard: %@",error.description);
+        [SVProgressHUD dismiss];
+    }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -81,7 +160,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else return 2;
+    else return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -95,8 +174,13 @@
         }
         [cell.typePickerButton setTitle:_report.type forState:UIControlStateNormal];
         [cell.typePickerButton addTarget:self action:@selector(tapTypePicker) forControlEvents:UIControlEventTouchUpInside];
-        [cell.datePickerButton setTitle:_report.dateString forState:UIControlStateNormal];
+        NSDate *formattedDate = [dateFormatter dateFromString:_report.createdOn];
+        NSDateFormatter *newFormatter = [[NSDateFormatter alloc] init];
+        [newFormatter setDateStyle:NSDateFormatterLongStyle];
+        [newFormatter setTimeStyle:NSDateFormatterMediumStyle];
+        [cell.datePickerButton setTitle:[newFormatter stringFromDate:formattedDate] forState:UIControlStateNormal];
         [cell.datePickerButton addTarget:self action:@selector(setDate:) forControlEvents:UIControlEventTouchUpInside];
+        [cell configure];
         return cell;
     } else {
         static NSString *CellIdentifier = @"ReportSectionCell";
@@ -105,23 +189,22 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportSectionCell" owner:self options:nil] lastObject];
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        if (indexPath.row == 0){
-            [cell.reportSectionLabel setText:@"General Remarks"];
-        } else {
-            [cell.reportSectionLabel setText:@"Material Received"];
-        }
+        [cell.reportSectionLabel setText:_report.title];
         [cell.reportBodyTextView setDelegate:self];
+        [cell.reportBodyTextView setText:_report.body];
         return cell;
     }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) return 100;
-    else return 200;
+    else {
+        return 300;
+    }
 }
 
 -(void)textViewDidBeginEditing:(UITextView *)textView {
-    NSLog(@"textview started typing");
+
     UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
     self.navigationItem.rightBarButtonItem = doneButton;
 }
@@ -148,9 +231,10 @@
 
 - (void)loadDate:(UIDatePicker *)sender {
     NSLog(@"Should be loading a report for: %@", sender.date);
-    
-    _report.dateString = [self.dateFormatter stringFromDate:sender.date];
+    [SVProgressHUD showWithStatus:@"Fetching report..."];
+    _report.createdOn = [dateFormatter stringFromDate:sender.date];
     [self.tableView reloadData];
+    [self performSelector:@selector(dismissOverlay) withObject:nil afterDelay:1.0];
 }
 
 - (void)dismissDatePicker:(id)sender {

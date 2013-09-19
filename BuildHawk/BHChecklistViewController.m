@@ -7,6 +7,8 @@
 //
 
 #import "BHChecklistViewController.h"
+#import "BHCategoryChecklistViewController.h"
+#import "BHTabBarViewController.h"
 
 @interface BHChecklistViewController () <UISearchBarDelegate, UISearchDisplayDelegate, UITableViewDataSource, UITableViewDelegate> {
     NSMutableArray *categories;
@@ -19,6 +21,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
 	// Do any additional setup after loading the view, typically from a nib.
     categories = [NSMutableArray arrayWithObjects:@"Pre-job", @"Site Prep", @"Earthwork", @"Utilities",@"Rough Trades", @"Roof", @"Exterior Finish", @"Finish Sitework", nil];
 }
@@ -101,10 +104,26 @@
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     [self.navigationController setNavigationBarHidden:YES animated:YES];
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
+        self.searchDisplayController.searchBar.transform = CGAffineTransformMakeTranslation(0, -44);
+        self.segmentedControl.transform = CGAffineTransformMakeTranslation(0, -44);
+        CGRect tableRect = self.tableView.frame;
+        tableRect.size.height += 44;
+        tableRect.origin.y -= 44;
+        [self.tableView setFrame:tableRect];
+    }];
 }
 
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
     [self.navigationController setNavigationBarHidden:NO animated:YES];
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
+        self.searchDisplayController.searchBar.transform = CGAffineTransformIdentity;
+        self.segmentedControl.transform = CGAffineTransformIdentity;
+        CGRect tableRect = self.tableView.frame;
+        tableRect.size.height -= 44;
+        tableRect.origin.y += 44;
+        [self.tableView setFrame:tableRect];
+    }];
 }
 
 #pragma mark - Table view delegate
@@ -114,5 +133,11 @@
     [self performSegueWithIdentifier:@"ShowSubcategories" sender:self];
 }
 
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"ShowSubcategories"]) {
+        BHCategoryChecklistViewController *vc = [segue destinationViewController];
+        [vc setTitle:[categories objectAtIndex:self.tableView.indexPathForSelectedRow.row]];
+    }
+}
 
 @end

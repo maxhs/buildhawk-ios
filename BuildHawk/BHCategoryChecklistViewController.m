@@ -29,7 +29,7 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    subcategories = [NSMutableArray arrayWithObjects:@"Drawings & Specifictations",@"Communication",@"Reports",@"Unusual Issues",@"Schedule",@"Safety",@"Risk Management",@"Strategic Planning", nil];
+    subcategories = [NSMutableArray arrayWithObjects:@"Drawings & Specifications",@"Communication",@"Reports",@"Unusual Issues",@"Schedule",@"Safety",@"Risk Management",@"Strategic Planning", nil];
 }
 
 - (void)didReceiveMemoryWarning

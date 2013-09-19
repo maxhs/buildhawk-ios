@@ -8,6 +8,7 @@
 
 #import "BHDashboardDetailViewController.h"
 #import "Constants.h"
+#import "BHTabBarViewController.h"
 
 @interface BHDashboardDetailViewController () {
     NSMutableArray *notifications;
@@ -17,6 +18,8 @@
 @end
 
 @implementation BHDashboardDetailViewController
+
+@synthesize project;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -31,7 +34,7 @@
 {
     [super viewDidLoad];
     self.navigationItem.hidesBackButton = NO;
-    self.navigationItem.title = self.projectTitle;
+    self.navigationItem.title = self.project.name;
     //setup goToProject button
     UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 66)];
     [footerView setBackgroundColor:[UIColor colorWithWhite:.15 alpha:1.0]];
@@ -47,6 +50,13 @@
 
 - (void)goToProject:(UIButton*)button {
     [self performSegueWithIdentifier:@"Project" sender:button];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"Project"]) {
+        BHTabBarViewController *vc = [segue destinationViewController];
+        [vc setProject:self.project];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -122,17 +132,18 @@
 
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
-    UIView* headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 44.0)];
-    [headerView setBackgroundColor:[UIColor colorWithWhite:.5 alpha:.10]];
+    UIView* headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 54.0)];
+    [headerView setBackgroundColor:[UIColor clearColor]];
     
     // Add the label
-    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 320.0, 20.0)];
-    headerLabel.backgroundColor = [UIColor clearColor];
+    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, 320.0, 30.0)];
+    headerLabel.backgroundColor = [UIColor colorWithWhite:.5 alpha:.10];
     headerLabel.textColor = [UIColor lightGrayColor];
     headerLabel.font = [UIFont fontWithName:kHelveticaNeueLight size:16];
     headerLabel.numberOfLines = 0;
     headerLabel.textAlignment = NSTextAlignmentCenter;
-    [headerView addSubview: headerLabel];
+    
+    [headerView addSubview:headerLabel];
     
     switch (section) {
         case 0:

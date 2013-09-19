@@ -14,6 +14,8 @@
 
 @implementation BHTabBarViewController
 
+@synthesize project;
+
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -40,5 +42,11 @@
 
     }
 }
+
+- (void)viewDidDisappear:(BOOL)animated{
+    NSLog(@"BHTabBarVC did disappeary");
+    self.project = nil;
+}
+
 
 @end

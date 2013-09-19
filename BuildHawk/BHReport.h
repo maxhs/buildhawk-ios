@@ -12,9 +12,14 @@
 
 @interface BHReport : NSObject
 
-@property (nonatomic, copy) NSString *type;
-@property (nonatomic, copy) NSString *dateString;
-@property (nonatomic, copy) BHUser *author;
-@property (nonatomic, copy) BHProject *project;
+@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSString *type;
+@property (nonatomic, strong) NSString *title;
+@property (nonatomic, strong) NSString *body;
+@property (nonatomic, strong) NSString *createdOn;
+@property (nonatomic, strong) BHUser *user;
+@property (nonatomic, strong) BHProject *project;
+@property (nonatomic, strong) NSMutableArray *subcontractors;
+@property (nonatomic, strong) NSMutableArray *photos;
 
 @end

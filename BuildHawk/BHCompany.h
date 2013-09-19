@@ -9,5 +9,6 @@
 #import <Foundation/Foundation.h>
 
 @interface BHCompany : NSObject
-
+@property (strong, nonatomic) NSString *name;
+@property (strong, nonatomic) NSString *identifier;
 @end

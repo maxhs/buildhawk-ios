@@ -7,7 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHProject.h"
 
 @interface BHTabBarViewController : UITabBarController
-
+@property (strong, nonatomic) BHProject *project;
 @end
