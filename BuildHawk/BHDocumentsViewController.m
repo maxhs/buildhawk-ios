@@ -10,9 +10,14 @@
 #import "BHPhotoPickerCell.h"
 #import "BHTabBarViewController.h"
 #import "Constants.h"
+#import "BHPhoto.h"
+#import <RestKit/RestKit.h>
+#import <SVProgressHUD/SVProgressHUD.h>
+#import "BHPhotosViewController.h"
 
 @interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate> {
     BOOL iPhone5;
+    NSMutableArray *photosArray;
 }
 
 -(IBAction)backToDashboard;
@@ -35,6 +40,16 @@
     } else {
         iPhone5 = NO;
     }
+    if (!photosArray) photosArray = [NSMutableArray array];
+    [self loadPhotos];
+    
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [UIView animateWithDuration:.25 animations:^{
+        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+    }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -42,6 +57,39 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+- (void)loadPhotos {
+    RKObjectManager *manager = [RKObjectManager sharedManager];
+    
+    RKObjectMapping *photosMapping = [RKObjectMapping mappingForClass:[BHPhoto class]];
+    [photosMapping addAttributeMappingsFromDictionary:@{
+                                                        @"urls.200x200":@"url200",
+                                                        @"urls.100x100":@"url100"
+                                                        }];
+    
+    /*RKRelationshipMapping *relationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"created.photos"
+                                                                                             toKeyPath:@"photos"
+                                                                                           withMapping:photosMapping];*/
+
+    NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
+    RKResponseDescriptor *punchlistDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:photosMapping method:RKRequestMethodAny pathPattern:nil keyPath:@"rows" statusCodes:statusCodes];
+    
+    [SVProgressHUD showWithStatus:@"Fetching documents..."];
+    [manager addResponseDescriptor:punchlistDescriptor];
+    [manager getObjectsAtPath:[NSString stringWithFormat:@"photos/%@",[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
+        [photosArray removeAllObjects];
+        for (id obj in mappingResult.array) {
+            if ([obj isKindOfClass:[BHPhoto class]]) [photosArray addObject:(BHPhoto*)obj];
+        }
+        [self.tableView reloadData];
+        [SVProgressHUD dismiss];
+    } failure:^(RKObjectRequestOperation *operation, NSError *error) {
+        NSLog(@"Error fetching projects for dashboard: %@",error.description);
+        [SVProgressHUD dismiss];
+    }];
+}
+
+
 
 #pragma mark - Table view data source
 
@@ -68,11 +116,29 @@
         [cell.categoryButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
         [cell.dateButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
         [cell.userButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
-        
+        if (photosArray.count > 0){
+            [cell.mainImageView setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[(BHPhoto*)[photosArray objectAtIndex:0] url200]]] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+                [cell.mainImageView setImage:image];
+                [cell.mainImageView setContentMode:UIViewContentModeScaleAspectFill];
+                cell.mainImageView.clipsToBounds = YES;
+                [UIView animateWithDuration:.25 animations:^{
+                    [cell.mainImageView setAlpha:1.0];
+                }];
+                
+            } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
+                
+            }];
+        }
         [self buttonTreatment:cell.categoryButton];
         [self buttonTreatment:cell.dateButton];
         [self buttonTreatment:cell.userButton];
-        
+        if (photosArray.count) {
+            [cell.countLabel setText:[NSString stringWithFormat:@"%i documents",photosArray.count]];
+            [cell.countLabel setAlpha:1.0];
+        }
+        else {
+            [cell.countLabel setAlpha:0.0];
+        }
         return cell;
     } else {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"DocumentFolder"];
@@ -82,11 +148,12 @@
 }
 
 - (void)buttonTreatment:(UIButton*)button {
-    button.layer.cornerRadius = 5.0f;
+    button.layer.cornerRadius = button.frame.size.height/2;
     button.clipsToBounds = YES;
-    button.backgroundColor = [UIColor whiteColor];
+    button.backgroundColor = kBlueColor;
     button.layer.borderColor = [UIColor lightGrayColor].CGColor;
     button.layer.borderWidth = 0.5;
+    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -153,6 +220,14 @@
 
 - (void)showPhoto {
     [self performSegueWithIdentifier:@"ByCategory" sender:self];
+    [UIView animateWithDuration:.25 animations:^{
+        self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
+    }];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    BHPhotosViewController *vc = [segue destinationViewController];
+    [vc setPhotosArray:photosArray];
 }
 
 - (IBAction)backToDashboard {

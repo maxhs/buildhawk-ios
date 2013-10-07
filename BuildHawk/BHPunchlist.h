@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <CoreData/CoreData.h>
 #import "BHPunchlistItem.h"
 
 @interface BHPunchlist : NSObject

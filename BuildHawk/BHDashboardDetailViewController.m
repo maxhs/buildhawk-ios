@@ -37,7 +37,7 @@
     self.navigationItem.title = self.project.name;
     //setup goToProject button
     UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 66)];
-    [footerView setBackgroundColor:[UIColor colorWithWhite:.15 alpha:1.0]];
+    [footerView setBackgroundColor:kBlueColor];
     UIButton *goToProjectButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [goToProjectButton setTitle:@"Go to Project" forState:UIControlStateNormal];
     [goToProjectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -74,7 +74,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 2;
+    return 3;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -113,10 +113,10 @@
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 0:
-            return @"Notifications";
+            return @"Updates";
             break;
         case 1:
-            return @"Recent Checklist Items";
+            return @"Recent Items";
             break;
         case 2:
             return @"Recent Documents";

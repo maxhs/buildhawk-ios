@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "BHUser.h"
 #import "BHProject.h"
+#import <CoreData/CoreData.h>
 
 @interface BHReport : NSObject
 

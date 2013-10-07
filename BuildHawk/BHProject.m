@@ -9,5 +9,5 @@
 #import "BHProject.h"
 
 @implementation BHProject
-
+//@dynamic name, identifier, type, users, photos, address, company, active;
 @end

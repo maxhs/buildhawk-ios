@@ -9,10 +9,19 @@
 #import "BHPunchlistItemViewController.h"
 #import "Constants.h"
 #import <SVProgressHUD/SVProgressHUD.h>
+#import <RestKit/RestKit.h>
+#import "BHUser.h"
+
+typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
+typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
+typedef void(^RequestFailure)(NSError *error);
+typedef void(^RequestSuccess)(id result);
 
 @interface BHPunchlistItemViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate> {
     BOOL iPhone5;
     BOOL completed;
+    BOOL shouldUpdateCompletion;
+    AFHTTPClient *punchlistClient;
 }
 -(IBAction)assigneeButtonTapped;
 -(IBAction)locationButtonTapped;
@@ -53,8 +62,23 @@
     UIBarButtonItem *saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;
     
-    if (self.punchlistItem.completed) completed = YES;
-    else completed = NO;
+    if (self.punchlistItem.completedOn) {
+        completed = YES;
+        [self.completionButton setBackgroundColor:kDarkGrayColor];
+        [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
+    } else {
+        completed = NO;
+        [self.completionButton setBackgroundColor:kLightestGrayColor];
+        [self.completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
+    }
+    shouldUpdateCompletion = NO;
+    punchlistClient = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:@"http://www.buildhawk.com/api/v1"]];
+    [punchlistClient setDefaultHeader:@"Accept" value:@"application/json"];
+    NSLog(@"completed? %@",self.punchlistItem.completedOn);
+    [punchlistClient setDefaultHeader:@"authtoken" value:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthToken]];
+    [punchlistClient registerHTTPOperationClass:[AFJSONRequestOperation class]];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -73,16 +97,6 @@
     if (self.punchlistItem.assignees.count) {
         NSLog(@"There are assignees");
     }
-    
-    if (completed){
-        [self.completionButton setBackgroundColor:kDarkGrayColor];
-        [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
-    } else {
-        [self.completionButton setBackgroundColor:kLightGrayColor];
-        [self.completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
-    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -91,29 +105,30 @@
 }
 
 - (void)save {
+    [self updateItem];
     [SVProgressHUD showWithStatus:@"Saving..."];
-    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)addBorderTreatement:(UIButton*)button {
     button.layer.borderColor = [UIColor lightGrayColor].CGColor;
     button.layer.borderWidth = 0.5f;
-    [button setBackgroundColor:kLightGrayColor];
+    [button setBackgroundColor:kLightestGrayColor];
 }
 
 - (IBAction)completionTapped{
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        if (completed){
+        if (!completed){
             [self.completionButton setBackgroundColor:[UIColor colorWithWhite:.15 alpha:1]];
             [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
         } else {
-            [self.completionButton setBackgroundColor:kLightGrayColor];
+            [self.completionButton setBackgroundColor:kLightestGrayColor];
             [self.completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
             [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
         }
     } completion:^(BOOL finished) {
         completed = !completed;
+        shouldUpdateCompletion = YES;
     }];
 }
 
@@ -263,6 +278,77 @@
 
 -(IBAction)locationButtonTapped{
     
+}
+
+-(AFJSONRequestOperation*)updateItem {
+    
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        NSLog(@"Failed to update punchlist item: %@",error.description);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        if (completed && shouldUpdateCompletion) [self sendComplete];
+        else if (shouldUpdateCompletion) [self uncomplete];
+        else [SVProgressHUD dismiss];
+        [self.navigationController popViewControllerAnimated:YES];
+        NSLog(@"Success updating punchlist item: %@",responseObject);
+    };
+    
+    //temporary code for updating punchlist item
+    NSDictionary *parameters = @{@"name":self.itemTextView.text,@"location":[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""]};
+    NSMutableURLRequest *request = [punchlistClient requestWithMethod:@"PUT" path:[NSString stringWithFormat:@"punchlist/%@",self.punchlistItem.identifier] parameters:parameters];
+    
+    AFJSONRequestOperation *op = (AFJSONRequestOperation *)[punchlistClient HTTPRequestOperationWithRequest:request
+                                                                                                    success:opSuccess
+                                                                                                    failure:opFailure];
+    [op start];
+    return op;
+}
+
+-(AFJSONRequestOperation*)sendComplete {
+    
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        NSLog(@"Failed to mark punchlist item as complete: %@",error.description);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        [SVProgressHUD dismiss];
+        NSLog(@"Success completing punchlist item: %@",responseObject);
+    };
+    NSDictionary *parameters = @{kcompleted:@{@"user":@{@"_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]}}};
+    NSMutableURLRequest *request = [punchlistClient requestWithMethod:@"PUT" path:[NSString stringWithFormat:@"punchlist/complete/%@",self.punchlistItem.identifier] parameters:parameters];
+    
+    AFJSONRequestOperation *op = (AFJSONRequestOperation *)[punchlistClient HTTPRequestOperationWithRequest:request
+                                                                                                  success:opSuccess
+                                                                                                  failure:opFailure];
+    [op start];
+    return op;
+}
+
+-(AFJSONRequestOperation*)uncomplete {
+    
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        NSLog(@"Failed to mark punchlist item as NOT complete: %@",error.description);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        [SVProgressHUD dismiss];
+        NSLog(@"Success UNCOMPLETING a punchlist item: %@",responseObject);
+    };
+    NSDictionary *parameters = @{kcompleted:@{@"user":@{@"_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]}}};
+    NSMutableURLRequest *request = [punchlistClient requestWithMethod:@"PUT" path:[NSString stringWithFormat:@"punchlist/uncomplete/%@",self.punchlistItem.identifier] parameters:parameters];
+    
+    AFJSONRequestOperation *op = (AFJSONRequestOperation *)[punchlistClient HTTPRequestOperationWithRequest:request
+                                                                                                    success:opSuccess
+                                                                                                    failure:opFailure];
+    [op start];
+    return op;
 }
 
 - (void)didReceiveMemoryWarning

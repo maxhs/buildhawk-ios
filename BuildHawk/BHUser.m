@@ -10,4 +10,6 @@
 
 @implementation BHUser
 
+//@dynamic fname, lname, fullname, identifier, email, password, phone1, authToken, deviceTokens, timestamps, photo, company, projects, coworkers;
+
 @end

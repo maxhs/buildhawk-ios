@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		EA0C2DDC9782430899F40E10 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B0CBF992ED9140A28D7EBD98 /* libPods.a */; };
+		F2021B8B18031F92008B1BAE /* BuildHawkModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2021B8918031F92008B1BAE /* BuildHawkModel.xcdatamodeld */; };
+		F2021B8E180358C5008B1BAE /* BHSyncEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = F2021B8D180358C5008B1BAE /* BHSyncEngine.m */; };
 		F203961B17D12FC6001CFF61 /* BHUser.m in Sources */ = {isa = PBXBuildFile; fileRef = F203961A17D12FC6001CFF61 /* BHUser.m */; };
 		F203961E17D12FF4001CFF61 /* BHCompany.m in Sources */ = {isa = PBXBuildFile; fileRef = F203961D17D12FF4001CFF61 /* BHCompany.m */; };
 		F203962117D12FFF001CFF61 /* BHProject.m in Sources */ = {isa = PBXBuildFile; fileRef = F203962017D12FFF001CFF61 /* BHProject.m */; };
@@ -25,13 +27,7 @@
 		F203963E17D2DE9E001CFF61 /* loginButtonBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203963C17D2DE9E001CFF61 /* loginButtonBackground@2x.png */; };
 		F203964217D3B484001CFF61 /* BHDashboardProjectCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F203964117D3B484001CFF61 /* BHDashboardProjectCell.m */; };
 		F203964417D3B494001CFF61 /* BHDashboardProjectCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */; };
-		F203964917D3CD3B001CFF61 /* navBarBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = F203964517D3CD3B001CFF61 /* navBarBackground.png */; };
-		F203964A17D3CD3B001CFF61 /* navBarBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203964617D3CD3B001CFF61 /* navBarBackground@2x.png */; };
 		F203964E17D3CDD9001CFF61 /* empty.png in Resources */ = {isa = PBXBuildFile; fileRef = F203964D17D3CDD9001CFF61 /* empty.png */; };
-		F203965317D3DC67001CFF61 /* dashboard.png in Resources */ = {isa = PBXBuildFile; fileRef = F203964F17D3DC65001CFF61 /* dashboard.png */; };
-		F203965417D3DC67001CFF61 /* dashboard@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203965017D3DC66001CFF61 /* dashboard@2x.png */; };
-		F203965517D3DC67001CFF61 /* menu.png in Resources */ = {isa = PBXBuildFile; fileRef = F203965117D3DC66001CFF61 /* menu.png */; };
-		F203965617D3DC67001CFF61 /* menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203965217D3DC67001CFF61 /* menu@2x.png */; };
 		F203965917D3DCEB001CFF61 /* BHReport.m in Sources */ = {isa = PBXBuildFile; fileRef = F203965817D3DCEA001CFF61 /* BHReport.m */; };
 		F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F203965B17D3DD6B001CFF61 /* BHPunchlistViewController.m */; };
 		F203965F17D3DD7C001CFF61 /* BHReportsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F203965E17D3DD7C001CFF61 /* BHReportsViewController.m */; };
@@ -62,6 +58,53 @@
 		F239BBA217D877D9003097E6 /* BHReportPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F239BBA117D877D9003097E6 /* BHReportPickerCell.m */; };
 		F239BBA517D8CA6A003097E6 /* BHReportPickerCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */; };
 		F239BBA617D8CA71003097E6 /* BHReportSectionCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F239BBA417D877FB003097E6 /* BHReportSectionCell.xib */; };
+		F291F4B617F0B33000A27B46 /* BHChecklistItemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */; };
+		F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */; };
+		F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B817F0B80900A27B46 /* communicateOutline.png */; };
+		F291F4BF17F0B80900A27B46 /* stopAndCheckOutline.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B917F0B80900A27B46 /* stopAndCheckOutline.png */; };
+		F291F4C017F0B80900A27B46 /* stopAndCheckOutline@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4BA17F0B80900A27B46 /* stopAndCheckOutline@2x.png */; };
+		F291F4C117F0B80900A27B46 /* documentsOutline.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4BB17F0B80900A27B46 /* documentsOutline.png */; };
+		F291F4C217F0B80900A27B46 /* documentsOutline@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4BC17F0B80900A27B46 /* documentsOutline@2x.png */; };
+		F291F4C517F0B82900A27B46 /* BHSubcategoryChecklistViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4C417F0B82900A27B46 /* BHSubcategoryChecklistViewController.m */; };
+		F291F4D117F0D50600A27B46 /* BHCategory.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4D017F0D50600A27B46 /* BHCategory.m */; };
+		F291F4D417F0D51100A27B46 /* BHSubcategory.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4D317F0D51100A27B46 /* BHSubcategory.m */; };
+		F291F4D717F0EC6600A27B46 /* RADataObject.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4D617F0EC6600A27B46 /* RADataObject.m */; };
+		F292ABF317F9E5590020DE13 /* BHChecklistMessageCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F292ABF217F9E5590020DE13 /* BHChecklistMessageCell.m */; };
+		F292ABF517F9E5660020DE13 /* BHChecklistMessageCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F292ABF417F9E5660020DE13 /* BHChecklistMessageCell.xib */; };
+		F292ABF817F9E6050020DE13 /* BHCommentCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F292ABF717F9E6050020DE13 /* BHCommentCell.m */; };
+		F292ABFA17F9E6130020DE13 /* BHCommentCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F292ABF917F9E6130020DE13 /* BHCommentCell.xib */; };
+		F292ABFD17F9E8E40020DE13 /* BHListItemPhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F292ABFC17F9E8E40020DE13 /* BHListItemPhotoCell.m */; };
+		F292ABFF17F9E8F10020DE13 /* BHListItemPhotoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F292ABFE17F9E8F10020DE13 /* BHListItemPhotoCell.xib */; };
+		F292AC0217F9EFE40020DE13 /* BHAddCommentCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F292AC0117F9EFE40020DE13 /* BHAddCommentCell.m */; };
+		F292AC0417F9EFF70020DE13 /* BHAddCommentCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0317F9EFF70020DE13 /* BHAddCommentCell.xib */; };
+		F292AC0D17F9F2DE0020DE13 /* callButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0517F9F2DE0020DE13 /* callButton.png */; };
+		F292AC0E17F9F2DE0020DE13 /* callButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0617F9F2DE0020DE13 /* callButton@2x.png */; };
+		F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0717F9F2DE0020DE13 /* cameraButton.png */; };
+		F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0817F9F2DE0020DE13 /* cameraButton@2x.png */; };
+		F292AC1117F9F2DE0020DE13 /* textButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0917F9F2DE0020DE13 /* textButton.png */; };
+		F292AC1217F9F2DE0020DE13 /* textButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0A17F9F2DE0020DE13 /* textButton@2x.png */; };
+		F292AC1317F9F2DE0020DE13 /* mailButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0B17F9F2DE0020DE13 /* mailButton.png */; };
+		F292AC1417F9F2DE0020DE13 /* mailButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0C17F9F2DE0020DE13 /* mailButton@2x.png */; };
+		F29579C317F76DF90082DE5A /* navBarBackgroundTall.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579C117F76DF90082DE5A /* navBarBackgroundTall.png */; };
+		F29579C417F76DF90082DE5A /* navBarBackgroundTall@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579C217F76DF90082DE5A /* navBarBackgroundTall@2x.png */; };
+		F29579C917F771B80082DE5A /* navBarBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579C517F771B80082DE5A /* navBarBackground.png */; };
+		F29579CA17F771B80082DE5A /* navBarBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579C617F771B80082DE5A /* navBarBackground@2x.png */; };
+		F29579CB17F771B80082DE5A /* dashboard.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579C717F771B80082DE5A /* dashboard.png */; };
+		F29579CC17F771B80082DE5A /* dashboard@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579C817F771B80082DE5A /* dashboard@2x.png */; };
+		F29579CF17F7729B0082DE5A /* menu.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579CD17F7729B0082DE5A /* menu.png */; };
+		F29579D017F7729B0082DE5A /* menu@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F29579CE17F7729B0082DE5A /* menu@2x.png */; };
+		F29579D217F77AAB0082DE5A /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F29579D117F77AAB0082DE5A /* CoreLocation.framework */; };
+		F29579D517F7ACA30082DE5A /* BHChecklist.m in Sources */ = {isa = PBXBuildFile; fileRef = F29579D417F7ACA30082DE5A /* BHChecklist.m */; };
+		F2A594D317F9F98000B818B5 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594D217F9F98000B818B5 /* MessageUI.framework */; };
+		F2A594D617F9FCCC00B818B5 /* BHCompleted.m in Sources */ = {isa = PBXBuildFile; fileRef = F2A594D517F9FCCC00B818B5 /* BHCompleted.m */; };
+		F2A594E217FAAB0C00B818B5 /* EventKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594E117FAAB0C00B818B5 /* EventKit.framework */; };
+		F2A594E417FAAB1000B818B5 /* EventKitUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594E317FAAB1000B818B5 /* EventKitUI.framework */; };
+		F2A594E617FAAD8200B818B5 /* AddressBook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594E517FAAD8200B818B5 /* AddressBook.framework */; };
+		F2A594E817FAAD8700B818B5 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594E717FAAD8700B818B5 /* AddressBookUI.framework */; };
+		F2A594EB17FBC13C00B818B5 /* BHPhotosViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2A594EA17FBC13C00B818B5 /* BHPhotosViewController.m */; };
+		F2A594EE17FBC3C400B818B5 /* BHCollectionPhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */; };
+		F2A594F217FBCD0200B818B5 /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594F117FBCD0200B818B5 /* ImageIO.framework */; };
+		F2A594F417FBCD1C00B818B5 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594F317FBCD1C00B818B5 /* CoreImage.framework */; };
 		F2B1F0E617D7BE820007A4E3 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E317D7BE810007A4E3 /* Default.png */; };
 		F2B1F0E717D7BE820007A4E3 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E417D7BE810007A4E3 /* Default@2x.png */; };
 		F2B1F0E817D7BE820007A4E3 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */; };
@@ -91,6 +134,9 @@
 /* Begin PBXFileReference section */
 		7CE765D888B94A02BF4CAA11 /* Pods.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.xcconfig; path = Pods/Pods.xcconfig; sourceTree = SOURCE_ROOT; };
 		B0CBF992ED9140A28D7EBD98 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		F2021B8A18031F92008B1BAE /* BuildHawkModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BuildHawkModel.xcdatamodel; sourceTree = "<group>"; };
+		F2021B8C180358C5008B1BAE /* BHSyncEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSyncEngine.h; sourceTree = "<group>"; };
+		F2021B8D180358C5008B1BAE /* BHSyncEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSyncEngine.m; sourceTree = "<group>"; };
 		F203961917D12FC6001CFF61 /* BHUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHUser.h; sourceTree = "<group>"; };
 		F203961A17D12FC6001CFF61 /* BHUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHUser.m; sourceTree = "<group>"; };
 		F203961C17D12FF4001CFF61 /* BHCompany.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHCompany.h; sourceTree = "<group>"; };
@@ -117,13 +163,7 @@
 		F203964017D3B483001CFF61 /* BHDashboardProjectCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDashboardProjectCell.h; sourceTree = "<group>"; };
 		F203964117D3B484001CFF61 /* BHDashboardProjectCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardProjectCell.m; sourceTree = "<group>"; };
 		F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHDashboardProjectCell.xib; sourceTree = "<group>"; };
-		F203964517D3CD3B001CFF61 /* navBarBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = navBarBackground.png; sourceTree = "<group>"; };
-		F203964617D3CD3B001CFF61 /* navBarBackground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "navBarBackground@2x.png"; sourceTree = "<group>"; };
 		F203964D17D3CDD9001CFF61 /* empty.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = empty.png; sourceTree = "<group>"; };
-		F203964F17D3DC65001CFF61 /* dashboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dashboard.png; sourceTree = "<group>"; };
-		F203965017D3DC66001CFF61 /* dashboard@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dashboard@2x.png"; sourceTree = "<group>"; };
-		F203965117D3DC66001CFF61 /* menu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = menu.png; sourceTree = "<group>"; };
-		F203965217D3DC67001CFF61 /* menu@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "menu@2x.png"; sourceTree = "<group>"; };
 		F203965717D3DCE9001CFF61 /* BHReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReport.h; sourceTree = "<group>"; };
 		F203965817D3DCEA001CFF61 /* BHReport.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReport.m; sourceTree = "<group>"; };
 		F203965A17D3DD6B001CFF61 /* BHPunchlistViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistViewController.h; sourceTree = "<group>"; };
@@ -166,6 +206,66 @@
 		F239BBA117D877D9003097E6 /* BHReportPickerCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportPickerCell.m; sourceTree = "<group>"; };
 		F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BHReportPickerCell.xib; sourceTree = "<group>"; };
 		F239BBA417D877FB003097E6 /* BHReportSectionCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BHReportSectionCell.xib; sourceTree = "<group>"; };
+		F291F4B417F0B33000A27B46 /* BHChecklistItemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistItemViewController.h; sourceTree = "<group>"; };
+		F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistItemViewController.m; sourceTree = "<group>"; };
+		F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "communicateOutline@2x.png"; sourceTree = "<group>"; };
+		F291F4B817F0B80900A27B46 /* communicateOutline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = communicateOutline.png; sourceTree = "<group>"; };
+		F291F4B917F0B80900A27B46 /* stopAndCheckOutline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stopAndCheckOutline.png; sourceTree = "<group>"; };
+		F291F4BA17F0B80900A27B46 /* stopAndCheckOutline@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "stopAndCheckOutline@2x.png"; sourceTree = "<group>"; };
+		F291F4BB17F0B80900A27B46 /* documentsOutline.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = documentsOutline.png; sourceTree = "<group>"; };
+		F291F4BC17F0B80900A27B46 /* documentsOutline@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "documentsOutline@2x.png"; sourceTree = "<group>"; };
+		F291F4C317F0B82900A27B46 /* BHSubcategoryChecklistViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSubcategoryChecklistViewController.h; sourceTree = "<group>"; };
+		F291F4C417F0B82900A27B46 /* BHSubcategoryChecklistViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSubcategoryChecklistViewController.m; sourceTree = "<group>"; };
+		F291F4CF17F0D50600A27B46 /* BHCategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHCategory.h; sourceTree = "<group>"; };
+		F291F4D017F0D50600A27B46 /* BHCategory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHCategory.m; sourceTree = "<group>"; };
+		F291F4D217F0D51100A27B46 /* BHSubcategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSubcategory.h; sourceTree = "<group>"; };
+		F291F4D317F0D51100A27B46 /* BHSubcategory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSubcategory.m; sourceTree = "<group>"; };
+		F291F4D517F0EC6600A27B46 /* RADataObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RADataObject.h; sourceTree = "<group>"; };
+		F291F4D617F0EC6600A27B46 /* RADataObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RADataObject.m; sourceTree = "<group>"; };
+		F292ABF117F9E5590020DE13 /* BHChecklistMessageCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistMessageCell.h; sourceTree = "<group>"; };
+		F292ABF217F9E5590020DE13 /* BHChecklistMessageCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistMessageCell.m; sourceTree = "<group>"; };
+		F292ABF417F9E5660020DE13 /* BHChecklistMessageCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHChecklistMessageCell.xib; sourceTree = "<group>"; };
+		F292ABF617F9E6050020DE13 /* BHCommentCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHCommentCell.h; sourceTree = "<group>"; };
+		F292ABF717F9E6050020DE13 /* BHCommentCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHCommentCell.m; sourceTree = "<group>"; };
+		F292ABF917F9E6130020DE13 /* BHCommentCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHCommentCell.xib; sourceTree = "<group>"; };
+		F292ABFB17F9E8E40020DE13 /* BHListItemPhotoCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHListItemPhotoCell.h; sourceTree = "<group>"; };
+		F292ABFC17F9E8E40020DE13 /* BHListItemPhotoCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHListItemPhotoCell.m; sourceTree = "<group>"; };
+		F292ABFE17F9E8F10020DE13 /* BHListItemPhotoCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHListItemPhotoCell.xib; sourceTree = "<group>"; };
+		F292AC0017F9EFE40020DE13 /* BHAddCommentCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHAddCommentCell.h; sourceTree = "<group>"; };
+		F292AC0117F9EFE40020DE13 /* BHAddCommentCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHAddCommentCell.m; sourceTree = "<group>"; };
+		F292AC0317F9EFF70020DE13 /* BHAddCommentCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHAddCommentCell.xib; sourceTree = "<group>"; };
+		F292AC0517F9F2DE0020DE13 /* callButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = callButton.png; sourceTree = "<group>"; };
+		F292AC0617F9F2DE0020DE13 /* callButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "callButton@2x.png"; sourceTree = "<group>"; };
+		F292AC0717F9F2DE0020DE13 /* cameraButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cameraButton.png; sourceTree = "<group>"; };
+		F292AC0817F9F2DE0020DE13 /* cameraButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cameraButton@2x.png"; sourceTree = "<group>"; };
+		F292AC0917F9F2DE0020DE13 /* textButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textButton.png; sourceTree = "<group>"; };
+		F292AC0A17F9F2DE0020DE13 /* textButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "textButton@2x.png"; sourceTree = "<group>"; };
+		F292AC0B17F9F2DE0020DE13 /* mailButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = mailButton.png; sourceTree = "<group>"; };
+		F292AC0C17F9F2DE0020DE13 /* mailButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mailButton@2x.png"; sourceTree = "<group>"; };
+		F29579C117F76DF90082DE5A /* navBarBackgroundTall.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = navBarBackgroundTall.png; sourceTree = "<group>"; };
+		F29579C217F76DF90082DE5A /* navBarBackgroundTall@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "navBarBackgroundTall@2x.png"; sourceTree = "<group>"; };
+		F29579C517F771B80082DE5A /* navBarBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = navBarBackground.png; sourceTree = "<group>"; };
+		F29579C617F771B80082DE5A /* navBarBackground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "navBarBackground@2x.png"; sourceTree = "<group>"; };
+		F29579C717F771B80082DE5A /* dashboard.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dashboard.png; sourceTree = "<group>"; };
+		F29579C817F771B80082DE5A /* dashboard@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "dashboard@2x.png"; sourceTree = "<group>"; };
+		F29579CD17F7729B0082DE5A /* menu.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = menu.png; sourceTree = "<group>"; };
+		F29579CE17F7729B0082DE5A /* menu@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "menu@2x.png"; sourceTree = "<group>"; };
+		F29579D117F77AAB0082DE5A /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		F29579D317F7ACA30082DE5A /* BHChecklist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklist.h; sourceTree = "<group>"; };
+		F29579D417F7ACA30082DE5A /* BHChecklist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklist.m; sourceTree = "<group>"; };
+		F2A594D217F9F98000B818B5 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
+		F2A594D417F9FCCC00B818B5 /* BHCompleted.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHCompleted.h; sourceTree = "<group>"; };
+		F2A594D517F9FCCC00B818B5 /* BHCompleted.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHCompleted.m; sourceTree = "<group>"; };
+		F2A594E117FAAB0C00B818B5 /* EventKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKit.framework; path = System/Library/Frameworks/EventKit.framework; sourceTree = SDKROOT; };
+		F2A594E317FAAB1000B818B5 /* EventKitUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = EventKitUI.framework; path = System/Library/Frameworks/EventKitUI.framework; sourceTree = SDKROOT; };
+		F2A594E517FAAD8200B818B5 /* AddressBook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBook.framework; path = System/Library/Frameworks/AddressBook.framework; sourceTree = SDKROOT; };
+		F2A594E717FAAD8700B818B5 /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
+		F2A594E917FBC13C00B818B5 /* BHPhotosViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPhotosViewController.h; sourceTree = "<group>"; };
+		F2A594EA17FBC13C00B818B5 /* BHPhotosViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPhotosViewController.m; sourceTree = "<group>"; };
+		F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHCollectionPhotoCell.h; sourceTree = "<group>"; };
+		F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHCollectionPhotoCell.m; sourceTree = "<group>"; };
+		F2A594F117FBCD0200B818B5 /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
+		F2A594F317FBCD1C00B818B5 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
 		F2B1F0E317D7BE810007A4E3 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F2B1F0E417D7BE810007A4E3 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
@@ -209,6 +309,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2A594F417FBCD1C00B818B5 /* CoreImage.framework in Frameworks */,
+				F2A594F217FBCD0200B818B5 /* ImageIO.framework in Frameworks */,
+				F2A594E817FAAD8700B818B5 /* AddressBookUI.framework in Frameworks */,
+				F2A594E617FAAD8200B818B5 /* AddressBook.framework in Frameworks */,
+				F2A594D317F9F98000B818B5 /* MessageUI.framework in Frameworks */,
+				F2A594E417FAAB1000B818B5 /* EventKitUI.framework in Frameworks */,
+				F2A594E217FAAB0C00B818B5 /* EventKit.framework in Frameworks */,
+				F29579D217F77AAB0082DE5A /* CoreLocation.framework in Frameworks */,
 				F2B1F0EA17D7C0770007A4E3 /* QuartzCore.framework in Frameworks */,
 				F2B29FBD17D0F31B00F09C6F /* UIKit.framework in Frameworks */,
 				F2B29FBF17D0F31B00F09C6F /* Foundation.framework in Frameworks */,
@@ -223,6 +331,8 @@
 		F203961817D12FA4001CFF61 /* Vendors */ = {
 			isa = PBXGroup;
 			children = (
+				F291F4D517F0EC6600A27B46 /* RADataObject.h */,
+				F291F4D617F0EC6600A27B46 /* RADataObject.m */,
 			);
 			name = Vendors;
 			sourceTree = "<group>";
@@ -242,6 +352,20 @@
 				F228707317DFBCC300A88475 /* BHPhotoPickerCell.h */,
 				F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */,
 				F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */,
+				F292ABF617F9E6050020DE13 /* BHCommentCell.h */,
+				F292ABF717F9E6050020DE13 /* BHCommentCell.m */,
+				F292ABF917F9E6130020DE13 /* BHCommentCell.xib */,
+				F292AC0017F9EFE40020DE13 /* BHAddCommentCell.h */,
+				F292AC0117F9EFE40020DE13 /* BHAddCommentCell.m */,
+				F292AC0317F9EFF70020DE13 /* BHAddCommentCell.xib */,
+				F292ABF117F9E5590020DE13 /* BHChecklistMessageCell.h */,
+				F292ABF217F9E5590020DE13 /* BHChecklistMessageCell.m */,
+				F292ABF417F9E5660020DE13 /* BHChecklistMessageCell.xib */,
+				F292ABFB17F9E8E40020DE13 /* BHListItemPhotoCell.h */,
+				F292ABFC17F9E8E40020DE13 /* BHListItemPhotoCell.m */,
+				F292ABFE17F9E8F10020DE13 /* BHListItemPhotoCell.xib */,
+				F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */,
+				F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */,
 			);
 			name = Cells;
 			sourceTree = "<group>";
@@ -265,10 +389,18 @@
 				F2B1F0EF17D7D3E10007A4E3 /* BHPunchlistItem.m */,
 				F21DC9C417EAB43300280C5B /* BHChecklistItem.h */,
 				F21DC9C517EAB43300280C5B /* BHChecklistItem.m */,
+				F291F4CF17F0D50600A27B46 /* BHCategory.h */,
+				F291F4D017F0D50600A27B46 /* BHCategory.m */,
+				F291F4D217F0D51100A27B46 /* BHSubcategory.h */,
+				F291F4D317F0D51100A27B46 /* BHSubcategory.m */,
 				F230674D17E63779006536B8 /* BHAddress.h */,
 				F230674E17E63779006536B8 /* BHAddress.m */,
 				F230675017E63F0C006536B8 /* BHPunchlist.h */,
 				F230675117E63F0C006536B8 /* BHPunchlist.m */,
+				F2A594D417F9FCCC00B818B5 /* BHCompleted.h */,
+				F2A594D517F9FCCC00B818B5 /* BHCompleted.m */,
+				F29579D317F7ACA30082DE5A /* BHChecklist.h */,
+				F29579D417F7ACA30082DE5A /* BHChecklist.m */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -276,6 +408,7 @@
 		F2B29FB017D0F31B00F09C6F = {
 			isa = PBXGroup;
 			children = (
+				F2021B8918031F92008B1BAE /* BuildHawkModel.xcdatamodeld */,
 				F2B29FC217D0F31B00F09C6F /* BuildHawk */,
 				F2B29FBB17D0F31B00F09C6F /* Frameworks */,
 				F2B29FBA17D0F31B00F09C6F /* Products */,
@@ -294,6 +427,14 @@
 		F2B29FBB17D0F31B00F09C6F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F2A594F317FBCD1C00B818B5 /* CoreImage.framework */,
+				F2A594F117FBCD0200B818B5 /* ImageIO.framework */,
+				F2A594E717FAAD8700B818B5 /* AddressBookUI.framework */,
+				F2A594E517FAAD8200B818B5 /* AddressBook.framework */,
+				F2A594E317FAAB1000B818B5 /* EventKitUI.framework */,
+				F2A594E117FAAB0C00B818B5 /* EventKit.framework */,
+				F2A594D217F9F98000B818B5 /* MessageUI.framework */,
+				F29579D117F77AAB0082DE5A /* CoreLocation.framework */,
 				F2B1F0E917D7C0770007A4E3 /* QuartzCore.framework */,
 				F2B29FBC17D0F31B00F09C6F /* UIKit.framework */,
 				F2B29FBE17D0F31B00F09C6F /* Foundation.framework */,
@@ -309,6 +450,8 @@
 				F203961817D12FA4001CFF61 /* Vendors */,
 				F2B29FCB17D0F31B00F09C6F /* BHAppDelegate.h */,
 				F2B29FCC17D0F31B00F09C6F /* BHAppDelegate.m */,
+				F2021B8C180358C5008B1BAE /* BHSyncEngine.h */,
+				F2021B8D180358C5008B1BAE /* BHSyncEngine.m */,
 				F2B29FD417D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard */,
 				F2B29FD717D0F31B00F09C6F /* MainStoryboard_iPad.storyboard */,
 				F239BB9C17D875DE003097E6 /* Models */,
@@ -349,6 +492,24 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				F292AC0517F9F2DE0020DE13 /* callButton.png */,
+				F292AC0617F9F2DE0020DE13 /* callButton@2x.png */,
+				F292AC0717F9F2DE0020DE13 /* cameraButton.png */,
+				F292AC0817F9F2DE0020DE13 /* cameraButton@2x.png */,
+				F292AC0917F9F2DE0020DE13 /* textButton.png */,
+				F292AC0A17F9F2DE0020DE13 /* textButton@2x.png */,
+				F292AC0B17F9F2DE0020DE13 /* mailButton.png */,
+				F292AC0C17F9F2DE0020DE13 /* mailButton@2x.png */,
+				F29579CD17F7729B0082DE5A /* menu.png */,
+				F29579CE17F7729B0082DE5A /* menu@2x.png */,
+				F29579C117F76DF90082DE5A /* navBarBackgroundTall.png */,
+				F29579C217F76DF90082DE5A /* navBarBackgroundTall@2x.png */,
+				F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */,
+				F291F4B817F0B80900A27B46 /* communicateOutline.png */,
+				F291F4B917F0B80900A27B46 /* stopAndCheckOutline.png */,
+				F291F4BA17F0B80900A27B46 /* stopAndCheckOutline@2x.png */,
+				F291F4BB17F0B80900A27B46 /* documentsOutline.png */,
+				F291F4BC17F0B80900A27B46 /* documentsOutline@2x.png */,
 				F2B1F0E317D7BE810007A4E3 /* Default.png */,
 				F2B1F0E417D7BE810007A4E3 /* Default@2x.png */,
 				F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */,
@@ -370,13 +531,11 @@
 				F203966517D3E052001CFF61 /* punchlists@2x.png */,
 				F203966617D3E052001CFF61 /* reports.png */,
 				F203966717D3E052001CFF61 /* reports@2x.png */,
-				F203964F17D3DC65001CFF61 /* dashboard.png */,
-				F203965017D3DC66001CFF61 /* dashboard@2x.png */,
-				F203965117D3DC66001CFF61 /* menu.png */,
-				F203965217D3DC67001CFF61 /* menu@2x.png */,
+				F29579C517F771B80082DE5A /* navBarBackground.png */,
+				F29579C617F771B80082DE5A /* navBarBackground@2x.png */,
+				F29579C717F771B80082DE5A /* dashboard.png */,
+				F29579C817F771B80082DE5A /* dashboard@2x.png */,
 				F203964D17D3CDD9001CFF61 /* empty.png */,
-				F203964517D3CD3B001CFF61 /* navBarBackground.png */,
-				F203964617D3CD3B001CFF61 /* navBarBackground@2x.png */,
 				F203963B17D2DE9E001CFF61 /* loginButtonBackground.png */,
 				F203963C17D2DE9E001CFF61 /* loginButtonBackground@2x.png */,
 				F203963317D2DD9C001CFF61 /* textField.png */,
@@ -397,16 +556,22 @@
 				F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */,
 				F2B29FDA17D0F31B00F09C6F /* BHChecklistViewController.h */,
 				F2B29FDB17D0F31B00F09C6F /* BHChecklistViewController.m */,
+				F291F4B417F0B33000A27B46 /* BHChecklistItemViewController.h */,
+				F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */,
 				F2B1F0F117D7DD660007A4E3 /* BHCategoryChecklistViewController.h */,
 				F2B1F0F217D7DD660007A4E3 /* BHCategoryChecklistViewController.m */,
+				F291F4C317F0B82900A27B46 /* BHSubcategoryChecklistViewController.h */,
+				F291F4C417F0B82900A27B46 /* BHSubcategoryChecklistViewController.m */,
 				F2B29FE117D0F31B00F09C6F /* BHDocumentsViewController.h */,
 				F2B29FE217D0F31B00F09C6F /* BHDocumentsViewController.m */,
+				F2A594E917FBC13C00B818B5 /* BHPhotosViewController.h */,
+				F2A594EA17FBC13C00B818B5 /* BHPhotosViewController.m */,
 				F203965A17D3DD6B001CFF61 /* BHPunchlistViewController.h */,
 				F203965B17D3DD6B001CFF61 /* BHPunchlistViewController.m */,
-				F203965D17D3DD7C001CFF61 /* BHReportsViewController.h */,
-				F203965E17D3DD7C001CFF61 /* BHReportsViewController.m */,
 				F228707817DFC89300A88475 /* BHPunchlistItemViewController.h */,
 				F228707917DFC89300A88475 /* BHPunchlistItemViewController.m */,
+				F203965D17D3DD7C001CFF61 /* BHReportsViewController.h */,
+				F203965E17D3DD7C001CFF61 /* BHReportsViewController.m */,
 			);
 			name = Project;
 			sourceTree = "<group>";
@@ -470,6 +635,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F29579CA17F771B80082DE5A /* navBarBackground@2x.png in Resources */,
+				F291F4C217F0B80900A27B46 /* documentsOutline@2x.png in Resources */,
+				F29579CF17F7729B0082DE5A /* menu.png in Resources */,
 				F2B29FC717D0F31B00F09C6F /* InfoPlist.strings in Resources */,
 				F2B29FD617D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard in Resources */,
 				F2B29FD917D0F31B00F09C6F /* MainStoryboard_iPad.storyboard in Resources */,
@@ -478,40 +646,57 @@
 				F203962E17D171CF001CFF61 /* logo@2x.png in Resources */,
 				F2B1F0E617D7BE820007A4E3 /* Default.png in Resources */,
 				F203963717D2DD9C001CFF61 /* textField.png in Resources */,
+				F292AC1117F9F2DE0020DE13 /* textButton.png in Resources */,
+				F292AC0417F9EFF70020DE13 /* BHAddCommentCell.xib in Resources */,
+				F292AC1417F9F2DE0020DE13 /* mailButton@2x.png in Resources */,
 				F203963817D2DD9C001CFF61 /* loginBackground.png in Resources */,
 				F203963917D2DD9C001CFF61 /* loginBackground@2x.png in Resources */,
+				F292ABF517F9E5660020DE13 /* BHChecklistMessageCell.xib in Resources */,
 				F203963A17D2DD9C001CFF61 /* textField@2x.png in Resources */,
 				F203963D17D2DE9E001CFF61 /* loginButtonBackground.png in Resources */,
 				F203963E17D2DE9E001CFF61 /* loginButtonBackground@2x.png in Resources */,
 				F203964417D3B494001CFF61 /* BHDashboardProjectCell.xib in Resources */,
-				F203964917D3CD3B001CFF61 /* navBarBackground.png in Resources */,
+				F292AC0D17F9F2DE0020DE13 /* callButton.png in Resources */,
+				F29579CB17F771B80082DE5A /* dashboard.png in Resources */,
 				F2D7502F17D7B830006375CD /* BuildHawk_app_icon_1024.png in Resources */,
-				F203964A17D3CD3B001CFF61 /* navBarBackground@2x.png in Resources */,
+				F29579C917F771B80082DE5A /* navBarBackground.png in Resources */,
+				F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */,
 				F203964E17D3CDD9001CFF61 /* empty.png in Resources */,
-				F203965317D3DC67001CFF61 /* dashboard.png in Resources */,
-				F203965417D3DC67001CFF61 /* dashboard@2x.png in Resources */,
-				F203965517D3DC67001CFF61 /* menu.png in Resources */,
+				F291F4C117F0B80900A27B46 /* documentsOutline.png in Resources */,
+				F29579C417F76DF90082DE5A /* navBarBackgroundTall@2x.png in Resources */,
 				F239BBA617D8CA71003097E6 /* BHReportSectionCell.xib in Resources */,
+				F292ABFF17F9E8F10020DE13 /* BHListItemPhotoCell.xib in Resources */,
 				F2D7502D17D7B830006375CD /* BuildHawk_app_icon_114.png in Resources */,
-				F203965617D3DC67001CFF61 /* menu@2x.png in Resources */,
 				F203966817D3E052001CFF61 /* checklists.png in Resources */,
 				F2B1F0E817D7BE820007A4E3 /* Default-568h@2x.png in Resources */,
+				F291F4BF17F0B80900A27B46 /* stopAndCheckOutline.png in Resources */,
 				F203966917D3E052001CFF61 /* checklists@2x.png in Resources */,
 				F239BBA517D8CA6A003097E6 /* BHReportPickerCell.xib in Resources */,
+				F29579C317F76DF90082DE5A /* navBarBackgroundTall.png in Resources */,
+				F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */,
+				F291F4C017F0B80900A27B46 /* stopAndCheckOutline@2x.png in Resources */,
 				F203966A17D3E052001CFF61 /* documents.png in Resources */,
+				F292AC0E17F9F2DE0020DE13 /* callButton@2x.png in Resources */,
 				F203966B17D3E052001CFF61 /* documents@2x.png in Resources */,
 				F203966C17D3E052001CFF61 /* punchlists.png in Resources */,
+				F292AC1217F9F2DE0020DE13 /* textButton@2x.png in Resources */,
 				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
 				F203966D17D3E052001CFF61 /* punchlists@2x.png in Resources */,
+				F292ABFA17F9E6130020DE13 /* BHCommentCell.xib in Resources */,
 				F203966E17D3E052001CFF61 /* reports.png in Resources */,
 				F203966F17D3E052001CFF61 /* reports@2x.png in Resources */,
+				F29579CC17F771B80082DE5A /* dashboard@2x.png in Resources */,
+				F29579D017F7729B0082DE5A /* menu@2x.png in Resources */,
+				F292AC1317F9F2DE0020DE13 /* mailButton.png in Resources */,
 				F2B1F0E717D7BE820007A4E3 /* Default@2x.png in Resources */,
 				F203967517D3E361001CFF61 /* tabBarBackground.png in Resources */,
 				F2D7502E17D7B830006375CD /* BuildHawk_app_icon_120.png in Resources */,
 				F203967617D3E361001CFF61 /* tabBarBackground@2x.png in Resources */,
 				F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */,
+				F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */,
 				F203967917D3E4F6001CFF61 /* reportsSelected.png in Resources */,
 				F203967A17D3E4F6001CFF61 /* reportsSelected@2x.png in Resources */,
+				F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */,
 				F203967D17D3E648001CFF61 /* whiteTabBackground.png in Resources */,
 				F203967E17D3E648001CFF61 /* whiteTabBackground@2x.png in Resources */,
 			);
@@ -557,33 +742,48 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F291F4D717F0EC6600A27B46 /* RADataObject.m in Sources */,
 				F2B29FC917D0F31B00F09C6F /* main.m in Sources */,
 				F2B29FCD17D0F31B00F09C6F /* BHAppDelegate.m in Sources */,
 				F2B1F0ED17D7D3760007A4E3 /* BHSearchBar.m in Sources */,
 				F2B29FDC17D0F31B00F09C6F /* BHChecklistViewController.m in Sources */,
 				F2B29FE317D0F31B00F09C6F /* BHDocumentsViewController.m in Sources */,
 				F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */,
+				F2A594EB17FBC13C00B818B5 /* BHPhotosViewController.m in Sources */,
 				F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */,
 				F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */,
 				F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */,
 				F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */,
+				F291F4B617F0B33000A27B46 /* BHChecklistItemViewController.m in Sources */,
 				F230674F17E63779006536B8 /* BHAddress.m in Sources */,
+				F292ABF317F9E5590020DE13 /* BHChecklistMessageCell.m in Sources */,
+				F291F4C517F0B82900A27B46 /* BHSubcategoryChecklistViewController.m in Sources */,
 				F21DC9C617EAB43300280C5B /* BHChecklistItem.m in Sources */,
+				F291F4D117F0D50600A27B46 /* BHCategory.m in Sources */,
+				F29579D517F7ACA30082DE5A /* BHChecklist.m in Sources */,
 				F203961B17D12FC6001CFF61 /* BHUser.m in Sources */,
 				F203961E17D12FF4001CFF61 /* BHCompany.m in Sources */,
 				F230675217E63F0C006536B8 /* BHPunchlist.m in Sources */,
 				F203962117D12FFF001CFF61 /* BHProject.m in Sources */,
 				F203962417D1300A001CFF61 /* BHProjectCollection.m in Sources */,
+				F291F4D417F0D51100A27B46 /* BHSubcategory.m in Sources */,
 				F203962717D16D9C001CFF61 /* BHTimestamp.m in Sources */,
+				F292ABF817F9E6050020DE13 /* BHCommentCell.m in Sources */,
+				F2A594EE17FBC3C400B818B5 /* BHCollectionPhotoCell.m in Sources */,
 				F203962A17D16DC2001CFF61 /* BHPhoto.m in Sources */,
+				F292ABFD17F9E8E40020DE13 /* BHListItemPhotoCell.m in Sources */,
 				F2B1F0F317D7DD660007A4E3 /* BHCategoryChecklistViewController.m in Sources */,
+				F2021B8B18031F92008B1BAE /* BuildHawkModel.xcdatamodeld in Sources */,
 				F203963217D2C09F001CFF61 /* BHMenuViewController.m in Sources */,
 				F239BBA217D877D9003097E6 /* BHReportPickerCell.m in Sources */,
 				F2B1F0F017D7D3E10007A4E3 /* BHPunchlistItem.m in Sources */,
+				F2021B8E180358C5008B1BAE /* BHSyncEngine.m in Sources */,
 				F203964217D3B484001CFF61 /* BHDashboardProjectCell.m in Sources */,
 				F239BB9F17D877C7003097E6 /* BHReportSectionCell.m in Sources */,
 				F203965917D3DCEB001CFF61 /* BHReport.m in Sources */,
+				F292AC0217F9EFE40020DE13 /* BHAddCommentCell.m in Sources */,
 				F228707A17DFC89300A88475 /* BHPunchlistItemViewController.m in Sources */,
+				F2A594D617F9FCCC00B818B5 /* BHCompleted.m in Sources */,
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
 				F203965F17D3DD7C001CFF61 /* BHReportsViewController.m in Sources */,
 				F203967217D3E1E8001CFF61 /* BHTabBarViewController.m in Sources */,
@@ -738,6 +938,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		F2021B8918031F92008B1BAE /* BuildHawkModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				F2021B8A18031F92008B1BAE /* BuildHawkModel.xcdatamodel */,
+			);
+			currentVersion = F2021B8A18031F92008B1BAE /* BuildHawkModel.xcdatamodel */;
+			path = BuildHawkModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = F2B29FB117D0F31B00F09C6F /* Project object */;
 }

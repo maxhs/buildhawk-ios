@@ -13,11 +13,30 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHTabBarViewController.h"
 #import "BHProject.h"
+#import <CoreLocation/CoreLocation.h>
+#import <AFNetworking/AFNetworking.h>
+#define kAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
 
-@interface BHReportsViewController () <UIActionSheetDelegate, UITextViewDelegate, UIScrollViewDelegate> {
+typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
+typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
+typedef void(^RequestFailure)(NSError *error);
+typedef void(^RequestSuccess)(id result);
+
+
+@interface BHReportsViewController () <UIActionSheetDelegate, UITextViewDelegate, UIScrollViewDelegate, CLLocationManagerDelegate> {
     NSMutableArray *reports;
     NSDateFormatter *dateFormatter;
     BOOL iPhone5;
+    CLLocationManager *locationManager;
+    AFHTTPClient *weatherClient;
+    int windBearing;
+    NSString *windDirection;
+    NSString *windSpeed;
+    NSString *nowSummary;
+    NSString *daySummary;
+    NSString *weeklySummary;
+    NSString *temp;
+    NSString *hourlySummary;
 }
 
 - (IBAction)backToDashboard;
@@ -58,7 +77,50 @@
     [self.scrollView setContentSize:CGSizeMake(640,self.scrollView.frame.size.height-113)];
     [self.scrollView setContentInset:UIEdgeInsetsMake(0, 320, 0, 0)];
     [self.scrollView setContentOffset:CGPointMake(0, 0)];
+    locationManager = [CLLocationManager new];
+    locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    locationManager.delegate = self;
+    [locationManager startUpdatingLocation];
+}
+
+- (AFJSONRequestOperation*)loadWeather:(CGFloat)latitude andLongitude:(CGFloat)longitude {
     
+    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
+    {
+        NSLog(@"Failed to get the weather: %@",error.description);
+    };
+    
+    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
+    {
+        NSDictionary *dictionary = [NSDictionary dictionaryWithDictionary:[responseObject objectForKey:@"currently"]];
+        temp = [[dictionary objectForKey:@"temperature"] stringValue];
+        windSpeed = [[dictionary objectForKey:@"windSpeed"] stringValue];
+        daySummary = [dictionary objectForKey:@"summary"];
+        windBearing = [[dictionary objectForKey:@"windBearing"] intValue];
+        nowSummary = [[[responseObject valueForKeyPath:@"daily.date"] objectAtIndex:0] objectForKey:@"summary"];
+        hourlySummary = [responseObject valueForKeyPath:@"hourly.summary"];
+        NSLog(@"hourly summary; %@",hourlySummary);
+        [self.tableView reloadData];
+        NSLog(@"Success getting the weather: %@",responseObject);
+    };
+    weatherClient = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:@"https://api.forecast.io"]];
+    [weatherClient setDefaultHeader:@"Accept" value:@"application/json"];
+    [weatherClient registerHTTPOperationClass:[AFJSONRequestOperation class]];
+    NSMutableURLRequest *request = [weatherClient requestWithMethod:@"GET" path:[NSString stringWithFormat:@"forecast/%@/%f,%f",kAPIKey,latitude,longitude] parameters:nil];
+    
+    AFJSONRequestOperation *op = (AFJSONRequestOperation *)[weatherClient HTTPRequestOperationWithRequest:request
+                                                                                                  success:opSuccess
+                                                                                                  failure:opFailure];
+    [op start];
+    return op;
+}
+
+- (NSString*)windDirection:(int)bearing {
+    if (360 > bearing > 348.75 || 0 < bearing < 11.25) {
+        return @"N";
+    } else if (360 > bearing > 348.75 || 0 < bearing < 11.25)
+        
+    return @"";
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -80,7 +142,7 @@
 
 - (void)dismissOverlay {
     [SVProgressHUD dismiss];
-    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldnt' find a report that fit those criteria" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find a report that fit those criteria." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
@@ -124,11 +186,14 @@
     RKRequestDescriptor *requestDescriptor = [RKRequestDescriptor requestDescriptorWithMapping:projectMapping objectClass:[BHProject class] rootKeyPath:nil method:RKRequestMethodAny];
     [manager addRequestDescriptor:requestDescriptor];*/
     
-    [SVProgressHUD showWithStatus:@"Fetching projects..."];
+    [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [manager addResponseDescriptor:reportsDescriptor];
     [manager getObjectsAtPath:@"reports" parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
         NSLog(@"mapping result for reports: %@",mappingResult.firstObject);
-        reports = [mappingResult.array mutableCopy];
+        [reports removeAllObjects];
+        for (id obj in mappingResult.array) {
+            if ([obj isKindOfClass:[BHReport class]]) [reports addObject:(BHReport*)obj];
+        }
         [SVProgressHUD dismiss];
         _report = [reports objectAtIndex:0];
         [self.tableView reloadData];
@@ -181,6 +246,11 @@
         [cell.datePickerButton setTitle:[newFormatter stringFromDate:formattedDate] forState:UIControlStateNormal];
         [cell.datePickerButton addTarget:self action:@selector(setDate:) forControlEvents:UIControlEventTouchUpInside];
         [cell configure];
+        if (daySummary.length) {
+            [cell.nowLabel setText:daySummary];
+            [cell.windTextField setText:windSpeed];
+            [cell.dailySummaryTextView setText:hourlySummary];
+        }
         return cell;
     } else {
         static NSString *CellIdentifier = @"ReportSectionCell";
@@ -197,7 +267,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) return 100;
+    if (indexPath.section == 0) return 160;
     else {
         return 300;
     }
@@ -298,6 +368,18 @@
     } completion:^(BOOL finished) {
         
     }];
+}
+
+#pragma mark - CLLocationManagerDelegateMethods
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations {
+    CLLocation *location = locations.lastObject;
+    [self loadWeather:location.coordinate.latitude andLongitude:location.coordinate.longitude];
+    [manager stopUpdatingLocation];
+}
+
+- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error {
+    [[[UIAlertView alloc] initWithTitle:@"Error" message:@"We couldn't find your location. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
 }
 
 @end

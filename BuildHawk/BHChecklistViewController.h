@@ -7,8 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <RATreeView/RATreeView.h>
+#import <RATreeView/RATreeNodeInfo.h>
 
 @interface BHChecklistViewController : UIViewController
-@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet RATreeView *treeView;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
 @end

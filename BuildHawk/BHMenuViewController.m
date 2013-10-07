@@ -12,6 +12,8 @@
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <QuartzCore/QuartzCore.h>
 #import "BHAppDelegate.h"
+#import <SVProgressHUD/SVProgressHUD.h>
+#import "BHUser.h"
 
 @interface BHMenuViewController ()
 @property (strong, nonatomic) UISwitch *emailPermissionsSwitch;
@@ -22,6 +24,7 @@
 
 @implementation BHMenuViewController
 
+@synthesize coworkers;
 
 - (void)viewDidLoad
 {
@@ -39,6 +42,8 @@
     } else {
         self.logoutButton.transform = CGAffineTransformMakeTranslation(0, -88);
     }
+    
+    NSLog(@"self.coworkers.count: %i",self.coworkers.count);
 }
 
 - (void)didReceiveMemoryWarning
@@ -51,18 +56,19 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 1;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 3;
+    if (section == 0) return 1;
+    else return self.coworkers.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell;
-    if (indexPath.row == 0) {
+    if (indexPath.section == 0) {
         static NSString *CellIdentifier = @"UserCell";
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 29, cell.frame.size.width-80, cell.frame.size.height)];
@@ -80,19 +86,11 @@
         [cell addSubview:imageView];
         [cell addSubview:nameLabel];
         [imageView setImageWithURL:[NSURL URLWithString:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPhotoUrl100]]];
-        
-    } else if (indexPath.row == 1) {
-        static NSString *CellIdentifier = @"PermissionsCell";
-        cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-        if (!self.emailPermissionsSwitch) self.emailPermissionsSwitch = [[UISwitch alloc] init];
-        cell.accessoryView = self.emailPermissionsSwitch;
-        [cell.textLabel setText:@"Email permissions"];
     } else {
         static NSString *CellIdentifier = @"PermissionsCell";
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-        if (!self.pushPermissionsSwitch) self.pushPermissionsSwitch = [[UISwitch alloc] init];
-        cell.accessoryView = self.pushPermissionsSwitch;
-        [cell.textLabel setText:@"Push permissions"];
+        BHUser *coworker = [self.coworkers objectAtIndex:indexPath.row];
+        [cell.textLabel setText:coworker.fullname];
     }
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     [cell setBackgroundColor:[UIColor clearColor]];
@@ -118,6 +116,7 @@
         UIViewController *initialVC = [storyboard instantiateInitialViewController];
         [self presentViewController:initialVC animated:YES completion:nil];
     }
+    [SVProgressHUD dismiss];
 }
 
 /*

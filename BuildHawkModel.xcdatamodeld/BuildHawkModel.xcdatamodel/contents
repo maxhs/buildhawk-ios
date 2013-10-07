@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="3396" systemVersion="12F37" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="Checklist" representedClassName="BHChecklist" syncable="YES">
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="relationship" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChecklistItem" inverseName="relationship" inverseEntity="ChecklistItem" syncable="YES"/>
+        <relationship name="toProject" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="toChecklist" inverseEntity="Project" syncable="YES"/>
+    </entity>
+    <entity name="ChecklistItem" syncable="YES">
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="relationship" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="relationship" inverseEntity="Checklist" syncable="YES"/>
+    </entity>
+    <entity name="Project" syncable="YES">
+        <attribute name="identifier" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="relationship" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="relationship" inverseEntity="User" syncable="YES"/>
+        <relationship name="toChecklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="toProject" inverseEntity="Checklist" syncable="YES"/>
+    </entity>
+    <entity name="User" representedClassName="BHUser" syncable="YES">
+        <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="fullname" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="phone1" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="relationship" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Project" inverseName="relationship" inverseEntity="Project" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="User" positionX="-108" positionY="192" width="128" height="103"/>
+        <element name="Project" positionX="196" positionY="216" width="128" height="103"/>
+        <element name="Checklist" positionX="79" positionY="18" width="128" height="73"/>
+        <element name="ChecklistItem" positionX="340" positionY="26" width="128" height="73"/>
+    </elements>
+</model>

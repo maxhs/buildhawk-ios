@@ -17,6 +17,7 @@
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
     BOOL iPhone5;
+    BHUser *loggedInUser;
 }
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
@@ -27,6 +28,9 @@
 @end
 
 @implementation BHLoginViewController
+
+@synthesize managedObjectContext = _managedObjectContext;
+@synthesize managedObjectModel = _managedObjectModel;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -52,14 +56,21 @@
 - (IBAction)login{
     RKObjectManager *manager = [RKObjectManager sharedManager];
     RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[BHUser class]];
-    [userMapping addAttributeMappingsFromArray:@[@"email", @"password", @"deviceTokens",@"lname",@"fullname",@"fname",@"timestamps", @"photo"]];
+    [userMapping addAttributeMappingsFromArray:@[@"email", @"password", @"deviceTokens",@"lname",@"fullname",@"fname",@"timestamps", @"photo", @"authToken"]];
     [userMapping addAttributeMappingsFromDictionary:@{@"_id":@"identifier"}];
 
     NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
-    RKResponseDescriptor *userDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodAny pathPattern:@"login" keyPath:nil statusCodes:statusCodes];
     
     RKObjectMapping *requestMapping = [RKObjectMapping requestMapping]; // objectClass == NSMutableDictionary
     [requestMapping addAttributeMappingsFromArray:@[@"email", @"password"]];
+    
+    
+    RKRelationshipMapping *relationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"coworkers"
+                                                                                             toKeyPath:@"coworkers"
+                                                                                           withMapping:userMapping];
+    [userMapping addPropertyMapping:relationshipMapping];
+    
+    RKResponseDescriptor *userDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodAny pathPattern:@"login" keyPath:nil statusCodes:statusCodes];
     
     // For any object of class Article, serialize into an NSMutableDictionary using the given mapping and nest
     // under the 'article' key path
@@ -68,22 +79,21 @@
     [manager addRequestDescriptor:requestDescriptor];
     [manager addResponseDescriptor:userDescriptor];
     
-    BHUser *user = [BHUser new];
-    user.email = self.emailTextField.text;
-    user.password = self.passwordTextField.text;
     [SVProgressHUD showWithStatus:@"Logging in..."];
     // POST to create
-    [manager postObject:user path:@"login" parameters:@{@"email":self.emailTextField.text, @"password":self.passwordTextField.text} success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
-        BHUser *loggedInUser = [mappingResult firstObject];
+    [manager postObject:nil path:@"login" parameters:@{@"email":self.emailTextField.text, @"password":self.passwordTextField.text} success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
+        loggedInUser = [mappingResult firstObject];
+        NSLog(@"logged in user id: %@",loggedInUser.identifier);
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.email forKey:kUserDefaultsEmail];
+        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.authToken forKey:kUserDefaultsAuthToken];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.fname forKey:kUserDefaultsFirstName];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.lname forKey:kUserDefaultsLastName];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.fullname forKey:kUserDefaultsFullName];
         [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.password forKey:kUserDefaultsPassword];
         [[NSUserDefaults standardUserDefaults] setObject:[[loggedInUser.photo valueForKeyPath:@"urls.100x100"] objectAtIndex:0] forKey:kUserDefaultsPhotoUrl100];
-        NSLog(@"user photo default?: %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPhotoUrl100]);
         [[NSUserDefaults standardUserDefaults] synchronize];
+        NSLog(@"coworkers? %@",loggedInUser.coworkers);
         [UIView animateWithDuration:.3 animations:^{
             self.loginContainerView.transform = CGAffineTransformIdentity;
             self.logoContainerView.transform = CGAffineTransformIdentity;
@@ -93,7 +103,6 @@
             [SVProgressHUD dismiss];
         }];
         
-    
     } failure:^(RKObjectRequestOperation *operation, NSError *error) {
         [SVProgressHUD dismiss];
         NSLog(@"Failure logging in: %@",error.localizedRecoverySuggestion);

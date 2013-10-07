@@ -14,7 +14,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5db-RU-EDi">
-                        <rect key="frame" x="164" y="24" width="148" height="46"/>
+                        <rect key="frame" x="164" y="14" width="148" height="46"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="18"/>
                         <state key="normal" title="By Category">
@@ -23,16 +23,15 @@
                         </state>
                     </button>
                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="b0L-vq-EvZ">
-                        <rect key="frame" x="164" y="77" width="148" height="46"/>
+                        <rect key="frame" x="164" y="67" width="148" height="46"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="18"/>
                         <state key="normal" title="By Date">
                             <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                         </state>
                     </button>
                     <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FyW-ft-P3T">
-                        <rect key="frame" x="164" y="130" width="148" height="46"/>
+                        <rect key="frame" x="164" y="120" width="148" height="46"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="19"/>
                         <state key="normal" title="By User">
@@ -40,16 +39,25 @@
                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                         </state>
                     </button>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="BuildHawk_app_icon_1024.png" translatesAutoresizingMaskIntoConstraints="NO" id="nHQ-5s-ipy">
-                        <rect key="frame" x="4" y="24" width="152" height="152"/>
+                    <imageView userInteractionEnabled="NO" alpha="0.0" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="BuildHawk_app_icon_1024.png" translatesAutoresizingMaskIntoConstraints="NO" id="nHQ-5s-ipy">
+                        <rect key="frame" x="4" y="14" width="152" height="152"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                     </imageView>
+                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1OA-a5-Yyh">
+                        <rect key="frame" x="40" y="177" width="240" height="21"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
+                        <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                        <nil key="highlightedColor"/>
+                    </label>
                 </subviews>
             </tableViewCellContentView>
             <color key="backgroundColor" white="0.96999999999999997" alpha="1" colorSpace="calibratedWhite"/>
             <connections>
                 <outlet property="categoryButton" destination="5db-RU-EDi" id="grV-7k-Yol"/>
+                <outlet property="countLabel" destination="1OA-a5-Yyh" id="dhv-C3-rxK"/>
                 <outlet property="dateButton" destination="b0L-vq-EvZ" id="JSf-8R-XyT"/>
+                <outlet property="mainImageView" destination="nHQ-5s-ipy" id="fFt-9f-et4"/>
                 <outlet property="userButton" destination="FyW-ft-P3T" id="EIi-1n-ACM"/>
             </connections>
         </tableViewCell>

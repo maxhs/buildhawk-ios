@@ -151,7 +151,7 @@ CGFloat SVProgressHUDRingThickness = 6;
     switch (self.maskType) {
             
         case SVProgressHUDMaskTypeBlack: {
-            [[UIColor colorWithWhite:0 alpha:0.5] set];
+            [[UIColor colorWithRed:(51.0/255.0) green:(102.0/255.0) blue:(153.0/255.0) alpha:1.0] set];
             CGContextFillRect(context, self.bounds);
             break;
         }

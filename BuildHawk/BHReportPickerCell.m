@@ -7,6 +7,7 @@
 //
 
 #import "BHReportPickerCell.h"
+#import "Constants.h"
 
 @implementation BHReportPickerCell
 
@@ -35,9 +36,9 @@
 - (void)buttonTreatment:(UIButton*)button {
     button.layer.cornerRadius = 5.f;
     button.clipsToBounds = YES;
-    [button setBackgroundColor:[UIColor colorWithWhite:.2 alpha:1.0]];
+    [button setBackgroundColor:kBlueTransparentColor];
     button.layer.shadowColor = [UIColor lightGrayColor].CGColor;
-    button.layer.shadowRadius = 3.0f;
+    button.layer.shadowRadius = 4.0f;
     button.layer.shadowOpacity =  .75;
     [button.titleLabel setTextColor:[UIColor whiteColor]];
 }

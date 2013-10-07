@@ -9,11 +9,14 @@
 #import <Foundation/Foundation.h>
 #import "BHAddress.h"
 #import "BHCompany.h"
+#import <CoreData/CoreData.h>
 
 @interface BHProject : NSObject
 @property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *identifier;
-@property (nonatomic, strong) NSMutableArray *assignees;
+@property (nonatomic, strong) NSString *type;
+@property (nonatomic, strong) NSMutableArray *users;
+@property (nonatomic, strong) NSMutableArray *photos;
 @property (nonatomic, strong) BHAddress *address;
 @property (nonatomic, strong) BHCompany *company;
 @property BOOL active;

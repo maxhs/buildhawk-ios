@@ -11,4 +11,6 @@
 
 @interface BHLoginViewController : UIViewController
 @property (strong, nonatomic) SWRevealViewController *revealViewController;
+@property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
+@property (strong, nonatomic) NSManagedObjectModel *managedObjectModel;
 @end

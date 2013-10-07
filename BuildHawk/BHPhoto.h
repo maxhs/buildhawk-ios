@@ -12,5 +12,6 @@
 
 @property (nonatomic, copy) NSString *url100;
 @property (nonatomic, copy) NSString *url200;
+@property (nonatomic, strong) UIImage *image;
 
 @end

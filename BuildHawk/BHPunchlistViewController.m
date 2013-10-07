@@ -16,6 +16,8 @@
 #import <RestKit/RestKit.h>
 #import <SDWebImage/UIButton+WebCache.h>
 #import "BHTabBarViewController.h"
+#import "Constants.h"
+#import "BHAppDelegate.h"
 
 @interface BHPunchlistViewController () <UITableViewDelegate, UITableViewDataSource> {
     NSMutableArray *listItems;
@@ -27,6 +29,8 @@
 @implementation BHPunchlistViewController
 
 @synthesize punchlists;
+@synthesize managedObjectContext = _managedObjectContext;
+@synthesize managedObjectModel = _managedObjectModel;
 
 - (void)viewDidLoad
 {
@@ -36,6 +40,7 @@
     if (!listItems) listItems = [NSMutableArray array];
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
+    [self.segmentedControl setTintColor:kBlueColor];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -58,20 +63,29 @@
                                                          @"urls.200x200":@"url200",
                                                          @"urls.100x100":@"url100"
                                                          }];
+    RKObjectMapping *completedMapping = [RKObjectMapping mappingForClass:[BHCompleted class]];
+    [photosMapping addAttributeMappingsFromDictionary:@{
+                                                        @"completedOn":@"completedOn"
+                                                        }];
     
     RKObjectMapping *punchlistMapping = [RKObjectMapping mappingForClass:[BHPunchlistItem class]];
     [punchlistMapping addAttributeMappingsFromArray:@[@"name", @"location"]];
     [punchlistMapping addAttributeMappingsFromDictionary:@{
                                                          @"_id" : @"identifier",
-                                                         @"created.createdOn" : @"createdOn"
+                                                         @"created.createdOn" : @"createdOn",
+                                                         @"completed.completedOn" : @"completedOn"
                                                          }];
     RKRelationshipMapping *relationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"created.photos"
                                                                                              toKeyPath:@"photos"
                                                                                            withMapping:photosMapping];
+    RKRelationshipMapping *moreRelationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"completed.photos"
+                                                                                                 toKeyPath:@"completedPhotos"
+                                                                                               withMapping:completedMapping];
     [punchlistMapping addPropertyMapping:relationshipMapping];
+    [punchlistMapping addPropertyMapping:moreRelationshipMapping];
     
     NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
-    RKResponseDescriptor *projectsDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:punchlistMapping method:RKRequestMethodAny pathPattern:@"punchlists" keyPath:@"rows" statusCodes:statusCodes];
+    RKResponseDescriptor *punchlistDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:punchlistMapping method:RKRequestMethodAny pathPattern:@"punchlists" keyPath:@"rows" statusCodes:statusCodes];
     
     // For any object of class Article, serialize into an NSMutableDictionary using the given mapping and nest
     // under the 'article' key path
@@ -79,11 +93,12 @@
     
     //[manager addRequestDescriptor:requestDescriptor];
     [SVProgressHUD showWithStatus:@"Fetching punchlist..."];
-    [manager addResponseDescriptor:projectsDescriptor];
+    [manager addResponseDescriptor:punchlistDescriptor];
     [manager getObjectsAtPath:@"punchlists" parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
-        NSLog(@"mapping result for projects: %@",mappingResult.firstObject);
-        listItems = [mappingResult.array mutableCopy];
-        [SVProgressHUD dismiss];
+        [listItems removeAllObjects];
+        for (id obj in mappingResult.array) {
+            if ([obj isKindOfClass:[BHPunchlistItem class]]) [listItems addObject:(BHPunchlistItem*)obj];
+        }
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
     } failure:^(RKObjectRequestOperation *operation, NSError *error) {
@@ -119,8 +134,8 @@
     } else {
         [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
     }
-    [cell.imageView setContentMode:UIViewContentModeScaleAspectFill];
-    cell.imageView.clipsToBounds = YES;
+    [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
+    cell.photoButton.clipsToBounds = YES;
     return cell;
 }
 
@@ -180,16 +195,18 @@
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setTitle:@"Create Punchlist Item"];
         [vc setNewItem:YES];
+        [vc setPunchlistItem:[NSEntityDescription insertNewObjectForEntityForName:@"PunchlistItem" inManagedObjectContext:self.managedObjectContext]];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setNewItem:NO];
         BHPunchlistItem *item = [listItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
+
         NSDate *parsedDate = [dateFormatter dateFromString:item.createdOn];
         NSDateFormatter *readableFormatter = [[NSDateFormatter alloc] init];
         [readableFormatter setDateStyle:NSDateFormatterShortStyle];
         [readableFormatter setTimeStyle:NSDateFormatterShortStyle];
         [vc setTitle:[NSString stringWithFormat:@"%@",[readableFormatter stringFromDate:parsedDate]]];
-        [vc setPunchlistItem:[listItems objectAtIndex:self.tableView.indexPathForSelectedRow.row]];
+        [vc setPunchlistItem:item];
     }
         
 }

@@ -12,5 +12,9 @@
 
 @property (weak, nonatomic) IBOutlet UIButton *typePickerButton;
 @property (weak, nonatomic) IBOutlet UIButton *datePickerButton;
+@property (weak, nonatomic) IBOutlet UIView *weatherContainerView;
+@property (weak, nonatomic) IBOutlet UITextView *dailySummaryTextView;
+@property (weak, nonatomic) IBOutlet UITextField *windTextField;
+@property (weak, nonatomic) IBOutlet UILabel *nowLabel;
 -(void)configure;
 @end
