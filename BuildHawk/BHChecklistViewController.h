@@ -9,8 +9,10 @@
 #import <UIKit/UIKit.h>
 #import <RATreeView/RATreeView.h>
 #import <RATreeView/RATreeNodeInfo.h>
+#import "GAITrackedViewController.h"
 
-@interface BHChecklistViewController : UIViewController
+@interface BHChecklistViewController : GAITrackedViewController
 @property (weak, nonatomic) IBOutlet RATreeView *treeView;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
+@property (strong, nonatomic) NSString *projectId;
 @end

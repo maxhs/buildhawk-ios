@@ -11,7 +11,8 @@
 #import "BHPunchlistItem.h"
 
 @interface BHPunchlist : NSObject
-
 @property (strong, nonatomic) NSMutableArray *listItems;
+
+//- (id) initWithDictionary:(NSDictionary*)dictionary;
 
 @end

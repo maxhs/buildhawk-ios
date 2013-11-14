@@ -7,7 +7,6 @@
 //
 
 #import "BHAppDelegate.h"
-#import <RestKit/RestKit.h>
 #import "BHUser.h"
 #import "BHCompany.h"
 #import "BHProject.h"
@@ -15,6 +14,7 @@
 #import "Constants.h"
 #import "BHLoginViewController.h"
 #import "CoreData+MagicalRecord.h"
+#import "Flurry.h"
 
 // Use a class extension to expose access to MagicalRecord's private setter methods
 @interface NSManagedObjectContext ()
@@ -23,75 +23,38 @@
 @end
 
 @implementation BHAppDelegate
-@synthesize window = _window;
-@synthesize managedObjectContext = _managedObjectContext;
-@synthesize managedObjectModel = _managedObjectModel;
-@synthesize persistentStoreCoordinator = _persistentStoreCoordinator;
-
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-//    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-//        UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
-//        UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
-//        splitViewController.delegate = (id)navigationController.topViewController;
-//        
-//        UINavigationController *masterNavigationController = splitViewController.viewControllers[0];
-//        BHLoginViewController *controller = (BHLoginViewController *)masterNavigationController.topViewController;
-//        controller.managedObjectContext = self.managedObjectContext;
-//    } else {
-//        UINavigationController *navigationController = (UINavigationController *)self.window.rootViewController;
-//        BHLoginViewController *controller = (BHLoginViewController *)navigationController.topViewController;
-//        controller.managedObjectContext = self.managedObjectContext;
-//    }
+    [MagicalRecord setupCoreDataStack];
 
-    
-    // Configure RestKit's Core Data stack
-    NSURL *modelURL = [NSURL fileURLWithPath:[[NSBundle mainBundle] pathForResource:@"BuildHawkModel" ofType:@"momd"]];
-    NSManagedObjectModel *managedObjectModel = [[[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL] mutableCopy];
-    RKManagedObjectStore *managedObjectStore = [[RKManagedObjectStore alloc] initWithManagedObjectModel:managedObjectModel];
-    NSString *storePath = [RKApplicationDataDirectory() stringByAppendingPathComponent:@"BuildHawkModel.sqlite"];
-    NSError *error = nil;
-    [managedObjectStore addSQLitePersistentStoreAtPath:storePath fromSeedDatabaseAtPath:nil withConfiguration:nil options:nil error:&error];
-    [managedObjectStore createManagedObjectContexts];
-    
-    // Configure MagicalRecord to use RestKit's Core Data stack
-    [NSPersistentStoreCoordinator MR_setDefaultStoreCoordinator:managedObjectStore.persistentStoreCoordinator];
-    [NSManagedObjectContext MR_setRootSavingContext:managedObjectStore.persistentStoreManagedObjectContext];
-    [NSManagedObjectContext MR_setDefaultContext:managedObjectStore.mainQueueManagedObjectContext];
-    
-    [AFNetworkActivityIndicatorManager sharedManager].enabled = YES;
-    RKObjectManager *objectManager = [RKObjectManager managerWithBaseURL:[NSURL URLWithString:@"http://www.buildhawk.com/api/v1"]];
-    [objectManager setAcceptHeaderWithMIMEType:RKMIMETypeJSON];
-    objectManager.managedObjectStore = managedObjectStore;
-    RKLogConfigureByName("RestKit/Network", RKLogLevelTrace);
-    
-    RKEntityMapping *userMapping = [RKEntityMapping mappingForEntityForName:@"User" inManagedObjectStore:managedObjectStore];
-    // If source and destination key path are the same, we can simply add a string to the array
-    [userMapping addAttributeMappingsFromDictionary:@{
-                                                      @"_id": @"identifier",
-                                                      @"fullname": @"fullname",
-                                                      }];
-    
-    
-    RKEntityMapping *projectMapping = [RKEntityMapping mappingForEntityForName:@"Project" inManagedObjectStore:managedObjectStore];
-    [projectMapping addAttributeMappingsFromArray:@[ @"name" ]];
-    [projectMapping addAttributeMappingsFromDictionary:@{
-                                                       @"_id": @"identifier",
-                                                       }];
-    [projectMapping addPropertyMapping:[RKRelationshipMapping relationshipMappingFromKeyPath:@"user" toKeyPath:@"user" withMapping:userMapping]];
-    
-
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     [self customizeAppearance];
     
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
-        UIStoryboard *iphoneStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
-        UIViewController *revealVC = [iphoneStoryboard instantiateViewControllerWithIdentifier:@"Reveal"];
-        UINavigationController *navigationController = (UINavigationController *)revealVC;
-        self.window.rootViewController = navigationController;
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        //UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
+        //UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
+        //splitViewController.delegate = (id)navigationController.topViewController;
+        UIStoryboard *ipadStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPad" bundle:nil];
+        self.window.rootViewController = [ipadStoryboard instantiateViewControllerWithIdentifier:@"Login"];
+        
     } else {
-        [self.window makeKeyAndVisible];
+        UIStoryboard *iphoneStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
+        self.window.rootViewController = [iphoneStoryboard instantiateViewControllerWithIdentifier:@"Login"];
     }
+    
+    [Flurry setCrashReportingEnabled:YES];
+    [Flurry startSession:kFlurryKey];
+    
+    // Optional: automatically send uncaught exceptions to Google Analytics.
+    [GAI sharedInstance].trackUncaughtExceptions = YES;
+    [GAI sharedInstance].dispatchInterval = 20;
+    [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
+    
+    // Initialize tracker.
+    [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];
+    
+    [self.window makeKeyAndVisible];
     return YES;
 }
 
@@ -106,14 +69,14 @@
     }
     
     [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:16],
+                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:15],
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UIBarButtonItem appearance] setBackButtonBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
+                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:13],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
     
@@ -121,17 +84,18 @@
     [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];
     
     [[UITabBarItem appearance] setTitleTextAttributes: @{
-                    NSForegroundColorAttributeName : [UIColor lightGrayColor],
-                                NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:12.0],
+                    NSForegroundColorAttributeName : [UIColor whiteColor],
+                                NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:13.0],
     } forState:UIControlStateNormal];
     [[UITabBarItem appearance] setTitleTextAttributes:@{
-                 NSForegroundColorAttributeName : kBlueColor,
-                            NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:12.0],
+                 NSForegroundColorAttributeName : [UIColor colorWithWhite:.2 alpha:1.0],
+                            NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:13.0],
         } forState:UIControlStateSelected];
-    [[UITabBar appearance] setTintColor:kBlueColor];
-    [[UITabBar appearance] setSelectedImageTintColor:kBlueColor];
-    //[[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"tabBarBackground"]];
-    //[[UITabBar appearance] setSelectionIndicatorImage:[UIImage imageNamed:@"whiteTabBackground"]];
+    [[UITabBar appearance] setSelectionIndicatorImage:[UIImage imageNamed:@"whiteTabBackground"]];
+    [[UITabBar appearance] setTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
+    [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
+    [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
+    
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -160,6 +124,28 @@
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     [MagicalRecord cleanUp];
+}
+
+#pragma mark uncaughtExceptionHandler
+void uncaughtExceptionHandler(NSException *exception) {
+    //[Flurry logError:exception.name message:exception.description exception:exception];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
+{
+    //[Flurry logEvent:@"Did Receive Remote Notification"];
+    NSLog(@"just got a remote notification: %@",pushMessage);
+}
+
+- (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
+{
+    [Flurry logEvent:@"Registered For Remote Notifications"];
+    [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
+}
+
+- (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
+{
+    //[Flurry logEvent:@"Rejected Remote Notifications"];
 }
 
 //#pragma mark - Core Data Stack

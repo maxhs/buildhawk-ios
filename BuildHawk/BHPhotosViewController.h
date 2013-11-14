@@ -10,6 +10,6 @@
 #import "BHPhoto.h"
 
 @interface BHPhotosViewController : UICollectionViewController
-@property (strong, nonatomic) NSMutableArray *photosArray;
+@property (strong, nonatomic) NSArray *photosArray;
 
 @end

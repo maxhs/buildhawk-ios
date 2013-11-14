@@ -11,8 +11,5 @@
 @interface BHDocumentsViewController : UIViewController
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (strong, nonatomic) NSMutableArray *documentFolders;
-@property (weak, nonatomic) IBOutlet UIButton *categoryButton;
-@property (weak, nonatomic) IBOutlet UIButton *dateButton;
-@property (weak, nonatomic) IBOutlet UIButton *userButton;
+
 @end

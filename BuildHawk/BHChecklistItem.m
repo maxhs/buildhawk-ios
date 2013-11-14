@@ -11,7 +11,6 @@
 @implementation BHChecklistItem
 
 //@dynamic identifier, completed, project, name, type, location, category, subcategory, photos;
-//@synthesize children;
 
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"_id"]) {
@@ -26,6 +25,15 @@
         self.type = value;
     } else if ([key isEqualToString:@"completed"]) {
         self.completed = YES;
+    } else if ([key isEqualToString:@"status"]) {
+        self.status = value;
+    } else if ([key isEqualToString:@"photos"]) {
+        self.photos = [BHUtilities photosFromJSONArray:value];
+    } else if ([key isEqualToString:@"comments"]) {
+        self.comments = [BHUtilities commentsFromJSONArray:value];
+    } else if ([key isEqualToString:@"due"]) {
+        self.dueDate = [BHUtilities parseDate:value];
+        self.dueDateString = [BHUtilities parseDateReturnString:value];
     }
 }
 

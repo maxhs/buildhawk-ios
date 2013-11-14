@@ -18,4 +18,6 @@
 @property (nonatomic, copy) BHProject *project;
 @property (strong, nonatomic) NSMutableArray *children;
 
+//- (id) initWithDictionary:(NSDictionary*)dictionary;
+
 @end

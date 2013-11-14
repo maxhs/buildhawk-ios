@@ -15,6 +15,7 @@
 @property (weak, nonatomic) IBOutlet UIView *weatherContainerView;
 @property (weak, nonatomic) IBOutlet UITextView *dailySummaryTextView;
 @property (weak, nonatomic) IBOutlet UITextField *windTextField;
-@property (weak, nonatomic) IBOutlet UILabel *nowLabel;
+@property (weak, nonatomic) IBOutlet UILabel *tempLabel;
+@property (weak, nonatomic) IBOutlet UIImageView *weatherImageView;
 -(void)configure;
 @end

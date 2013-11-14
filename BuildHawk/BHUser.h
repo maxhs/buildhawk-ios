@@ -9,22 +9,27 @@
 #import <Foundation/Foundation.h>
 #import "BHCompany.h"
 #import "BHProject.h"
-#import <CoreData/CoreData.h>
+#import "BHPhoto.h"
 
 @interface BHUser : NSObject
 
-@property (nonatomic, copy) NSString *fname;
-@property (nonatomic, copy) NSString *lname;
-@property (nonatomic, copy) NSString *fullname;
-@property (nonatomic, copy) NSString *identifier;
-@property (nonatomic, copy) NSString *email;
-@property (nonatomic, copy) NSString *password;
-@property (nonatomic, copy) NSString *phone1;
-@property (nonatomic, copy) NSString *authToken;
-@property (nonatomic, copy) NSArray *deviceTokens;
-@property (nonatomic, copy) NSArray *timestamps;
-@property (nonatomic, copy) NSArray *photo;
-@property (nonatomic, copy) BHCompany *company;
-@property (nonatomic, copy) BHProject *projects;
-@property (nonatomic, copy) NSMutableArray *coworkers;
+@property (nonatomic, strong) NSString *fname;
+@property (nonatomic, strong) NSString *lname;
+@property (nonatomic, strong) NSString *fullname;
+@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSString *email;
+@property (nonatomic, strong) NSString *password;
+@property (nonatomic, strong) NSString *phone1;
+@property (nonatomic, strong) NSString *authToken;
+@property (nonatomic, strong) NSArray *deviceTokens;
+@property (nonatomic, strong) NSArray *timestamps;
+@property (nonatomic, strong) BHPhoto *photo;
+@property (nonatomic, strong) BHCompany *company;
+@property (nonatomic, strong) BHProject *projects;
+@property (nonatomic, strong) NSArray *coworkers;
+
+- (id) initWithDictionary:(NSDictionary*)dictionary;
++ (BHUser*)currentUser;
++ (void)setCurrentUser:(BHUser*)user;
+- (void)encodeWithCoder:(NSCoder *)coder;
 @end

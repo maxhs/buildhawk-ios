@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHUser.h"
 
 @interface BHMenuViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UIButton *logoutButton;
-@property (strong, nonatomic) NSMutableArray *coworkers;
-
+ 
 @end

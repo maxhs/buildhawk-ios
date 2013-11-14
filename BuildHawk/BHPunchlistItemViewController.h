@@ -19,8 +19,12 @@
 @property (weak, nonatomic) IBOutlet UITextView *itemTextView;
 @property (weak, nonatomic) IBOutlet UIButton *completionButton;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (weak, nonatomic) IBOutlet UIButton *emailButton;
+@property (weak, nonatomic) IBOutlet UIButton *callButton;
+@property (weak, nonatomic) IBOutlet UIButton *textButton;
 @property (strong, nonatomic) NSMutableArray *photos;
 @property (strong, nonatomic) NSMutableArray *assignees;
+@property (strong, nonatomic) BHProject *project;
 @property BOOL newItem;
 -(IBAction)completionTapped;
 -(IBAction)photoButtonTapped;

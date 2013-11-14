@@ -14,8 +14,14 @@
 #import "BHAppDelegate.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHUser.h"
+#import "User.h"
+#import <CoreData+MagicalRecord.h>
+#import <MessageUI/MessageUI.h>
 
-@interface BHMenuViewController ()
+@interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+    BHUser *selectedCoworker;
+    User *user;
+}
 @property (strong, nonatomic) UISwitch *emailPermissionsSwitch;
 @property (strong, nonatomic) UISwitch *pushPermissionsSwitch;
 
@@ -24,26 +30,18 @@
 
 @implementation BHMenuViewController
 
-@synthesize coworkers;
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     self.view.backgroundColor = kDarkGrayColor;
     self.tableView.backgroundColor = kDarkGrayColor;
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    user = [User MR_findFirst];
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         
     } else {
         self.logoutButton.transform = CGAffineTransformMakeTranslation(0, -88);
     }
-    
-    NSLog(@"self.coworkers.count: %i",self.coworkers.count);
 }
 
 - (void)didReceiveMemoryWarning
@@ -62,7 +60,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else return self.coworkers.count;
+    else return [(NSArray*)user.coworkers count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -89,8 +87,13 @@
     } else {
         static NSString *CellIdentifier = @"PermissionsCell";
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-        BHUser *coworker = [self.coworkers objectAtIndex:indexPath.row];
+        BHUser *coworker = [user.coworkers objectAtIndex:indexPath.row];
         [cell.textLabel setText:coworker.fullname];
+        if (coworker.phone1) {
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.phone1, coworker.email]];
+        } else {
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@", coworker.email]];
+        }
     }
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     [cell setBackgroundColor:[UIColor clearColor]];
@@ -98,10 +101,10 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.row == 0) {
+    if (indexPath.section == 0 && indexPath.row == 0) {
         return 100;
     } else {
-        return 80;
+        return 88;
     }
 }
 
@@ -110,10 +113,12 @@
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
     [NSUserDefaults resetStandardUserDefaults];
     if ([self.presentingViewController isKindOfClass:[BHLoginViewController class]]){
+        [(BHLoginViewController*)self.presentingViewController adjustLoginContainer];
         [self dismissViewControllerAnimated:YES completion:^{}];
     } else {
         UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
-        UIViewController *initialVC = [storyboard instantiateInitialViewController];
+        BHLoginViewController *initialVC = [storyboard instantiateInitialViewController];
+        [initialVC adjustLoginContainer];
         [self presentViewController:initialVC animated:YES completion:nil];
     }
     [SVProgressHUD dismiss];
@@ -162,7 +167,78 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (indexPath.section == 1) {
+        selectedCoworker = [user.coworkers objectAtIndex:indexPath.row];
+        if (selectedCoworker.phone1) {
+            [[[UIActionSheet alloc] initWithTitle:@"Contact" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname],[NSString stringWithFormat:@"Call %@",selectedCoworker.fullname], @"Send a text", nil] showInView:self.tableView];
+        } else {
+            [[[UIActionSheet alloc] initWithTitle:@"Contact" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname], nil] showInView:self.tableView];
+        }
+    }
+}
 
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        [self sendMail:selectedCoworker.email];
+    } else if (buttonIndex == 1) {
+        [self placeCall];
+    } else if (buttonIndex == 2) {
+        [self sendText];
+    } else {
+        [actionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
+    }
+}
+
+- (void)placeCall {
+    NSString *phoneNumber = [@"tel://" stringByAppendingString:selectedCoworker.phone1];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneNumber]];
+}
+
+
+#pragma mark - MFMailComposeViewControllerDelegate Methods
+
+- (void)sendMail:(NSString*)destinationEmail {
+    if ([MFMailComposeViewController canSendMail]) {
+        MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
+        controller.navigationBar.barStyle = UIBarStyleBlack;
+        controller.mailComposeDelegate = self;
+        //[controller setSubject:@""];
+        [controller setToRecipients:@[destinationEmail]];
+        if (controller) [self presentViewController:controller animated:YES completion:nil];
+    } else {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+        [alert show];
+    }
+}
+- (void)mailComposeController:(MFMailComposeViewController*)controller
+          didFinishWithResult:(MFMailComposeResult)result
+                        error:(NSError*)error;
+{
+    if (result == MFMailComposeResultSent) {}
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+- (void)sendText {
+    MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
+    if ([MFMessageComposeViewController canSendText]){
+        viewController.messageComposeDelegate = self;
+        [viewController setRecipients:nil];
+        [self presentViewController:viewController animated:YES completion:^{
+            
+        }];
+    }
+}
+
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller
+                 didFinishWithResult:(MessageComposeResult)result
+{
+    if (result == MessageComposeResultSent) {
+        
+    } else if (result == MessageComposeResultFailed) {
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        [alert show];
+    }
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

@@ -12,5 +12,6 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *reportSectionLabel;
 @property (weak, nonatomic) IBOutlet UITextView *reportBodyTextView;
-
+@property (weak, nonatomic) IBOutlet UIView *labelBackgroundView;
+- (void)configureCell;
 @end

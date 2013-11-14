@@ -8,22 +8,25 @@
 
 #import "BHLoginViewController.h"
 #import "BHUser.h"
-#import <RestKit/RestKit.h>
+#import "User.h"
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHAppDelegate.h"
 #import "BHMenuViewController.h"
 #import "BHDashboardViewController.h"
 #import "Constants.h"
 #import "SVProgressHUD.h"
 
+
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
     BOOL iPhone5;
-    BHUser *loggedInUser;
+    BHUser *user;
+    BOOL iPad;
 }
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIView *logoContainerView;
 @property (weak, nonatomic) IBOutlet UIView *loginContainerView;
--(IBAction)login;
+-(IBAction)loginTapped;
 
 @end
 
@@ -46,73 +49,111 @@
     [super viewDidLoad];
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
-    } else {
+    } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone){
         iPhone5 = NO;
         self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
         self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
+    } else {
+        iPad = YES;
+    }
+    [self adjustLoginContainer];
+}
+
+- (void)adjustLoginContainer {
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthToken]) {
+        [self.loginContainerView setAlpha:0.0];
+        [self login:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] andPassword:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]];
     }
 }
 
-- (IBAction)login{
-    RKObjectManager *manager = [RKObjectManager sharedManager];
-    RKObjectMapping *userMapping = [RKObjectMapping mappingForClass:[BHUser class]];
-    [userMapping addAttributeMappingsFromArray:@[@"email", @"password", @"deviceTokens",@"lname",@"fullname",@"fname",@"timestamps", @"photo", @"authToken"]];
-    [userMapping addAttributeMappingsFromDictionary:@{@"_id":@"identifier"}];
+- (IBAction)loginTapped {
+    [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
+}
 
-    NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
-    
-    RKObjectMapping *requestMapping = [RKObjectMapping requestMapping]; // objectClass == NSMutableDictionary
-    [requestMapping addAttributeMappingsFromArray:@[@"email", @"password"]];
-    
-    
-    RKRelationshipMapping *relationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"coworkers"
-                                                                                             toKeyPath:@"coworkers"
-                                                                                           withMapping:userMapping];
-    [userMapping addPropertyMapping:relationshipMapping];
-    
-    RKResponseDescriptor *userDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:userMapping method:RKRequestMethodAny pathPattern:@"login" keyPath:nil statusCodes:statusCodes];
-    
-    // For any object of class Article, serialize into an NSMutableDictionary using the given mapping and nest
-    // under the 'article' key path
-    RKRequestDescriptor *requestDescriptor = [RKRequestDescriptor requestDescriptorWithMapping:requestMapping objectClass:[BHUser class] rootKeyPath:@"user" method:RKRequestMethodAny];
-    
-    [manager addRequestDescriptor:requestDescriptor];
-    [manager addResponseDescriptor:userDescriptor];
-    
+- (void)login:(NSString*)email andPassword:(NSString*)password{
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [SVProgressHUD showWithStatus:@"Logging in..."];
-    // POST to create
-    [manager postObject:nil path:@"login" parameters:@{@"email":self.emailTextField.text, @"password":self.passwordTextField.text} success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
-        loggedInUser = [mappingResult firstObject];
-        NSLog(@"logged in user id: %@",loggedInUser.identifier);
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.identifier forKey:kUserDefaultsId];
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.email forKey:kUserDefaultsEmail];
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.authToken forKey:kUserDefaultsAuthToken];
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.fname forKey:kUserDefaultsFirstName];
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.lname forKey:kUserDefaultsLastName];
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.fullname forKey:kUserDefaultsFullName];
-        [[NSUserDefaults standardUserDefaults] setObject:loggedInUser.password forKey:kUserDefaultsPassword];
-        [[NSUserDefaults standardUserDefaults] setObject:[[loggedInUser.photo valueForKeyPath:@"urls.100x100"] objectAtIndex:0] forKey:kUserDefaultsPhotoUrl100];
+    if (!email.length)
+        email = self.emailTextField.text;
+    if (!password.length)
+        password = self.passwordTextField.text;
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    [parameters setObject:email forKey:@"email"];
+    [parameters setObject:password forKey:@"password"];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"deviceToken"];
+    [manager POST:[NSString stringWithFormat:@"%@/login",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"log in response object: %@",responseObject);
+        user = [[BHUser alloc] initWithDictionary:responseObject];
+        [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
+        [[NSUserDefaults standardUserDefaults] setObject:user.email forKey:kUserDefaultsEmail];
+        [[NSUserDefaults standardUserDefaults] setObject:user.authToken forKey:kUserDefaultsAuthToken];
+        [[NSUserDefaults standardUserDefaults] setObject:user.fname forKey:kUserDefaultsFirstName];
+        [[NSUserDefaults standardUserDefaults] setObject:user.lname forKey:kUserDefaultsLastName];
+        [[NSUserDefaults standardUserDefaults] setObject:user.fullname forKey:kUserDefaultsFullName];
+        [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
+        [[NSUserDefaults standardUserDefaults] setObject:user.photo.url100 forKey:kUserDefaultsPhotoUrl100];
         [[NSUserDefaults standardUserDefaults] synchronize];
-        NSLog(@"coworkers? %@",loggedInUser.coworkers);
-        [UIView animateWithDuration:.3 animations:^{
-            self.loginContainerView.transform = CGAffineTransformIdentity;
-            self.logoContainerView.transform = CGAffineTransformIdentity;
-            [self.view endEditing:YES];
-            [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
-        } completion:^(BOOL finished) {
-            [SVProgressHUD dismiss];
-        }];
         
-    } failure:^(RKObjectRequestOperation *operation, NSError *error) {
-        [SVProgressHUD dismiss];
-        NSLog(@"Failure logging in: %@",error.localizedRecoverySuggestion);
-        if ([error.localizedRecoverySuggestion isEqualToString:@"[{\"email\":\"Please enter a valid email.\"}]"]) {
-            [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find that email address. Please try again" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        } else if ([error.localizedRecoverySuggestion isEqualToString:@"[{\"password\":\"Please use a valid password.\"}]"]) {
-            [[[UIAlertView alloc] initWithTitle:nil message:@"Your password was incorrect. Please try again" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier ==[c] %@", user.identifier];
+        User *saveUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+        if (saveUser) {
+            NSLog(@"found existing MR user");
+            saveUser.identifier = user.identifier;
+            saveUser.lname = user.lname;
+            saveUser.email = user.email;
+            saveUser.fullname = user.fullname;
+            saveUser.fname = user.fname;
+            saveUser.coworkers = user.coworkers;
+            saveUser.photoUrl100 = user.photo.url100;
+            saveUser.phone1 = user.phone1;
+            
+            [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                if (success) NSLog(@"done saving user through Magical Record");
+                else NSLog(@"error saving through MR: %@",error.description);
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
+                [UIView animateWithDuration:.3 animations:^{
+                    self.loginContainerView.transform = CGAffineTransformIdentity;
+                    self.logoContainerView.transform = CGAffineTransformIdentity;
+                    [self.view endEditing:YES];
+                } completion:^(BOOL finished) {
+                    
+                }];
+                [SVProgressHUD dismiss];
+                [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+            }];
         } else {
-            [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong with your login. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            User *newUser = [User MR_createInContext:localContext];
+            NSLog(@"had to create new MR user");
+            newUser.identifier = user.identifier;
+            newUser.lname = user.lname;
+            newUser.email = user.email;
+            newUser.fullname = user.fullname;
+            newUser.fname = user.fname;
+            newUser.coworkers = user.coworkers;
+            newUser.photoUrl100 = user.photo.url100;
+            newUser.phone1 = user.phone1;
+            [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                if (success) NSLog(@"done saving user through Magical Record");
+                else NSLog(@"error saving through MR: %@",error.description);
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
+                [UIView animateWithDuration:.3 animations:^{
+                    self.loginContainerView.transform = CGAffineTransformIdentity;
+                    self.logoContainerView.transform = CGAffineTransformIdentity;
+                    [self.view endEditing:YES];
+                } completion:^(BOOL finished) {
+                    
+                }];
+                [SVProgressHUD dismiss];
+                [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+            }];
         }
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error logging in: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [SVProgressHUD dismiss];
+        [self.loginContainerView setAlpha:1.0];
     }];
 }
 
@@ -121,6 +162,8 @@
         if (iPhone5){
             self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
             self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -180);
+        } else if (iPad) {
+            
         } else {
             self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -286);
             self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -210);
@@ -137,12 +180,17 @@
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
     if ([text isEqualToString:@"\n"]) {
         if (self.passwordTextField.text.length && self.emailTextField.text.length) {
-            [self login];
+            [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
         }
         [textField resignFirstResponder];
         return NO;
     }
     return YES;
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    [self.loginContainerView setAlpha:1.0];
 }
 
 - (void)didReceiveMemoryWarning

@@ -11,38 +11,53 @@
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "BHPhoto.h"
-#import <RestKit/RestKit.h>
+#import <AFNetworking/UIImageView+AFNetworking.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHPhotosViewController.h"
+#import <IDMPhotoBrowser/IDMPhotoBrowser.h>
+#import "Flurry.h"
 
-@interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate> {
+@interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
     BOOL iPhone5;
     NSMutableArray *photosArray;
+    NSArray *sortedByDate;
+    NSMutableArray *sortedByUser;
+    BOOL sortByDate;
+    BOOL sortByUser;
+    BOOL noSort;
+    NSString *sortUser;
+    NSString *sortCategory;
+    UIActionSheet *categoryActionSheet;
+    UIActionSheet *userActionSheet;
+    NSMutableArray *userArray;
+    NSMutableArray *sourceArray;
 }
 
 -(IBAction)backToDashboard;
+
 @end
 
 @implementation BHDocumentsViewController
-
-@synthesize documentFolders;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[[(BHTabBarViewController*)self.tabBarController project] name]];
 	// Do any additional setup after loading the view, typically from a nib.
-    if (!self.documentFolders) self.documentFolders = [NSMutableArray array];
-    [self.documentFolders addObject:@"Blueprints"];
-    [self.documentFolders addObject:@"Financials"];
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else {
         iPhone5 = NO;
     }
     if (!photosArray) photosArray = [NSMutableArray array];
+    if (!userArray) userArray = [NSMutableArray array];
+    if (!sourceArray) sourceArray = [NSMutableArray array];
+    if (!sortedByUser) sortedByUser = [NSMutableArray array];
     [self loadPhotos];
-    
+    noSort = YES;
+    sortByDate = NO;
+    sortByUser = NO;
+    [Flurry logEvent:@"Viewing documents"];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -59,37 +74,29 @@
 }
 
 - (void)loadPhotos {
-    RKObjectManager *manager = [RKObjectManager sharedManager];
-    
-    RKObjectMapping *photosMapping = [RKObjectMapping mappingForClass:[BHPhoto class]];
-    [photosMapping addAttributeMappingsFromDictionary:@{
-                                                        @"urls.200x200":@"url200",
-                                                        @"urls.100x100":@"url100"
-                                                        }];
-    
-    /*RKRelationshipMapping *relationshipMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"created.photos"
-                                                                                             toKeyPath:@"photos"
-                                                                                           withMapping:photosMapping];*/
-
-    NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
-    RKResponseDescriptor *punchlistDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:photosMapping method:RKRequestMethodAny pathPattern:nil keyPath:@"rows" statusCodes:statusCodes];
-    
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
-    [manager addResponseDescriptor:punchlistDescriptor];
-    [manager getObjectsAtPath:[NSString stringWithFormat:@"photos/%@",[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:nil success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
-        [photosArray removeAllObjects];
-        for (id obj in mappingResult.array) {
-            if ([obj isKindOfClass:[BHPhoto class]]) [photosArray addObject:(BHPhoto*)obj];
-        }
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager GET:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"pid":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success getting documents: %@",responseObject);
+        photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"rows"]];
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
-    } failure:^(RKObjectRequestOperation *operation, NSError *error) {
-        NSLog(@"Error fetching projects for dashboard: %@",error.description);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error getting photos: %@",error.description);
         [SVProgressHUD dismiss];
     }];
 }
 
-
+- (NSMutableArray *)photosFromJSONArray:(NSArray *) array {
+    NSMutableArray *photos = [NSMutableArray arrayWithCapacity:array.count];
+    for (NSDictionary *photoDictionary in array) {
+        BHPhoto *photo = [[BHPhoto alloc] initWithDictionary:photoDictionary];
+        if (![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
+        if (photo.userName && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
+        [photos addObject:photo];
+    }
+    return photos;
+}
 
 #pragma mark - Table view data source
 
@@ -101,7 +108,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else return self.documentFolders.count;
+    else return sourceArray.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -113,14 +120,18 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
         }
-        [cell.categoryButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
-        [cell.dateButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
-        [cell.userButton addTarget:self action:@selector(showPhoto) forControlEvents:UIControlEventTouchUpInside];
+        [cell.categoryButton addTarget:self action:@selector(sortByCategory) forControlEvents:UIControlEventTouchUpInside];
+        [cell.dateButton addTarget:self action:@selector(sortByDate) forControlEvents:UIControlEventTouchUpInside];
+        [cell.userButton addTarget:self action:@selector(sortByUser) forControlEvents:UIControlEventTouchUpInside];
         if (photosArray.count > 0){
-            [cell.mainImageView setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[(BHPhoto*)[photosArray objectAtIndex:0] url200]]] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+            [cell.mainImageView setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[(BHPhoto*)[photosArray objectAtIndex:0] orig]]] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
                 [cell.mainImageView setImage:image];
                 [cell.mainImageView setContentMode:UIViewContentModeScaleAspectFill];
                 cell.mainImageView.clipsToBounds = YES;
+                UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [imageButton setFrame:cell.mainImageView.frame];
+                [imageButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
+                [cell addSubview:imageButton];
                 [UIView animateWithDuration:.25 animations:^{
                     [cell.mainImageView setAlpha:1.0];
                 }];
@@ -142,18 +153,35 @@
         return cell;
     } else {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"DocumentFolder"];
-        [cell.textLabel setText:[self.documentFolders objectAtIndex:indexPath.row]];
+        [cell.textLabel setText:[sourceArray objectAtIndex:indexPath.row]];
+        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
         return cell;
     }
 }
 
+- (void)showPhotoDetail:(id)sender {
+    NSMutableArray *photos = [NSMutableArray new];
+    for (BHPhoto *photo in photosArray) {
+        IDMPhoto *idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
+        [photos addObject:idmPhoto];
+    }
+    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
+    [self presentViewController:browser animated:YES completion:^{
+        
+    }];
+}
+
 - (void)buttonTreatment:(UIButton*)button {
-    button.layer.cornerRadius = button.frame.size.height/2;
-    button.clipsToBounds = YES;
-    button.backgroundColor = kBlueColor;
-    button.layer.borderColor = [UIColor lightGrayColor].CGColor;
-    button.layer.borderWidth = 0.5;
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    button.layer.cornerRadius = 3.f;
+    [button setBackgroundColor:[UIColor clearColor]];
+    [button.layer setBackgroundColor:[UIColor colorWithWhite:.96 alpha:1.0].CGColor];
+    button.layer.shouldRasterize = YES;
+    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    button.layer.shadowColor = kDarkGrayColor.CGColor;
+    button.layer.shadowOpacity =  .5;
+    button.layer.shadowRadius = 2.f;
+    button.layer.shadowOffset = CGSizeMake(0, 0);
+    [button.titleLabel setTextColor:[UIColor darkGrayColor]];
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -166,44 +194,47 @@
     else return nil;
 }
 
-/*
- // Override to support conditional editing of the table view.
- - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
- {
- // Return NO if you do not want the specified item to be editable.
- return YES;
- }
- */
+- (void)sortByCategory {
+    sortByDate = NO;
+    sortByUser = NO;
+    [self showPhoto];
+}
 
-/*
- // Override to support editing the table view.
- - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
- {
- if (editingStyle == UITableViewCellEditingStyleDelete) {
- // Delete the row from the data source
- [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
- }
- else if (editingStyle == UITableViewCellEditingStyleInsert) {
- // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
- }
- }
- */
+- (void)sortByDate {
+    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"createdOn" ascending:YES];
+    NSArray *sortDescriptors = @[sortDescriptor];
+    sortedByDate = [photosArray sortedArrayUsingDescriptors:sortDescriptors];
+    sortByDate = YES;
+    sortByUser = NO;
+    [self showPhoto];
+}
 
-/*
- // Override to support rearranging the table view.
- - (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
- {
- }
- */
+- (void)sortByUser {
+    userActionSheet = [[UIActionSheet alloc] initWithTitle:@"Sort by user" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    for (NSString *name in userArray) {
+        [userActionSheet addButtonWithTitle:name];
+    }
+    userActionSheet.cancelButtonIndex = [userActionSheet addButtonWithTitle:@"Cancel"];
+    [userActionSheet showFromTabBar:self.tabBarController.tabBar];
+    sortByDate = NO;
+    sortByUser = YES;
+}
 
-/*
- // Override to support conditional rearranging of the table view.
- - (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
- {
- // Return NO if you do not want the item to be re-orderable.
- return YES;
- }
- */
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (actionSheet == userActionSheet) {
+        if (![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]){
+            sortUser = [actionSheet buttonTitleAtIndex:buttonIndex];
+            NSPredicate *testForuser = [NSPredicate predicateWithFormat:@"userName contains[cd] %@",sortUser];
+            [sortedByUser removeAllObjects];
+            for (BHPhoto *photo in photosArray){
+                if([testForuser evaluateWithObject:photo]) {
+                    [sortedByUser addObject:photo];
+                }
+            }
+            [self showPhoto];
+        }
+    }
+}
 
 #pragma mark - Table view delegate
 
@@ -227,7 +258,16 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     BHPhotosViewController *vc = [segue destinationViewController];
-    [vc setPhotosArray:photosArray];
+    if (sortByUser) {
+        [vc setPhotosArray:sortedByUser];
+        [vc setTitle:sortUser];
+    } else if (sortByDate) {
+        [vc setPhotosArray:sortedByDate];
+        [vc setTitle:@"Sorting by date"];
+    } else {
+        [vc setPhotosArray:photosArray];
+        [vc setTitle:sortCategory];
+    }
 }
 
 - (IBAction)backToDashboard {

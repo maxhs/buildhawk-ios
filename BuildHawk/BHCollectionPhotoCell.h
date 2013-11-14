@@ -11,6 +11,6 @@
 
 @interface BHCollectionPhotoCell : UICollectionViewCell
 
-@property (strong,nonatomic) IBOutlet UIImageView *imageView;
+@property (strong,nonatomic) IBOutlet UIButton *photoButton;
 -(void)configureForPhoto:(BHPhoto*)photo;
 @end

@@ -11,8 +11,14 @@
 @interface BHAddress : NSObject
 @property (copy, nonatomic) NSString *formattedAddress;
 @property (copy, nonatomic) NSString *streetNumber;
+@property (copy, nonatomic) NSString *city;
+@property (copy, nonatomic) NSString *state;
+@property (copy, nonatomic) NSString *country;
 @property (copy, nonatomic) NSString *route;
 @property (copy, nonatomic) NSString *postalCode;
 @property float latitude;
 @property float longitude;
+
+- (id) initWithDictionary:(NSDictionary*)dictionary;
+
 @end

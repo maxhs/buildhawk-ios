@@ -9,7 +9,6 @@
 #import <Foundation/Foundation.h>
 #import "BHAddress.h"
 #import "BHCompany.h"
-#import <CoreData/CoreData.h>
 
 @interface BHProject : NSObject
 @property (nonatomic, strong) NSString *name;
@@ -20,5 +19,7 @@
 @property (nonatomic, strong) BHAddress *address;
 @property (nonatomic, strong) BHCompany *company;
 @property BOOL active;
+
+- (id) initWithDictionary:(NSDictionary*)dictionary;
 
 @end

@@ -15,11 +15,13 @@
 #import "BHChecklistItem.h"
 #import "Constants.h"
 #import "RADataObject.h"
-#import <RestKit/RestKit.h>
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHCategory.h"
 #import "BHSubcategory.h"
 #import "BHChecklist.h"
 #import <SVProgressHUD/SVProgressHUD.h>
+#import "Flurry.h"
+#import "GAI.h"
 
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
 typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
@@ -27,12 +29,16 @@ typedef void(^RequestFailure)(NSError *error);
 typedef void(^RequestSuccess)(id result);
 
 @interface BHChecklistViewController () <UISearchBarDelegate, UISearchDisplayDelegate, RATreeViewDelegate, RATreeViewDataSource, UITableViewDataSource, UITableViewDelegate> {
-
     NSMutableArray *categories;
     NSMutableArray *filteredItems;
     NSMutableArray *listItems;
     NSMutableArray *completedListItems;
+    NSMutableArray *inProgressListItems;
     BOOL completed;
+    BOOL iPad;
+    BOOL iPhone5;
+    CGFloat itemRowHeight;
+    CGRect screen;
 }
 @property (strong, nonatomic) id expanded;
 @property (strong, nonatomic) BHChecklist *checklist;
@@ -44,8 +50,20 @@ typedef void(^RequestSuccess)(id result);
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    screen = [[UIScreen mainScreen] bounds];
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        iPad = YES;
+    } else if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        iPhone5 = YES;
+    } else {
+        iPhone5 = NO;
+        CGRect tableRect = self.treeView.frame;
+        tableRect.size.height -= 88;
+        [self.treeView setFrame:tableRect];
+    }
+    itemRowHeight = 120;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
-	[self.segmentedControl setTintColor:kBlueColor];
+	[self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     if (!self.checklist) self.checklist = [[BHChecklist alloc] init];
     
@@ -56,75 +74,59 @@ typedef void(^RequestSuccess)(id result);
     if (!filteredItems) filteredItems = [NSMutableArray array];
     if (!listItems) listItems = [NSMutableArray array];
     if (!completedListItems) completedListItems = [NSMutableArray array];
+    if (!inProgressListItems) inProgressListItems = [NSMutableArray array];
     [self loadChecklist];
     [self.searchDisplayController.searchBar setShowsCancelButton:NO animated:NO];
+    [self.segmentedControl setSelectedSegmentIndex:0];
+    //[self.view setBackgroundColor:kDarkShade1];
+    //[self.treeView setBackgroundColor:kDarkShade1];
+    [Flurry logEvent:@"Viewing checklist"];
 }
 
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    self.screenName = @"Checklist view controller";
+}
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
-- (void)loadChecklistRestkit {
-    RKObjectManager *manager = [RKObjectManager sharedManager];
-    
-    RKObjectMapping *checklistItemMapping = [RKObjectMapping mappingForClass:[BHChecklistItem class]];
-    [checklistItemMapping addAttributeMappingsFromArray:@[@"category", @"subcategory", @"name"]];
-    [checklistItemMapping addAttributeMappingsFromDictionary:@{
-                                                           @"_id" : @"identifier",
-                                                           }];
-    //for core data
-    //checklistItemMapping.identificationAttributes@[@"identifier"];
-    
-   /*RKRelationshipMapping *subcategoryMapping = [RKRelationshipMapping relationshipMappingFromKeyPath:@"subcategory"
-                                                                                         toKeyPath:@"subcategory"
-                                                                                       withMapping:checklistItemMapping];
-    [checklistMapping addPropertyMapping:categoryMapping];*/
-
-    
-    NSIndexSet *statusCodes = RKStatusCodeIndexSetForClass(RKStatusCodeClassSuccessful); // Anything in 2xx
-    RKResponseDescriptor *itemsDescriptor = [RKResponseDescriptor responseDescriptorWithMapping:checklistItemMapping method:RKRequestMethodAny pathPattern:@"checklists" keyPath:@"rows" statusCodes:statusCodes];
-    
-    // For any object of class Article, serialize into an NSMutableDictionary using the given mapping and nest
-    // under the 'article' key path
-    //RKRequestDescriptor *requestDescriptor = [RKRequestDescriptor requestDescriptorWithMapping:projectMapping objectClass:[BHProject class] rootKeyPath:nil method:RKRequestMethodAny];
-    
-    //[manager addRequestDescriptor:requestDescriptor];
-    [SVProgressHUD showWithStatus:@"Fetching checklist..."];
-    [manager addResponseDescriptor:itemsDescriptor];
-    [manager getObjectsAtPath:@"checklists" parameters:@{@"project_id":@"5220ffee313d263435000001"} success:^(RKObjectRequestOperation *operation, RKMappingResult *mappingResult) {
-        NSLog(@"mapping result for checklist: %@",mappingResult.array);
-        //checklist.listItems = [mappingResult.array mutableCopy];
-                [self.treeView reloadData];
-        [SVProgressHUD dismiss];
-    } failure:^(RKObjectRequestOperation *operation, NSError *error) {
-        NSLog(@"Error fetching checklist: %@",error.description);
-        [SVProgressHUD dismiss];
-    }];
-}
-
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
-    NSLog(@"sender: %i",sender.selectedSegmentIndex);
     switch (sender.selectedSegmentIndex) {
         case 0:
             self.checklist.children = categories;
             [self.treeView reloadData];
             break;
         case 1:
-            
+            [self filterInProgress];
             break;
         case 2:
+            [self filterInProgress];
+            break;
+        case 3:
             [self filterCompleted];
             break;
         default:
             break;
     }
-    
+}
+
+- (void)filterInProgress {
+    [inProgressListItems removeAllObjects];
+    NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"completed == NO"];
+    for (BHChecklistItem *item in listItems){
+        if([testForTrue evaluateWithObject:item]) {
+            [inProgressListItems addObject:item];
+        }
+    }
+    self.checklist.children = inProgressListItems;
+    [self.treeView reloadData];
 }
 
 - (void)filterCompleted {
-    
+    [completedListItems removeAllObjects];
     NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"completed == YES"];
     for (BHChecklistItem *item in listItems){
         if([testForTrue evaluateWithObject:item]) {
@@ -135,18 +137,10 @@ typedef void(^RequestSuccess)(id result);
     [self.treeView reloadData];
 }
 
-- (AFJSONRequestOperation*)loadChecklist {
-    AFHTTPClient *checklistClient = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:@"http://www.buildhawk.com/api/v1"]];
-    [checklistClient registerHTTPOperationClass:[AFJSONRequestOperation class]];
-    [checklistClient setDefaultHeader:@"Accept" value:@"application/json"];
-    
-    OperationFailure opFailure = ^(AFHTTPRequestOperation *operation, NSError *error)
-    {
-        NSLog(@"Failed to get the checklist: %@",error.description);
-    };
-    
-    OperationSuccess opSuccess = ^(AFHTTPRequestOperation *operation, id responseObject)
-    {
+- (void)loadChecklist {
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager GET:[NSString stringWithFormat:@"%@/checklists",kApiBaseUrl] parameters:@{@"pid":[[(BHTabBarViewController*)self.tabBarController project] identifier], @"tree":@"1"} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"checklist response: %@",responseObject);
         for (id cat in [responseObject objectForKey:@"rows"]) {
             BHCategory *category = [[BHCategory alloc] init];
             [category setName:cat];
@@ -155,15 +149,9 @@ typedef void(^RequestSuccess)(id result);
         }
         self.checklist.children = categories;
         [self.treeView reloadData];
-    };
-   
-    NSMutableURLRequest *request = [checklistClient requestWithMethod:@"GET" path:@"checklists" parameters:@{@"project_id":@"5220ffee313d263435000001", @"tree":@"1"}];
-    
-    AFJSONRequestOperation *op = (AFJSONRequestOperation *)[checklistClient HTTPRequestOperationWithRequest:request
-                                                                                                  success:opSuccess
-                                                                                                  failure:opFailure];
-    [op start];
-    return op;
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure loading checklist: %@",error.description);
+    }];
 }
 
 - (void)parseListItems:(NSDictionary*)dict {
@@ -190,10 +178,9 @@ typedef void(^RequestSuccess)(id result);
     return items;
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
+- (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self.treeView reloadData];
+    [self.treeView setSeparatorStyle:RATreeViewCellSeparatorStyleNone];
 }
 
 - (IBAction)backToDashboard {
@@ -223,11 +210,15 @@ typedef void(^RequestSuccess)(id result);
 - (void)treeView:(RATreeView *)treeView willDisplayCell:(UITableViewCell *)cell forItem:(id)item treeNodeInfo:(RATreeNodeInfo *)treeNodeInfo
 {
     if (treeNodeInfo.treeDepthLevel == 0) {
-        cell.backgroundColor = [UIColor clearColor];
+         
     } else if (treeNodeInfo.treeDepthLevel == 1) {
-        cell.backgroundColor = kLightestGrayColor;
+        cell.backgroundColor = kDarkShade2;
+        [cell.textLabel setTextColor:[UIColor whiteColor]];
+        [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
     } else if (treeNodeInfo.treeDepthLevel == 2) {
-        cell.backgroundColor = kLighterGrayColor;
+        cell.backgroundColor = kDarkShade3;
+        [cell.textLabel setTextColor:[UIColor whiteColor]];
+        [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
     }
 }
 
@@ -243,6 +234,15 @@ typedef void(^RequestSuccess)(id result);
             if ([item isKindOfClass:[BHCategory class]]) {
                 cell.textLabel.text = ((BHCategory *)item).name;
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"Subcategories %d", numberOfChildren];
+            } else if ([item isKindOfClass:[BHChecklistItem class]]) {
+                if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
+                    [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+                } else if ([[(BHChecklistItem*)item type] isEqualToString:@"S&C"]) {
+                    [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+                } else {
+                    [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+                }
+                [cell.detailTextLabel setText:[(BHChecklistItem*)item subcategory]];
             }
             break;
         case 1:
@@ -251,8 +251,6 @@ typedef void(^RequestSuccess)(id result);
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"Items: %d", numberOfChildren];
             }
             break;
-        case 2:
-            [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
         default:
             cell.detailTextLabel.text = @"";
             break;
@@ -260,16 +258,32 @@ typedef void(^RequestSuccess)(id result);
     
     if ([item isKindOfClass:[BHChecklistItem class]]){
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        [button setFrame:cell.frame];
+        CGRect frame = cell.frame;
+        frame.size.height = itemRowHeight;
+        frame.size.width = screen.size.width;
+        NSLog(@"frame width: %f",frame.size.width);
+        [button setFrame:frame];
         [button setTag:[listItems indexOfObject:item]];
         [button addTarget:self action:@selector(dummySegue:) forControlEvents:UIControlEventTouchUpInside];
         [button setBackgroundColor:[UIColor clearColor]];
         [cell addSubview:button];
         cell.textLabel.text = [(BHChecklistItem*)item name];
+        cell.textLabel.numberOfLines = 0;
+        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+
+        if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
+            [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+        } else if ([[(BHChecklistItem*)item type] isEqualToString:@"S&C"]) {
+            [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+        } else {
+            [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+        }
+        
         if ([(BHChecklistItem*)item completed]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
             [cell setTintColor:[UIColor blackColor]];
             [cell.textLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
             [cell.imageView setAlpha:.25];
         }
     }
@@ -313,7 +327,7 @@ typedef void(^RequestSuccess)(id result);
         return [[(BHCategory*)item children] objectAtIndex:index];
     } else if ([item isKindOfClass:[BHSubcategory class]]){
         return [[(BHSubcategory*)item children] objectAtIndex:index];
-    }
+    } else return nil;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -331,18 +345,35 @@ typedef void(^RequestSuccess)(id result);
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ItemCell"];
-    if (completed) [cell.textLabel setText:[[completedListItems objectAtIndex:indexPath.row] name]];
-    else [cell.textLabel setText:[[filteredItems objectAtIndex:indexPath.row] name]];
-    [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+    BHChecklistItem *item;
+    if (completed) {
+        item = [completedListItems objectAtIndex:indexPath.row];
+        [cell.textLabel setText:item.name];
+    } else {
+        item = [filteredItems objectAtIndex:indexPath.row];
+        [cell.textLabel setText:item.name];
+    }
+    cell.textLabel.numberOfLines = 0;
+    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+    
+    //set the image properly
+    if ([item.type isEqualToString:@"Com"]) {
+        [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+    } else if ([item.type isEqualToString:@"S&C"]) {
+        [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+    } else {
+        [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+    }
     return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 66;
+    return 100;
 }
 
 - (CGFloat)treeView:(RATreeView *)treeView heightForRowForItem:(id)item treeNodeInfo:(RATreeNodeInfo *)treeNodeInfo {
-    return 66;
+    if ([item isKindOfClass:[BHChecklistItem class]]) return itemRowHeight;
+    else return 66;
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
@@ -352,6 +383,7 @@ typedef void(^RequestSuccess)(id result);
         tableRect.size.height += 44;
         tableRect.origin.y -= 44;
         [self.treeView setFrame:tableRect];
+        [self.segmentedControl setAlpha:0.0];
     }];
 }
 
@@ -369,27 +401,44 @@ typedef void(^RequestSuccess)(id result);
         tableRect.size.height -= 44;
         tableRect.origin.y += 44;
         [self.treeView setFrame:tableRect];
+        [self.segmentedControl setAlpha:1.0];
     }];
 }
 
 #pragma mark - Table view delegate
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView == self.searchDisplayController.searchResultsTableView) {
+        BHChecklistItem *item = [filteredItems objectAtIndex:indexPath.row];
+        [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
+    }
+}
+
 - (void)treeView:(UITableView *)treeView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSLog(@"do something");
     //[self performSegueWithIdentifier:@"ShowSubcategories" sender:self];
 }
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
     [filteredItems removeAllObjects]; // First clear the filtered array.
-    NSLog(@"checklist search text: %@",searchText);
     for (BHChecklistItem *item in listItems){
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
         if([predicate evaluateWithObject:item.name]) {
-            NSLog(@"able to add %@",item.name);
             [filteredItems addObject:item];
         }
     }
+}
+
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    return NO;
+}
+
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return UITableViewCellEditingStyleNone;
+}
+
+- (UITableViewCellEditingStyle)treeView:(RATreeView *)treeView editingStyleForRowForItem:(id)item treeNodeInfo:(RATreeNodeInfo *)treeNodeInfo {
+    return UITableViewCellEditingStyleNone;
 }
 
 #pragma mark UISearchDisplayController Delegate Methods
@@ -410,6 +459,11 @@ typedef void(^RequestSuccess)(id result);
     
     // Return YES to cause the search result table view to be reloaded.
     return NO;
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    [self.searchDisplayController setActive:NO];
 }
 
 @end

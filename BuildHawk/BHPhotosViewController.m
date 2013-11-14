@@ -10,6 +10,7 @@
 #import "BHCollectionPhotoCell.h"
 #import <SDWebImage/UIButton+WebCache.h>
 #import <SDWebImage/UIImageView+WebCache.h>
+#import <IDMPhotoBrowser/IDMPhotoBrowser.h>
 
 @interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout>
 
@@ -55,8 +56,36 @@
     BHCollectionPhotoCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"PhotoCell" forIndexPath:indexPath];
     BHPhoto *photo = [self.photosArray objectAtIndex:indexPath.row];
     [cell configureForPhoto:photo];
+    [cell.photoButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.photoButton setTag:indexPath.row];
     cell.backgroundColor = [UIColor whiteColor];
     return cell;
+}
+
+- (void)showPhotoDetail:(id)sender {
+    //reorder photos based on tap
+    UIButton *button = (UIButton*)sender;
+    NSMutableArray *secondSlice = [NSMutableArray array];
+    for (int i=button.tag ; i<self.photosArray.count ; i++){
+        [secondSlice addObject:[self.photosArray objectAtIndex:i]];
+    }
+    NSMutableArray *firstSlice = [NSMutableArray array];
+    for (int i=0 ; i<button.tag ; i++){
+        [firstSlice addObject:[self.photosArray objectAtIndex:i]];
+    }
+    NSMutableArray *compositePhotos = [NSMutableArray new];
+    [compositePhotos addObjectsFromArray:secondSlice];
+    [compositePhotos addObjectsFromArray:firstSlice];
+    
+    NSMutableArray *photos = [NSMutableArray new];
+    for (BHPhoto *photo in compositePhotos) {
+        IDMPhoto *idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
+        [photos addObject:idmPhoto];
+    }
+    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
+    [self presentViewController:browser animated:YES completion:^{
+        
+    }];
 }
 
 /*- (UICollectionReusableView *)collectionView:

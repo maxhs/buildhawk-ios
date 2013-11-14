@@ -8,12 +8,12 @@
 
 #import <UIKit/UIKit.h>
 #import "BHChecklistItem.h"
+#import "BHComment.h"
+#import "BHPhoto.h"
 
 @interface BHChecklistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) BHChecklistItem *item;
-@property (strong, nonatomic) NSMutableArray *comments;
-@property (weak, nonatomic) IBOutlet UIBarButtonItem *saveButton;
 
 @end

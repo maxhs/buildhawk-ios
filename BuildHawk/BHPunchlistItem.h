@@ -21,8 +21,10 @@
 @property (nonatomic, strong) NSString *completedOn;
 @property (nonatomic, strong) BHProject *project;
 @property (nonatomic, strong) BHCompleted *completed;
-@property (nonatomic, strong) NSMutableArray *photos;
+@property (nonatomic, strong) NSMutableArray *createdPhotos;
 @property (nonatomic, strong) NSMutableArray *completedPhotos;
 @property (nonatomic, strong) NSMutableArray *assignees;
+
+- (id) initWithDictionary:(NSDictionary*)dictionary;
 
 @end

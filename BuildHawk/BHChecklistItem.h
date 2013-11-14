@@ -19,8 +19,12 @@
 @property (nonatomic, copy) NSString *location;
 @property (nonatomic, copy) NSString *category;
 @property (nonatomic, copy) NSString *subcategory;
+@property (nonatomic, copy) NSString *status;
+@property (nonatomic, copy) NSDate *dueDate;
+@property (nonatomic, copy) NSString *dueDateString;
 @property (nonatomic, copy) BHProject *project;
-@property (nonatomic, copy) NSArray *photos;
+@property (nonatomic, strong) NSMutableArray *photos;
+@property (nonatomic, strong) NSMutableArray *comments;
 @property (nonatomic, copy) id children;
 @property BOOL completed;
 

@@ -9,8 +9,8 @@
 #import <UIKit/UIKit.h>
 
 @interface BHCommentCell : UITableViewCell
-@property (weak, nonatomic) IBOutlet UILabel *timestamp;
-@property (weak, nonatomic) IBOutlet UILabel *person;
-@property (weak, nonatomic) IBOutlet UITextView *message;
-
+@property (weak, nonatomic) IBOutlet UILabel *timeLabel;
+@property (weak, nonatomic) IBOutlet UILabel *nameLabel;
+@property (weak, nonatomic) IBOutlet UITextView *messageTextView;
+- (void)configureCell;
 @end

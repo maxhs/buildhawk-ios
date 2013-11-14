@@ -1,9 +1,10 @@
-platform :ios, '6.1'
-pod 'RestKit', '~> 0.20.0'
+platform :ios, '7.0'
+pod 'AFNetworking'
 pod 'SWRevealViewController', '~> 1.0.4'
 pod 'SDWebImage', '~> 3.4'
 pod 'SVProgressHUD'
 pod 'RATreeView'
 pod 'MagicalRecord', '~> 2.2'
+pod 'IDMPhotoBrowser'
 
 link_with 'BuildHawk'

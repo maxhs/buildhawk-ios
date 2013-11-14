@@ -13,7 +13,7 @@
 
 @implementation BHCollectionPhotoCell
 
-@synthesize imageView;
+
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -34,7 +34,10 @@
 */
 
 -(void)configureForPhoto:(BHPhoto*)photo{
-    [self.imageView setImageWithURL:[NSURL URLWithString:photo.url200]];
+    [self.photoButton setBackgroundColor:[UIColor blackColor]];
+    [self.photoButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal];
+    self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+    self.photoButton.imageView.clipsToBounds = YES;
 }
 
 @end

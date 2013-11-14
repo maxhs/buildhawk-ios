@@ -34,12 +34,15 @@
 }
 
 - (void)buttonTreatment:(UIButton*)button {
-    button.layer.cornerRadius = 5.f;
-    button.clipsToBounds = YES;
-    [button setBackgroundColor:kBlueTransparentColor];
-    button.layer.shadowColor = [UIColor lightGrayColor].CGColor;
-    button.layer.shadowRadius = 4.0f;
-    button.layer.shadowOpacity =  .75;
+    button.layer.cornerRadius = 3.f;
+    [button setBackgroundColor:[UIColor clearColor]];
+    [button.layer setBackgroundColor:kDarkShade3.CGColor];
+    button.layer.shouldRasterize = YES;
+    button.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    button.layer.shadowColor = [UIColor darkGrayColor].CGColor;
+    button.layer.shadowOpacity =  .5;
+    button.layer.shadowRadius = .5f;
+    button.layer.shadowOffset = CGSizeMake(0, 0);
     [button.titleLabel setTextColor:[UIColor whiteColor]];
 }
 @end
