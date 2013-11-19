@@ -50,6 +50,18 @@
     [super setValuesForKeysWithDictionary:keyedValues];
 }
 
+- (id)initWithCoder:(NSCoder *)decoder {
+    if (self = [super init]) {
+        self.identifier = [decoder decodeObjectForKey:@"identifier"];
+        self.type = [decoder decodeObjectForKey:@"type"];
+        self.name = [decoder decodeObjectForKey:@"name"];
+        self.company = [decoder decodeObjectForKey:@"company"];
+        self.address = [decoder decodeObjectForKey:@"address"];
+        self.users = [decoder decodeObjectForKey:@"users"];
+    }
+    return self;
+}
+
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.identifier forKey:@"identifier"];
     [coder encodeObject:self.name forKey:@"name"];

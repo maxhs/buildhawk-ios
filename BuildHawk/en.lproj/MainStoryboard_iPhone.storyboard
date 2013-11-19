@@ -239,7 +239,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="This is the punchlist item text" id="ozM-yr-VWl">
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Worklist item..." id="ozM-yr-VWl">
                                 <rect key="frame" x="0.0" y="64" width="210" height="100"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
@@ -596,23 +596,6 @@
                                     </subviews>
                                 </tableViewCellContentView>
                             </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ProgressCell" textLabel="1KZ-xZ-7dc" rowHeight="66" style="IBUITableViewCellStyleDefault" id="ePG-AV-tw9">
-                                <rect key="frame" x="0.0" y="284" width="320" height="66"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ePG-AV-tw9" id="0zz-Ub-CaO">
-                                    <rect key="frame" x="0.0" y="0.0" width="320" height="65"/>
-                                    <autoresizingMask key="autoresizingMask"/>
-                                    <subviews>
-                                        <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="1KZ-xZ-7dc">
-                                            <rect key="frame" x="15" y="0.0" width="290" height="65"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
-                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                            <color key="highlightedColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                        </label>
-                                    </subviews>
-                                </tableViewCellContentView>
-                            </tableViewCell>
                         </prototypes>
                         <connections>
                             <outlet property="dataSource" destination="aNp-Zh-jY7" id="5om-rb-fLs"/>
@@ -622,6 +605,8 @@
                     <navigationItem key="navigationItem" id="Pnd-SY-B5f"/>
                     <connections>
                         <segue destination="4" kind="modal" identifier="Project" id="Cv8-k3-7jn"/>
+                        <segue destination="Afz-sP-qEO" kind="push" identifier="ChecklistItem" id="POr-kh-1ho"/>
+                        <segue destination="qOL-i6-UJU" kind="push" identifier="PunchlistItem" id="kFF-g5-AYt"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="zYy-7u-IhW" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1006,7 +991,7 @@
             </objects>
             <point key="canvasLocation" x="2659" y="-1"/>
         </scene>
-        <!--Checklist Item View Controller - Checklist Item-->
+        <!--Checklist Item View Controller-->
         <scene sceneID="1qJ-tg-PbS">
             <objects>
                 <viewController storyboardIdentifier="ChecklistItem" id="Afz-sP-qEO" customClass="BHChecklistItemViewController" sceneMemberID="viewController">
@@ -1036,7 +1021,7 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Checklist Item" id="G9r-09-fAr"/>
+                    <navigationItem key="navigationItem" id="G9r-09-fAr"/>
                     <connections>
                         <outlet property="tableView" destination="ebQ-g2-KCG" id="J8w-aO-gEx"/>
                     </connections>
@@ -1069,6 +1054,7 @@
     <inferredMetricsTieBreakers>
         <segue reference="Cv8-k3-7jn"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="Ke7-TS-GJB"/>
+        <segue reference="kFF-g5-AYt"/>
+        <segue reference="POr-kh-1ho"/>
     </inferredMetricsTieBreakers>
 </document>

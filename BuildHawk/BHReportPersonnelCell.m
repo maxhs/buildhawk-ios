@@ -36,7 +36,7 @@
     button.layer.cornerRadius = button.frame.size.height/2;
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [button setBackgroundColor:[UIColor clearColor]];
-    [button.layer setBackgroundColor:kDarkShade2.CGColor];
+    [button.layer setBackgroundColor:kDarkShade3.CGColor];
     button.layer.shouldRasterize = YES;
     button.layer.rasterizationScale = [UIScreen mainScreen].scale;
     button.layer.shadowColor = [UIColor whiteColor].CGColor;

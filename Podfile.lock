@@ -24,6 +24,7 @@ PODS:
     - AFNetworking (~> 2.0.1)
     - DACircularProgress (~> 2.1.0)
     - SVProgressHUD (~> 0.9)
+  - LDProgressView (1.1)
   - MagicalRecord (2.2)
   - RATreeView (0.0.4)
   - SDWebImage (3.4):
@@ -35,6 +36,7 @@ PODS:
 DEPENDENCIES:
   - AFNetworking
   - IDMPhotoBrowser
+  - LDProgressView (~> 1.1)
   - MagicalRecord (~> 2.2)
   - RATreeView
   - SDWebImage (~> 3.4)
@@ -45,10 +47,11 @@ SPEC CHECKSUMS:
   AFNetworking: 3fa983b1beaba69566a3374612511e2a6e3fe845
   DACircularProgress: 8c8f20c8dffdd647fbf570ddecbc2b1b59da5888
   IDMPhotoBrowser: 6d33999b898c8b5e4bb826609204814525e2bef0
+  LDProgressView: 6cf4c56e2455efe2c2fd924b2d0c5e69d3709d19
   MagicalRecord: b1fc46c99a9749fe7fe7e6f43a89b62ef5201933
   RATreeView: a23fcec38f7cd5e17f5ed0c03ed2a04187e3b6bf
   SDWebImage: 366188f04c019bfd712d45e3b36aa52070f4abd8
   SVProgressHUD: 03d4845ec8e64591726428a08236c6a5489d45f8
   SWRevealViewController: 98ee6b717498c14dbf33a0062669a9172049edb7
 
-COCOAPODS: 0.26.2
+COCOAPODS: 0.28.0

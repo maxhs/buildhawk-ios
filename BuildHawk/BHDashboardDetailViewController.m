@@ -18,16 +18,13 @@
 #import <SDWebImage/UIButton+WebCache.h>
 #import <IDMPhotoBrowser/IDMPhotoBrowser.h>
 #import "Flurry.h"
+#import "BHChecklistItemViewController.h"
+#import "BHPunchlistItemViewController.h"
+#import "BHProgressCell.h"
+#import <LDProgressView/LDProgressView.h>
 
 @interface BHDashboardDetailViewController () <UIScrollViewDelegate> {
-    NSMutableArray *notifications;
-    NSMutableArray *recentChecklistItems;
-    NSMutableArray *upcomingChecklistItems;
-    NSMutableArray *recentlyCompletedWorklistItems;
-    NSMutableArray *recentDocuments;
     AFHTTPRequestOperationManager *manager;
-    NSMutableArray *pendingCategories;
-    NSMutableArray *completedCategories;
     UIScrollView *documentsScrollView;
     BOOL iPad;
 }
@@ -36,7 +33,7 @@
 
 @implementation BHDashboardDetailViewController
 
-@synthesize project;
+@synthesize project, categories, recentChecklistItems, recentDocuments, recentlyCompletedWorklistItems, notifications, upcomingChecklistItems;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -64,11 +61,7 @@
     [goToProjectButton setFrame:footerView.frame];
     self.tableView.tableFooterView = footerView;
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
-    if (!recentChecklistItems) recentChecklistItems = [NSMutableArray array];
-    if (!recentDocuments) recentDocuments = [NSMutableArray array];
-    if (!recentlyCompletedWorklistItems) recentlyCompletedWorklistItems = [NSMutableArray array];
-    if (!notifications) notifications = [NSMutableArray array];
-    if (!upcomingChecklistItems) upcomingChecklistItems = [NSMutableArray array];
+
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     }
@@ -83,9 +76,7 @@
         upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
         recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_docs"]];
         recentlyCompletedWorklistItems = [BHUtilities punchlistItemsFromJSONArray:[responseObject objectForKey:@"wl_completed"]];
-        pendingCategories = [responseObject objectForKey:@"cl_pending"];
-        completedCategories = [responseObject objectForKey:@"cl_completed"];
-        NSLog(@"pending %@ and completed %@",pendingCategories, completedCategories);
+        categories = [responseObject objectForKey:@"cl_categories"];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure getting dashboard: %@",error.description);
@@ -100,6 +91,14 @@
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:self.project];
+    } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
+        BHChecklistItemViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[BHChecklistItem class]])
+            [vc setItem:(BHChecklistItem*)sender];
+    } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
+        BHPunchlistItemViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[BHPunchlistItem class]])
+            [vc setPunchlistItem:(BHPunchlistItem*)sender];
     }
 }
 
@@ -127,10 +126,10 @@
             else return 0;
             break;
         case 4:
-            return 1;
+            return categories.count;
             break;
         default:
-            return 1;
+            return 0;
             break;
     }
 }
@@ -159,6 +158,13 @@
                 [cell.detailTextLabel setText:@"No critical date listed"];
                 [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
             }
+            if ([[checklistItem type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+            }
         }
         break;
         case 2: {
@@ -166,6 +172,13 @@
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
             BHChecklistItem *checklistItem = [recentChecklistItems objectAtIndex:indexPath.row];
             [cell.textLabel setText:checklistItem.name];
+            if ([[checklistItem type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+            }
         }
             break;
         case 3: {
@@ -184,13 +197,31 @@
         }
             break;
         case 4: {
-            static NSString *CellIdentifier = @"ProgressCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            [cell.textLabel setText:@"Progress number 1"];
+            BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
+            [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            if (progressCell == nil) {
+                progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
+            }
+            NSDictionary *dict = [categories objectAtIndex:indexPath.row];
+            [progressCell.itemLabel setText:[dict objectForKey:@"_id"]];
+            CGFloat completed = [[dict objectForKey:@"completed"] floatValue];
+            CGFloat all = [[dict objectForKey:@"all_items"] floatValue];
+            [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*completed/all)]];
+            LDProgressView *progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(215, 25, 100, 16)];
+            progressView.progress = (completed/all);
+            progressView.color = kBlueColor;
+            progressView.showText = @NO;
+            progressView.type = LDProgressSolid;
+
+            [progressCell addSubview:progressView];
+            return progressCell;
         }
+            
         default:
             break;
     }
+    cell.textLabel.numberOfLines = 0;
+    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
     return cell;
 }
 
@@ -339,13 +370,13 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
+    if (indexPath.section == 1){
+        BHChecklistItem *item = [upcomingChecklistItems objectAtIndex:indexPath.row];
+        [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
+    } else if (indexPath.section == 2){
+        BHChecklistItem *item = [recentChecklistItems objectAtIndex:indexPath.row];
+        [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
+    }
 }
 
 - (void)didReceiveMemoryWarning

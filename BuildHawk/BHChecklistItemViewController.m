@@ -648,7 +648,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     [parameters setObject:self.item.identifier forKey:@"_id"];
     if (self.item.status) [parameters setObject:self.item.status forKey:@"status"];
     if (self.item.completed) [parameters setObject:@"true" forKey:@"completed"];
-    if (self.item.photos.count) {
+    
         NSMutableArray *photoArray = [NSMutableArray arrayWithCapacity:self.item.photos.count];
         for (BHPhoto *photo in self.item.photos) {
             NSMutableDictionary *photoDict = [NSMutableDictionary dictionary];
@@ -659,8 +659,8 @@ static NSString *addCommentPlaceholder = @"Add comment...";
             [photoArray addObject:photoDict];
         }
         [parameters setObject:photoArray forKey:@"photos"];
-    }
-    if (self.item.comments){
+    
+    
         NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:self.item.comments.count];
         for (BHComment *comment in self.item.comments) {
             NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
@@ -669,7 +669,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
             [commentArray addObject:commentDict];
         }
         [parameters setObject:commentArray forKey:@"comments"];
-    }
+    
     [manager PUT:[NSString stringWithFormat:@"%@/checklist", kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success updating checklist item %@",responseObject);
         [self.navigationController popViewControllerAnimated:YES];

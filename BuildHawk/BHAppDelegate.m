@@ -32,9 +32,6 @@
     [self customizeAppearance];
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        //UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
-        //UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
-        //splitViewController.delegate = (id)navigationController.topViewController;
         UIStoryboard *ipadStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPad" bundle:nil];
         self.window.rootViewController = [ipadStoryboard instantiateViewControllerWithIdentifier:@"Login"];
         
@@ -59,8 +56,6 @@
 }
 
 - (void)customizeAppearance {
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-    
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0f) {
         [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"] forBarMetrics:UIBarMetricsDefault];
     } else {
@@ -96,6 +91,7 @@
     [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
     
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

@@ -26,8 +26,17 @@
     UIRefreshControl *refreshControl;
     BOOL iPhone5;
     BOOL iPad;
+    BOOL loadProgress;
     NSMutableArray *filteredProjects;
     User *savedUser;
+    NSMutableArray *recentChecklistItems;
+    NSMutableArray *recentDocuments;
+    NSMutableArray *recentlyCompletedWorklistItems;
+    NSMutableArray *notifications;
+    NSMutableArray *upcomingChecklistItems;
+    NSMutableArray *categories;
+    NSMutableArray *dashboardDetailArray;
+    AFHTTPRequestOperationManager *manager;
 }
 
 @property (weak, nonatomic) IBOutlet UIView *searchContainerBackgroundView;
@@ -63,17 +72,43 @@
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    [self.searchContainerBackgroundView setBackgroundColor:[UIColor colorWithWhite:.2 alpha:1.0]];
+    [self.searchContainerBackgroundView setBackgroundColor:kDarkGrayColor];
+    if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    if (!dashboardDetailArray) dashboardDetailArray = [NSMutableArray array];
+    if (!categories) categories = [NSMutableArray array];
+    loadProgress = YES;
     [self loadProjects];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
 }
 
 - (IBAction)revealMenu {
     [self.revealViewController revealToggleAnimated:YES];
+}
+
+- (void)loadDetailView {
+    for (BHProject *proj in projects){
+        /*if (!recentChecklistItems) recentChecklistItems = [NSMutableArray array];
+        if (!recentDocuments) recentDocuments = [NSMutableArray array];
+        if (!recentlyCompletedWorklistItems) recentlyCompletedWorklistItems = [NSMutableArray array];
+        if (!notifications) notifications = [NSMutableArray array];
+        if (!upcomingChecklistItems) upcomingChecklistItems = [NSMutableArray array];*/
+        [categories removeAllObjects];
+        [manager GET:[NSString stringWithFormat:@"%@/dash",kApiBaseUrl] parameters:@{@"pid":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success getting dashboard detail view: %@",responseObject);
+            /*recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_changed"]];
+            upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
+            recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_docs"]];
+            recentlyCompletedWorklistItems = [BHUtilities punchlistItemsFromJSONArray:[responseObject objectForKey:@"wl_completed"]];*/
+            categories = [[responseObject objectForKey:@"cl_categories"] mutableCopy];
+            [dashboardDetailArray addObject:@{@"categories":categories}];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failure getting dashboard: %@",error.description);
+        }];
+    }
+    [self.tableView reloadData];
 }
 
 - (void)handleRefresh:(id)sender {
@@ -91,13 +126,13 @@
 
 - (void)loadProjects {
     [SVProgressHUD showWithStatus:@"Fetching projects..."];
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"load projects response object: %@",responseObject);
-        //projects = [self projectsFromJSONArray:[responseObject objectForKey:@"rows"]];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"rows"]]];
         [SVProgressHUD dismiss];
+        [self.tableView reloadData];
+        //[self loadDetailView];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error while loading projects: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -163,13 +198,44 @@
     } else {
         [cell.subtitleLabel setText:project.company.name];
     }
+    
+    if (dashboardDetailArray.count){
+        NSDictionary *dict = [dashboardDetailArray objectAtIndex:indexPath.row];
+        
+        [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*[self calculateCategories:[dict objectForKey:@"categories"]])]];
+    }
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.titleLabel setTextColor:kDarkGrayColor];
     return cell;
+}
+
+- (CGFloat)calculateCategories:(NSMutableArray*)array {
+    CGFloat completed = 0.0;
+    CGFloat pending = 0.0;
+    if (array.count) {
+        for (NSDictionary *dict in array){
+            if ([dict objectForKey:@"completed"]) completed += [[dict objectForKey:@"completed"] floatValue];
+            if ([dict objectForKey:@"pending"]) pending += [[dict objectForKey:@"pending"] floatValue];
+        }
+    }
+    if (completed > 0 && pending > 0){
+        return (completed/pending);
+    } else {
+        return 0;
+    }
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return 88;
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        
+    }
 }
 
 /*
@@ -258,11 +324,9 @@
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
     [filteredProjects removeAllObjects]; // First clear the filtered array.
-    NSLog(@"dashboard search text: %@",searchText);
     for (BHProject *project in projects){
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
         if([predicate evaluateWithObject:project.name]) {
-            NSLog(@"able to add %@",project.name);
             [filteredProjects addObject:project];
         }
     }

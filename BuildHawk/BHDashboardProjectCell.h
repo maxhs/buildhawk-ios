@@ -12,4 +12,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UILabel *subtitleLabel;
 @property (weak, nonatomic) IBOutlet UIButton *projectButton;
+@property (weak, nonatomic) IBOutlet UILabel *progressLabel;
 @end

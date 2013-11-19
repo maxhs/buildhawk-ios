@@ -119,8 +119,6 @@ static NSString * const kReportPlaceholder = @"Report details...";
     
     [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [self loadReportsForProject];
-    saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(save)];
-    self.navigationItem.rightBarButtonItem = saveButton;
     [Flurry logEvent:@"Viewing report"];
 }
 
@@ -229,6 +227,13 @@ static NSString * const kReportPlaceholder = @"Report details...";
             _report.type = kDaily;
             _report.createdOn = [NSDate date];
         }
+        if (_report.identifier.length) {
+            saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(save)];
+            self.navigationItem.rightBarButtonItem = saveButton;
+        } else {
+            saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
+            self.navigationItem.rightBarButtonItem = saveButton;
+        }
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -274,7 +279,7 @@ static NSString * const kReportPlaceholder = @"Report details...";
         [cell.typePickerButton setTitle:_report.type forState:UIControlStateNormal];
         [cell.typePickerButton addTarget:self action:@selector(tapTypePicker) forControlEvents:UIControlEventTouchUpInside];
         
-        [cell.datePickerButton setTitle:[newFormatter stringFromDate:_report.createdOn] forState:UIControlStateNormal];
+        [cell.datePickerButton setTitle:_report.title forState:UIControlStateNormal];
         [cell.datePickerButton addTarget:self action:@selector(setDate:) forControlEvents:UIControlEventTouchUpInside];
         [cell configure];
         if (daySummary.length) {
@@ -495,7 +500,7 @@ static NSString * const kReportPlaceholder = @"Report details...";
         return;
     }
     CGRect datePickerTargetFrame = CGRectMake(0, self.view.bounds.size.height-216-49, screen.size.width, 216);
-    
+    [(UIButton*)sender setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     UIView *buttonLayer = [[UIView alloc] initWithFrame:self.view.bounds];
     buttonLayer.alpha = 0;
     buttonLayer.backgroundColor = [UIColor blackColor];

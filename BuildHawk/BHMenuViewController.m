@@ -178,15 +178,15 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 0) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname]]) {
         [self sendMail:selectedCoworker.email];
-    } else if (buttonIndex == 1) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"Call %@",selectedCoworker.fullname]]) {
         [self placeCall];
-    } else if (buttonIndex == 2) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send a text"]) {
         [self sendText];
-    } else {
+    } /*else if (buttonIndex == actionSheet.cancelButtonIndex) {
         [actionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
-    }
+    }*/
 }
 
 - (void)placeCall {

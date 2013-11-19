@@ -354,6 +354,7 @@ typedef void(^RequestSuccess)(id result);
         [cell.textLabel setText:item.name];
     }
     cell.textLabel.numberOfLines = 0;
+    [cell.textLabel setTextColor:kDarkGrayColor];
     [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
     
     //set the image properly
