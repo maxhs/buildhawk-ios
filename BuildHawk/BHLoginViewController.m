@@ -81,6 +81,7 @@
     [parameters setObject:email forKey:@"email"];
     [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"deviceToken"];
+    NSLog(@"login parameters: %@",parameters);
     [manager POST:[NSString stringWithFormat:@"%@/login",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"log in response object: %@",responseObject);
         user = [[BHUser alloc] initWithDictionary:responseObject];

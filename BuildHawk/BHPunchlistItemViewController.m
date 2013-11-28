@@ -50,7 +50,6 @@ typedef void(^RequestSuccess)(id result);
 {
     [super viewDidLoad];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        NSLog(@"it's an ipad");
         iPad = YES;
     } else if ([UIScreen mainScreen].bounds.size.height == 568) {
         iPhone5 = YES;
@@ -95,8 +94,8 @@ typedef void(^RequestSuccess)(id result);
     
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
     [[self navigationItem] setRightBarButtonItem:saveButton];
-    
-    if (self.punchlistItem.completedOn) {
+    NSLog(@"punchlist completion: %@ %hhd",self.punchlistItem.completed, self.punchlistItem.completed.completed);
+    if (self.punchlistItem.completed.completed) {
         completed = YES;
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];

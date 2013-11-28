@@ -25,6 +25,7 @@
 
 static NSString * const kAddOther = @"Add other...";
 static NSString * const kReportPlaceholder = @"Report details...";
+static NSString * const kNewReportPlaceholder = @"Add new report";
 
 @interface BHReportsViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate> {
     NSMutableArray *reports;
@@ -45,14 +46,15 @@ static NSString * const kReportPlaceholder = @"Report details...";
     UITextView *reportBodyTextView;
     UIActionSheet *typePickerActionSheet;
     UIActionSheet *personnelActionSheet;
+    UIActionSheet *reportActionSheet;
     UIAlertView *addOtherAlertView;
     BHProject *project;
     UIScrollView *reportScrollView;
     AFHTTPRequestOperationManager *manager;
     UIButton *photoButton;
-    NSDateFormatter *newFormatter;
     CGRect screen;
     UIBarButtonItem *saveButton;
+    UIBarButtonItem *createButton;
 }
 
 - (IBAction)backToDashboard;
@@ -112,10 +114,6 @@ static NSString * const kReportPlaceholder = @"Report details...";
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(willHideKeyboard)
                                                  name:UIKeyboardWillHideNotification object:nil];
-    
-    newFormatter = [[NSDateFormatter alloc] init];
-    [newFormatter setDateStyle:NSDateFormatterLongStyle];
-    [newFormatter setTimeStyle:NSDateFormatterMediumStyle];
     
     [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [self loadReportsForProject];
@@ -223,16 +221,15 @@ static NSString * const kReportPlaceholder = @"Report details...";
             self.scrollView.scrollEnabled = YES;
         } else {
             self.scrollView.scrollEnabled = NO;
-            _report = [[BHReport alloc] init];
-            _report.type = kDaily;
-            _report.createdOn = [NSDate date];
+            [self newReportObject];
         }
         if (_report.identifier.length) {
             saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(save)];
             self.navigationItem.rightBarButtonItem = saveButton;
         } else {
-            saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
+            saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
             self.navigationItem.rightBarButtonItem = saveButton;
+            NSLog(@"save button is now a create button");
         }
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
@@ -280,15 +277,18 @@ static NSString * const kReportPlaceholder = @"Report details...";
         [cell.typePickerButton addTarget:self action:@selector(tapTypePicker) forControlEvents:UIControlEventTouchUpInside];
         
         [cell.datePickerButton setTitle:_report.title forState:UIControlStateNormal];
-        [cell.datePickerButton addTarget:self action:@selector(setDate:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.datePickerButton addTarget:self action:@selector(pickReport) forControlEvents:UIControlEventTouchUpInside];
         [cell configure];
         if (daySummary.length) {
+            NSLog(@"icon: %@",icon);
             [cell.tempLabel setText:[NSString stringWithFormat:@"%@ °",temp]];
             [cell.windTextField setText:[NSString stringWithFormat:@"%@mph %@",windSpeed, windDirection]];
             if ([icon isEqualToString:@"clear-day"] || [icon isEqualToString:@"clear-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"sunny"]];
             else if ([icon isEqualToString:@"cloudy"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"cloudy"]];
             else if ([icon isEqualToString:@"partly-cloudy-day"] || [icon isEqualToString:@"partly-cloudy-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"partly"]];
-            else if ([icon isEqualToString:@"rainy"] || [icon isEqualToString:@"fog"] || [icon isEqualToString:@"sleet"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"rainy"]];
+            else if ([icon isEqualToString:@"rain"] || [icon isEqualToString:@"fog"] || [icon isEqualToString:@"sleet"]) {
+                [cell.weatherImageView setImage:[UIImage imageNamed:@"rainy"]];
+            }
             [cell.dailySummaryTextView setText:hourlySummary];
         }
         return cell;
@@ -357,6 +357,16 @@ static NSString * const kReportPlaceholder = @"Report details...";
     }
 }
 
+- (void)pickReport {
+    reportActionSheet = [[UIActionSheet alloc] initWithTitle:@"Reports" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    for (BHReport *report in reports) {
+        [reportActionSheet addButtonWithTitle:report.title];
+    }
+    [reportActionSheet addButtonWithTitle:kNewReportPlaceholder];
+    reportActionSheet.cancelButtonIndex = [reportActionSheet addButtonWithTitle:@"Cancel"];
+    [reportActionSheet showFromTabBar:self.tabBarController.tabBar];
+}
+
 - (void)outlineTextView:(UITextView*)textView {
     textView.layer.borderColor = [UIColor darkGrayColor].CGColor;
     textView.layer.borderWidth = .5f;
@@ -393,7 +403,11 @@ static NSString * const kReportPlaceholder = @"Report details...";
 }
 
 -(void)textViewDidEndEditing:(UITextView *)textView {
-    self.navigationItem.rightBarButtonItem = saveButton;
+    if (_report.identifier.length) {
+        self.navigationItem.rightBarButtonItem = saveButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = createButton;
+    }
     if (textView.text.length && textView == reportBodyTextView) {
         _report.body = textView.text;
     } else {
@@ -409,7 +423,11 @@ static NSString * const kReportPlaceholder = @"Report details...";
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    self.navigationItem.rightBarButtonItem = saveButton;
+    if (_report.identifier.length) {
+        self.navigationItem.rightBarButtonItem = saveButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = createButton;
+    }
     BHSubcontractor *sub = [[BHSubcontractor alloc] init];
     sub = [_report.subcontractors.allObjects objectAtIndex:textField.tag];
     sub.count = textField.text;
@@ -449,8 +467,37 @@ static NSString * const kReportPlaceholder = @"Report details...";
             if (![_report.subcontractors containsObject:subcontractor]) [_report.subcontractors addObject:subcontractor];
             else [[[UIAlertView alloc] initWithTitle:@"Already added!" message:@"Personnel already included" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
+    } else if (actionSheet == reportActionSheet) {
+        if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kNewReportPlaceholder]) {
+            createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
+            self.navigationItem.rightBarButtonItem = createButton;
+            NSLog(@"save button is now a create button");
+            self.scrollView.scrollEnabled = NO;
+            [self newReportObject];
+        } else {
+            for (BHReport *report in reports){
+                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", [reportActionSheet buttonTitleAtIndex:buttonIndex]];
+                if([predicate evaluateWithObject:report.title]) {
+                    _report = report;
+                   
+                    break;
+                }
+            }
+        }
     }
     [self.tableView reloadData];
+}
+
+- (void)newReportObject {
+    _report = [[BHReport alloc] init];
+    _report.type = kDaily;
+    _report.subcontractors = [NSMutableSet set];
+    _report.photos = [NSMutableArray array];
+    NSDate *titleDate = [NSDate date];
+    _report.createdOn = titleDate;
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"MM/dd/yyyy"];
+    _report.title = [formatter stringFromDate:titleDate];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -933,17 +980,22 @@ static NSString * const kReportPlaceholder = @"Report details...";
 }
 
 - (void)createNewReport {
-    [SVProgressHUD showWithStatus:@"Adding report..."];
+    [SVProgressHUD showWithStatus:@"Creating report..."];
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (_report.identifier)[parameters setObject:_report.identifier forKey:@"_id"];
+    [parameters setObject:[(BHTabBarViewController*)self.tabBarController project].identifier forKey:@"project._id"];
     if (weatherString.length) [parameters setObject:weatherString forKey:@"weather"];
+    if (_report.title.length) [parameters setObject:_report.title forKey:@"title"];
+    if (_report.type.length) [parameters setObject:_report.type forKey:@"type"];
+    if (![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
     if (_report.subcontractors.allObjects.count) {
         NSMutableArray *subArray = [NSMutableArray arrayWithCapacity:_report.subcontractors.count];
         for (BHSubcontractor *sub in _report.subcontractors.allObjects) {
             NSMutableDictionary *subDict = [NSMutableDictionary dictionary];
             if (sub.identifier.length) [subDict setObject:sub.identifier forKey:@"_id"];
             if (sub.name.length) [subDict setObject:sub.name forKey:@"name"];
-            if (sub.count.length) [subDict setObject:sub.count forKey:@"count"];
+            if (sub.count.length) [subDict setObject:[NSString stringWithFormat:@"%@",sub.count] forKey:@"count"];
             [subArray addObject:subDict];
         }
         [parameters setObject:subArray forKey:@"subcontractors"];
@@ -960,8 +1012,12 @@ static NSString * const kReportPlaceholder = @"Report details...";
         }
         [parameters setObject:photoArray forKey:@"photos"];
     }
-    [manager PUT:[NSString stringWithFormat:@"%@/report",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    NSLog(@"new report parameters: %@",parameters);
+    [manager POST:[NSString stringWithFormat:@"%@/report",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"success creating report: %@",responseObject);
+        BHReport *newReport = [[BHReport alloc] initWithDictionary:responseObject];
+        [reports addObject:newReport];
+        [self.tableView reloadData];
         [SVProgressHUD dismiss];
         [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

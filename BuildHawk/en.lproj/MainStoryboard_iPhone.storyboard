@@ -111,11 +111,11 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" id="11w-8t-V8g" customClass="RATreeView">
-                                <rect key="frame" x="0.0" y="75" width="320" height="370"/>
+                                <rect key="frame" x="0.0" y="70" width="320" height="448"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <searchBar contentMode="redraw" translucent="NO" id="b7E-dN-LAd" customClass="BHSearchBar">
-                                        <rect key="frame" x="0.0" y="-10" width="320" height="44"/>
+                                        <rect key="frame" x="0.0" y="-5" width="320" height="44"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <textInputTraits key="textInputTraits"/>
@@ -124,7 +124,7 @@
                                         </connections>
                                     </searchBar>
                                     <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="s5c-1f-kMS">
-                                        <rect key="frame" x="6" y="36" width="308" height="29"/>
+                                        <rect key="frame" x="6" y="41" width="308" height="29"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <segments>
                                             <segment title="All"/>
@@ -189,9 +189,10 @@
                                             <rect key="frame" x="10" y="19" width="300" height="29"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <segments>
+                                                <segment title="All"/>
                                                 <segment title="Location"/>
-                                                <segment title="Subcontractor"/>
-                                                <segment title="Completed"/>
+                                                <segment title="Assignee"/>
+                                                <segment title="Complete"/>
                                             </segments>
                                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         </segmentedControl>
@@ -240,11 +241,11 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Worklist item..." id="ozM-yr-VWl">
-                                <rect key="frame" x="0.0" y="64" width="210" height="100"/>
+                                <rect key="frame" x="0.0" y="64" width="209" height="100"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="4" minY="-64" maxX="0.0" maxY="0.0"/>
+                                <inset key="contentInset" minX="4" minY="-64" maxX="8" maxY="0.0"/>
                                 <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
                                 <connections>
@@ -475,7 +476,7 @@
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <fontDescription key="fontDescription" name="Helvetica-Light" family="Helvetica" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits" returnKeyType="next"/>
+                                        <textInputTraits key="textInputTraits" keyboardType="emailAddress" returnKeyType="next"/>
                                         <connections>
                                             <outlet property="delegate" destination="YSk-d2-LcY" id="L0J-0e-Nt4"/>
                                         </connections>
@@ -1052,9 +1053,9 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
+        <segue reference="eZr-X3-mJS"/>
         <segue reference="Cv8-k3-7jn"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="kFF-g5-AYt"/>
-        <segue reference="POr-kh-1ho"/>
+        <segue reference="BC4-fv-9Fr"/>
     </inferredMetricsTieBreakers>
 </document>

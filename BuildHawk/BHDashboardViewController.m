@@ -35,7 +35,7 @@
     NSMutableArray *notifications;
     NSMutableArray *upcomingChecklistItems;
     NSMutableArray *categories;
-    NSMutableArray *dashboardDetailArray;
+    NSMutableDictionary *dashboardDetailDict;
     AFHTTPRequestOperationManager *manager;
 }
 
@@ -74,7 +74,7 @@
     [self.tableView addSubview:refreshControl];
     [self.searchContainerBackgroundView setBackgroundColor:kDarkGrayColor];
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
-    if (!dashboardDetailArray) dashboardDetailArray = [NSMutableArray array];
+    if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
     if (!categories) categories = [NSMutableArray array];
     loadProgress = YES;
     [self loadProjects];
@@ -97,18 +97,18 @@
         if (!upcomingChecklistItems) upcomingChecklistItems = [NSMutableArray array];*/
         [categories removeAllObjects];
         [manager GET:[NSString stringWithFormat:@"%@/dash",kApiBaseUrl] parameters:@{@"pid":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting dashboard detail view: %@",responseObject);
-            /*recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_changed"]];
-            upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
-            recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_docs"]];
-            recentlyCompletedWorklistItems = [BHUtilities punchlistItemsFromJSONArray:[responseObject objectForKey:@"wl_completed"]];*/
+            //NSLog(@"Success getting dashboard detail view: %@",responseObject);
             categories = [[responseObject objectForKey:@"cl_categories"] mutableCopy];
-            [dashboardDetailArray addObject:@{@"categories":categories}];
+            [dashboardDetailDict setObject:responseObject forKey:proj.identifier];
+            
+            if (dashboardDetailDict.count == projects.count) {
+                NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
+                [self.tableView reloadData];
+            }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure getting dashboard: %@",error.description);
         }];
     }
-    [self.tableView reloadData];
 }
 
 - (void)handleRefresh:(id)sender {
@@ -132,7 +132,6 @@
         [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"rows"]]];
         [SVProgressHUD dismiss];
         [self.tableView reloadData];
-        //[self loadDetailView];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error while loading projects: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -155,6 +154,7 @@
     [localContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
         NSLog(@"saved user after projects: %@",savedUser);
         projects = savedUser.bhprojects;
+        [self loadDetailView];
         [self.tableView reloadData];
     }];
 }
@@ -193,16 +193,18 @@
         project = [projects objectAtIndex:indexPath.row];
     }
     [cell.titleLabel setText:[project name]];
+    [cell.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
+
     if (project.users.count){
-        //[cell.subtitleLabel setText:[project.users objectAtIndex:0]];
+        [cell.subtitleLabel setText:project.address.formattedAddress];
     } else {
         [cell.subtitleLabel setText:project.company.name];
     }
     
-    if (dashboardDetailArray.count){
-        NSDictionary *dict = [dashboardDetailArray objectAtIndex:indexPath.row];
-        
-        [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*[self calculateCategories:[dict objectForKey:@"categories"]])]];
+    if (dashboardDetailDict.count){
+        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
+        NSLog(@"inside cell for row method with proj id: %@ and: %@",project.identifier,dict);
+        [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*[self calculateCategories:[dict objectForKey:@"cl_categories"]])]];
     }
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
@@ -315,6 +317,12 @@
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
         BHProject *project = [projects objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         [detailVC setProject:project];
+        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
+        [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"cl_changed"]]];
+        [detailVC setUpcomingChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"cl_due_soon"]]];
+        [detailVC setRecentDocuments:[BHUtilities photosFromJSONArray:[dict objectForKey:@"recent_docs"]]];
+        [detailVC setRecentlyCompletedWorklistItems:[BHUtilities punchlistItemsFromJSONArray:[dict objectForKey:@"wl_completed"]]];
+        [detailVC setCategories:[dict objectForKey:@"cl_categories"]];
     }
 }
 
@@ -351,110 +359,5 @@
     // Return YES to cause the search result table view to be reloaded.
     return NO;
 }
-
-//#pragma mark - Fetched results controller
-//
-//- (NSFetchedResultsController *)fetchedResultsController
-//{
-//    if (_fetchedResultsController != nil) {
-//        return _fetchedResultsController;
-//    }
-//    
-//    NSFetchRequest *fetchRequest = [[NSFetchRequest alloc] init];
-//    // Edit the entity name as appropriate.
-//    NSEntityDescription *entity = [NSEntityDescription entityForName:@"Event" inManagedObjectContext:self.managedObjectContext];
-//    [fetchRequest setEntity:entity];
-//    
-//    // Set the batch size to a suitable number.
-//    [fetchRequest setFetchBatchSize:20];
-//    
-//    // Edit the sort key as appropriate.
-//    NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"timeStamp" ascending:NO];
-//    NSArray *sortDescriptors = @[sortDescriptor];
-//    
-//    [fetchRequest setSortDescriptors:sortDescriptors];
-//    
-//    // Edit the section name key path and cache name if appropriate.
-//    // nil for section name key path means "no sections".
-//    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:@"Master"];
-//    aFetchedResultsController.delegate = self;
-//    self.fetchedResultsController = aFetchedResultsController;
-//    
-//	NSError *error = nil;
-//	if (![self.fetchedResultsController performFetch:&error]) {
-//        // Replace this implementation with code to handle the error appropriately.
-//        // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-//	    NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
-//	    abort();
-//	}
-//    
-//    return _fetchedResultsController;
-//}
-//
-//- (void)controllerWillChangeContent:(NSFetchedResultsController *)controller
-//{
-//    [self.tableView beginUpdates];
-//}
-//
-//- (void)controller:(NSFetchedResultsController *)controller didChangeSection:(id <NSFetchedResultsSectionInfo>)sectionInfo
-//           atIndex:(NSUInteger)sectionIndex forChangeType:(NSFetchedResultsChangeType)type
-//{
-//    switch(type) {
-//        case NSFetchedResultsChangeInsert:
-//            [self.tableView insertSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
-//            break;
-//            
-//        case NSFetchedResultsChangeDelete:
-//            [self.tableView deleteSections:[NSIndexSet indexSetWithIndex:sectionIndex] withRowAnimation:UITableViewRowAnimationFade];
-//            break;
-//    }
-//}
-//
-//- (void)controller:(NSFetchedResultsController *)controller didChangeObject:(id)anObject
-//       atIndexPath:(NSIndexPath *)indexPath forChangeType:(NSFetchedResultsChangeType)type
-//      newIndexPath:(NSIndexPath *)newIndexPath
-//{
-//    UITableView *tableView = self.tableView;
-//    
-//    switch(type) {
-//        case NSFetchedResultsChangeInsert:
-//            [tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
-//            break;
-//            
-//        case NSFetchedResultsChangeDelete:
-//            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-//            break;
-//            
-//        case NSFetchedResultsChangeUpdate:
-//            [self configureCell:[tableView cellForRowAtIndexPath:indexPath] atIndexPath:indexPath];
-//            break;
-//            
-//        case NSFetchedResultsChangeMove:
-//            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-//            [tableView insertRowsAtIndexPaths:@[newIndexPath] withRowAnimation:UITableViewRowAnimationFade];
-//            break;
-//    }
-//}
-//
-//- (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
-//{
-//    [self.tableView endUpdates];
-//}
-//
-///*
-// // Implementing the above methods to update the table view in response to individual changes may have performance implications if a large number of changes are made simultaneously. If this proves to be an issue, you can instead just implement controllerDidChangeContent: which notifies the delegate that all section and object changes have been processed.
-// 
-// - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
-// {
-// // In the simplest, most efficient, case, reload the table view.
-// [self.tableView reloadData];
-// }
-// */
-//
-//- (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath
-//{
-//    NSManagedObject *object = [self.fetchedResultsController objectAtIndexPath:indexPath];
-//    cell.textLabel.text = [[object valueForKey:@"timeStamp"] description];
-//}
 
 @end

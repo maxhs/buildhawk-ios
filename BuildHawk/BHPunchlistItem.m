@@ -26,6 +26,10 @@
         if ([value objectForKey:@"photos"]) {
             self.completedPhotos = [BHUtilities photosFromJSONArray:[value objectForKey:@"photos"]];
         }
+        self.completed = [[BHCompleted alloc] initWithDictionary:value];
+    } else if ([key isEqualToString:@"assigned"]) {
+        if (!self.assignees) self.assignees = [NSMutableArray array];
+        [self.assignees addObject:[[BHUser alloc] initWithDictionary:[value objectForKey:@"user"]]];
     }
 }
 

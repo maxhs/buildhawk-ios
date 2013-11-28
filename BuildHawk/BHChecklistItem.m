@@ -23,10 +23,10 @@
         self.name = value;
     } else if ([key isEqualToString:@"type"]) {
         self.type = value;
-    } else if ([key isEqualToString:@"completed"]) {
-        self.completed = YES;
     } else if ([key isEqualToString:@"status"]) {
         self.status = value;
+    } else if ([key isEqualToString:@"completed"]) {
+        if ([self.status isEqualToString:kCompleted]) self.completed = YES;
     } else if ([key isEqualToString:@"photos"]) {
         self.photos = [BHUtilities photosFromJSONArray:value];
     } else if ([key isEqualToString:@"comments"]) {

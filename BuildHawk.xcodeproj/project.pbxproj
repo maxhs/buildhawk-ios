@@ -45,6 +45,7 @@
 		F203967D17D3E648001CFF61 /* whiteTabBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = F203967B17D3E648001CFF61 /* whiteTabBackground.png */; };
 		F203967E17D3E648001CFF61 /* whiteTabBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */; };
 		F21DC9C617EAB43300280C5B /* BHChecklistItem.m in Sources */ = {isa = PBXBuildFile; fileRef = F21DC9C517EAB43300280C5B /* BHChecklistItem.m */; };
+		F22613F01845BD1E0021DD41 /* NSData+Conversion.m in Sources */ = {isa = PBXBuildFile; fileRef = F22613EF1845BD1E0021DD41 /* NSData+Conversion.m */; };
 		F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */; };
 		F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */; };
 		F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */; };
@@ -218,6 +219,8 @@
 		F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "whiteTabBackground@2x.png"; sourceTree = "<group>"; };
 		F21DC9C417EAB43300280C5B /* BHChecklistItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistItem.h; sourceTree = "<group>"; };
 		F21DC9C517EAB43300280C5B /* BHChecklistItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistItem.m; sourceTree = "<group>"; };
+		F22613EE1845BD1E0021DD41 /* NSData+Conversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Conversion.h"; sourceTree = "<group>"; };
+		F22613EF1845BD1E0021DD41 /* NSData+Conversion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Conversion.m"; sourceTree = "<group>"; };
 		F228706717DE8DA600A88475 /* BHPunchlistItemCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItemCell.h; sourceTree = "<group>"; };
 		F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItemCell.m; sourceTree = "<group>"; };
 		F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHPunchlistItemCell.xib; sourceTree = "<group>"; };
@@ -643,6 +646,8 @@
 		F2B29FC317D0F31B00F09C6F /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				F22613EE1845BD1E0021DD41 /* NSData+Conversion.h */,
+				F22613EF1845BD1E0021DD41 /* NSData+Conversion.m */,
 				F2B29FC417D0F31B00F09C6F /* BuildHawk-Info.plist */,
 				F2B29FC517D0F31B00F09C6F /* InfoPlist.strings */,
 				F2B29FC817D0F31B00F09C6F /* main.m */,
@@ -928,6 +933,7 @@
 				F291F4D717F0EC6600A27B46 /* RADataObject.m in Sources */,
 				F295B1CA183A8A27009121BA /* BHProgressCell.m in Sources */,
 				F22CBC461819B3B30042A6E0 /* User.m in Sources */,
+				F22613F01845BD1E0021DD41 /* NSData+Conversion.m in Sources */,
 				F28F3117181098590066320B /* BHUtilities.m in Sources */,
 				F2B29FC917D0F31B00F09C6F /* main.m in Sources */,
 				F2B29FCD17D0F31B00F09C6F /* BHAppDelegate.m in Sources */,
@@ -1092,8 +1098,8 @@
 			baseConfigurationReference = 7CE765D888B94A02BF4CAA11 /* Pods.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution: BuildHawk, Inc. (NCFS3V2PAC)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: BuildHawk, Inc. (NCFS3V2PAC)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BuildHawk/BuildHawk-Prefix.pch";
 				INFOPLIST_FILE = "BuildHawk/BuildHawk-Info.plist";

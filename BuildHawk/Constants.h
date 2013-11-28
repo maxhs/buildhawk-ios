@@ -33,7 +33,7 @@
 
 #define kHelveticaNeueLight @"HelveticaNeue-Light"
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"
-
+#define kHelveticaNeueRegular @"HelveticaNeue-Regular"
 //Reports
 #define kDaily @"Daily"
 #define kSafety @"Safety"

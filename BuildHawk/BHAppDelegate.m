@@ -15,6 +15,7 @@
 #import "BHLoginViewController.h"
 #import "CoreData+MagicalRecord.h"
 #import "Flurry.h"
+#import "NSData+Conversion.h"
 
 // Use a class extension to expose access to MagicalRecord's private setter methods
 @interface NSManagedObjectContext ()
@@ -27,18 +28,13 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     [MagicalRecord setupCoreDataStack];
-
+    if([[UIApplication sharedApplication] enabledRemoteNotificationTypes] != UIRemoteNotificationTypeNone)
+    {
+        [[UIApplication sharedApplication] cancelAllLocalNotifications];
+        [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+    }
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     [self customizeAppearance];
-    
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        UIStoryboard *ipadStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPad" bundle:nil];
-        self.window.rootViewController = [ipadStoryboard instantiateViewControllerWithIdentifier:@"Login"];
-        
-    } else {
-        UIStoryboard *iphoneStoryboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
-        self.window.rootViewController = [iphoneStoryboard instantiateViewControllerWithIdentifier:@"Login"];
-    }
     
     [Flurry setCrashReportingEnabled:YES];
     [Flurry startSession:kFlurryKey];
@@ -47,11 +43,9 @@
     [GAI sharedInstance].trackUncaughtExceptions = YES;
     [GAI sharedInstance].dispatchInterval = 20;
     [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
-    
     // Initialize tracker.
     [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];
-    
-    [self.window makeKeyAndVisible];
+
     return YES;
 }
 
@@ -71,7 +65,7 @@
     [[UIBarButtonItem appearance] setBackButtonBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:13],
+                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
     
@@ -129,72 +123,21 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
 {
-    //[Flurry logEvent:@"Did Receive Remote Notification"];
-    NSLog(@"just got a remote notification: %@",pushMessage);
+    [Flurry logEvent:@"Did Receive Remote Notification"];
+    NSLog(@"Just received a remote notification: %@",pushMessage);
 }
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
     [Flurry logEvent:@"Registered For Remote Notifications"];
-    [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
+    NSLog(@"Device token: %@",[deviceToken hexadecimalString]);
+    [[NSUserDefaults standardUserDefaults] setObject:[deviceToken hexadecimalString] forKey:kUserDefaultsDeviceToken];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
     //[Flurry logEvent:@"Rejected Remote Notifications"];
 }
-
-//#pragma mark - Core Data Stack
-//
-//- (NSManagedObjectContext *)managedObjectContext {
-//    if (_managedObjectContext != nil) {
-//        return _managedObjectContext;
-//    }
-//    
-//    NSPersistentStoreCoordinator *coordinator = [self persistentStoreCoordinator];
-//    if (coordinator != nil){
-//        _managedObjectContext = [[NSManagedObjectContext alloc] init];
-//        [_managedObjectContext setPersistentStoreCoordinator:coordinator];
-//    }
-//    return  _managedObjectContext;
-//}
-//
-//- (NSManagedObjectModel *)managedObjectModel {
-//    if (_managedObjectModel != nil) {
-//        return _managedObjectModel;
-//    }
-//    NSURL *modelURL = [[NSBundle mainBundle] URLForResource:@"BuildHawkModel" withExtension:@"momd"];
-//    _managedObjectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
-//    return _managedObjectModel;
-//}
-//
-//- (NSPersistentStoreCoordinator*)persistentStoreCoordinator {
-//    if (_persistentStoreCoordinator != nil) {
-//        return _persistentStoreCoordinator;
-//    }
-//    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"BuildHawkModel.sqlite"];
-//    NSError *error = nil;
-//    _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
-//    
-//    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
-//        NSLog(@"error with persistent store coordinator: %@",error.description);
-//        abort();
-//    }
-//    return _persistentStoreCoordinator;
-//}
-//
-//- (void)saveContext {
-//    NSError *error = nil;
-//    NSManagedObjectContext *managedObjectContext = self.managedObjectContext;
-//    if (managedObjectContext != nil) {
-//        if ([managedObjectContext hasChanges] && ![managedObjectContext save:&error]){
-//            //error
-//        }
-//    }
-//}
-//
-//- (NSURL*)applicationDocumentsDirectory {
-//    return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentationDirectory inDomains:NSUserDomainMask] lastObject];
-//}
 
 @end

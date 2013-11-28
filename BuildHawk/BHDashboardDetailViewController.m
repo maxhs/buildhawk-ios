@@ -61,17 +61,15 @@
     [goToProjectButton setFrame:footerView.frame];
     self.tableView.tableFooterView = footerView;
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
-
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     }
-    [self loadDashboard];
+    //[self loadDashboard];
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",self.project.name]];
 }
 
 - (void)loadDashboard {
     [manager GET:[NSString stringWithFormat:@"%@/dash",kApiBaseUrl] parameters:@{@"pid":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting dashboard: %@",responseObject);
         recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_changed"]];
         upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
         recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_docs"]];
@@ -126,7 +124,10 @@
             else return 0;
             break;
         case 4:
+        {
+            NSLog(@"categories: %@",categories);
             return categories.count;
+        }
             break;
         default:
             return 0;
@@ -212,11 +213,9 @@
             progressView.color = kBlueColor;
             progressView.showText = @NO;
             progressView.type = LDProgressSolid;
-
             [progressCell addSubview:progressView];
             return progressCell;
         }
-            
         default:
             break;
     }
@@ -231,7 +230,18 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 30;
+    switch (section) {
+        case 3:
+            if (recentDocuments.count){
+                return 30;
+            } else {
+                return 0;
+            }
+            break;
+        default:
+            return 30;
+            break;
+    }
 }
 
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
@@ -255,7 +265,6 @@
     headerLabel.font = [UIFont fontWithName:kHelveticaNeueLight size:16];
     headerLabel.numberOfLines = 0;
     headerLabel.textAlignment = NSTextAlignmentCenter;
-    
     [headerView addSubview:headerLabel];
     
     switch (section) {
@@ -278,8 +287,6 @@
             return nil;
             break;
     }
-        
-    // Return the headerView
     return headerView;
 }
 

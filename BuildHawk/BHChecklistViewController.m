@@ -39,6 +39,7 @@ typedef void(^RequestSuccess)(id result);
     BOOL iPhone5;
     CGFloat itemRowHeight;
     CGRect screen;
+    id checklistResponse;
 }
 @property (strong, nonatomic) id expanded;
 @property (strong, nonatomic) BHChecklist *checklist;
@@ -61,7 +62,8 @@ typedef void(^RequestSuccess)(id result);
         tableRect.size.height -= 88;
         [self.treeView setFrame:tableRect];
     }
-    itemRowHeight = 120;
+    [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 87, 0)];
+    itemRowHeight = 100;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
 	[self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
@@ -96,11 +98,10 @@ typedef void(^RequestSuccess)(id result);
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
     switch (sender.selectedSegmentIndex) {
         case 0:
-            self.checklist.children = categories;
-            [self.treeView reloadData];
+            [self drawChecklistLimitActive:NO];
             break;
         case 1:
-            [self filterInProgress];
+            [self filterActive];
             break;
         case 2:
             [self filterInProgress];
@@ -113,9 +114,13 @@ typedef void(^RequestSuccess)(id result);
     }
 }
 
+- (void)filterActive {
+    [self drawChecklistLimitActive:YES];
+}
+
 - (void)filterInProgress {
     [inProgressListItems removeAllObjects];
-    NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"completed == NO"];
+    NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"status like %@",kInProgress];
     for (BHChecklistItem *item in listItems){
         if([testForTrue evaluateWithObject:item]) {
             [inProgressListItems addObject:item];
@@ -141,39 +146,52 @@ typedef void(^RequestSuccess)(id result);
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:[NSString stringWithFormat:@"%@/checklists",kApiBaseUrl] parameters:@{@"pid":[[(BHTabBarViewController*)self.tabBarController project] identifier], @"tree":@"1"} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"checklist response: %@",responseObject);
-        for (id cat in [responseObject objectForKey:@"rows"]) {
-            BHCategory *category = [[BHCategory alloc] init];
-            [category setName:cat];
-            [category setChildren:[self parseSubcategoryIntoArray:[[responseObject objectForKey:@"rows"] valueForKey:cat]]];
-            [categories addObject:category];
-        }
-        self.checklist.children = categories;
-        [self.treeView reloadData];
+        checklistResponse = responseObject;
+        [self drawChecklistLimitActive:NO];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
     }];
 }
 
-- (void)parseListItems:(NSDictionary*)dict {
-    
+- (void)drawChecklistLimitActive:(BOOL)onlyActive {
+    [self.checklist.children removeAllObjects];
+    for (id cat in [checklistResponse objectForKey:@"rows"]) {
+        BHCategory *category = [[BHCategory alloc] init];
+        NSLog(@"category order: %@",cat);
+        [category setName:cat];
+        NSMutableArray *children = [self parseSubcategoryIntoArray:[[checklistResponse objectForKey:@"rows"] valueForKey:cat] active:onlyActive];
+        if (children.count) {
+            [category setChildren:children];
+            [categories addObject:category];
+        }
+    }
+    self.checklist.children = categories;
+    [self.treeView reloadData];
 }
 
-- (NSMutableArray *)parseSubcategoryIntoArray:(NSDictionary*)dict {
+- (NSMutableArray *)parseSubcategoryIntoArray:(NSDictionary*)dict active:(BOOL)onlyActive {
     NSMutableArray *subcats = [NSMutableArray array];
     for (id obj in dict) {
         BHSubcategory *tempSubcat = [[BHSubcategory alloc] init];
         [tempSubcat setName:obj];
-        [tempSubcat setChildren:[self itemsFromJSONArray:[dict valueForKey:obj]]];
-        [listItems addObjectsFromArray:tempSubcat.children];
-        [subcats addObject:tempSubcat];
+        NSMutableArray *children = [self itemsFromJSONArray:[dict valueForKey:obj] active:onlyActive];
+        if (children.count){
+            [tempSubcat setChildren:children];
+            [listItems addObjectsFromArray:tempSubcat.children];
+            [subcats addObject:tempSubcat];
+        }
     }
     return subcats;
 }
-- (NSMutableArray *)itemsFromJSONArray:(NSMutableArray *) array {
+- (NSMutableArray *)itemsFromJSONArray:(NSMutableArray *)array active:(BOOL)onlyActive {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDict in array) {
         BHChecklistItem *item = [[BHChecklistItem alloc] initWithDictionary:itemDict];
-        [items addObject:item];
+        if (onlyActive && [item.status isEqualToString:kNotApplicable]) {
+            
+        } else {
+            [items addObject:item];
+        }
     }
     return items;
 }
@@ -228,7 +246,9 @@ typedef void(^RequestSuccess)(id result);
 {
     NSInteger numberOfChildren = [treeNodeInfo.children count];
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
-    
+    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:24]];
+    [cell.textLabel setNumberOfLines:0];
+    [cell.detailTextLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
     switch (treeNodeInfo.treeDepthLevel) {
         case 0:
             if ([item isKindOfClass:[BHCategory class]]) {
@@ -261,7 +281,6 @@ typedef void(^RequestSuccess)(id result);
         CGRect frame = cell.frame;
         frame.size.height = itemRowHeight;
         frame.size.width = screen.size.width;
-        NSLog(@"frame width: %f",frame.size.width);
         [button setFrame:frame];
         [button setTag:[listItems indexOfObject:item]];
         [button addTarget:self action:@selector(dummySegue:) forControlEvents:UIControlEventTouchUpInside];
@@ -269,7 +288,7 @@ typedef void(^RequestSuccess)(id result);
         [cell addSubview:button];
         cell.textLabel.text = [(BHChecklistItem*)item name];
         cell.textLabel.numberOfLines = 0;
-        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
 
         if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
@@ -349,13 +368,18 @@ typedef void(^RequestSuccess)(id result);
     if (completed) {
         item = [completedListItems objectAtIndex:indexPath.row];
         [cell.textLabel setText:item.name];
+        [cell.textLabel setTextColor:[UIColor lightGrayColor]];
+        cell.accessoryType = UITableViewCellAccessoryCheckmark;
+        cell.accessoryView.tintColor = [UIColor lightGrayColor];
     } else {
         item = [filteredItems objectAtIndex:indexPath.row];
         [cell.textLabel setText:item.name];
+        [cell.textLabel setTextColor:kDarkGrayColor];
+        cell.accessoryType = UITableViewCellAccessoryNone;
     }
     cell.textLabel.numberOfLines = 0;
     [cell.textLabel setTextColor:kDarkGrayColor];
-    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
     
     //set the image properly
     if ([item.type isEqualToString:@"Com"]) {
@@ -369,12 +393,12 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 100;
+    return itemRowHeight;
 }
 
 - (CGFloat)treeView:(RATreeView *)treeView heightForRowForItem:(id)item treeNodeInfo:(RATreeNodeInfo *)treeNodeInfo {
     if ([item isKindOfClass:[BHChecklistItem class]]) return itemRowHeight;
-    else return 66;
+    else return 100;
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
@@ -386,6 +410,10 @@ typedef void(^RequestSuccess)(id result);
         [self.treeView setFrame:tableRect];
         [self.segmentedControl setAlpha:0.0];
     }];
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    
 }
 
 - (void)dismissTableView {
