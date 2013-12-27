@@ -11,7 +11,7 @@
 @implementation BHCompany
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    if ([key isEqualToString:@"_id"]) {
+    if ([key isEqualToString:@"id"]) {
         self.identifier = value;
     } else if ([key isEqualToString:@"name"]) {
         self.name = value;

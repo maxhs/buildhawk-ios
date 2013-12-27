@@ -27,23 +27,31 @@
 }
 
 - (void)configureCell {
-    self.labelBackgroundView.layer.borderColor = [UIColor darkGrayColor].CGColor;
-    self.labelBackgroundView.layer.borderWidth = .5f;
     [self buttonTreatment:self.pickFromListButton];
+    self.prefillButton.layer.cornerRadius = 8.f;
+    /*self.prefillButton.layer.shadowColor = [UIColor darkGrayColor].CGColor;
+    self.prefillButton.layer.shadowOpacity =  1.f;
+    self.prefillButton.layer.shadowRadius = 2.f;
+    self.prefillButton.layer.shadowOffset = CGSizeMake(0, 0);*/
+    [self.prefillButton.titleLabel setTextColor:kDarkerGrayColor];
+    self.prefillButton.layer.borderColor = kDarkerGrayColor.CGColor;
+    self.prefillButton.layer.borderWidth = .5f;
+    self.prefillButton.layer.shouldRasterize = YES;
+    self.prefillButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)buttonTreatment:(UIButton*)button {
-    button.layer.cornerRadius = button.frame.size.height/2;
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [button setBackgroundColor:[UIColor clearColor]];
-    [button.layer setBackgroundColor:kDarkShade3.CGColor];
+    button.layer.cornerRadius = 8.f;
+    [button setBackgroundColor:kDarkerGrayColor];
+    //button.layer.borderColor = kLighterGrayColor.CGColor;
+    //button.layer.borderWidth = .5f;
     button.layer.shouldRasterize = YES;
     button.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    button.layer.shadowColor = [UIColor whiteColor].CGColor;
-    button.layer.shadowOpacity =  .2;
-    button.layer.shadowRadius = 3.f;
+    button.layer.shadowColor = [UIColor darkGrayColor].CGColor;
+    button.layer.shadowOpacity =  1.f;
+    button.layer.shadowRadius = 2.f;
     button.layer.shadowOffset = CGSizeMake(0, 0);
-    //[button.titleLabel setTextColor:[UIColor darkGrayColor]];
+    [button.titleLabel setTextColor:[UIColor whiteColor]];
 }
 
 @end

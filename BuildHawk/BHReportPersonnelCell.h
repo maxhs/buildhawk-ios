@@ -10,7 +10,6 @@
 
 @interface BHReportPersonnelCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIButton *pickFromListButton;
-@property (weak, nonatomic) IBOutlet UILabel *reportSectionLabel;
-@property (weak, nonatomic) IBOutlet UIView *labelBackgroundView;
+@property (weak, nonatomic) IBOutlet UIButton *prefillButton;
 - (void)configureCell;
 @end

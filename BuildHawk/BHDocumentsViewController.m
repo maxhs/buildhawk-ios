@@ -14,23 +14,24 @@
 #import <AFNetworking/UIImageView+AFNetworking.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHPhotosViewController.h"
-#import <IDMPhotoBrowser/IDMPhotoBrowser.h>
+#import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
 
-@interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
+@interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, MWPhotoBrowserDelegate> {
     BOOL iPhone5;
     NSMutableArray *photosArray;
     NSArray *sortedByDate;
     NSMutableArray *sortedByUser;
     BOOL sortByDate;
     BOOL sortByUser;
-    BOOL noSort;
+    BOOL sortByCategory;
     NSString *sortUser;
     NSString *sortCategory;
     UIActionSheet *categoryActionSheet;
     UIActionSheet *userActionSheet;
     NSMutableArray *userArray;
     NSMutableArray *sourceArray;
+    NSMutableArray *browserPhotos;
 }
 
 -(IBAction)backToDashboard;
@@ -43,7 +44,7 @@
 {
     [super viewDidLoad];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[[(BHTabBarViewController*)self.tabBarController project] name]];
-	// Do any additional setup after loading the view, typically from a nib.
+
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else {
@@ -54,7 +55,7 @@
     if (!sourceArray) sourceArray = [NSMutableArray array];
     if (!sortedByUser) sortedByUser = [NSMutableArray array];
     [self loadPhotos];
-    noSort = YES;
+    sortByCategory = NO;
     sortByDate = NO;
     sortByUser = NO;
     [Flurry logEvent:@"Viewing documents"];
@@ -76,9 +77,9 @@
 - (void)loadPhotos {
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager GET:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"pid":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"id":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success getting documents: %@",responseObject);
-        photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"rows"]];
+        photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -123,13 +124,16 @@
         [cell.categoryButton addTarget:self action:@selector(sortByCategory) forControlEvents:UIControlEventTouchUpInside];
         [cell.dateButton addTarget:self action:@selector(sortByDate) forControlEvents:UIControlEventTouchUpInside];
         [cell.userButton addTarget:self action:@selector(sortByUser) forControlEvents:UIControlEventTouchUpInside];
+        cell.backgroundColor = kDarkerGrayColor;
         if (photosArray.count > 0){
-            [cell.mainImageView setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[(BHPhoto*)[photosArray objectAtIndex:0] orig]]] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
+            int photoIdx = 0;
+            [cell.mainImageView setImageWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:[(BHPhoto*)[photosArray objectAtIndex:photoIdx] url200]]] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
                 [cell.mainImageView setImage:image];
                 [cell.mainImageView setContentMode:UIViewContentModeScaleAspectFill];
                 cell.mainImageView.clipsToBounds = YES;
                 UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
                 [imageButton setFrame:cell.mainImageView.frame];
+                [imageButton setTag:photoIdx];
                 [imageButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
                 [cell addSubview:imageButton];
                 [UIView animateWithDuration:.25 animations:^{
@@ -159,16 +163,42 @@
     }
 }
 
-- (void)showPhotoDetail:(id)sender {
-    NSMutableArray *photos = [NSMutableArray new];
+- (void)showPhotoDetail:(UIButton*)button {
+    browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in photosArray) {
-        IDMPhoto *idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        [photos addObject:idmPhoto];
+        MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        [browserPhotos addObject:mwPhoto];
     }
-    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
-    [self presentViewController:browser animated:YES completion:^{
-        
-    }];
+    
+    // Create browser
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    
+    // Set options
+    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
+    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
+    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
+    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
+    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
+    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
+        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    }
+    
+    [browser setCurrentPhotoIndex:button.tag];
+    [self.navigationController pushViewController:browser animated:YES];
+    [browser showNextPhotoAnimated:YES];
+    [browser showPreviousPhotoAnimated:YES];
+}
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
+    return browserPhotos.count;
+}
+
+- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    if (index < browserPhotos.count)
+        return [browserPhotos objectAtIndex:index];
+    return nil;
 }
 
 - (void)buttonTreatment:(UIButton*)button {
@@ -189,6 +219,10 @@
     else return 88;
 }
 
+- (CGFloat) tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 0;
+}
+
 - (UIView*)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
     if (section == 1) return [UIView new];
     else return nil;
@@ -197,6 +231,7 @@
 - (void)sortByCategory {
     sortByDate = NO;
     sortByUser = NO;
+    sortByCategory = YES;
     [self showPhoto];
 }
 
@@ -206,6 +241,7 @@
     sortedByDate = [photosArray sortedArrayUsingDescriptors:sortDescriptors];
     sortByDate = YES;
     sortByUser = NO;
+    sortByCategory = NO;
     [self showPhoto];
 }
 
@@ -217,6 +253,7 @@
     userActionSheet.cancelButtonIndex = [userActionSheet addButtonWithTitle:@"Cancel"];
     [userActionSheet showFromTabBar:self.tabBarController.tabBar];
     sortByDate = NO;
+    sortByCategory = NO;
     sortByUser = YES;
 }
 
@@ -240,17 +277,14 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
+    if (indexPath.section == 1){
+        [self performSegueWithIdentifier:@"ByLabel" sender:indexPath];
+    }
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)showPhoto {
-    [self performSegueWithIdentifier:@"ByCategory" sender:self];
+    [self performSegueWithIdentifier:@"ByPhase" sender:self];
     [UIView animateWithDuration:.25 animations:^{
         self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
     }];
@@ -258,15 +292,42 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     BHPhotosViewController *vc = [segue destinationViewController];
-    if (sortByUser) {
-        [vc setPhotosArray:sortedByUser];
-        [vc setTitle:sortUser];
-    } else if (sortByDate) {
-        [vc setPhotosArray:sortedByDate];
-        [vc setTitle:@"Sorting by date"];
+    if ([[segue identifier] isEqualToString:@"ByLabel"]){
+        if ([sender isKindOfClass:[NSIndexPath class]]){
+            NSIndexPath *indexPath = (NSIndexPath*)sender;
+            NSString *sourceLabel = [sourceArray objectAtIndex:indexPath.row];
+            NSPredicate *testForSource = [NSPredicate predicateWithFormat:@"source like %@",sourceLabel];
+            [sortedByUser removeAllObjects];
+            NSMutableArray *tempArray = [NSMutableArray array];
+            for (BHPhoto *photo in photosArray){
+                if([testForSource evaluateWithObject:photo]) {
+                    [tempArray addObject:photo];
+                }
+            }
+            [vc setNumberOfSections:1];
+            [vc setPhotosArray:tempArray];
+        }
     } else {
-        [vc setPhotosArray:photosArray];
-        [vc setTitle:sortCategory];
+        if (sortByUser) {
+            [vc setNumberOfSections:1];
+            [vc setPhotosArray:sortedByUser];
+            [vc setTitle:[NSString stringWithFormat:@"Taken by: %@",sortUser]];
+        } else if (sortByDate) {
+            [vc setNumberOfSections:1];
+            [vc setPhotosArray:sortedByDate];
+        } else if (sortByCategory) {
+            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"phase" ascending:YES];
+            NSArray * descriptors = [NSArray arrayWithObject:valueDescriptor];
+            NSArray * sortedArray = [photosArray sortedArrayUsingDescriptors:descriptors];
+            NSMutableSet *titleSet = [NSMutableSet set];
+            for (BHPhoto *photo in sortedArray){
+                if (photo.phase)[titleSet addObject:photo.phase];
+            }
+            [vc setSectionTitles:[[[titleSet allObjects] reverseObjectEnumerator] allObjects]];
+            [vc setNumberOfSections:titleSet.count];
+            [vc setPhotosArray:photosArray];
+            [vc setTitle:sortCategory];
+        }
     }
 }
 

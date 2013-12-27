@@ -13,5 +13,6 @@
 
 @property (strong, nonatomic) NSMutableArray *children;
 @property (strong, nonatomic) NSString *name;
+@property (strong, nonatomic) NSString *status;
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 @end

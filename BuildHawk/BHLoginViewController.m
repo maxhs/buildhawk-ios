@@ -78,25 +78,26 @@
     if (!password.length)
         password = self.passwordTextField.text;
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:email forKey:@"email"];
-    [parameters setObject:password forKey:@"password"];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"deviceToken"];
+    [parameters setObject:email forKey:@"user[email]"];
+    [parameters setObject:password forKey:@"user[password]"];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"user[deviceToken]"];
     NSLog(@"login parameters: %@",parameters);
-    [manager POST:[NSString stringWithFormat:@"%@/login",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"log in response object: %@",responseObject);
-        user = [[BHUser alloc] initWithDictionary:responseObject];
+        user = [[BHUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
-        [[NSUserDefaults standardUserDefaults] setObject:user.email forKey:kUserDefaultsEmail];
+        [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] setObject:user.authToken forKey:kUserDefaultsAuthToken];
         [[NSUserDefaults standardUserDefaults] setObject:user.fname forKey:kUserDefaultsFirstName];
         [[NSUserDefaults standardUserDefaults] setObject:user.lname forKey:kUserDefaultsLastName];
         [[NSUserDefaults standardUserDefaults] setObject:user.fullname forKey:kUserDefaultsFullName];
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
         [[NSUserDefaults standardUserDefaults] setObject:user.photo.url100 forKey:kUserDefaultsPhotoUrl100];
+        [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier ==[c] %@", user.identifier];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", user.identifier];
         User *saveUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
         if (saveUser) {
             NSLog(@"found existing MR user");
@@ -106,6 +107,7 @@
             saveUser.fullname = user.fullname;
             saveUser.fname = user.fname;
             saveUser.coworkers = user.coworkers;
+            NSLog(@"user has coworkers: %i, %@",user.coworkers.count, saveUser.coworkers);
             saveUser.photoUrl100 = user.photo.url100;
             saveUser.phone1 = user.phone1;
             

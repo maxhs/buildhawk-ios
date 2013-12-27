@@ -34,7 +34,6 @@ typedef void(^RequestSuccess)(id result);
     NSMutableArray *listItems;
     NSMutableArray *completedListItems;
     NSMutableArray *inProgressListItems;
-    BOOL completed;
     BOOL iPad;
     BOOL iPhone5;
     CGFloat itemRowHeight;
@@ -78,6 +77,7 @@ typedef void(^RequestSuccess)(id result);
     if (!completedListItems) completedListItems = [NSMutableArray array];
     if (!inProgressListItems) inProgressListItems = [NSMutableArray array];
     [self loadChecklist];
+    [SVProgressHUD showWithStatus:@"Loading Checklist..."];
     [self.searchDisplayController.searchBar setShowsCancelButton:NO animated:NO];
     [self.segmentedControl setSelectedSegmentIndex:0];
     //[self.view setBackgroundColor:kDarkShade1];
@@ -143,23 +143,25 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)loadChecklist {
+    
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager GET:[NSString stringWithFormat:@"%@/checklists",kApiBaseUrl] parameters:@{@"pid":[[(BHTabBarViewController*)self.tabBarController project] identifier], @"tree":@"1"} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"checklist response: %@",responseObject);
-        checklistResponse = responseObject;
+    [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        checklistResponse = [[responseObject objectForKey:@"checklist"] objectForKey:@"categories"];
         [self drawChecklistLimitActive:NO];
+        [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [SVProgressHUD dismiss];
     }];
 }
 
 - (void)drawChecklistLimitActive:(BOOL)onlyActive {
     [self.checklist.children removeAllObjects];
-    for (id cat in [checklistResponse objectForKey:@"rows"]) {
+    for (id cat in checklistResponse) {
         BHCategory *category = [[BHCategory alloc] init];
-        NSLog(@"category order: %@",cat);
-        [category setName:cat];
-        NSMutableArray *children = [self parseSubcategoryIntoArray:[[checklistResponse objectForKey:@"rows"] valueForKey:cat] active:onlyActive];
+        [category setName:[cat objectForKey:@"name"]];
+        NSMutableArray *children = [self parseSubcategoryIntoArray:[cat objectForKey:@"subcategories"] active:onlyActive];
         if (children.count) {
             [category setChildren:children];
             [categories addObject:category];
@@ -169,12 +171,12 @@ typedef void(^RequestSuccess)(id result);
     [self.treeView reloadData];
 }
 
-- (NSMutableArray *)parseSubcategoryIntoArray:(NSDictionary*)dict active:(BOOL)onlyActive {
+- (NSMutableArray *)parseSubcategoryIntoArray:(NSArray*)array active:(BOOL)onlyActive {
     NSMutableArray *subcats = [NSMutableArray array];
-    for (id obj in dict) {
+    for (id obj in array) {
         BHSubcategory *tempSubcat = [[BHSubcategory alloc] init];
-        [tempSubcat setName:obj];
-        NSMutableArray *children = [self itemsFromJSONArray:[dict valueForKey:obj] active:onlyActive];
+        [tempSubcat setName:[obj objectForKey:@"name"]];
+        NSMutableArray *children = [self itemsFromJSONArray:[obj objectForKey:@"checklist_items"] active:onlyActive];
         if (children.count){
             [tempSubcat setChildren:children];
             [listItems addObjectsFromArray:tempSubcat.children];
@@ -231,12 +233,29 @@ typedef void(^RequestSuccess)(id result);
          
     } else if (treeNodeInfo.treeDepthLevel == 1) {
         cell.backgroundColor = kDarkShade2;
-        [cell.textLabel setTextColor:[UIColor whiteColor]];
-        [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
+        if ([[(BHSubcategory*)item status] isEqualToString:kCompleted]) {
+            
+        } else if ([[(BHSubcategory*)item status] isEqualToString:kInProgress]) {
+            
+        } else {
+            [cell.textLabel setTextColor:[UIColor whiteColor]];
+            [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
+        }
     } else if (treeNodeInfo.treeDepthLevel == 2) {
         cell.backgroundColor = kDarkShade3;
-        [cell.textLabel setTextColor:[UIColor whiteColor]];
-        [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
+        if ([[(BHChecklistItem*)item status] isEqualToString:kCompleted]) {
+            [cell.textLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+            [cell.detailTextLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+        } else if ([[(BHChecklistItem*)item status] isEqualToString:kInProgress]) {
+            [cell.textLabel setTextColor:[UIColor whiteColor]];
+            [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
+        } else if ([[(BHChecklistItem*)item status] isEqualToString:kNotApplicable]) {
+            [cell.textLabel setTextColor:[UIColor colorWithWhite:1 alpha:.25]];
+            [cell.detailTextLabel setTextColor:[UIColor colorWithWhite:1 alpha:.25]];
+        } else {
+            [cell.textLabel setTextColor:[UIColor whiteColor]];
+            [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
+        }
     }
 }
 
@@ -286,7 +305,7 @@ typedef void(^RequestSuccess)(id result);
         [button addTarget:self action:@selector(dummySegue:) forControlEvents:UIControlEventTouchUpInside];
         [button setBackgroundColor:[UIColor clearColor]];
         [cell addSubview:button];
-        cell.textLabel.text = [(BHChecklistItem*)item name];
+        cell.textLabel.text = [(BHChecklistItem*)item body];
         cell.textLabel.numberOfLines = 0;
         [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
 
@@ -298,11 +317,18 @@ typedef void(^RequestSuccess)(id result);
             [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
         }
         
-        if ([(BHChecklistItem*)item completed]) {
+        if ([[(BHChecklistItem*)item status] isEqualToString:kCompleted]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
-            [cell setTintColor:[UIColor blackColor]];
+            cell.accessoryView.tintColor = [UIColor whiteColor];
+            [cell setTintColor:[UIColor whiteColor]];
             [cell.textLabel setTextColor:[UIColor lightGrayColor]];
             [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.imageView setAlpha:.5];
+        } else if([[(BHChecklistItem*)item status] isEqualToString:kInProgress]) {
+            [cell setTintColor:[UIColor colorWithWhite:1 alpha:.5]];
+        } else if([[(BHChecklistItem*)item status] isEqualToString:kNotApplicable]) {
+            [cell.imageView setImage:[UIImage imageNamed:@"naImage"]];
+            [cell setTintColor:[UIColor colorWithWhite:1 alpha:.25]];
             [cell.imageView setAlpha:.25];
         }
     }
@@ -364,30 +390,27 @@ typedef void(^RequestSuccess)(id result);
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ItemCell"];
-    BHChecklistItem *item;
-    if (completed) {
-        item = [completedListItems objectAtIndex:indexPath.row];
-        [cell.textLabel setText:item.name];
+    BHChecklistItem *item = [filteredItems objectAtIndex:indexPath.row];
+    [cell.textLabel setText:item.body];
+    if ([item.status isEqualToString:kCompleted]) {
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
         cell.accessoryType = UITableViewCellAccessoryCheckmark;
         cell.accessoryView.tintColor = [UIColor lightGrayColor];
     } else {
-        item = [filteredItems objectAtIndex:indexPath.row];
-        [cell.textLabel setText:item.name];
         [cell.textLabel setTextColor:kDarkGrayColor];
         cell.accessoryType = UITableViewCellAccessoryNone;
     }
+    
     cell.textLabel.numberOfLines = 0;
-    [cell.textLabel setTextColor:kDarkGrayColor];
     [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
     
     //set the image properly
     if ([item.type isEqualToString:@"Com"]) {
-        [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+        [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
     } else if ([item.type isEqualToString:@"S&C"]) {
-        [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+        [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
     } else {
-        [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+        [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
     }
     return cell;
 }
@@ -452,7 +475,7 @@ typedef void(^RequestSuccess)(id result);
     [filteredItems removeAllObjects]; // First clear the filtered array.
     for (BHChecklistItem *item in listItems){
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
-        if([predicate evaluateWithObject:item.name]) {
+        if([predicate evaluateWithObject:item.body]) {
             [filteredItems addObject:item];
         }
     }

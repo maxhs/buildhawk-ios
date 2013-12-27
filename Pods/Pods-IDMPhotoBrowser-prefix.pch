@@ -1,5 +1,6 @@
 #ifdef __OBJC__
 #import <UIKit/UIKit.h>
+#import <AFNetworking/AFHTTPRequestOperation.h>
 #endif
 
 #import "Pods-environment.h"

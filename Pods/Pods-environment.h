@@ -18,12 +18,6 @@
 #define COCOAPODS_VERSION_MINOR_AFNetworking_NSURLConnection 0
 #define COCOAPODS_VERSION_PATCH_AFNetworking_NSURLConnection 0
 
-// AFNetworking/NSURLSession
-#define COCOAPODS_POD_AVAILABLE_AFNetworking_NSURLSession
-#define COCOAPODS_VERSION_MAJOR_AFNetworking_NSURLSession 2
-#define COCOAPODS_VERSION_MINOR_AFNetworking_NSURLSession 0
-#define COCOAPODS_VERSION_PATCH_AFNetworking_NSURLSession 0
-
 // AFNetworking/Reachability
 #define COCOAPODS_POD_AVAILABLE_AFNetworking_Reachability
 #define COCOAPODS_VERSION_MAJOR_AFNetworking_Reachability 2
@@ -54,23 +48,35 @@
 #define COCOAPODS_VERSION_MINOR_DACircularProgress 1
 #define COCOAPODS_VERSION_PATCH_DACircularProgress 0
 
-// IDMPhotoBrowser
-#define COCOAPODS_POD_AVAILABLE_IDMPhotoBrowser
-#define COCOAPODS_VERSION_MAJOR_IDMPhotoBrowser 1
-#define COCOAPODS_VERSION_MINOR_IDMPhotoBrowser 3
-#define COCOAPODS_VERSION_PATCH_IDMPhotoBrowser 0
-
 // LDProgressView
 #define COCOAPODS_POD_AVAILABLE_LDProgressView
 #define COCOAPODS_VERSION_MAJOR_LDProgressView 1
 #define COCOAPODS_VERSION_MINOR_LDProgressView 1
 #define COCOAPODS_VERSION_PATCH_LDProgressView 0
 
+// MBProgressHUD
+#define COCOAPODS_POD_AVAILABLE_MBProgressHUD
+#define COCOAPODS_VERSION_MAJOR_MBProgressHUD 0
+#define COCOAPODS_VERSION_MINOR_MBProgressHUD 8
+#define COCOAPODS_VERSION_PATCH_MBProgressHUD 0
+
+// MWPhotoBrowser
+#define COCOAPODS_POD_AVAILABLE_MWPhotoBrowser
+#define COCOAPODS_VERSION_MAJOR_MWPhotoBrowser 1
+#define COCOAPODS_VERSION_MINOR_MWPhotoBrowser 2
+#define COCOAPODS_VERSION_PATCH_MWPhotoBrowser 1
+
 // MagicalRecord
 #define COCOAPODS_POD_AVAILABLE_MagicalRecord
 #define COCOAPODS_VERSION_MAJOR_MagicalRecord 2
 #define COCOAPODS_VERSION_MINOR_MagicalRecord 2
 #define COCOAPODS_VERSION_PATCH_MagicalRecord 0
+
+// PSTCollectionView
+#define COCOAPODS_POD_AVAILABLE_PSTCollectionView
+#define COCOAPODS_VERSION_MAJOR_PSTCollectionView 1
+#define COCOAPODS_VERSION_MINOR_PSTCollectionView 2
+#define COCOAPODS_VERSION_PATCH_PSTCollectionView 0
 
 // RATreeView
 #define COCOAPODS_POD_AVAILABLE_RATreeView

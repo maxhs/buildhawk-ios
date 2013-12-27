@@ -14,26 +14,35 @@
 #import <MessageUI/MessageUI.h>
 #import <SDWebImage/UIButton+WebCache.h>
 #import <AssetsLibrary/AssetsLibrary.h>
-#import <IDMPhotoBrowser/IDMPhotoBrowser.h>
+#import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
+#import "BHTabBarViewController.h"
 
-static NSString *assigneePlaceholder = @"Assign this item";
+static NSString *assigneePlaceholder = @"Assign";
+static NSString *locationPlaceholder = @"Location";
+static NSString *itemPlaceholder = @"Describe this item...";
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
 typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
 typedef void(^RequestFailure)(NSError *error);
 typedef void(^RequestSuccess)(id result);
 
-@interface BHPunchlistItemViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+@interface BHPunchlistItemViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate> {
     BOOL iPhone5;
     BOOL iPad;
     BOOL completed;
     BOOL shouldUpdateCompletion;
     UIActionSheet *assigneeActionSheet;
+    UIActionSheet *locationActionSheet;
     AFHTTPRequestOperationManager *manager;
-    NSMutableArray *updatePhotos;
     UIActionSheet *emailActionSheet;
     UIActionSheet *callActionSheet;
     UIBarButtonItem *saveButton;
+    UIBarButtonItem *createButton;
+    BHProject *project;
+    UIAlertView *addOtherAlertView;
+    UIButton *takePhotoButton;
+    int photoIdx;
+    NSMutableArray *browserPhotos;
 }
 - (IBAction)assigneeButtonTapped;
 - (IBAction)locationButtonTapped;
@@ -44,7 +53,7 @@ typedef void(^RequestSuccess)(id result);
 
 @implementation BHPunchlistItemViewController
 
-@synthesize punchlistItem, photos, assignees;
+@synthesize punchlistItem, assignees, savedUser, locationSet;
 
 - (void)viewDidLoad
 {
@@ -53,6 +62,7 @@ typedef void(^RequestSuccess)(id result);
         iPad = YES;
     } else if ([UIScreen mainScreen].bounds.size.height == 568) {
         iPhone5 = YES;
+        [self.photoLabelButton setImage:[UIImage imageNamed:@"cameraButton"] forState:UIControlStateNormal];
     } else {
         iPhone5 = NO;
         self.emailButton.transform = CGAffineTransformMakeTranslation(0, -88);
@@ -67,20 +77,22 @@ typedef void(^RequestSuccess)(id result);
         textRect.size.height -= 44;
         [self.itemTextView setFrame:textRect];
         self.photoButton.transform = CGAffineTransformMakeTranslation(0, -30);
+        [self.photoLabelButton setTitle:@"Photos" forState:UIControlStateNormal];
+        self.photoLabelButton.titleLabel.numberOfLines = 2;
         self.photoLabelButton.transform = CGAffineTransformMakeTranslation(0, -30);
         self.locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
         self.assigneeButton.transform = CGAffineTransformMakeTranslation(0, -70);
         self.scrollView.transform = CGAffineTransformMakeTranslation(0, 56);
     }
-    if (self.punchlistItem.createdPhotos.count > 0 || self.punchlistItem.completedPhotos.count > 0){
-        self.photos = self.punchlistItem.createdPhotos;
-        [self.photos addObjectsFromArray:self.punchlistItem.completedPhotos];
+    if (self.punchlistItem.photos.count > 0){
         [self redrawScrollView];
     } else {
-        self.photos = [NSMutableArray array];
+        self.punchlistItem = [[BHPunchlistItem alloc] init];
+        self.punchlistItem.photos = [NSMutableArray array];
     }
-    if (!updatePhotos) updatePhotos = [NSMutableArray array];
-    [self dontDeletePhotos];
+    if ([(BHTabBarViewController*)self.tabBarController project]){
+        project = [(BHTabBarViewController*)self.tabBarController project];
+    }
     if (!manager) {
         manager = [AFHTTPRequestOperationManager manager];
         [manager setRequestSerializer:[AFJSONRequestSerializer serializer]];
@@ -92,10 +104,14 @@ typedef void(^RequestSuccess)(id result);
     [self addBorderTreatement:self.locationButton];
     [self addBorderTreatement:self.assigneeButton];
     
-    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
-    [[self navigationItem] setRightBarButtonItem:saveButton];
-    NSLog(@"punchlist completion: %@ %hhd",self.punchlistItem.completed, self.punchlistItem.completed.completed);
-    if (self.punchlistItem.completed.completed) {
+    if (self.punchlistItem.identifier.length){
+        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
+        [[self navigationItem] setRightBarButtonItem:saveButton];
+    } else {
+        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(createItem)];
+        [[self navigationItem] setRightBarButtonItem:createButton];
+    }
+    if (self.punchlistItem.completed) {
         completed = YES;
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -109,33 +125,29 @@ typedef void(^RequestSuccess)(id result);
     shouldUpdateCompletion = NO;
     
     self.itemTextView.delegate = self;
+    [self.itemTextView setText:itemPlaceholder];
     [Flurry logEvent:@"Viewing punchlist item"];
-}
-
-- (void)dontDeletePhotos {
-    for (BHPhoto *photo in self.punchlistItem.createdPhotos) {
-        [updatePhotos addObject:@{@"_id":photo.identifier}];
-    }
-    for (BHPhoto *photo in self.punchlistItem.completedPhotos) {
-        [updatePhotos addObject:@{@"_id":photo.identifier}];
-    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (self.punchlistItem.location) {
+    if (self.punchlistItem.location && self.punchlistItem.location.length) {
         [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",self.punchlistItem.location] forState:UIControlStateNormal];
-        [self.locationButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    } else {
+        [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     }
     
-    if (self.punchlistItem.name) {
-        [self.itemTextView setText:self.punchlistItem.name];
+    if (self.punchlistItem.body) {
+        [self.itemTextView setText:self.punchlistItem.body];
     } else {
         [self.itemTextView setTextColor:[UIColor lightGrayColor]];
     }
     
     if (self.punchlistItem.assignees.count) {
-        NSLog(@"There are assignees");
+        BHUser *assignee = self.punchlistItem.assignees.firstObject;
+        if ([assignee isKindOfClass:[BHUser class]] && assignee.fullname.length){
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assignee.fullname] forState:UIControlStateNormal];
+        }
     }
 }
 
@@ -179,7 +191,11 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)doneEditing {
     [self.view endEditing:YES];
-    self.navigationItem.rightBarButtonItem = saveButton;
+    if (self.punchlistItem.identifier.length){
+        self.navigationItem.rightBarButtonItem = saveButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = createButton;
+    }
 }
 
 - (IBAction)photoButtonTapped;
@@ -190,7 +206,7 @@ typedef void(^RequestSuccess)(id result);
         actionSheet = [[UIActionSheet alloc] initWithTitle:nil
                                                   delegate:self
                                          cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:photos.count ? @"Remove Last Photo" : nil
+                                    destructiveButtonTitle:nil
                                          otherButtonTitles:@"Choose Existing Photo", @"Take Photo", nil];
         [actionSheet showInView:self.view];
     } else if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
@@ -198,11 +214,21 @@ typedef void(^RequestSuccess)(id result);
         actionSheet = [[UIActionSheet alloc] initWithTitle:nil
                                                   delegate:self
                                          cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:photos.count ? @"Remove Last Photo" : nil
+                                    destructiveButtonTitle:nil
                                          otherButtonTitles:@"Choose Existing Photo", nil];
         [actionSheet showInView:self.view];
     }
-    
+}
+
+- (void)existingPhotoButtonTapped:(UIButton*)button;
+{
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil
+                                                             delegate:self
+                                                    cancelButtonTitle:@"Cancel"
+                                               destructiveButtonTitle:@"Remove"
+                                                    otherButtonTitles:@"Photo Gallery", nil];
+    [actionSheet showInView:self.view];
+    photoIdx = button.tag;
 }
 
 - (void)choosePhoto {
@@ -226,13 +252,9 @@ typedef void(^RequestSuccess)(id result);
     [picker dismissViewControllerAnimated:YES completion:nil];
     BHPhoto *newPhoto = [[BHPhoto alloc] init];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
+    [self.punchlistItem.photos addObject:newPhoto];
+    [self redrawScrollView];
     [self saveImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
-    
-    /*if (self.photos.count == 1){
-         [self.photoLabelButton setTitle:@"1 photo added" forState:UIControlStateNormal];
-    } else {
-        [self.photoLabelButton setTitle:[NSString stringWithFormat:@"%i photos added", self.photos.count] forState:UIControlStateNormal];
-    }*/
 }
 
 - (UIImage *)fixOrientation:(UIImage*)image {
@@ -357,47 +379,34 @@ typedef void(^RequestSuccess)(id result);
     }];
 }
 
-
 - (void)saveImage:(UIImage*)image {
-    NSDictionary *parameters = @{@"apikey":kFilepickerApiKey,@"filename":@"image.jpg",@"storePath":@"upload/"};
-    NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-    [manager POST:[NSString stringWithFormat:@"%@",kFilepickerBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-        [formData appendPartWithFileData:imageData name:@"fileUpload" fileName:@"image.jpg" mimeType:@"image/jpeg"];
-    } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        BHPhoto *newPhoto = [[BHPhoto alloc] init];
-        NSDictionary *tempDict = [[responseObject objectForKey:@"data"] firstObject];
-        newPhoto.mimetype = [tempDict valueForKeyPath:@"data.type"];
-        newPhoto.photoSize = [tempDict valueForKeyPath:@"data.size"];
-        newPhoto.key = [tempDict valueForKeyPath:@"data.key"];
-        newPhoto.url = [tempDict objectForKey:@"url"];
-        newPhoto.filename =  [tempDict valueForKeyPath:@"data.filename"];
-        [self.photos addObject:newPhoto];
-        [self redrawScrollView];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"failure posting image to filepicker: %@",error.description);
-    }];
+    [self savePostToLibrary:image];
+    if (self.punchlistItem.identifier.length){
+        NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
+        [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:@{@"id":self.punchlistItem.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":kWorklist, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"save punchlist item photo response object: %@",responseObject);
+            self.punchlistItem = [responseObject objectForKey:@"punchlist_item"];
+            //[self.tableView reloadData];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"failure posting image to API: %@",error.description);
+        }];
+    }
 }
 
 -(void)removePhoto {
-    [self.photos removeLastObject];
-    if (self.photos.count == 0){
-        [UIView animateWithDuration:.35 delay:.35 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.photoLabelButton.transform = CGAffineTransformIdentity;
-            [self.scrollView setAlpha:0.0];
-            [self.photoLabelButton setTitle:@"Add Photo" forState:UIControlStateNormal];
-        } completion:^(BOOL finished) {
-            [self.scrollView setHidden:YES];
-        }];
-    } else {
-        [UIView animateWithDuration:.35 delay:.35 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            if (self.photos.count == 1){
-                [self.photoLabelButton setTitle:@"1 photo added" forState:UIControlStateNormal];
-            } else {
-                [self.photoLabelButton setTitle:[NSString stringWithFormat:@"%i photos added", self.photos.count] forState:UIControlStateNormal];
-            }
-        } completion:^(BOOL finished) {
+    NSLog(@"should be removing photo with id: %i",photoIdx);
+    BHPhoto *photoToRemove = [self.punchlistItem.photos objectAtIndex:photoIdx];
+    if (photoToRemove.identifier.length) {
+        [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success removing photo");
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            
         }];
     }
+    [self.punchlistItem.photos removeObjectAtIndex:photoIdx];
+    [self redrawScrollView];
 }
 
 - (void)redrawScrollView {
@@ -417,11 +426,13 @@ typedef void(^RequestSuccess)(id result);
         imageSize = 40;
         space = 3;
     }
-    
+
     int index = 0;
-    
-    for (BHPhoto *photo in self.photos) {
+    for (BHPhoto *photo in self.punchlistItem.photos) {
         __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [self.scrollView addSubview:imageButton];
+        [imageButton setFrame:CGRectMake(((space+imageSize)*index),4,imageSize, imageSize)];
+        
         if (photo.url200.length){
             [imageButton setAlpha:0.0];
             [imageButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
@@ -429,24 +440,21 @@ typedef void(^RequestSuccess)(id result);
                     [imageButton setAlpha:1.0];
                 }];
             }];
-        } else if (photo.url.length){
-            [imageButton setAlpha:0.0];
-            [imageButton setImageWithURL:[NSURL URLWithString:photo.url] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                [UIView animateWithDuration:.25 animations:^{
-                    [imageButton setAlpha:1.0];
-                }];
-            }];
-        } else {
+        } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
+            [UIView animateWithDuration:.25 animations:^{
+                [imageButton setAlpha:1.0];
+            }];
         }
-        [imageButton setFrame:CGRectMake(((space+imageSize)*index),4,imageSize, imageSize)];
+        
         imageButton.imageView.layer.cornerRadius = 3.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.imageView.layer.shouldRasterize = YES;
         imageButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [imageButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
-        [self.scrollView addSubview:imageButton];
+        [imageButton setTag:[self.punchlistItem.photos indexOfObject:photo]];
+        [imageButton addTarget:self action:@selector(existingPhotoButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+        
         index++;
     }
     
@@ -454,14 +462,14 @@ typedef void(^RequestSuccess)(id result);
     [self.scrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     if (self.scrollView.isHidden) [self.scrollView setHidden:NO];
     
-    if (self.photos.count > 0){
+    if (self.punchlistItem.photos.count > 0){
         [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             if (iPad) {
                 self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-288, 0);
             } else if (iPhone5) {
-                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-98, 0);
+                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-120, 0);
             } else {
-                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-98, -30);
+                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-120, -30);
             }
         } completion:^(BOOL finished) {
             
@@ -477,70 +485,157 @@ typedef void(^RequestSuccess)(id result);
 
 }
 
-- (void)showPhotoDetail:(id)sender {
-    NSMutableArray *tempPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in self.photos) {
-        IDMPhoto *idmPhoto;
-        if (photo.orig.length){
-            idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        } else {
-            idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.url]];
-        }
-        [tempPhotos addObject:idmPhoto];
+- (void)showPhotoDetail {
+    browserPhotos = [NSMutableArray new];
+    for (BHPhoto *photo in self.punchlistItem.photos) {
+        MWPhoto *mwPhoto;
+        //if (photo.mimetype && [photo.mimetype isEqualToString:kPdf]){
+        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        //} else {
+        //    idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
+        //}
+        [browserPhotos addObject:mwPhoto];
     }
-    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:tempPhotos];
-    [self presentViewController:browser animated:YES completion:^{
-        
-    }];
+
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
+    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
+    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
+    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
+    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
+    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
+        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    }
+    [self.navigationController pushViewController:browser animated:YES];
+    [browser showNextPhotoAnimated:YES];
+    [browser showPreviousPhotoAnimated:YES];
+    [browser setCurrentPhotoIndex:photoIdx];
+}
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
+    return browserPhotos.count;
+}
+
+- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    if (index < browserPhotos.count)
+        return [browserPhotos objectAtIndex:index];
+    return nil;
 }
 
 -(IBAction)assigneeButtonTapped{
     assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this worklist item" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (BHUser *user in self.project.users) {
+    for (BHUser *user in savedUser.coworkers) {
         [assigneeActionSheet addButtonWithTitle:user.fullname];
     }
     if (![self.assigneeButton.titleLabel.text isEqualToString:assigneePlaceholder])assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
     assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
     [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
-    
 }
 
 -(IBAction)locationButtonTapped{
-    NSLog(@"Location button tapped");
+    locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    for (NSString *location in locationSet.allObjects) {
+        [locationActionSheet addButtonWithTitle:location];
+    }
+    [locationActionSheet addButtonWithTitle:kAddOther];
+    if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder])locationActionSheet.destructiveButtonIndex = [locationActionSheet addButtonWithTitle:@"Remove location"];
+    locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
+    [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
 -(void)updateItem {
+    [SVProgressHUD showWithStatus:@"Updating item..."];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (completed && shouldUpdateCompletion) {
-        parameters = [@{@"_id":self.punchlistItem.identifier, @"name":self.itemTextView.text,@"location":[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""], @"completed":@{@"photos":updatePhotos}} mutableCopy];
+    NSString *strippedLocationString;
+    if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+        strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+                                        [NSCharacterSet whitespaceCharacterSet]];
+            if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
+    }
+    
+    NSString *strippedAssigneeString;
+    if (![self.assigneeButton.titleLabel.text isEqualToString:assigneePlaceholder]){
+        strippedAssigneeString = [[self.assigneeButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Assigned: " withString:@""] stringByTrimmingCharactersInSet:
+                                  [NSCharacterSet whitespaceCharacterSet]];
+        if (strippedAssigneeString.length) [parameters setObject:strippedAssigneeString forKey:@"assignee"];
+    }
+    
+    [parameters setObject:self.punchlistItem.identifier forKey:@"id"];
+    if (self.itemTextView.text.length) [parameters setObject:self.itemTextView.text forKey:@"body"];
+    if (completed){
+        [parameters setObject:kCompleted forKey:@"status"];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"punchlist_item[completed_by_user_id]"];
     } else {
-        parameters = [@{@"_id":self.punchlistItem.identifier, @"name":self.itemTextView.text,@"location":[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""], @"created":@{@"photos":updatePhotos}} mutableCopy];
+        [parameters setObject:@"Not Completed" forKey:@"status"];
     }
-    if (self.photos.count) {
-        NSMutableArray *photoArray = [NSMutableArray arrayWithCapacity:self.photos.count];
-        for (BHPhoto *photo in self.photos) {
-            NSMutableDictionary *photoDict = [NSMutableDictionary dictionary];
-            if (photo.identifier) [photoDict setObject:photo.identifier forKey:@"_id"];
-            if (photo.url) [photoDict setObject:photo.url forKey:@"url"];
-            if (photo.photoSize) [photoDict setObject:photo.photoSize forKey:@"size"];
-            if (photo.mimetype) [photoDict setObject:photo.mimetype forKey:@"type"];
-            [photoArray addObject:photoDict];
-        }
-        [parameters setObject:@{@"photos":photoArray} forKey:@"created"];
-    }
-    NSLog(@"Parameters for updating item: %@",parameters);
-    [manager PUT:[NSString stringWithFormat:@"%@/punchlist/%@", kApiBaseUrl, self.punchlistItem.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        if (completed && shouldUpdateCompletion) [self sendComplete];
-        else if (shouldUpdateCompletion) [self uncomplete];
-        else [SVProgressHUD dismiss];
+    
+    NSLog(@"parameters for updating item: %@",parameters);
+    [manager PUT:[NSString stringWithFormat:@"%@/punchlist_items/%@", kApiBaseUrl, self.punchlistItem.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [self.navigationController popViewControllerAnimated:YES];
+        [SVProgressHUD dismiss];
         NSLog(@"Success updating punchlist item: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [SVProgressHUD dismiss];
+        NSLog(@"Failed to update punchlist item: %@",error.description);
+    }];
+}
+
+-(void)createItem {
+    [SVProgressHUD showWithStatus:@"Adding item..."];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        NSString *strippedLocationString;
+    if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+        strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+                                  [NSCharacterSet whitespaceCharacterSet]];
+        if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
+    }
+    NSString *strippedAssigneeString;
+    if (![self.assigneeButton.titleLabel.text isEqualToString:assigneePlaceholder]){
+        strippedAssigneeString = [[self.assigneeButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Assigned: " withString:@""] stringByTrimmingCharactersInSet:
+                                  [NSCharacterSet whitespaceCharacterSet]];
+        if (strippedAssigneeString.length) [parameters setObject:strippedAssigneeString forKey:@"assignee"];
+    }
+    
+    if (self.itemTextView.text) [parameters setObject:self.itemTextView.text forKey:@"body"];
+
+    NSLog(@"parameters for creating item: %@",parameters);
+    [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success creating punchlist item: %@",responseObject);
+        [SVProgressHUD dismiss];
+        BHPunchlistItem *newItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
+        NSLog(@"punchlist item id: %@",newItem.identifier);
+        if (newItem.identifier){
+            NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+            [parameters setObject:newItem.identifier forKey:@"id"];
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"photo[user_id]"];
+            if (project.identifier.length) [parameters setObject:project.identifier forKey:@"photo[project_id]"];
+            [parameters setObject:kWorklist forKey:@"photo[source]"];
+            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])[parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"photo[company_id]"];
+            
+            for (BHPhoto *photo in self.punchlistItem.photos){
+                NSData *imageData = UIImageJPEGRepresentation(photo.image, 0.5);
+                NSLog(@"new photo for new report parameters: %@",parameters);
+                [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                    [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+                } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    NSLog(@"save punchlist item photo response object: %@",responseObject);
+                    //self.punchlistItem = [responseObject objectForKey:@"punchlist_item"];
+                    //[self.tableView reloadData];
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"failure posting image to API: %@",error.description);
+                }];
+            }
+        }
+        [self.navigationController popViewControllerAnimated:YES];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to update punchlist item: %@",error.description);
     }];
 }
 
--(void)sendComplete {
+/*-(void)sendComplete {
     NSDictionary *parameters = @{kcompleted:@{@"user":@{@"_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]}}};
     [manager PUT:[NSString stringWithFormat:@"%@/punchlist/complete/%@",kApiBaseUrl, self.punchlistItem.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         [SVProgressHUD dismiss];
@@ -558,15 +653,25 @@ typedef void(^RequestSuccess)(id result);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure sending incomplete: %@",error.description);
     }];
-}
+}*/
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
     UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
     [cancelButton setTitle:@"Cancel"];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
+    if ([textView.text isEqualToString:itemPlaceholder]) {
+        [textView setText:@""];
+        [textView setTextColor:[UIColor darkGrayColor]];
+    }
 }
 
 -(void)textViewDidEndEditing:(UITextView *)textView {
+    if (textView.text.length) {
+        self.punchlistItem.body = textView.text;
+    } else {
+        [textView setText:itemPlaceholder];
+        [textView setTextColor:[UIColor lightGrayColor]];
+    }
     [self doneEditing];
 }
 
@@ -580,7 +685,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (IBAction)placeCall:(id)sender{
     callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to call?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in self.project.users) {
+    for (BHUser *user in savedUser.coworkers) {
         [callActionSheet addButtonWithTitle:user.fullname];
     }
     callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
@@ -600,7 +705,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (IBAction)sendEmail:(id)sender {
     emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in self.project.users) {
+    for (BHUser *user in savedUser.coworkers) {
         [emailActionSheet addButtonWithTitle:user.fullname];
     }
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
@@ -656,7 +761,7 @@ typedef void(^RequestSuccess)(id result);
             [callActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
             return;
         }
-        for (BHUser *user in self.project.users){
+        for (BHUser *user in savedUser.coworkers){
             if ([user.fullname isEqualToString:buttonTitle] && user.phone1) {
                 [self call:user.phone1];
                 return;
@@ -669,15 +774,17 @@ typedef void(^RequestSuccess)(id result);
             [emailActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
             return;
         }
-        for (BHUser *user in self.project.users){
+        for (BHUser *user in savedUser.coworkers){
             if ([user.fullname isEqualToString:buttonTitle]) {
                 [self sendMail:user.email];
                 return;
             }
         }
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove Last Photo"]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove"]) {
         [self removePhoto];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Photo Gallery"]) {
+        [self showPhotoDetail];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
             [self choosePhoto];
@@ -686,8 +793,30 @@ typedef void(^RequestSuccess)(id result);
             [self takePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove assignee"]) {
         [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
+        [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",[actionSheet buttonTitleAtIndex:buttonIndex]] forState:UIControlStateNormal];
+    } else if (actionSheet == locationActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
+        NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
+        if (buttonTitle.length) {
+            if ([buttonTitle isEqualToString:kAddOther]) {
+                addOtherAlertView = [[UIAlertView alloc] initWithTitle:@"Add other personnel" message:@"Enter personnel name(s):" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+                addOtherAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+                [addOtherAlertView show];
+            } else {
+                [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",[actionSheet buttonTitleAtIndex:buttonIndex]] forState:UIControlStateNormal];
+            }
+        }
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView == addOtherAlertView) {
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
+            [self.locationButton setTitle:[[alertView textFieldAtIndex:0] text] forState:UIControlStateNormal];
+            
+        }
     }
 }
 

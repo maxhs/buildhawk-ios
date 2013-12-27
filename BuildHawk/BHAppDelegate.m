@@ -16,6 +16,7 @@
 #import "CoreData+MagicalRecord.h"
 #import "Flurry.h"
 #import "NSData+Conversion.h"
+#import <Crashlytics/Crashlytics.h>
 
 // Use a class extension to expose access to MagicalRecord's private setter methods
 @interface NSManagedObjectContext ()
@@ -28,8 +29,7 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     [MagicalRecord setupCoreDataStack];
-    if([[UIApplication sharedApplication] enabledRemoteNotificationTypes] != UIRemoteNotificationTypeNone)
-    {
+    if([[UIApplication sharedApplication] enabledRemoteNotificationTypes] != UIRemoteNotificationTypeNone) {
         [[UIApplication sharedApplication] cancelAllLocalNotifications];
         [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
     }
@@ -45,7 +45,8 @@
     [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
     // Initialize tracker.
     [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];
-
+    [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
+    [self.window makeKeyAndVisible];
     return YES;
 }
 

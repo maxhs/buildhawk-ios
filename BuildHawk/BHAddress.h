@@ -10,12 +10,12 @@
 
 @interface BHAddress : NSObject
 @property (copy, nonatomic) NSString *formattedAddress;
-@property (copy, nonatomic) NSString *streetNumber;
+@property (copy, nonatomic) NSString *street1;
+@property (copy, nonatomic) NSString *street2;
 @property (copy, nonatomic) NSString *city;
 @property (copy, nonatomic) NSString *state;
 @property (copy, nonatomic) NSString *country;
-@property (copy, nonatomic) NSString *route;
-@property (copy, nonatomic) NSString *postalCode;
+@property (copy, nonatomic) NSString *zip;
 @property float latitude;
 @property float longitude;
 

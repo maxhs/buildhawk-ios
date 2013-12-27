@@ -13,18 +13,18 @@
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"formatted_address"]) {
         self.formattedAddress = value;
-    } else if ([key isEqualToString:@"locality"]) {
+    } else if ([key isEqualToString:@"city"]) {
         self.city = value;
-    } else if ([key isEqualToString:@"street_number"]) {
-        self.streetNumber = value;
+    } else if ([key isEqualToString:@"street1"]) {
+        self.street1 = value;
+    } else if ([key isEqualToString:@"street2"]) {
+        self.street2 = value;
     } else if ([key isEqualToString:@"loc"]) {
         self.latitude = [[value objectForKey:@"lat"] floatValue];
         self.longitude = [[value objectForKey:@"lng"] floatValue];
-    } else if ([key isEqualToString:@"admin_area_level_1"]) {
+    } else if ([key isEqualToString:@"state"]) {
         self.state = value;
-    } else if ([key isEqualToString:@"route"]) {
-        self.route = value;
-    } else if ([key isEqualToString:@"country"]) {
+    }else if ([key isEqualToString:@"country"]) {
         self.country = value;
     }
 }
@@ -46,10 +46,10 @@
     if (self = [super init]) {
         self.formattedAddress = [decoder decodeObjectForKey:@"formattedAddress"];
         self.city = [decoder decodeObjectForKey:@"city"];
-        self.route = [decoder decodeObjectForKey:@"route"];
+        self.street1 = [decoder decodeObjectForKey:@"street1"];
         self.country = [decoder decodeObjectForKey:@"country"];
         self.state = [decoder decodeObjectForKey:@"state"];
-        self.streetNumber = [decoder decodeObjectForKey:@"streetNumber"];
+        self.street2 = [decoder decodeObjectForKey:@"street2"];
         self.latitude = [decoder decodeIntegerForKey:@"latitude"];
         self.longitude = [decoder decodeIntegerForKey:@"longitude"];
     }
@@ -59,9 +59,9 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.formattedAddress forKey:@"formattedAddress"];
     [coder encodeObject:self.city forKey:@"city"];
-    [coder encodeObject:self.streetNumber forKey:@"streetNumber"];
+    [coder encodeObject:self.street1 forKey:@"street1"];
     [coder encodeObject:self.state forKey:@"state"];
-    [coder encodeObject:self.route forKey:@"route"];
+    [coder encodeObject:self.street2 forKey:@"street2"];
     [coder encodeObject:self.country forKey:@"country"];
     [coder encodeInteger:self.latitude forKey:@"latitude"];
     [coder encodeInteger:self.longitude forKey:@"longitude"];

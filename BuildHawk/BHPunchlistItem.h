@@ -15,12 +15,14 @@
 @interface BHPunchlistItem : NSObject
 
 @property (nonatomic, strong) NSString *identifier;
-@property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong) NSString *body;
 @property (nonatomic, strong) NSString *location;
 @property (nonatomic, strong) NSString *createdOn;
 @property (nonatomic, strong) NSString *completedOn;
 @property (nonatomic, strong) BHProject *project;
-@property (nonatomic, strong) BHCompleted *completed;
+@property BOOL completed;
+@property (nonatomic, strong) BHUser *completedByUser;
+@property (nonatomic, strong) NSMutableArray *photos;
 @property (nonatomic, strong) NSMutableArray *createdPhotos;
 @property (nonatomic, strong) NSMutableArray *completedPhotos;
 @property (nonatomic, strong) NSMutableArray *assignees;

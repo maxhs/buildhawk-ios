@@ -20,11 +20,11 @@
 #import "BHTabBarViewController.h"
 #import <SDWebImage/UIButton+WebCache.h>
 #import <AssetsLibrary/AssetsLibrary.h>
-#import <IDMPhotoBrowser/IDMPhotoBrowser.h>
+#import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
 
 static NSString *addCommentPlaceholder = @"Add comment...";
-@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate> {
+@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
     BOOL complete;
     NSString *mainPhoneNumber;
@@ -41,6 +41,9 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     UIScrollView *photoScrollView;
     NSDateFormatter *commentFormatter;
     UIBarButtonItem *saveButton;
+    int removePhotoIdx;
+    UIButton *takePhotoButton;
+    NSMutableArray *browserPhotos;
 }
 - (IBAction)updateChecklistItem;
 @end
@@ -56,8 +59,14 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     if (self.item.completed) complete = YES;
     else complete = NO;
     tableViewInset = self.tableView.contentInset;
+    tableViewInset.top += 64;
     self.tableView.backgroundColor = kLightestGrayColor;
-    project = [(BHTabBarViewController*)self.tabBarController project];
+    if ([(BHTabBarViewController*)self.tabBarController project]){
+        project = [(BHTabBarViewController*)self.tabBarController project];
+    } else {
+        project = [[BHProject alloc] init];
+        project.identifier = self.item.projectId;
+    }
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
@@ -65,12 +74,25 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem)];
     [[self navigationItem] setRightBarButtonItem:saveButton];
     [Flurry logEvent:@"Viewing checklist item"];
+    [self loadItem];
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)loadItem{
+    [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,self.item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
+        [self.item setComments:[BHUtilities commentsFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"comments"]]];
+        [self.item setPhotos:[BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]]];
+        [self.item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
+        [self.tableView reloadData];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"failure getting checklist item: %@",error.description);
+    }];
 }
 
 #pragma mark - Table view data source
@@ -103,7 +125,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         if (messageCell == nil) {
             messageCell = [[[NSBundle mainBundle] loadNibNamed:@"BHChecklistMessageCell" owner:self options:nil] lastObject];
         }
-        [messageCell.messageTextView setText:self.item.name];
+        [messageCell.messageTextView setText:self.item.body];
         [messageCell.messageTextView setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
         [messageCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
         [messageCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
@@ -149,6 +171,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         }
         photoScrollView = photoCell.scrollView;
         [self redrawScrollView:photoCell.takePhotoButton];
+        takePhotoButton = photoCell.takePhotoButton;
         [photoCell.takePhotoButton addTarget:self action:@selector(photoButtonTapped) forControlEvents:UIControlEventTouchUpInside];
         return photoCell;
     } else if (indexPath.section == 3) {
@@ -250,6 +273,12 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         comment.user.fullname = user.fullname;
         [self.item.comments addObject:comment];
         [self.tableView reloadData];
+        NSDictionary *commentDict = @{@"checklist_item_id":self.item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+        [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success creating a comment: %@",responseObject);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"failure creating a comment: %@",error.description);
+        }];
     }
     
     [self doneEditing];
@@ -263,7 +292,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         doneButton.alpha = 0.0;
     }];
     self.navigationItem.rightBarButtonItem = saveButton;
-    //self.tableView.contentInset = tableViewInset;
+    [self.tableView setContentInset:UIEdgeInsetsMake(64, 0, 49, 0)];
 }
 
 - (void)callAction{
@@ -363,6 +392,17 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     
 }
 
+- (void)existingPhotoButtonTapped:(UIButton*)button;
+{
+    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil
+                                                  delegate:self
+                                         cancelButtonTitle:@"Cancel"
+                                    destructiveButtonTitle:@"Remove"
+                                         otherButtonTitles:@"Photo Gallery", nil];
+    [actionSheet showInView:self.view];
+    removePhotoIdx = button.tag;
+}
+
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
     if (actionSheet == callActionSheet) {
@@ -391,14 +431,16 @@ static NSString *addCommentPlaceholder = @"Add comment...";
             }
         }
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove Photo"]) {
-        [self removePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
             [self choosePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Take Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
             [self takePhoto];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove"]) {
+        [self removePhoto];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Photo Gallery"]) {
+        [self showPhotoDetail:removePhotoIdx];
     }
 }
 
@@ -423,15 +465,12 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     BHPhoto *newPhoto = [[BHPhoto alloc] init];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [self saveImage:[self fixOrientation:newPhoto.image]];
+    [self.item.photos addObject:newPhoto];
+    [self.tableView reloadData];
 }
 
 - (UIImage *)fixOrientation:(UIImage*)image {
-    
-    // No-op if the orientation is already correct
     if (image.imageOrientation == UIImageOrientationUp) return image;
-    
-    // We need to calculate the proper transformation to make the image upright.
-    // We do it in 2 steps: Rotate if Left/Right/Down, and then flip if Mirrored.
     CGAffineTransform transform = CGAffineTransformIdentity;
     
     switch (image.imageOrientation) {
@@ -475,9 +514,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         case UIImageOrientationRight:
             break;
     }
-    
-    // Now we draw the underlying CGImage into a new context, applying the transform
-    // calculated above.
+
     CGContextRef ctx = CGBitmapContextCreate(NULL, image.size.width, image.size.height,
                                              CGImageGetBitsPerComponent(image.CGImage), 0,
                                              CGImageGetColorSpace(image.CGImage),
@@ -488,7 +525,6 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         case UIImageOrientationLeftMirrored:
         case UIImageOrientationRight:
         case UIImageOrientationRightMirrored:
-            // Grr...
             CGContextDrawImage(ctx, CGRectMake(0,0,image.size.height,image.size.width), image.CGImage);
             break;
             
@@ -496,8 +532,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
             CGContextDrawImage(ctx, CGRectMake(0,0,image.size.width,image.size.height), image.CGImage);
             break;
     }
-    
-    // And now we just create a new UIImage from the drawing context
+
     CGImageRef cgimg = CGBitmapContextCreateImage(ctx);
     UIImage *img = [UIImage imageWithCGImage:cgimg];
     CGContextRelease(ctx);
@@ -531,7 +566,6 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     
     [library writeImageToSavedPhotosAlbum:imageToSave.CGImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
         if (error.code == 0) {
-            // try to get the asset
             [library assetForURL:assetURL
                      resultBlock:^(ALAsset *asset) {
                          // assign the photo to the album
@@ -548,43 +582,29 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 }
 
 -(void)removePhoto {
-    [self.item.photos removeLastObject];
-    /*if (self.item.photos.count == 0){
-        [UIView animateWithDuration:.35 delay:.35 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            self.photoLabelButton.transform = CGAffineTransformIdentity;
-            [self.scrollView setAlpha:0.0];
-            [self.photoLabelButton setTitle:@"Add Photo" forState:UIControlStateNormal];
-        } completion:^(BOOL finished) {
-            [self.scrollView setHidden:YES];
+    NSLog(@"should be removing photo with id: %i",removePhotoIdx);
+    BHPhoto *photoToRemove = [self.item.photos objectAtIndex:removePhotoIdx];
+    if (photoToRemove.identifier.length) {
+        [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success removing photo");
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            
         }];
-    } else {
-        [UIView animateWithDuration:.35 delay:.35 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            if (self.photos.count == 1){
-                [self.photoLabelButton setTitle:@"1 photo added" forState:UIControlStateNormal];
-            } else {
-                [self.photoLabelButton setTitle:[NSString stringWithFormat:@"%i photos added", self.photos.count] forState:UIControlStateNormal];
-            }
-        } completion:^(BOOL finished) {
-        }];
-    }*/
+    }
+    [self.item.photos removeObjectAtIndex:removePhotoIdx];
+    [self redrawScrollView:takePhotoButton];
 }
 
-
 - (void)saveImage:(UIImage*)image {
-    NSDictionary *parameters = @{@"apikey":kFilepickerApiKey,@"filename":@"image.jpg",@"storePath":@"upload/"};
+    [self savePostToLibrary:image];
     NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-    [manager POST:[NSString stringWithFormat:@"%@",kFilepickerBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-        [formData appendPartWithFileData:imageData name:@"fileUpload" fileName:@"image.jpg" mimeType:@"image/jpeg"];
+    [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":self.item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":@"Checklist",@"photo[phase]":self.item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        BHPhoto *newPhoto = [[BHPhoto alloc] init];
-        NSDictionary *tempDict = [[responseObject objectForKey:@"data"] firstObject];
-        newPhoto.mimetype = [tempDict valueForKeyPath:@"data.type"];
-        newPhoto.photoSize = [tempDict valueForKeyPath:@"data.size"];
-        newPhoto.key = [tempDict valueForKeyPath:@"data.key"];
-        newPhoto.url = [tempDict objectForKey:@"url"];
-        newPhoto.filename =  [tempDict valueForKeyPath:@"data.filename"];
-        [self.item.photos addObject:newPhoto];
-        [self.tableView reloadData];
+        NSLog(@"save image response object: %@",responseObject);
+        self.item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
+        [self redrawScrollView:takePhotoButton];
+        //[self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failure posting image to filepicker: %@",error.description);
     }];
@@ -607,24 +627,20 @@ static NSString *addCommentPlaceholder = @"Add comment...";
                 [UIView animateWithDuration:.25 animations:^{
                     [imageButton setAlpha:1.0];
                 }];
+                [imageButton setTitle:photo.identifier forState:UIControlStateNormal];
             }];
-        } else if (photo.url.length){
-            [imageButton setAlpha:0.0];
-            [imageButton setImageWithURL:[NSURL URLWithString:photo.url] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                [UIView animateWithDuration:.25 animations:^{
-                    [imageButton setAlpha:1.0];
-                }];
-            }];
-        } else {
+        } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         }
+        [imageButton setTag:[self.item.photos indexOfObject:photo]];
+        [imageButton.titleLabel setHidden:YES];
         imageButton.imageView.layer.cornerRadius = 3.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.layer.shouldRasterize = YES;
         imageButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
         [imageButton setFrame:CGRectMake((space+imageSize)*index,15,imageSize, imageSize)];
-        [imageButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
+        [imageButton addTarget:self action:@selector(existingPhotoButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         [photoScrollView addSubview:imageButton];
         index++;
     }
@@ -633,7 +649,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     [photoScrollView addSubview:photoButton];
     
     [photoScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
-    [photoScrollView setContentOffset:CGPointMake(-space, 0) animated:NO];
+    [photoScrollView setContentOffset:CGPointMake(-space*2, 0) animated:NO];
     [UIView animateWithDuration:.3 delay:.7 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [photoScrollView setAlpha:1.0];
     } completion:^(BOOL finished) {
@@ -645,21 +661,9 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 - (IBAction)updateChecklistItem {
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:self.item.identifier forKey:@"_id"];
+    [parameters setObject:self.item.identifier forKey:@"id"];
     if (self.item.status) [parameters setObject:self.item.status forKey:@"status"];
     if (self.item.completed) [parameters setObject:@"true" forKey:@"completed"];
-    
-        NSMutableArray *photoArray = [NSMutableArray arrayWithCapacity:self.item.photos.count];
-        for (BHPhoto *photo in self.item.photos) {
-            NSMutableDictionary *photoDict = [NSMutableDictionary dictionary];
-            if (photo.identifier) [photoDict setObject:photo.identifier forKey:@"_id"];
-            if (photo.url) [photoDict setObject:photo.url forKey:@"url"];
-            if (photo.photoSize) [photoDict setObject:photo.photoSize forKey:@"size"];
-            if (photo.mimetype) [photoDict setObject:photo.mimetype forKey:@"type"];
-            [photoArray addObject:photoDict];
-        }
-        [parameters setObject:photoArray forKey:@"photos"];
-    
     
         NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:self.item.comments.count];
         for (BHComment *comment in self.item.comments) {
@@ -669,31 +673,65 @@ static NSString *addCommentPlaceholder = @"Add comment...";
             [commentArray addObject:commentDict];
         }
         [parameters setObject:commentArray forKey:@"comments"];
-    
-    [manager PUT:[NSString stringWithFormat:@"%@/checklist", kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [SVProgressHUD showWithStatus:@"Updating item..."];
+    [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,self.item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success updating checklist item %@",responseObject);
         [self.navigationController popViewControllerAnimated:YES];
+        [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure updating checklist item: %@",error.description);
+        [SVProgressHUD dismiss];
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
 }
 
-- (void)showPhotoDetail:(id)sender {
-    NSMutableArray *tempPhotos = [NSMutableArray new];
+- (void)showPhotoDetail:(int)idx {
+    browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in self.item.photos) {
-        IDMPhoto *idmPhoto;
-        if (photo.orig.length){
-            idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        } else {
-            idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.url]];
-        }
-        [tempPhotos addObject:idmPhoto];
+        MWPhoto *mwPhoto;
+        //if (photo.mimetype && [photo.mimetype isEqualToString:kPdf]){
+        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        //} else {
+        //    idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
+        //}
+        [browserPhotos addObject:mwPhoto];
     }
-    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:tempPhotos];
-    [self presentViewController:browser animated:YES completion:^{
-        
-    }];
+    
+    // Create browser
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    
+    // Set options
+    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
+    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
+    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
+    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
+    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
+    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
+        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    }
+    
+    // Optionally set the current visible photo before displaying
+    [browser setCurrentPhotoIndex:idx];
+    
+    // Present
+    [self.navigationController pushViewController:browser animated:YES];
+    
+    // Manipulate
+    [browser showNextPhotoAnimated:YES];
+    [browser showPreviousPhotoAnimated:YES];
+    [browser setCurrentPhotoIndex:10];
+}
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
+    return browserPhotos.count;
+}
+
+- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    if (index < browserPhotos.count)
+        return [browserPhotos objectAtIndex:index];
+    return nil;
 }
 
 -(void)viewWillDisappear:(BOOL)animated {
@@ -704,18 +742,33 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     if (indexPath.section == 1) {
         switch (indexPath.row) {
             case 0:
-                [self.item setStatus:kCompleted];
-                self.item.completed = YES;
+                if ([self.item.status isEqualToString:kCompleted]){
+                    self.item.status = nil;
+                    self.item.completed = NO;
+                } else {
+                    [self.item setStatus:kCompleted];
+                    self.item.completed = YES;
+                }
                 break;
             case 1:
-                [self.item setStatus:kInProgress];
+                if ([self.item.status isEqualToString:kInProgress]){
+                    [self.item setStatus:nil];
+                } else {
+                    [self.item setStatus:kInProgress];
+                }
+                
                 break;
             case 2:
-                [self.item setStatus:kNotApplicable];
+                if ([self.item.status isEqualToString:kNotApplicable]){
+                    [self.item setStatus:nil];
+                } else {
+                    [self.item setStatus:kNotApplicable];
+                }
                 break;
             default:
                 break;
         }
+        [self.tableView reloadData];
     }
 }
 

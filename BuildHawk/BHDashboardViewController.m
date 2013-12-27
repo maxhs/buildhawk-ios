@@ -96,10 +96,10 @@
         if (!notifications) notifications = [NSMutableArray array];
         if (!upcomingChecklistItems) upcomingChecklistItems = [NSMutableArray array];*/
         [categories removeAllObjects];
-        [manager GET:[NSString stringWithFormat:@"%@/dash",kApiBaseUrl] parameters:@{@"pid":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success getting dashboard detail view: %@",responseObject);
-            categories = [[responseObject objectForKey:@"cl_categories"] mutableCopy];
-            [dashboardDetailDict setObject:responseObject forKey:proj.identifier];
+        [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success getting dashboard detail view: %@",[responseObject objectForKey:@"project"]);
+            categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
+            [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
             
             if (dashboardDetailDict.count == projects.count) {
                 NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
@@ -126,10 +126,10 @@
 
 - (void)loadProjects {
     [SVProgressHUD showWithStatus:@"Fetching projects..."];
-    [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"load projects response object: %@",responseObject);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"rows"]]];
+        [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
         [SVProgressHUD dismiss];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -204,7 +204,7 @@
     if (dashboardDetailDict.count){
         NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
         NSLog(@"inside cell for row method with proj id: %@ and: %@",project.identifier,dict);
-        [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*[self calculateCategories:[dict objectForKey:@"cl_categories"]])]];
+        [cell.progressLabel setText:[dict objectForKey:@"progress"]];
     }
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
@@ -318,11 +318,11 @@
         BHProject *project = [projects objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         [detailVC setProject:project];
         NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"cl_changed"]]];
-        [detailVC setUpcomingChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"cl_due_soon"]]];
-        [detailVC setRecentDocuments:[BHUtilities photosFromJSONArray:[dict objectForKey:@"recent_docs"]]];
-        [detailVC setRecentlyCompletedWorklistItems:[BHUtilities punchlistItemsFromJSONArray:[dict objectForKey:@"wl_completed"]]];
-        [detailVC setCategories:[dict objectForKey:@"cl_categories"]];
+        [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
+        [detailVC setUpcomingChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"upcoming_items"]]];
+        [detailVC setRecentDocuments:[BHUtilities photosFromJSONArray:[dict objectForKey:@"recent_documents"]]];
+        [detailVC setRecentlyCompletedWorklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
+        [detailVC setCategories:[dict objectForKey:@"categories"]];
     }
 }
 

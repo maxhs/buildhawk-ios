@@ -1,11 +1,11 @@
-platform :ios, '7.0'
+platform :ios, '6.0'
 pod 'AFNetworking'
 pod 'SWRevealViewController', '~> 1.0.4'
 pod 'SDWebImage', '~> 3.4'
 pod 'SVProgressHUD'
 pod 'RATreeView'
 pod 'MagicalRecord', '~> 2.2'
-pod 'IDMPhotoBrowser'
+pod 'MWPhotoBrowser'
 pod 'LDProgressView', '~> 1.1'
 
 link_with 'BuildHawk'

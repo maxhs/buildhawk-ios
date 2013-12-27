@@ -34,7 +34,7 @@
 */
 
 -(void)configureForPhoto:(BHPhoto*)photo{
-    [self.photoButton setBackgroundColor:[UIColor blackColor]];
+    [self.photoButton setBackgroundColor:[UIColor clearColor]];
     [self.photoButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal];
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;

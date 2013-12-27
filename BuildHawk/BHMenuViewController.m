@@ -36,7 +36,10 @@
     self.view.backgroundColor = kDarkGrayColor;
     self.tableView.backgroundColor = kDarkGrayColor;
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    user = [User MR_findFirst];
+    NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+    user = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+    NSLog(@"user coworkers from menu? %@",user.coworkers);
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         
     } else {
@@ -69,7 +72,7 @@
     if (indexPath.section == 0) {
         static NSString *CellIdentifier = @"UserCell";
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-        UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 29, cell.frame.size.width-80, cell.frame.size.height)];
+        UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 30, cell.frame.size.width-80, cell.frame.size.height)];
         [nameLabel setText:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFullName]];
         [nameLabel setBackgroundColor:[UIColor clearColor]];
         [nameLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:18]];
@@ -77,7 +80,7 @@
         CGRect textRect = cell.textLabel.frame;
         textRect.origin.x += 80;
         [cell.textLabel setFrame:textRect];
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15, 25, 50, 50)];
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15, 30, 50, 50)];
         [imageView setContentMode:UIViewContentModeScaleAspectFill];
         imageView.layer.cornerRadius = 25.f;
         imageView.clipsToBounds = YES;

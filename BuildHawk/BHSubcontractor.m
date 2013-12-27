@@ -10,7 +10,7 @@
 
 @implementation BHSubcontractor
 - (void)setValue:(id)value forKey:(NSString *)key {
-    if ([key isEqualToString:@"_id"]) {
+    if ([key isEqualToString:@"id"]) {
         self.identifier = value;
     } else if ([key isEqualToString:@"count"]) {
         self.count = [value stringValue];

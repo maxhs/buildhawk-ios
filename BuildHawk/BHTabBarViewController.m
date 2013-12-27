@@ -32,14 +32,14 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self loadproject];
+    //[self loadproject];
     self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
 }
 
 - (void)loadproject {
     [SVProgressHUD showWithStatus:@"Fetching project..."];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager GET:[NSString stringWithFormat:@"%@/project",kApiBaseUrl] parameters:@{@"pid":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,self.project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"project response from tab bar vc: %@", responseObject);
         [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

@@ -11,25 +11,26 @@
 @implementation BHPunchlistItem
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    if ([key isEqualToString:@"_id"]) {
-        self.identifier = value;
-    } else if ([key isEqualToString:@"name"]) {
-        self.name = value;
+    if ([key isEqualToString:@"id"]) {
+        self.identifier = [value stringValue];
+    } else if ([key isEqualToString:@"body"]) {
+        if (value != [NSNull null] && value != nil) self.body = value;
     } else if ([key isEqualToString:@"location"]) {
-        self.location = value;
-    } else if ([key isEqualToString:@"created"]) {
-        self.createdOn = [BHUtilities parseDateTimeReturnString:[value objectForKey:@"createdOn"]];
-        if ([value objectForKey:@"photos"]) {
-            self.createdPhotos = [BHUtilities photosFromJSONArray:[value objectForKey:@"photos"]];
-        }
+        if (value != [NSNull null] && value != nil) self.location = value;
+    } else if ([key isEqualToString:@"created_at"]) {
+        self.createdOn = [BHUtilities parseDateTimeReturnString:value];
+        //if ([value objectForKey:@"photos"]) {
+        //    self.createdPhotos = [BHUtilities photosFromJSONArray:[value objectForKey:@"photos"]];
+        //}
+    } else if ([key isEqualToString:@"completed_at"]) {
+        if (value != [NSNull null] && value != nil) self.completedOn = [BHUtilities parseDateReturnString:value];
     } else if ([key isEqualToString:@"completed"]) {
-        if ([value objectForKey:@"photos"]) {
-            self.completedPhotos = [BHUtilities photosFromJSONArray:[value objectForKey:@"photos"]];
-        }
-        self.completed = [[BHCompleted alloc] initWithDictionary:value];
-    } else if ([key isEqualToString:@"assigned"]) {
+        self.completed = [value boolValue];
+    } else if ([key isEqualToString:@"assignee"]) {
         if (!self.assignees) self.assignees = [NSMutableArray array];
-        [self.assignees addObject:[[BHUser alloc] initWithDictionary:[value objectForKey:@"user"]]];
+        [self.assignees addObject:[[BHUser alloc] initWithDictionary:value]];
+    } else if ([key isEqualToString:@"photos"]) {
+        self.photos = [BHUtilities photosFromJSONArray:value];
     }
 }
 

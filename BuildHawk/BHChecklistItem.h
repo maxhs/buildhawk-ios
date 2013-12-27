@@ -14,7 +14,7 @@
 @interface BHChecklistItem : NSObject
 
 @property (nonatomic, copy) NSString *identifier;
-@property (nonatomic, copy) NSString *name;
+@property (nonatomic, copy) NSString *body;
 @property (nonatomic, copy) NSString *type;
 @property (nonatomic, copy) NSString *location;
 @property (nonatomic, copy) NSString *category;
@@ -23,6 +23,7 @@
 @property (nonatomic, copy) NSDate *dueDate;
 @property (nonatomic, copy) NSString *dueDateString;
 @property (nonatomic, copy) BHProject *project;
+@property (nonatomic, copy) NSString *projectId;
 @property (nonatomic, strong) NSMutableArray *photos;
 @property (nonatomic, strong) NSMutableArray *comments;
 @property (nonatomic, copy) id children;

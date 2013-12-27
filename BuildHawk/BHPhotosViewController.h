@@ -11,5 +11,7 @@
 
 @interface BHPhotosViewController : UICollectionViewController
 @property (strong, nonatomic) NSArray *photosArray;
-
+@property (strong, nonatomic) NSMutableArray *phasePhotosArray;
+@property (strong, nonatomic) NSArray *sectionTitles;
+@property int numberOfSections;
 @end

@@ -20,17 +20,17 @@ static BHUser *currentUser;
 }
 
 - (void)setValue:(id)value forKey:(NSString *)key {
-    if ([key isEqualToString:@"_id"]) {
-        self.identifier = value;
+    if ([key isEqualToString:@"id"]) {
+        self.identifier = [value stringValue];
     } else if ([key isEqualToString:@"email"]) {
         self.email = value;
-    } else if ([key isEqualToString:@"fname"]) {
+    } else if ([key isEqualToString:@"first_name"]) {
         self.fname = value;
-    } else if ([key isEqualToString:@"lname"]) {
+    } else if ([key isEqualToString:@"last_name"]) {
         self.lname = value;
-    } else if ([key isEqualToString:@"fullname"]) {
+    } else if ([key isEqualToString:@"full_name"]) {
         self.fullname = value;
-    } else if ([key isEqualToString:@"authToken"]) {
+    } else if ([key isEqualToString:@"authentication_token"]) {
         self.authToken = value;
     } else if ([key isEqualToString:@"phone1"]) {
         self.phone1 = value;
@@ -38,8 +38,11 @@ static BHUser *currentUser;
         self.company = [[BHCompany alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"coworkers"]) {
         self.coworkers = [self coworkersFromJSONArray:value];
-    } else if ([key isEqualToString:@"photo"]) {
-        self.photo = [[BHPhoto alloc] initWithDictionary:value];
+    } else if ([key isEqualToString:@"url100"]) {
+        if (value != [NSNull null]) {
+            self.photo = [[BHPhoto alloc] init];
+            [self.photo setUrl100:value];
+        }
     }
 }
 

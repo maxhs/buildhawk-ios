@@ -17,10 +17,17 @@
 @property (nonatomic, strong) NSString *type;
 @property (nonatomic, strong) NSString *title;
 @property (nonatomic, strong) NSString *body;
-@property (nonatomic, strong) NSDate *createdOn;
+@property (nonatomic, strong) NSString *createdDate;
+@property (nonatomic, strong) NSString *weather;
+@property (nonatomic, strong) NSString *weatherIcon;
+@property (nonatomic, strong) NSString *temperature;
+@property (nonatomic, strong) NSString *wind;
+@property (nonatomic, strong) NSDate *createdAt;
+@property (nonatomic, strong) NSDate *updatedAt;
 @property (nonatomic, strong) BHUser *user;
 @property (nonatomic, strong) BHProject *project;
-@property (nonatomic, strong) NSMutableSet *subcontractors;
+@property (nonatomic, strong) NSMutableArray *subcontractors;
+@property (nonatomic, strong) NSMutableArray *users;
 @property (nonatomic, strong) NSMutableArray *photos;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;

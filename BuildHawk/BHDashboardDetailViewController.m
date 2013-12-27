@@ -16,17 +16,19 @@
 #import "BHPunchlistItem.h"
 #import "BHRecentDocumentCell.h"
 #import <SDWebImage/UIButton+WebCache.h>
-#import <IDMPhotoBrowser/IDMPhotoBrowser.h>
+#import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
 #import "BHChecklistItemViewController.h"
 #import "BHPunchlistItemViewController.h"
 #import "BHProgressCell.h"
 #import <LDProgressView/LDProgressView.h>
 
-@interface BHDashboardDetailViewController () <UIScrollViewDelegate> {
+@interface BHDashboardDetailViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     AFHTTPRequestOperationManager *manager;
     UIScrollView *documentsScrollView;
     BOOL iPad;
+    CGRect screen;
+    NSMutableArray *browserPhotos;
 }
 
 @end
@@ -47,10 +49,14 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        iPad = YES;
+    }
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = self.project.name;
+    screen = [UIScreen mainScreen].bounds;
     //setup goToProject button
-    UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 66)];
+    UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 66)];
     [footerView setBackgroundColor:kDarkGrayColor];
     UIButton *goToProjectButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [goToProjectButton setTitle:@"Go to Project" forState:UIControlStateNormal];
@@ -61,19 +67,17 @@
     [goToProjectButton setFrame:footerView.frame];
     self.tableView.tableFooterView = footerView;
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        iPad = YES;
-    }
+    
     //[self loadDashboard];
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",self.project.name]];
 }
 
 - (void)loadDashboard {
-    [manager GET:[NSString stringWithFormat:@"%@/dash",kApiBaseUrl] parameters:@{@"pid":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_changed"]];
+    [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"recently_completed"]];
         upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
-        recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_docs"]];
-        recentlyCompletedWorklistItems = [BHUtilities punchlistItemsFromJSONArray:[responseObject objectForKey:@"wl_completed"]];
+        recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_documents"]];
+        recentlyCompletedWorklistItems = [BHUtilities punchlistItemsFromJSONArray:[responseObject objectForKey:@"recently_completed"]];
         categories = [responseObject objectForKey:@"cl_categories"];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -114,19 +118,18 @@
             return 1;
             break;
         case 1:
-            return upcomingChecklistItems.count;
+            return categories.count;
             break;
         case 2:
-            return recentChecklistItems.count;
-            break;
-        case 3:
             if (recentDocuments.count > 0) return 1;
             else return 0;
             break;
+        case 3:
+            return upcomingChecklistItems.count;
+            break;
         case 4:
         {
-            NSLog(@"categories: %@",categories);
-            return categories.count;
+            return recentChecklistItems.count;
         }
             break;
         default:
@@ -144,45 +147,39 @@
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
             [cell.textLabel setText:self.project.address.formattedAddress];
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %i",self.project.users.count]];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
         }
             break;
         case 1: {
-            static NSString *CellIdentifier = @"UpcomingItemCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            BHChecklistItem *checklistItem = [upcomingChecklistItems objectAtIndex:indexPath.row];
-            [cell.textLabel setText:checklistItem.name];
-            if (checklistItem.dueDateString.length) {
-                [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",checklistItem.dueDateString]];
-                [cell.detailTextLabel setTextColor:[UIColor darkGrayColor]];
-            }
-            else {
-                [cell.detailTextLabel setText:@"No critical date listed"];
-                [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
-            }
-            if ([[checklistItem type] isEqualToString:@"Com"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
-            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+            BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
+            [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            
+            progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
+            
+            NSDictionary *dict = [categories objectAtIndex:indexPath.row];
+            [progressCell.itemLabel setText:[dict objectForKey:@"name"]];
+            CGFloat completed = [[dict objectForKey:@"completed_count"] floatValue];
+            CGFloat all = [[dict objectForKey:@"item_count"] floatValue];
+            [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*completed/all)]];
+            LDProgressView *progressView;
+            if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+                progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(415, 25, 300, 16)];
+                progressCell.progressLabel.transform = CGAffineTransformMakeTranslation(140, 0);
             } else {
-                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+                progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(215, 25, 100, 16)];
             }
+            progressView.progress = (completed/all);
+            progressView.color = kBlueColor;
+            progressView.showText = @NO;
+            progressView.type = LDProgressSolid;
+            [progressCell addSubview:progressView];
+            
+            progressCell.selectionStyle = UITableViewCellSelectionStyleNone;
+            return progressCell;
+            
         }
         break;
         case 2: {
-            static NSString *CellIdentifier = @"RecentItemCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            BHChecklistItem *checklistItem = [recentChecklistItems objectAtIndex:indexPath.row];
-            [cell.textLabel setText:checklistItem.name];
-            if ([[checklistItem type] isEqualToString:@"Com"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
-            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
-            } else {
-                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
-            }
-        }
-            break;
-        case 3: {
             BHRecentDocumentCell *cell = [tableView dequeueReusableCellWithIdentifier:@"RecentPhotosCell"];
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             if (cell == nil) {
@@ -197,24 +194,40 @@
             return cell;
         }
             break;
-        case 4: {
-            BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
-            [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            if (progressCell == nil) {
-                progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
+        case 3: {
+            static NSString *CellIdentifier = @"UpcomingItemCell";
+            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+            BHChecklistItem *checklistItem = [upcomingChecklistItems objectAtIndex:indexPath.row];
+            [cell.textLabel setText:checklistItem.body];
+            if (checklistItem.dueDateString.length) {
+                [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",checklistItem.dueDateString]];
+                [cell.detailTextLabel setTextColor:[UIColor darkGrayColor]];
             }
-            NSDictionary *dict = [categories objectAtIndex:indexPath.row];
-            [progressCell.itemLabel setText:[dict objectForKey:@"_id"]];
-            CGFloat completed = [[dict objectForKey:@"completed"] floatValue];
-            CGFloat all = [[dict objectForKey:@"all_items"] floatValue];
-            [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*completed/all)]];
-            LDProgressView *progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(215, 25, 100, 16)];
-            progressView.progress = (completed/all);
-            progressView.color = kBlueColor;
-            progressView.showText = @NO;
-            progressView.type = LDProgressSolid;
-            [progressCell addSubview:progressView];
-            return progressCell;
+            else {
+                [cell.detailTextLabel setText:@"No critical date listed"];
+                [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
+            }
+            if ([[checklistItem type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
+            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+            }
+        }
+            break;
+        case 4: {
+            static NSString *CellIdentifier = @"RecentItemCell";
+            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+            BHChecklistItem *checklistItem = [recentChecklistItems objectAtIndex:indexPath.row];
+            [cell.textLabel setText:checklistItem.body];
+            if ([[checklistItem type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
+            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+            }
         }
         default:
             break;
@@ -225,14 +238,28 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 3) return 110;
+    if (indexPath.section == 2) return 110;
     else return 66;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     switch (section) {
-        case 3:
+        case 2:
             if (recentDocuments.count){
+                return 30;
+            } else {
+                return 0;
+            }
+            break;
+        case 3:
+            if (upcomingChecklistItems.count){
+                return 30;
+            } else {
+                return 0;
+            }
+            break;
+        case 4:
+            if (recentChecklistItems.count){
                 return 30;
             } else {
                 return 0;
@@ -247,9 +274,11 @@
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
     UIView* headerView;
-    if (section == 3 && recentDocuments.count == 0) {
+    if (section == 2 && recentDocuments.count == 0) {
         return nil;
-    } else if (section == 2 && recentChecklistItems.count == 0) {
+    } else if (section == 4 && recentChecklistItems.count == 0) {
+        return nil;
+    } else if (section == 3 && upcomingChecklistItems.count == 0) {
         return nil;
     } else {
         headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 54.0)];
@@ -269,19 +298,19 @@
     
     switch (section) {
         case 0:
-            [headerLabel setText:@"Synopsis"];
+            [headerLabel setText:@"Project Synopsis"];
             break;
         case 1:
-            [headerLabel setText:@"Upcoming Critical Items"];
+            [headerLabel setText:@"Progress"];
             break;
         case 2:
-            [headerLabel setText:@"Recent Checklist Items"];
-            break;
-        case 3:
             [headerLabel setText:@"Recent Documents"];
             break;
+        case 3:
+            [headerLabel setText:@"Upcoming Critical Items"];
+            break;
         case 4:
-            [headerLabel setText:@"Progress"];
+            [headerLabel setText:@"Recent Checklist Items"];
             break;
         default:
             return nil;
@@ -312,7 +341,7 @@
         else if (photo.url100) [eventButton setImageWithURL:[NSURL URLWithString:photo.url100] forState:UIControlStateNormal];
         [eventButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
         eventButton.imageView.clipsToBounds = YES;
-        [eventButton addTarget:self action:@selector(showPhotoDetail) forControlEvents:UIControlEventTouchUpInside];
+        [eventButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
         [eventButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         index++;
     }
@@ -321,66 +350,57 @@
     documentsScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
-- (void)showPhotoDetail {
-    NSMutableArray *photos = [NSMutableArray new];
-    
+- (void)showPhotoDetail:(UIButton*)button {
+    browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in recentDocuments) {
-        IDMPhoto *idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        [photos addObject:idmPhoto];
+        MWPhoto *mwPhoto;
+        //if (photo.mimetype && [photo.mimetype isEqualToString:kPdf]){
+        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        //} else {
+        //    idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
+        //}
+        [browserPhotos addObject:mwPhoto];
     }
-    IDMPhotoBrowser *browser = [[IDMPhotoBrowser alloc] initWithPhotos:photos];
-    [self presentViewController:browser animated:YES completion:^{
-        
-    }];
+    
+    // Create browser
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    
+    // Set options
+    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
+    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
+    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
+    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
+    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
+    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
+        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+    }
+
+    [self.navigationController pushViewController:browser animated:YES];
+    [browser showNextPhotoAnimated:YES];
+    [browser showPreviousPhotoAnimated:YES];
+    [browser setCurrentPhotoIndex:button.tag];
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
+    return browserPhotos.count;
 }
-*/
 
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    if (index < browserPhotos.count)
+        return [browserPhotos objectAtIndex:index];
+    return nil;
 }
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
 
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 1){
+    if (indexPath.section == 3){
         BHChecklistItem *item = [upcomingChecklistItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
-    } else if (indexPath.section == 2){
+    } else if (indexPath.section == 4){
         BHChecklistItem *item = [recentChecklistItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
     }
