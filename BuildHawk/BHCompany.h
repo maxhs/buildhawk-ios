@@ -11,6 +11,7 @@
 @interface BHCompany : NSObject
 @property (strong, nonatomic) NSString *name;
 @property (strong, nonatomic) NSString *identifier;
+@property (strong, nonatomic) NSArray *subcontractors;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 

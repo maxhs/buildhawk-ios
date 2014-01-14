@@ -15,6 +15,8 @@
         self.identifier = value;
     } else if ([key isEqualToString:@"name"]) {
         self.name = value;
+    } else if ([key isEqualToString:@"subcontractors"]) {
+        self.subcontractors = [BHUtilities subcontractorsFromJSONArray:value];
     }
 }
 

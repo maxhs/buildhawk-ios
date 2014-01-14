@@ -40,10 +40,16 @@
 #define kAddOther @"Add other..."
 #define kPdf @"application/pdf"
 #define kCancel @"Cancel"
+#define ksubcontractors @"subcontractors"
+#define kSubcontractors @"Subcontractors"
+#define kpersonnel @"personnel"
+#define kCompanyUser @"Company User"
+#define kCompanyUsers @"Company Users"
 
 #define kHelveticaNeueLight @"HelveticaNeue-Light"
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"
 #define kHelveticaNeueRegular @"HelveticaNeue-Regular"
+#define kHelveticaNeueLightItalic @"HelveticaNeue-LightItalic"
 
 //Reports
 #define kDaily @"Daily"
@@ -56,7 +62,10 @@
 
 #define kDarkerGrayColor [UIColor colorWithWhite:.15 alpha:0.9]
 #define kDarkGrayColor [UIColor colorWithWhite:.15 alpha:1.0]
+#define kBackgroundBlack [UIColor colorWithWhite:1.0 alpha:0.1]
+#define kLightBlueColor [UIColor colorWithRed:(85.0/255.0) green:(140.0/255.0) blue:(200.0/255.0) alpha:1.0]
 #define kBlueColor [UIColor colorWithRed:(51.0/255.0) green:(102.0/255.0) blue:(153.0/255.0) alpha:1.0]
+#define kElectricBlueColor [UIColor colorWithRed:(0.0/255.0) green:(128.0/255.0) blue:(255.0/255.0) alpha:1.0]
 #define kBlueTransparentColor [UIColor colorWithRed:(51.0/255.0) green:(102.0/255.0) blue:(153.0/255.0) alpha:0.9]
 #define kSelectBlueColor [UIColor colorWithRed:(0.0/255.0) green:(122.0/255.0) blue:(255.0/255.0) alpha:1.0]
 #define kDarkShade3 [UIColor colorWithRed:(77.0/255.0) green:(97.0/255.0) blue:(117.0/255.0) alpha:1.0]

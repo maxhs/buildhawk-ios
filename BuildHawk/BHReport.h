@@ -20,13 +20,14 @@
 @property (nonatomic, strong) NSString *createdDate;
 @property (nonatomic, strong) NSString *weather;
 @property (nonatomic, strong) NSString *weatherIcon;
-@property (nonatomic, strong) NSString *temperature;
+@property (nonatomic, strong) NSString *temp;
+@property (nonatomic, strong) NSString *precip;
 @property (nonatomic, strong) NSString *wind;
 @property (nonatomic, strong) NSDate *createdAt;
 @property (nonatomic, strong) NSDate *updatedAt;
 @property (nonatomic, strong) BHUser *user;
 @property (nonatomic, strong) BHProject *project;
-@property (nonatomic, strong) NSMutableArray *subcontractors;
+@property (nonatomic, strong) NSMutableArray *personnel;
 @property (nonatomic, strong) NSMutableArray *users;
 @property (nonatomic, strong) NSMutableArray *photos;
 

@@ -22,15 +22,16 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
+#import "BHPeoplePickerViewController.h"
 
 static NSString *addCommentPlaceholder = @"Add comment...";
 @interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
     BOOL complete;
+    BOOL emailBool;
+    BOOL phoneBool;
     NSString *mainPhoneNumber;
     NSString *recipientEmail;
-    BOOL text;
-    BOOL phone;
     UITextView *addCommentTextView;
     UIButton *doneButton;
     UIEdgeInsets tableViewInset;
@@ -44,19 +45,22 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     int removePhotoIdx;
     UIButton *takePhotoButton;
     NSMutableArray *browserPhotos;
+    BOOL iPad;
 }
 - (IBAction)updateChecklistItem;
 @end
 
 @implementation BHChecklistItemViewController
 
-@synthesize item;
+@synthesize item = _item;
+@synthesize row = _row;
+@synthesize savedUser = _savedUser;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     if (!photosArray) photosArray = [NSMutableArray array];
-    if (self.item.completed) complete = YES;
+    if (_item.completed) complete = YES;
     else complete = NO;
     tableViewInset = self.tableView.contentInset;
     tableViewInset.top += 64;
@@ -65,7 +69,12 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         project = [(BHTabBarViewController*)self.tabBarController project];
     } else {
         project = [[BHProject alloc] init];
-        project.identifier = self.item.projectId;
+        project.identifier = _item.projectId;
+    }
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        iPad = YES;
+    } else {
+        iPad = NO;
     }
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     commentFormatter = [[NSDateFormatter alloc] init];
@@ -75,6 +84,8 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     [[self navigationItem] setRightBarButtonItem:saveButton];
     [Flurry logEvent:@"Viewing checklist item"];
     [self loadItem];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -84,11 +95,11 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 }
 
 - (void)loadItem{
-    [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,self.item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
-        [self.item setComments:[BHUtilities commentsFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"comments"]]];
-        [self.item setPhotos:[BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]]];
-        [self.item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
+        [_item setComments:[BHUtilities commentsFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"comments"]]];
+        [_item setPhotos:[BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]]];
+        [_item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failure getting checklist item: %@",error.description);
@@ -108,13 +119,13 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     else if (section == 1) return 3;
     else if (section == 2) return 1;
     else if (section == 3) return 1;
-    else if (section == 4) return self.item.comments.count;
+    else if (section == 4) return _item.comments.count;
     return 0;
 }
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 0){
-        return self.item.type;
+        return _item.type;
     } else return @"";
 }
 
@@ -125,11 +136,16 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         if (messageCell == nil) {
             messageCell = [[[NSBundle mainBundle] loadNibNamed:@"BHChecklistMessageCell" owner:self options:nil] lastObject];
         }
-        [messageCell.messageTextView setText:self.item.body];
+        [messageCell.messageTextView setText:_item.body];
         [messageCell.messageTextView setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
         [messageCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
         [messageCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
         [messageCell.textButton addTarget:self action:@selector(sendText) forControlEvents:UIControlEventTouchUpInside];
+        if (iPad) {
+            [messageCell.callButton setHidden:YES];
+            messageCell.emailButton.transform = CGAffineTransformMakeTranslation(275, 0);
+            messageCell.textButton.transform = CGAffineTransformMakeTranslation(173, 0);
+        }
         return messageCell;
     } else if (indexPath.section == 1) {
         static NSString *CellIdentifier = @"ActionCell";
@@ -141,19 +157,19 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         cell.textLabel.highlightedTextColor = [UIColor whiteColor];
         switch (indexPath.row) {
             case 0:
-                if ([self.item.status isEqualToString:kCompleted]) {
+                if ([_item.status isEqualToString:kCompleted]) {
                     [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
                 }
                 [cell.textLabel setText:@"COMPLETED"];
                 break;
             case 1:
-                if ([self.item.status isEqualToString:kInProgress]) {
+                if ([_item.status isEqualToString:kInProgress]) {
                     [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
                 }
                 [cell.textLabel setText:@"IN-PROGRESS"];
                 break;
             case 2:
-                if ([self.item.status isEqualToString:kNotApplicable]) {
+                if ([_item.status isEqualToString:kNotApplicable]) {
                     [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
                 }
                 [cell.textLabel setText:@"NOT APPLICABLE"];
@@ -194,7 +210,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         if (commentCell == nil) {
             commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
         }
-        BHComment *comment = [self.item.comments objectAtIndex:indexPath.row];
+        BHComment *comment = [_item.comments objectAtIndex:indexPath.row];
         [commentCell.messageTextView setText:comment.body];
         if (comment.createdOnString.length){
             [commentCell.timeLabel setText:comment.createdOnString];
@@ -271,9 +287,9 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         User *user = [(BHTabBarViewController*) self.tabBarController user];
         comment.user = [[BHUser alloc] init];
         comment.user.fullname = user.fullname;
-        [self.item.comments addObject:comment];
+        [_item.comments addObject:comment];
         [self.tableView reloadData];
-        NSDictionary *commentDict = @{@"checklist_item_id":self.item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+        NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
         [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"success creating a comment: %@",responseObject);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -296,45 +312,73 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 }
 
 - (void)callAction{
-    callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to call?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in project.users) {
-        [callActionSheet addButtonWithTitle:user.fullname];
-    }
+    emailBool = NO;
+    phoneBool = YES;
+    callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Place call:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
+    [callActionSheet addButtonWithTitle:kCompanyUsers];
+    [callActionSheet addButtonWithTitle:kSubcontractors];
     callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
     [callActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
 - (void)emailAction {
-    emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in project.users) {
-        [emailActionSheet addButtonWithTitle:user.fullname];
-    }
+    emailBool = YES;
+    phoneBool = NO;
+    emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Send email:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
+    [emailActionSheet addButtonWithTitle:kCompanyUsers];
+    [emailActionSheet addButtonWithTitle:kSubcontractors];
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
     [emailActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
-- (void)placeCall:(NSString*)number {
-    NSString *phoneNumber = [@"tel://" stringByAppendingString:number];
-    NSString *phoneString = [phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
-    phoneString= [phoneString stringByReplacingOccurrencesOfString:@"(" withString:@""];
-    phoneString= [phoneString stringByReplacingOccurrencesOfString:@")" withString:@""];
-    phoneString= [phoneString stringByReplacingOccurrencesOfString:@"-" withString:@""];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneString]];
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    BHPeoplePickerViewController *vc = [segue destinationViewController];
+    if (phoneBool) {
+        [vc setPhone:YES];
+    } else if (emailBool) {
+        [vc setEmail:YES];
+    }
+    if ([segue.identifier isEqualToString:@"SubPicker"]) {
+        [vc setSubArray:_savedUser.subcontractors];
+    } else if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
+        [vc setUserArray:_savedUser.coworkers];
+    }
+}
+
+- (void)placeCall:(NSNotification*)notification {
+    NSLog(@"call notification: %@",notification.userInfo);
+    NSString *number = [notification.userInfo objectForKey:@"number"];
+    if (number != nil && number.length){
+        NSString *phoneNumber = [@"tel://" stringByAppendingString:number];
+        NSString *phoneString = [phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
+        phoneString= [phoneString stringByReplacingOccurrencesOfString:@"(" withString:@""];
+        phoneString= [phoneString stringByReplacingOccurrencesOfString:@")" withString:@""];
+        phoneString= [phoneString stringByReplacingOccurrencesOfString:@"-" withString:@""];
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneString]];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We don't have a phone number for this contact." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 }
 
 #pragma mark - MFMailComposeViewControllerDelegate Methods
 
-- (void)sendMail:(NSString*)destinationEmail {
-    if ([MFMailComposeViewController canSendMail]) {
-        MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
-        controller.navigationBar.barStyle = UIBarStyleBlack;
-        controller.mailComposeDelegate = self;
-        [controller setSubject:[NSString stringWithFormat:@"%@",self.item.type]];
-        [controller setToRecipients:@[destinationEmail]];
-        if (controller) [self presentViewController:controller animated:YES completion:nil];
+- (void)sendMail:(NSNotification*)notification {
+    NSLog(@"email notification: %@",notification.userInfo);
+    NSString *destinationEmail = [notification.userInfo objectForKey:@"email"];
+    if (destinationEmail && destinationEmail.length){
+        if ([MFMailComposeViewController canSendMail]) {
+            MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
+            controller.navigationBar.barStyle = UIBarStyleBlack;
+            controller.mailComposeDelegate = self;
+            [controller setSubject:[NSString stringWithFormat:@"%@",_item.body]];
+            [controller setToRecipients:@[destinationEmail]];
+            if (controller) [self presentViewController:controller animated:YES completion:nil];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+            [alert show];
+        }
     } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil];
-        [alert show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Sorry, we don't have an email address for this contact." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
 - (void)mailComposeController:(MFMailComposeViewController*)controller
@@ -346,8 +390,10 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 }
 
 - (void)sendText {
+    NSLog(@"Should be sending a text");
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
     if ([MFMessageComposeViewController canSendText]){
+        NSLog(@"This device can send texts");
         viewController.messageComposeDelegate = self;
         [viewController setRecipients:nil];
         [self presentViewController:viewController animated:YES completion:^{
@@ -403,34 +449,24 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     removePhotoIdx = button.tag;
 }
 
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]) {
+        [self removePhoto];
+    }
+}
+
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
 {
-    if (actionSheet == callActionSheet) {
+    if (actionSheet == callActionSheet || actionSheet == emailActionSheet) {
         NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
         if ([buttonTitle isEqualToString:@"Cancel"]) {
             [callActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
             return;
+        } else if ([buttonTitle isEqualToString:kCompanyUsers]) {
+            [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
+        } else if ([buttonTitle isEqualToString:kSubcontractors]) {
+            [self performSegueWithIdentifier:@"SubPicker" sender:nil];
         }
-        for (BHUser *user in project.users){
-            if ([user.fullname isEqualToString:buttonTitle] && user.phone1) {
-                [self placeCall:user.phone1];
-                return;
-            }
-        }
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have a phone number on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else if (actionSheet == emailActionSheet) {
-        NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
-        if ([buttonTitle isEqualToString:@"Cancel"]) {
-            [emailActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
-            return;
-        }
-        for (BHUser *user in project.users){
-            if ([user.fullname isEqualToString:buttonTitle]) {
-                [self sendMail:user.email];
-                return;
-            }
-        }
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
             [self choosePhoto];
@@ -438,7 +474,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
             [self takePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove"]) {
-        [self removePhoto];
+        [self removeConfirm];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Photo Gallery"]) {
         [self showPhotoDetail:removePhotoIdx];
     }
@@ -465,7 +501,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     BHPhoto *newPhoto = [[BHPhoto alloc] init];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [self saveImage:[self fixOrientation:newPhoto.image]];
-    [self.item.photos addObject:newPhoto];
+    [_item.photos addObject:newPhoto];
     [self.tableView reloadData];
 }
 
@@ -581,9 +617,13 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     }];
 }
 
+-(void)removeConfirm {
+    [[[UIAlertView alloc] initWithTitle:@"Please Confirm" message:@"Are you sure you want to delete this photo?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Delete", nil] show];
+}
+
 -(void)removePhoto {
     NSLog(@"should be removing photo with id: %i",removePhotoIdx);
-    BHPhoto *photoToRemove = [self.item.photos objectAtIndex:removePhotoIdx];
+    BHPhoto *photoToRemove = [_item.photos objectAtIndex:removePhotoIdx];
     if (photoToRemove.identifier.length) {
         [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"success removing photo");
@@ -591,18 +631,19 @@ static NSString *addCommentPlaceholder = @"Add comment...";
             
         }];
     }
-    [self.item.photos removeObjectAtIndex:removePhotoIdx];
+    [_item.photos removeObjectAtIndex:removePhotoIdx];
     [self redrawScrollView:takePhotoButton];
 }
 
 - (void)saveImage:(UIImage*)image {
     [self savePostToLibrary:image];
     NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-    [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":self.item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":@"Checklist",@"photo[phase]":self.item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+    [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"save image response object: %@",responseObject);
-        self.item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":_item.category}];
+        _item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
         [self redrawScrollView:takePhotoButton];
         //[self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -619,7 +660,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     float space = 5.0;
     int index = 0;
     
-    for (BHPhoto *photo in self.item.photos) {
+    for (BHPhoto *photo in _item.photos) {
         __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
         if (photo.url200.length){
             [imageButton setAlpha:0.0];
@@ -632,7 +673,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         }
-        [imageButton setTag:[self.item.photos indexOfObject:photo]];
+        [imageButton setTag:[_item.photos indexOfObject:photo]];
         [imageButton.titleLabel setHidden:YES];
         imageButton.imageView.layer.cornerRadius = 3.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
@@ -661,12 +702,12 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 - (IBAction)updateChecklistItem {
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:self.item.identifier forKey:@"id"];
-    if (self.item.status) [parameters setObject:self.item.status forKey:@"status"];
-    if (self.item.completed) [parameters setObject:@"true" forKey:@"completed"];
+    [parameters setObject:_item.identifier forKey:@"id"];
+    if (_item.status) [parameters setObject:_item.status forKey:@"status"];
+    if (_item.completed) [parameters setObject:@"true" forKey:@"completed"];
     
-        NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:self.item.comments.count];
-        for (BHComment *comment in self.item.comments) {
+        NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:_item.comments.count];
+        for (BHComment *comment in _item.comments) {
             NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
             if (comment.identifier) [commentDict setObject:comment.identifier forKey:@"_id"];
             if (comment.body) [commentDict setObject:comment.body forKey:@"body"];
@@ -674,8 +715,10 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         }
         [parameters setObject:commentArray forKey:@"comments"];
     [SVProgressHUD showWithStatus:@"Updating item..."];
-    [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,self.item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success updating checklist item %@",responseObject);
+        BHChecklistItem *updatedItem = [[BHChecklistItem alloc] initWithDictionary:[responseObject objectForKey:@"checklist_item"]];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
         [self.navigationController popViewControllerAnimated:YES];
         [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -687,13 +730,10 @@ static NSString *addCommentPlaceholder = @"Add comment...";
 
 - (void)showPhotoDetail:(int)idx {
     browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in self.item.photos) {
+    for (BHPhoto *photo in _item.photos) {
         MWPhoto *mwPhoto;
-        //if (photo.mimetype && [photo.mimetype isEqualToString:kPdf]){
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        //} else {
-        //    idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        //}
+        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -711,17 +751,11 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
         browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     }
-    
-    // Optionally set the current visible photo before displaying
+
     [browser setCurrentPhotoIndex:idx];
-    
-    // Present
     [self.navigationController pushViewController:browser animated:YES];
-    
-    // Manipulate
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
-    [browser setCurrentPhotoIndex:10];
 }
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
@@ -742,27 +776,27 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     if (indexPath.section == 1) {
         switch (indexPath.row) {
             case 0:
-                if ([self.item.status isEqualToString:kCompleted]){
-                    self.item.status = nil;
-                    self.item.completed = NO;
+                if ([_item.status isEqualToString:kCompleted]){
+                    _item.status = nil;
+                    _item.completed = NO;
                 } else {
-                    [self.item setStatus:kCompleted];
-                    self.item.completed = YES;
+                    [_item setStatus:kCompleted];
+                    _item.completed = YES;
                 }
                 break;
             case 1:
-                if ([self.item.status isEqualToString:kInProgress]){
-                    [self.item setStatus:nil];
+                if ([_item.status isEqualToString:kInProgress]){
+                    [_item setStatus:nil];
                 } else {
-                    [self.item setStatus:kInProgress];
+                    [_item setStatus:kInProgress];
                 }
                 
                 break;
             case 2:
-                if ([self.item.status isEqualToString:kNotApplicable]){
-                    [self.item setStatus:nil];
+                if ([_item.status isEqualToString:kNotApplicable]){
+                    [_item setStatus:nil];
                 } else {
-                    [self.item setStatus:kNotApplicable];
+                    [_item setStatus:kNotApplicable];
                 }
                 break;
             default:
@@ -770,6 +804,10 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         }
         [self.tableView reloadData];
     }
+}
+
+- (void)back {
+    
 }
 
 @end

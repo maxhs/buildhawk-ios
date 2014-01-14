@@ -16,6 +16,7 @@
 @property (nonatomic, retain) NSString * identifier;
 @property (nonatomic, retain) NSString * authToken;
 @property (nonatomic, retain) id coworkers;
+@property (nonatomic, retain) id subcontractors;
 @property (nonatomic, retain) NSString * email;
 @property (nonatomic, retain) NSString * fname;
 @property (nonatomic, retain) NSString * fullname;

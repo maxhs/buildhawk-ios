@@ -28,6 +28,7 @@
 @implementation MWPhoto
 
 @synthesize underlyingImage = _underlyingImage; // synth property from protocol
+@synthesize originalURL = _originalURL;
 
 #pragma mark - Class Methods
 

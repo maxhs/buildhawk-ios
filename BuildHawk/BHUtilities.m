@@ -64,6 +64,28 @@
     return users;
 }
 
++ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
+    NSMutableArray *personnel = [NSMutableArray arrayWithCapacity:array.count];
+    for (NSDictionary *dict in array) {
+        if ([dict objectForKey:@"user"]){
+            BHUser *user = [[BHUser alloc] initWithDictionary:[dict objectForKey:@"user"]];
+            [personnel addObject:user];
+        } else if ([dict objectForKey:@"full_name"]) {
+            BHUser *user = [[BHUser alloc] initWithDictionary:dict];
+            [personnel addObject:user];
+        } else if ([dict objectForKey:@"sub"]) {
+            BHSub *sub = [[BHSub alloc] initWithDictionary:[dict objectForKey:@"sub"]];
+            if ([dict objectForKey:@"count"]) [sub setCount:[dict objectForKey:@"count"]];
+            [personnel addObject:sub];
+        } else if ([dict objectForKey:@"count"]) {
+            BHSub *sub = [[BHSub alloc] initWithDictionary:dict];
+            if ([dict objectForKey:@"count"]) [sub setCount:[dict objectForKey:@"count"]];
+            [personnel addObject:sub];
+        }
+    }
+    return personnel;
+}
+
 + (NSMutableArray *)commentsFromJSONArray:(NSArray *) array {
     NSMutableArray *comments = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *commentDictionary in array) {
@@ -75,9 +97,9 @@
 
 + (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array {
     NSMutableArray *subcontractors = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *subcontractorDictionary in array) {
-        BHSubcontractor *subcontractor = [[BHSubcontractor alloc] initWithDictionary:subcontractorDictionary];
-        [subcontractors addObject:subcontractor];
+    for (NSDictionary *subDictionary in array) {
+        BHSub *sub = [[BHSub alloc] initWithDictionary:subDictionary];
+        [subcontractors addObject:sub];
     }
     return subcontractors;
 }

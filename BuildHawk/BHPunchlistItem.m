@@ -16,19 +16,19 @@
     } else if ([key isEqualToString:@"body"]) {
         if (value != [NSNull null] && value != nil) self.body = value;
     } else if ([key isEqualToString:@"location"]) {
-        if (value != [NSNull null] && value != nil) self.location = value;
+        self.location = value;
     } else if ([key isEqualToString:@"created_at"]) {
         self.createdOn = [BHUtilities parseDateTimeReturnString:value];
-        //if ([value objectForKey:@"photos"]) {
-        //    self.createdPhotos = [BHUtilities photosFromJSONArray:[value objectForKey:@"photos"]];
-        //}
     } else if ([key isEqualToString:@"completed_at"]) {
         if (value != [NSNull null] && value != nil) self.completedOn = [BHUtilities parseDateReturnString:value];
     } else if ([key isEqualToString:@"completed"]) {
         self.completed = [value boolValue];
-    } else if ([key isEqualToString:@"assignee"]) {
+    } else if ([key isEqualToString:@"assignee"] && value != nil && value != [NSNull null]) {
         if (!self.assignees) self.assignees = [NSMutableArray array];
         [self.assignees addObject:[[BHUser alloc] initWithDictionary:value]];
+    } else if ([key isEqualToString:@"sub_assignee"] && value != nil && value != [NSNull null]) {
+        if (!self.assignees) self.assignees = [NSMutableArray array];
+        [self.assignees addObject:[[BHSub alloc] initWithDictionary:value]];
     } else if ([key isEqualToString:@"photos"]) {
         self.photos = [BHUtilities photosFromJSONArray:value];
     }

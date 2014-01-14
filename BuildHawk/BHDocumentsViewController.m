@@ -32,6 +32,7 @@
     NSMutableArray *userArray;
     NSMutableArray *sourceArray;
     NSMutableArray *browserPhotos;
+    CGRect screen;
 }
 
 -(IBAction)backToDashboard;
@@ -42,29 +43,33 @@
 
 - (void)viewDidLoad
 {
-    [super viewDidLoad];
+    
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[[(BHTabBarViewController*)self.tabBarController project] name]];
-
+    [self.view setBackgroundColor:[UIColor blackColor]];
+    [self.tableView setBackgroundColor:kBackgroundBlack];
+    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.2]];
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else {
         iPhone5 = NO;
     }
+    screen = [UIScreen mainScreen].bounds;
     if (!photosArray) photosArray = [NSMutableArray array];
     if (!userArray) userArray = [NSMutableArray array];
-    if (!sourceArray) sourceArray = [NSMutableArray array];
     if (!sortedByUser) sortedByUser = [NSMutableArray array];
     [self loadPhotos];
     sortByCategory = NO;
     sortByDate = NO;
     sortByUser = NO;
     [Flurry logEvent:@"Viewing documents"];
+    [super viewDidLoad];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [UIView animateWithDuration:.25 animations:^{
-        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+        [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height-49, screen.size.width, 49)];
+        self.tabBarController.tabBar.alpha = 1.0;
     }];
 }
 
@@ -78,7 +83,8 @@
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"id":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting documents: %@",responseObject);
+        //NSLog(@"Success getting documents: %@",responseObject);
+        if (!sourceArray) sourceArray = [NSMutableArray array];
         photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
@@ -92,7 +98,9 @@
     NSMutableArray *photos = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *photoDictionary in array) {
         BHPhoto *photo = [[BHPhoto alloc] initWithDictionary:photoDictionary];
-        if (![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
+        if (![sourceArray containsObject:photo.source] && ![photo.source isEqualToString:kChecklist] && ![photo.source isEqualToString:kWorklist]) {
+            [sourceArray addObject:photo.source];
+        }
         if (photo.userName && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
         [photos addObject:photo];
     }
@@ -109,7 +117,14 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else return sourceArray.count;
+    else {
+        if (sourceArray.count)
+            return sourceArray.count;
+        else if (sourceArray)
+            return 1;
+        else
+            return 0;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -157,16 +172,30 @@
         return cell;
     } else {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"DocumentFolder"];
-        [cell.textLabel setText:[sourceArray objectAtIndex:indexPath.row]];
-        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
+        [cell.textLabel setTextColor:[UIColor whiteColor]];
+        if (sourceArray.count){
+            [cell.textLabel setText:[sourceArray objectAtIndex:indexPath.row]];
+            [cell.textLabel setTextAlignment:NSTextAlignmentLeft];
+            [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
+        } else {
+            [cell.textLabel setText:@"No Document Labels"];
+            [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+            [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLightItalic size:16]];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        }
         return cell;
     }
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    cell.backgroundColor = [UIColor clearColor];
 }
 
 - (void)showPhotoDetail:(UIButton*)button {
     browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in photosArray) {
         MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        mwPhoto.originalURL = [NSURL URLWithString:photo.orig];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -202,16 +231,17 @@
 }
 
 - (void)buttonTreatment:(UIButton*)button {
-    button.layer.cornerRadius = 3.f;
+    button.layer.cornerRadius = 4.f;
     [button setBackgroundColor:[UIColor clearColor]];
-    [button.layer setBackgroundColor:[UIColor colorWithWhite:.96 alpha:1.0].CGColor];
+    [button.layer setBackgroundColor:[UIColor colorWithWhite:.1 alpha:1.0].CGColor];
+    button.layer.borderColor = [UIColor colorWithWhite:1 alpha:.15].CGColor;
+    button.layer.borderWidth = 0.5f;
     button.layer.shouldRasterize = YES;
     button.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    button.layer.shadowColor = kDarkGrayColor.CGColor;
+    /*button.layer.shadowColor = kDarkGrayColor.CGColor;
     button.layer.shadowOpacity =  .5;
     button.layer.shadowRadius = 2.f;
-    button.layer.shadowOffset = CGSizeMake(0, 0);
-    [button.titleLabel setTextColor:[UIColor darkGrayColor]];
+    button.layer.shadowOffset = CGSizeMake(0, 0);*/
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -277,7 +307,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 1){
+    if (indexPath.section == 1 && sourceArray.count){
         [self performSegueWithIdentifier:@"ByLabel" sender:indexPath];
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -285,9 +315,6 @@
 
 - (void)showPhoto {
     [self performSegueWithIdentifier:@"ByPhase" sender:self];
-    [UIView animateWithDuration:.25 animations:^{
-        self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
-    }];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -306,6 +333,7 @@
             }
             [vc setNumberOfSections:1];
             [vc setPhotosArray:tempArray];
+            [vc setTitle:sourceLabel];
         }
     } else {
         if (sortByUser) {
@@ -316,19 +344,24 @@
             [vc setNumberOfSections:1];
             [vc setPhotosArray:sortedByDate];
         } else if (sortByCategory) {
-            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"phase" ascending:YES];
-            NSArray * descriptors = [NSArray arrayWithObject:valueDescriptor];
-            NSArray * sortedArray = [photosArray sortedArrayUsingDescriptors:descriptors];
+            
             NSMutableSet *titleSet = [NSMutableSet set];
-            for (BHPhoto *photo in sortedArray){
+            for (BHPhoto *photo in photosArray){
                 if (photo.phase)[titleSet addObject:photo.phase];
             }
-            [vc setSectionTitles:[[[titleSet allObjects] reverseObjectEnumerator] allObjects]];
+            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
+            NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
+            NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
+            [vc setSectionTitles:sortedArray];
             [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:photosArray];
             [vc setTitle:sortCategory];
         }
     }
+    [UIView animateWithDuration:.25 animations:^{
+        [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height, screen.size.width, 49)];
+        self.tabBarController.tabBar.alpha = 0.0;
+    }];
 }
 
 - (IBAction)backToDashboard {

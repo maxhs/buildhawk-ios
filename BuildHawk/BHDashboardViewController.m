@@ -127,7 +127,7 @@
 - (void)loadProjects {
     [SVProgressHUD showWithStatus:@"Fetching projects..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"load projects response object: %@",responseObject);
+        //NSLog(@"load projects response object: %@",responseObject);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
         [SVProgressHUD dismiss];
@@ -203,7 +203,6 @@
     
     if (dashboardDetailDict.count){
         NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        NSLog(@"inside cell for row method with proj id: %@ and: %@",project.identifier,dict);
         [cell.progressLabel setText:[dict objectForKey:@"progress"]];
     }
     [cell.projectButton setTag:indexPath.row];
@@ -236,7 +235,7 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        
+        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
     }
 }
 

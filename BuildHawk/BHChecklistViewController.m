@@ -22,6 +22,7 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "Flurry.h"
 #import "GAI.h"
+#import "User.h"
 
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
 typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
@@ -39,6 +40,7 @@ typedef void(^RequestSuccess)(id result);
     CGFloat itemRowHeight;
     CGRect screen;
     id checklistResponse;
+    User *savedUser;
 }
 @property (strong, nonatomic) id expanded;
 @property (strong, nonatomic) BHChecklist *checklist;
@@ -47,8 +49,9 @@ typedef void(^RequestSuccess)(id result);
 
 @implementation BHChecklistViewController
 
-- (void)viewDidLoad
-{
+@synthesize scrollToCategoryRow;
+
+- (void)viewDidLoad {
     [super viewDidLoad];
     screen = [[UIScreen mainScreen] bounds];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
@@ -62,32 +65,51 @@ typedef void(^RequestSuccess)(id result);
         [self.treeView setFrame:tableRect];
     }
     [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 87, 0)];
-    itemRowHeight = 100;
+    itemRowHeight = 110;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
 	[self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    if (!self.checklist) self.checklist = [[BHChecklist alloc] init];
     
     [self.treeView setDelegate:self];
     [self.treeView setDataSource:self];
     
+    if (!self.checklist) self.checklist = [[BHChecklist alloc] init];
     if (!categories) categories = [NSMutableArray array];
     if (!filteredItems) filteredItems = [NSMutableArray array];
     if (!listItems) listItems = [NSMutableArray array];
     if (!completedListItems) completedListItems = [NSMutableArray array];
     if (!inProgressListItems) inProgressListItems = [NSMutableArray array];
+    
     [self loadChecklist];
     [SVProgressHUD showWithStatus:@"Loading Checklist..."];
+    
     [self.searchDisplayController.searchBar setShowsCancelButton:NO animated:NO];
     [self.segmentedControl setSelectedSegmentIndex:0];
-    //[self.view setBackgroundColor:kDarkShade1];
-    //[self.treeView setBackgroundColor:kDarkShade1];
     [Flurry logEvent:@"Viewing checklist"];
+    NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+    savedUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadChecklist:) name:@"ReloadChecklist" object:nil];
+}
+
+- (void)reloadChecklist:(NSNotification*)notification {
+    NSLog(@"reloading checklist: %@",[notification.userInfo objectForKey:@"category"]);
+    NSMutableArray *array = [NSMutableArray array];
+    for (id cat in self.checklist.children){
+        if ([cat isKindOfClass:[BHCategory class]] && [[(BHCategory*)cat name] isEqualToString:[notification.userInfo objectForKey:@"category"]]) {
+            [array addObject:cat];
+            break;
+        }
+    }
+    [self.treeView reloadRowsForItems:array withRowAnimation:RATreeViewRowAnimationAutomatic];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     self.screenName = @"Checklist view controller";
+    if (scrollToCategoryRow > 0){
+        [self.treeView scrollToRowForItem:[self.checklist.children objectAtIndex:self.scrollToCategoryRow] atScrollPosition:RATreeViewScrollPositionTop animated:YES];
+    }
 }
 - (void)didReceiveMemoryWarning
 {
@@ -143,10 +165,10 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)loadChecklist {
-    
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         checklistResponse = [[responseObject objectForKey:@"checklist"] objectForKey:@"categories"];
+        //NSLog(@"checklistResponse: %@",checklistResponse);
         [self drawChecklistLimitActive:NO];
         [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -200,7 +222,8 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self.treeView setSeparatorStyle:RATreeViewCellSeparatorStyleNone];
+    [self.treeView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.1]];
+    [self.treeView setSeparatorStyle:RATreeViewCellSeparatorStyleSingleLine];
 }
 
 - (IBAction)backToDashboard {
@@ -232,7 +255,7 @@ typedef void(^RequestSuccess)(id result);
     if (treeNodeInfo.treeDepthLevel == 0) {
          
     } else if (treeNodeInfo.treeDepthLevel == 1) {
-        cell.backgroundColor = kDarkShade2;
+        cell.backgroundColor = kLightBlueColor;
         if ([[(BHSubcategory*)item status] isEqualToString:kCompleted]) {
             
         } else if ([[(BHSubcategory*)item status] isEqualToString:kInProgress]) {
@@ -242,10 +265,18 @@ typedef void(^RequestSuccess)(id result);
             [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
         }
     } else if (treeNodeInfo.treeDepthLevel == 2) {
-        cell.backgroundColor = kDarkShade3;
+        if ([[(BHChecklistItem*)item photosCount] intValue] > 0) {
+            cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniCamera"]];
+        } else if ([(BHChecklistItem*)item commentsCount] > 0) {
+            cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniChat"]];
+        } else {
+            cell.accessoryView = UITableViewCellAccessoryNone;
+        }
+        cell.backgroundColor = kBlueColor;
         if ([[(BHChecklistItem*)item status] isEqualToString:kCompleted]) {
             [cell.textLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
             [cell.detailTextLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+            [cell.accessoryView setAlpha:.5];
         } else if ([[(BHChecklistItem*)item status] isEqualToString:kInProgress]) {
             [cell.textLabel setTextColor:[UIColor whiteColor]];
             [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
@@ -256,6 +287,7 @@ typedef void(^RequestSuccess)(id result);
             [cell.textLabel setTextColor:[UIColor whiteColor]];
             [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
         }
+        
     }
 }
 
@@ -266,7 +298,7 @@ typedef void(^RequestSuccess)(id result);
     NSInteger numberOfChildren = [treeNodeInfo.children count];
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
     [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:24]];
-    [cell.textLabel setNumberOfLines:0];
+    [cell.textLabel setNumberOfLines:5];
     [cell.detailTextLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
     switch (treeNodeInfo.treeDepthLevel) {
         case 0:
@@ -282,6 +314,13 @@ typedef void(^RequestSuccess)(id result);
                     [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
                 }
                 [cell.detailTextLabel setText:[(BHChecklistItem*)item subcategory]];
+                if ([[(BHChecklistItem*)item photosCount] intValue] > 0) {
+                    cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniCamera"]];
+                } else if ([(BHChecklistItem*)item commentsCount] > 0) {
+                    cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniChat"]];
+                } else {
+                    cell.accessoryView = UITableViewCellAccessoryNone;
+                }
             }
             break;
         case 1:
@@ -306,7 +345,7 @@ typedef void(^RequestSuccess)(id result);
         [button setBackgroundColor:[UIColor clearColor]];
         [cell addSubview:button];
         cell.textLabel.text = [(BHChecklistItem*)item body];
-        cell.textLabel.numberOfLines = 0;
+        cell.textLabel.numberOfLines = 5;
         [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
 
         if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
@@ -331,6 +370,14 @@ typedef void(^RequestSuccess)(id result);
             [cell setTintColor:[UIColor colorWithWhite:1 alpha:.25]];
             [cell.imageView setAlpha:.25];
         }
+        
+        if ([[(BHChecklistItem*)item photosCount] intValue] > 0) {
+            cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniCamera"]];
+        } else if ([(BHChecklistItem*)item commentsCount] > 0) {
+            cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniChat"]];
+        } else {
+            cell.accessoryView = UITableViewCellAccessoryNone;
+        }
     }
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     if (treeNodeInfo.treeDepthLevel == 0) {
@@ -346,8 +393,10 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
+        BHChecklistItem *item = (BHChecklistItem*)sender;
         BHChecklistItemViewController *vc = segue.destinationViewController;
-        [vc setItem:(BHChecklistItem*)sender];
+        [vc setItem:item];
+        [vc setSavedUser:savedUser];
     }
 }
 
@@ -401,7 +450,7 @@ typedef void(^RequestSuccess)(id result);
         cell.accessoryType = UITableViewCellAccessoryNone;
     }
     
-    cell.textLabel.numberOfLines = 0;
+    cell.textLabel.numberOfLines = 5;
     [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
     
     //set the image properly
@@ -425,18 +474,10 @@ typedef void(^RequestSuccess)(id result);
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        CGRect tableRect = self.treeView.frame;
-        tableRect.size.height += 44;
-        tableRect.origin.y -= 44;
-        [self.treeView setFrame:tableRect];
         [self.segmentedControl setAlpha:0.0];
+        self.treeView.transform = CGAffineTransformMakeTranslation(0, -44);
     }];
-}
-
-- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
-    
 }
 
 - (void)dismissTableView {
@@ -444,19 +485,12 @@ typedef void(^RequestSuccess)(id result);
     self.navigationItem.rightBarButtonItem = nil;
 }
 
-- (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
+- (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        self.searchDisplayController.searchBar.transform = CGAffineTransformIdentity;
-        self.segmentedControl.transform = CGAffineTransformIdentity;
-        CGRect tableRect = self.treeView.frame;
-        tableRect.size.height -= 44;
-        tableRect.origin.y += 44;
-        [self.treeView setFrame:tableRect];
         [self.segmentedControl setAlpha:1.0];
+        self.treeView.transform = CGAffineTransformIdentity;
     }];
 }
-
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {

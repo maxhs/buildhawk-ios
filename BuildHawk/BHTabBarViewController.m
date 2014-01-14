@@ -12,7 +12,9 @@
 #import "BHUser.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 
-@interface BHTabBarViewController ()
+@interface BHTabBarViewController () {
+    UIBarButtonItem *backButton;
+}
 
 @end
 
@@ -35,6 +37,7 @@
     //[self loadproject];
     self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
 }
+
 
 - (void)loadproject {
     [SVProgressHUD showWithStatus:@"Fetching project..."];

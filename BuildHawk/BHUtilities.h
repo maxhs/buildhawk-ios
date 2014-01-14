@@ -13,7 +13,8 @@
 #import "BHPhoto.h"
 #import "BHComment.h"
 #import "BHReport.h"
-#import "BHSubcontractor.h"
+#import "BHSub.h"
+#import "BHPersonnel.h"
 
 @interface BHUtilities : NSObject
 
@@ -23,6 +24,7 @@
 + (NSMutableArray *)photosFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)reportsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)usersFromJSONArray:(NSArray *) array;
++ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)commentsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array;
 + (NSDate*)parseDate:(id)value;

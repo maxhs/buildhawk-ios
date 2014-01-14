@@ -61,13 +61,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="5" minimumInteritemSpacing="5" id="LP5-tC-Qbn">
                             <size key="itemSize" width="100" height="100"/>
-                            <size key="headerReferenceSize" width="50" height="50"/>
+                            <size key="headerReferenceSize" width="34" height="34"/>
                             <size key="footerReferenceSize" width="50" height="50"/>
                             <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                         </collectionViewFlowLayout>
                         <cells>
                             <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="PhotoCell" id="Yon-Vt-0Mr" customClass="BHCollectionPhotoCell">
-                                <rect key="frame" x="0.0" y="114" width="100" height="100"/>
+                                <rect key="frame" x="0.0" y="98" width="100" height="100"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
                                     <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
@@ -89,12 +89,24 @@
                                 </connections>
                             </collectionViewCell>
                         </cells>
-                        <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Header" id="rGw-93-bpv">
-                            <rect key="frame" x="0.0" y="64" width="768" height="50"/>
+                        <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Header" id="rGw-93-bpv" customClass="BHPhotosHeaderView">
+                            <rect key="frame" x="0.0" y="64" width="768" height="34"/>
                             <autoresizingMask key="autoresizingMask"/>
+                            <subviews>
+                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="S52-gb-7qd">
+                                    <rect key="frame" x="25" y="6" width="719" height="21"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                            </subviews>
+                            <connections>
+                                <outlet property="headerLabel" destination="S52-gb-7qd" id="MVc-ur-h0x"/>
+                            </connections>
                         </collectionReusableView>
                         <collectionReusableView key="sectionFooterView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Footer" id="j2O-Fd-6Ej">
-                            <rect key="frame" x="0.0" y="214" width="768" height="50"/>
+                            <rect key="frame" x="0.0" y="198" width="768" height="50"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </collectionReusableView>
                         <connections>
@@ -200,7 +212,7 @@
                                             <segments>
                                                 <segment title="Active"/>
                                                 <segment title="Location"/>
-                                                <segment title="Subcontractor"/>
+                                                <segment title="Assignee"/>
                                                 <segment title="Completed"/>
                                             </segments>
                                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -255,7 +267,7 @@
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="4" minY="-64" maxX="0.0" maxY="0.0"/>
-                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="17"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
                                 <connections>
                                     <outlet property="delegate" destination="qOL-i6-UJU" id="o21-ML-Qa2"/>
@@ -265,7 +277,7 @@
                                 <rect key="frame" x="568" y="64" width="200" height="200"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.90000000000000002" alpha="1" colorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="18"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <state key="normal" title="Mark Completed">
                                     <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -289,7 +301,7 @@
                                 <rect key="frame" x="0.0" y="352" width="768" height="88"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.90000000000000002" alpha="1" colorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="18"/>
                                 <state key="normal" title="Select Location">
                                     <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -302,7 +314,7 @@
                                 <rect key="frame" x="0.0" y="440" width="768" height="88"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.90000000000000002" alpha="1" colorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="18"/>
                                 <state key="normal" title="Assign">
                                     <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -312,7 +324,7 @@
                                 </connections>
                             </button>
                             <scrollView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="JH8-sq-weD">
-                                <rect key="frame" x="192" y="264" width="576" height="88"/>
+                                <rect key="frame" x="188" y="264" width="580" height="88"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                 <connections>
                                     <outlet property="delegate" destination="qOL-i6-UJU" id="6wt-pO-fns"/>
@@ -330,18 +342,8 @@
                                     <action selector="photoButtonTapped" destination="qOL-i6-UJU" eventType="touchUpInside" id="n0Y-ZZ-b6H"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="sid-ih-TVj">
-                                <rect key="frame" x="336" y="550" width="97" height="70"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" image="callButton.png">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="placeCall:" destination="qOL-i6-UJU" eventType="touchUpInside" id="ArJ-PB-KTQ"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Dd1-ni-Lao">
-                                <rect key="frame" x="438" y="550" width="97" height="70"/>
+                                <rect key="frame" x="388" y="550" width="97" height="70"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" image="textButton.png">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -351,7 +353,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6bM-db-GUT">
-                                <rect key="frame" x="233" y="550" width="97" height="70"/>
+                                <rect key="frame" x="284" y="550" width="97" height="70"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" image="mailButton.png">
                                     <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -367,7 +369,6 @@
                     <navigationItem key="navigationItem" id="HiH-0c-nTd"/>
                     <connections>
                         <outlet property="assigneeButton" destination="BUJ-fA-V3f" id="o0K-px-M5m"/>
-                        <outlet property="callButton" destination="sid-ih-TVj" id="qdn-rF-hHK"/>
                         <outlet property="completionButton" destination="ogb-tA-JRf" id="hWF-HK-5JC"/>
                         <outlet property="emailButton" destination="6bM-db-GUT" id="EXl-SL-4mi"/>
                         <outlet property="itemTextView" destination="ozM-yr-VWl" id="jDH-zy-mgV"/>
@@ -376,6 +377,8 @@
                         <outlet property="photoLabelButton" destination="yoR-Kg-WZb" id="yx5-Et-PAF"/>
                         <outlet property="scrollView" destination="JH8-sq-weD" id="NAN-JK-GOx"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="PeoplePicker" id="bd7-Rv-hQV"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="SubPicker" id="Wxv-Gc-ADz"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w2d-zW-wTP" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -398,28 +401,10 @@
                                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="113"/>
+                                        <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="340"/>
                                         <connections>
                                             <outlet property="dataSource" destination="3" id="711-5o-Tgl"/>
                                             <outlet property="delegate" destination="3" id="cIb-ob-1F7"/>
-                                        </connections>
-                                    </tableView>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="mqL-bN-7Oa">
-                                        <rect key="frame" x="768" y="0.0" width="768" height="1024"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <connections>
-                                            <outlet property="dataSource" destination="3" id="iXX-Hf-3sm"/>
-                                            <outlet property="delegate" destination="3" id="2l6-26-KWF"/>
-                                        </connections>
-                                    </tableView>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="QJR-2M-byD">
-                                        <rect key="frame" x="-768" y="0.0" width="768" height="1024"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <connections>
-                                            <outlet property="dataSource" destination="3" id="hz6-28-meU"/>
-                                            <outlet property="delegate" destination="3" id="w9v-ed-8IG"/>
                                         </connections>
                                     </tableView>
                                 </subviews>
@@ -427,6 +412,70 @@
                                     <outlet property="delegate" destination="3" id="82b-4g-Yv5"/>
                                 </connections>
                             </scrollView>
+                            <view alpha="0.0" contentMode="scaleToFill" id="pba-Qr-gW3">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
+                            <view contentMode="scaleToFill" id="Git-ZO-up8">
+                                <rect key="frame" x="0.0" y="814" width="768" height="210"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
+                                <subviews>
+                                    <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" minuteInterval="1" id="Qju-Rf-WaN">
+                                        <rect key="frame" x="0.0" y="48" width="768" height="162"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <date key="date" timeIntervalSinceReferenceDate="409704731.44025999">
+                                            <!--2013-12-25 22:52:11 +0000-->
+                                        </date>
+                                        <timeZone key="timeZone" name="America/Los_Angeles">
+                                            <mutableData key="data">
+VFppZgAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAC5AAAABAAAABCepkign7sVkKCGKqChmveQ
+y4kaoNIj9HDSYSYQ1v50INiArZDa/tGg28CQENzes6DdqayQ3r6VoN+JjpDgnneg4WlwkOJ+WaDjSVKQ
+5F47oOUpNJDmR1gg5xJREOgnOiDo8jMQ6gccIOrSFRDr5v4g7LH3EO3G4CDukdkQ76/8oPBxuxDxj96g
+8n/BkPNvwKD0X6OQ9U+ioPY/hZD3L4Sg+CiiEPkPZqD6CIQQ+viDIPvoZhD82GUg/chIEP64RyD/qCoQ
+AJgpIAGIDBACeAsgA3EokARhJ6AFUQqQBkEJoAcw7JAHjUOgCRDOkAmtvyAK8LCQC+CvoAzZzRANwJGg
+DrmvEA+priAQmZEQEYmQIBJ5cxATaXIgFFlVEBVJVCAWOTcQFyk2IBgiU5AZCRggGgI1kBryNKAb4heQ
+HNIWoB3B+ZAesfigH6HbkCB2KyAhgb2QIlYNICNq2hAkNe8gJUq8ECYV0SAnKp4QJ/7toCkKgBAp3s+g
+KupiECu+saAs036QLZ6ToC6zYJAvfnWgMJNCkDFnkiAycySQM0d0IDRTBpA1J1YgNjLokDcHOCA4HAUQ
+OOcaIDn75xA6xvwgO9vJEDywGKA9u6sQPo/6oD+bjRBAb9ygQYSpkEJPvqBDZIuQRC+goEVEbZBF89Mg
+Ry2KEEfTtSBJDWwQSbOXIErtThBLnLOgTNZqkE18laBOtkyQT1x3oFCWLpBRPFmgUnYQkFMcO6BUVfKQ
+VPwdoFY11JBW5TogWB7xEFjFHCBZ/tMQWqT+IFvetRBchOAgXb6XEF5kwiBfnnkQYE3eoGGHlZBiLcCg
+Y2d3kGQNoqBlR1mQZe2EoGcnO5BnzWagaQcdkGmtSKBq5v+Qa5ZlIGzQHBBtdkcgbq/+EG9WKSBwj+AQ
+cTYLIHJvwhBzFe0gdE+kEHT/CaB2OMCQdt7roHgYopB4vs2gefiEkHqer6B72GaQfH6RoH24SJB+XnOg
+f5gqkAABAAECAwEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
+AQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
+AQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
+AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
+</mutableData>
+                                        </timeZone>
+                                    </datePicker>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="AcK-zI-l2C">
+                                        <rect key="frame" x="224" y="1" width="160" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <state key="normal" title="Cancel">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="cancelDatePicker" destination="3" eventType="touchUpInside" id="qAT-VP-fGB"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="yfU-ZI-xDv">
+                                        <rect key="frame" x="384" y="1" width="160" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <state key="normal" title="Select">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="selectDate" destination="3" eventType="touchUpInside" id="CEa-7j-Vub"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -439,10 +488,15 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="cancelButton" destination="AcK-zI-l2C" id="TyY-eS-EAg"/>
+                        <outlet property="datePicker" destination="Qju-Rf-WaN" id="RZG-wQ-6Uw"/>
+                        <outlet property="datePickerContainer" destination="Git-ZO-up8" id="plA-yZ-inJ"/>
+                        <outlet property="overlayView" destination="pba-Qr-gW3" id="alG-Y8-mxM"/>
                         <outlet property="scrollView" destination="DvU-aj-8ES" id="Z3E-wZ-l6b"/>
+                        <outlet property="selectButton" destination="yfU-ZI-xDv" id="ANQ-iz-iFc"/>
                         <outlet property="tableView" destination="LzY-6V-uE2" id="laF-UX-DSw"/>
-                        <outlet property="tableViewLeft" destination="QJR-2M-byD" id="6O8-Ki-j8X"/>
-                        <outlet property="tableViewRight" destination="mqL-bN-7Oa" id="wye-KH-kZr"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="PeoplePicker" id="b6Y-cM-cBh"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="SubPicker" id="Gag-wf-ZVs"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="12" sceneMemberID="firstResponder"/>
@@ -477,28 +531,28 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="textField.png" id="IN2-Qy-OED">
-                                        <rect key="frame" x="10" y="99" width="500" height="33"/>
+                                        <rect key="frame" x="20" y="96" width="480" height="36"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your email" minimumFontSize="17" id="EK6-57-ZkH">
-                                        <rect key="frame" x="20" y="99" width="480" height="33"/>
+                                        <rect key="frame" x="30" y="98" width="460" height="33"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="Helvetica-Light" family="Helvetica" pointSize="14"/>
+                                        <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="15"/>
                                         <textInputTraits key="textInputTraits" keyboardType="emailAddress" returnKeyType="next"/>
                                         <connections>
                                             <outlet property="delegate" destination="YSk-d2-LcY" id="L0J-0e-Nt4"/>
                                         </connections>
                                     </textField>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="textField.png" id="JTc-vw-57Y">
-                                        <rect key="frame" x="10" y="144" width="500" height="33"/>
+                                        <rect key="frame" x="20" y="144" width="480" height="36"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your password" minimumFontSize="17" id="EQ4-0j-N6W">
-                                        <rect key="frame" x="20" y="144" width="480" height="33"/>
+                                        <rect key="frame" x="30" y="146" width="460" height="33"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" name="Helvetica-Light" family="Helvetica" pointSize="14"/>
+                                        <fontDescription key="fontDescription" name="Helvetica" family="Helvetica" pointSize="15"/>
                                         <textInputTraits key="textInputTraits" returnKeyType="done" secureTextEntry="YES"/>
                                         <connections>
                                             <outlet property="delegate" destination="YSk-d2-LcY" id="C6W-vl-epA"/>
@@ -644,7 +698,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MSS-Fp-KsI">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MSS-Fp-KsI">
                                 <rect key="frame" x="0.0" y="0.0" width="768" height="950"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -1002,6 +1056,65 @@
             </objects>
             <point key="canvasLocation" x="4227" y="112"/>
         </scene>
+        <!--People Picker View Controller-->
+        <scene sceneID="fbq-ua-OTI">
+            <objects>
+                <viewController storyboardIdentifier="PeoplePicker" id="XFP-TZ-PCg" customClass="BHPeoplePickerViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="pIX-ZI-BfP">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="EEF-HI-3KG">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <searchBar key="tableHeaderView" contentMode="redraw" id="nRk-sL-f7z">
+                                    <rect key="frame" x="0.0" y="64" width="768" height="44"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                    <textInputTraits key="textInputTraits"/>
+                                    <connections>
+                                        <outlet property="delegate" destination="XFP-TZ-PCg" id="YfE-hU-QEJ"/>
+                                    </connections>
+                                </searchBar>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="UserCell" id="kPn-jx-CCt">
+                                        <rect key="frame" x="0.0" y="130" width="768" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kPn-jx-CCt">
+                                            <rect key="frame" x="0.0" y="0.0" width="768" height="43"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="XFP-TZ-PCg" id="yMi-sV-XOm"/>
+                                    <outlet property="delegate" destination="XFP-TZ-PCg" id="mic-SF-1VH"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="mcE-5X-uMU"/>
+                    <connections>
+                        <outlet property="searchDisplayController" destination="QVX-3N-qPt" id="3m7-Jq-vVt"/>
+                        <outlet property="tableView" destination="EEF-HI-3KG" id="LLT-KU-j28"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="gXJ-nV-AEc" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <searchDisplayController id="QVX-3N-qPt">
+                    <connections>
+                        <outlet property="delegate" destination="XFP-TZ-PCg" id="u2B-ZZ-ic1"/>
+                        <outlet property="searchBar" destination="nRk-sL-f7z" id="BqQ-jp-LIr"/>
+                        <outlet property="searchContentsController" destination="XFP-TZ-PCg" id="IWx-Ry-R3a"/>
+                        <outlet property="searchResultsDataSource" destination="XFP-TZ-PCg" id="Mhs-Qb-QfV"/>
+                        <outlet property="searchResultsDelegate" destination="XFP-TZ-PCg" id="nPk-Z4-RRg"/>
+                    </connections>
+                </searchDisplayController>
+            </objects>
+            <point key="canvasLocation" x="5163" y="-1077"/>
+        </scene>
         <!--Checklist Item View Controller - Checklist Item-->
         <scene sceneID="1qJ-tg-PbS">
             <objects>
@@ -1035,6 +1148,8 @@
                     <navigationItem key="navigationItem" title="Checklist Item" id="G9r-09-fAr"/>
                     <connections>
                         <outlet property="tableView" destination="ebQ-g2-KCG" id="J8w-aO-gEx"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="PeoplePicker" id="UiA-K0-N4p"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="SubPicker" id="5j3-5N-zk5"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="heP-rM-XU7" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1043,7 +1158,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="callButton.png" width="97" height="70"/>
         <image name="cameraButton.png" width="70" height="70"/>
         <image name="checklists.png" width="25" height="19"/>
         <image name="documents.png" width="26" height="21"/>
@@ -1065,8 +1179,9 @@
     <inferredMetricsTieBreakers>
         <segue reference="Vim-B7-ekZ"/>
         <segue reference="EHj-le-a4N"/>
+        <segue reference="tY6-jf-jEH"/>
         <segue reference="Lue-dQ-dtC"/>
         <segue reference="eZr-X3-mJS"/>
-        <segue reference="BC4-fv-9Fr"/>
+        <segue reference="bd7-Rv-hQV"/>
     </inferredMetricsTieBreakers>
 </document>

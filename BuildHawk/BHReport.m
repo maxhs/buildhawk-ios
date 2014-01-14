@@ -22,15 +22,15 @@
     } else if ([key isEqualToString:@"weather"]) {
         self.weather = value;
     } else if ([key isEqualToString:@"temp"]) {
-        self.temperature = value;
+        self.temp = value;
     } else if ([key isEqualToString:@"wind"]) {
         self.wind = value;
+    } else if ([key isEqualToString:@"precip"]) {
+        self.precip = value;
     } else if ([key isEqualToString:@"weather_icon"]) {
         self.weatherIcon = value;
-    } else if ([key isEqualToString:@"users"]) {
-        self.users = [BHUtilities usersFromJSONArray:value];
-    } else if ([key isEqualToString:@"subs"]) {
-        self.subcontractors = [BHUtilities subcontractorsFromJSONArray:value];
+    } else if ([key isEqualToString:@"personnel"]) {
+        self.personnel = [BHUtilities personnelFromJSONArray:value];
     } else if ([key isEqualToString:@"created_date"]) {
         self.createdDate = value;
     } else if ([key isEqualToString:@"created_at"]) {

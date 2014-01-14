@@ -10,8 +10,6 @@
 
 @implementation BHChecklistItem
 
-//@dynamic identifier, completed, project, name, type, location, category, subcategory, photos;
-
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"id"]) {
         self.identifier = [value stringValue];
@@ -25,6 +23,14 @@
         self.type = value;
     } else if ([key isEqualToString:@"status"]) {
         self.status = value;
+    } else if ([key isEqualToString:@"photos_count"]) {
+        if (value != [NSNull null] && value != nil) {
+            self.photosCount = value;
+        }
+    } else if ([key isEqualToString:@"comments_count"]) {
+        if (value != [NSNull null] && value != nil) {
+            self.commentsCount = value;
+        }
     } else if ([key isEqualToString:@"completed_date"] && value != [NSNull null]) {
         if ([self.status isEqualToString:kCompleted]) self.completed = YES;
     } else if ([key isEqualToString:@"photos"]) {

@@ -6,6 +6,7 @@ pod 'SVProgressHUD'
 pod 'RATreeView'
 pod 'MagicalRecord', '~> 2.2'
 pod 'MWPhotoBrowser'
+pod 'TUSafariActivity'
 pod 'LDProgressView', '~> 1.1'
 
 link_with 'BuildHawk'

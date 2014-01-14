@@ -23,7 +23,6 @@
 @property (weak, nonatomic) IBOutlet UIButton *emailButton;
 @property (weak, nonatomic) IBOutlet UIButton *callButton;
 @property (weak, nonatomic) IBOutlet UIButton *textButton;
-@property (strong, nonatomic) NSMutableArray *assignees;
 @property (strong, nonatomic) User *savedUser;
 @property (strong, nonatomic) NSSet *locationSet;
 @property BOOL newItem;

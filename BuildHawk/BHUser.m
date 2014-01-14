@@ -38,6 +38,8 @@ static BHUser *currentUser;
         self.company = [[BHCompany alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"coworkers"]) {
         self.coworkers = [self coworkersFromJSONArray:value];
+    } else if ([key isEqualToString:@"subcontractors"]) {
+        self.subcontractors = [BHUtilities subcontractorsFromJSONArray:value];
     } else if ([key isEqualToString:@"url100"]) {
         if (value != [NSNull null]) {
             self.photo = [[BHPhoto alloc] init];

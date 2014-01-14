@@ -16,6 +16,7 @@
 @dynamic identifier;
 @dynamic authToken;
 @dynamic coworkers;
+@dynamic subcontractors;
 @dynamic bhprojects;
 @dynamic email;
 @dynamic fname;

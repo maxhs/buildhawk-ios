@@ -11,11 +11,15 @@
 #import <SDWebImage/UIButton+WebCache.h>
 #import <SDWebImage/UIImageView+WebCache.h>
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
+#import "BHPhotosHeaderView.h"
 
 @interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWPhotoBrowserDelegate> {
+    BOOL iPad;
     CGRect screen;
     NSMutableArray *sectionArray;
     NSMutableArray *compositePhotos;
+    NSMutableArray *browserArray; // for BHPhoto objects
+    NSMutableArray *browserPhotos; //for MWPhoto objects
 }
 
 @end
@@ -38,12 +42,22 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    //[self.collectionView registerClass:[BHCollectionPhotoCell class] forCellWithReuseIdentifier:@"PhotoCell"];
     [self.collectionView reloadData];
     screen = [UIScreen mainScreen].bounds;
     if (!sectionArray) sectionArray = [NSMutableArray array];
     if (!compositePhotos) compositePhotos = [NSMutableArray array];
+    if (!browserArray) browserArray = [NSMutableArray array];
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        iPad = YES;
+    } else
+        iPad = NO;
 }
+- (void)viewWillAppear:(BOOL)animated {
+    [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height, screen.size.width, 49)];
+    self.tabBarController.tabBar.alpha = 0.0;
+    [super viewWillAppear:animated];
+}
+
 
 - (void)didReceiveMemoryWarning
 {
@@ -80,19 +94,20 @@
     if (self.sectionTitles.count) {
         NSMutableArray *tempArray = [sectionArray objectAtIndex:indexPath.section];
         photo = [tempArray objectAtIndex:indexPath.row];
+        [browserArray addObject:photo];
     } else {
         photo = [self.photosArray objectAtIndex:indexPath.row];
+        [browserArray addObject:photo];
     }
+    [cell.photoButton setTag:[browserArray indexOfObject:photo]];
     [cell configureForPhoto:photo];
     [cell.photoButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
-    [cell.photoButton setTag:indexPath.row];
-    cell.backgroundColor = [UIColor whiteColor];
+    
     return cell;
 }
 
-- (void)showPhotoDetail:(id)sender {
+- (void)showPhotoDetail:(UIButton*)button {
     //reorder photos based on tap
-    UIButton *button = (UIButton*)sender;
     NSMutableArray *secondSlice = [NSMutableArray array];
     for (int i=button.tag ; i<self.photosArray.count ; i++){
         [secondSlice addObject:[self.photosArray objectAtIndex:i]];
@@ -104,19 +119,16 @@
     compositePhotos = [NSMutableArray new];
     [compositePhotos addObjectsFromArray:secondSlice];
     [compositePhotos addObjectsFromArray:firstSlice];
-    [self showBrowser];
+    [self showBrowser:button.tag];
 }
 
-- (void)showBrowser {
-    NSMutableArray *photos = [NSMutableArray new];
-    for (BHPhoto *photo in compositePhotos) {
+- (void)showBrowser:(int)idx {
+    browserPhotos = [NSMutableArray new];
+    for (BHPhoto *photo in browserArray) {
         MWPhoto *mwPhoto;
-        //if (photo.mimetype && [photo.mimetype isEqualToString:kPdf]){
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        //} else {
-        //    idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        //}
-        [photos addObject:mwPhoto];
+        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
+        [browserPhotos addObject:mwPhoto];
     }
     
     // Create browser
@@ -133,40 +145,32 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
         browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     }
-    
-    // Optionally set the current visible photo before displaying
-    [browser setCurrentPhotoIndex:1];
-    
-    // Present
     [self.navigationController pushViewController:browser animated:YES];
-    
-    // Manipulate
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
-    [browser setCurrentPhotoIndex:10];
+    [browser setCurrentPhotoIndex:idx];
 }
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
-    return compositePhotos.count;
+    return browserPhotos.count;
 }
 
 - (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
-    if (index < compositePhotos.count)
-        return [compositePhotos objectAtIndex:index];
+    if (index < browserPhotos.count)
+        return [browserPhotos objectAtIndex:index];
     return nil;
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath{
     if (kind == UICollectionElementKindSectionHeader){
-        UICollectionReusableView *headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"Header" forIndexPath:indexPath];
-        [headerView setBackgroundColor:[UIColor colorWithWhite:.1 alpha:.9]];
-        UILabel *headerLabel = [[UILabel alloc] initWithFrame:headerView.frame];
-        [headerLabel setText:[self.sectionTitles objectAtIndex:indexPath.section]];
-        [headerLabel setBackgroundColor:[UIColor clearColor]];
-        [headerView addSubview:headerLabel];
-        [headerLabel setTextColor:[UIColor whiteColor]];
-        [headerLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:14]];
-        NSLog(@"setting header view: %@ %@",headerLabel.text, headerLabel);
+        BHPhotosHeaderView *headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"Header" forIndexPath:indexPath];
+        NSString *title = [self.sectionTitles objectAtIndex:indexPath.section];
+        if ([title isKindOfClass:[NSString class]] && title.length){
+            [headerView configureForTitle:title];
+        }
+        [headerView setBackgroundColor:[UIColor clearColor]];
+        headerView.layer.borderColor = [UIColor colorWithWhite:1 alpha:.15].CGColor;
+        headerView.layer.borderWidth = .5f;
         return headerView;
     } else {
         UICollectionReusableView *footerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:@"Footer" forIndexPath:indexPath];

@@ -29,11 +29,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     [MagicalRecord setupCoreDataStack];
-    if([[UIApplication sharedApplication] enabledRemoteNotificationTypes] != UIRemoteNotificationTypeNone) {
-        [[UIApplication sharedApplication] cancelAllLocalNotifications];
-        [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
-    }
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
     [self customizeAppearance];
     
     [Flurry setCrashReportingEnabled:YES];
@@ -63,12 +60,15 @@
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     UIImage *empty = [UIImage imageNamed:@"empty"];
-    [[UIBarButtonItem appearance] setBackButtonBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    
     [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
+    
+    [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
+     setTitleTextAttributes:@{[UIColor blackColor]:NSForegroundColorAttributeName} forState:UIControlStateNormal];
     
     [[UISearchBar appearance] setBackgroundImage:empty];
     [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];
@@ -86,7 +86,9 @@
     [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
     
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
+        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    }
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -131,14 +133,14 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
     [Flurry logEvent:@"Registered For Remote Notifications"];
-    NSLog(@"Device token: %@",[deviceToken hexadecimalString]);
-    [[NSUserDefaults standardUserDefaults] setObject:[deviceToken hexadecimalString] forKey:kUserDefaultsDeviceToken];
+    [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
     [[NSUserDefaults standardUserDefaults] synchronize];
+    //NSLog(@"device token: %@",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]);
 }
 
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
-    //[Flurry logEvent:@"Rejected Remote Notifications"];
+    [Flurry logEvent:@"Rejected Remote Notifications"];
 }
 
 @end

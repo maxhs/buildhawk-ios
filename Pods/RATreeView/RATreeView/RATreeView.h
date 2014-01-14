@@ -120,7 +120,8 @@ typedef enum RATreeViewRowAnimation {
 
 
 @interface RATreeView : UIView
-
+@property (strong, nonatomic) UITableView *tableView;
+@property (strong, nonatomic) RATreeNodeCollectionController *treeNodeCollectionController;
 @property (weak, nonatomic) id<RATreeViewDataSource> dataSource;
 @property (weak, nonatomic) id<RATreeViewDelegate> delegate;
 

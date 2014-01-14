@@ -24,6 +24,8 @@
 @property (nonatomic, copy) NSString *dueDateString;
 @property (nonatomic, copy) BHProject *project;
 @property (nonatomic, copy) NSString *projectId;
+@property (nonatomic, copy) NSNumber *photosCount;
+@property (nonatomic, copy) NSNumber *commentsCount;
 @property (nonatomic, strong) NSMutableArray *photos;
 @property (nonatomic, strong) NSMutableArray *comments;
 @property (nonatomic, copy) id children;

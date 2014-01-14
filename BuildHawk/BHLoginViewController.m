@@ -80,8 +80,7 @@
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     [parameters setObject:email forKey:@"user[email]"];
     [parameters setObject:password forKey:@"user[password]"];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"user[deviceToken]"];
-    NSLog(@"login parameters: %@",parameters);
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"user[device_token]"];
     [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"log in response object: %@",responseObject);
         user = [[BHUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
@@ -107,7 +106,8 @@
             saveUser.fullname = user.fullname;
             saveUser.fname = user.fname;
             saveUser.coworkers = user.coworkers;
-            NSLog(@"user has coworkers: %i, %@",user.coworkers.count, saveUser.coworkers);
+            saveUser.subcontractors = user.subcontractors;
+            NSLog(@"save user has subcontractors: %i, %@",user.subcontractors.count, saveUser.subcontractors);
             saveUser.photoUrl100 = user.photo.url100;
             saveUser.phone1 = user.phone1;
             
@@ -134,6 +134,8 @@
             newUser.fullname = user.fullname;
             newUser.fname = user.fname;
             newUser.coworkers = user.coworkers;
+            newUser.subcontractors = user.subcontractors;
+            NSLog(@"new user has subcontractors: %i, %@",user.subcontractors.count, saveUser.subcontractors);
             newUser.photoUrl100 = user.photo.url100;
             newUser.phone1 = user.phone1;
             [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {

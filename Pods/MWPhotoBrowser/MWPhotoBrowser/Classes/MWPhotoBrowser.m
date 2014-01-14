@@ -11,6 +11,7 @@
 #import "MWPhotoBrowser.h"
 #import "MWPhotoBrowserPrivate.h"
 #import "SDImageCache.h"
+#import <TUSafariActivity/TUSafariActivity.h>
 
 #define PADDING                  10
 #define ACTION_SHEET_OLD_ACTIONS 2000
@@ -1422,21 +1423,25 @@
                     
                 } else {
                     
-                    // Show activity view controller
-                    NSMutableArray *items = [NSMutableArray arrayWithObject:[photo underlyingImage]];
+                    TUSafariActivity *activity = [[TUSafariActivity alloc] init];
+                    /*NSMutableArray *items = [NSMutableArray arrayWithObject:[photo underlyingImage]];
                     if (photo.caption) {
                         [items addObject:photo.caption];
                     }
-                    self.activityViewController = [[UIActivityViewController alloc] initWithActivityItems:items applicationActivities:nil];
+                    if ([(MWPhoto*)photo originalURL]) {
+                        [items addObject:[(MWPhoto*)photo originalURL]];
+                    }*/
+                    
+                    self.activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[[(MWPhoto*)photo originalURL]] applicationActivities:@[activity]];
                     
                     // Show loading spinner after a couple of seconds
-                    double delayInSeconds = 2.0;
+                    /* double delayInSeconds = 2.0;
                     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
                     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
                         if (self.activityViewController) {
                             [self showProgressHUDWithMessage:nil];
                         }
-                    });
+                    });*/
 
                     // Show
                     typeof(self) __weak weakSelf = self;

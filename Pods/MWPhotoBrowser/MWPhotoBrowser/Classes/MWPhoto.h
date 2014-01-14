@@ -18,6 +18,7 @@
 @property (nonatomic, strong) NSString *caption;
 @property (nonatomic, readonly) UIImage *image;
 @property (nonatomic, readonly) NSURL *photoURL;
+@property (nonatomic, strong) NSURL *originalURL;
 @property (nonatomic, readonly) NSString *filePath  __attribute__((deprecated("Use photoURL"))); // Depreciated
 
 + (MWPhoto *)photoWithImage:(UIImage *)image;

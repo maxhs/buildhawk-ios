@@ -10,10 +10,13 @@
 #import "BHChecklistItem.h"
 #import "BHComment.h"
 #import "BHPhoto.h"
+#import "User.h"
 
 @interface BHChecklistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) BHChecklistItem *item;
+@property (strong, nonatomic) User *savedUser;
+@property int row;
 
 @end

@@ -40,7 +40,7 @@
     BOOL showByLocation;
     BOOL showByAssignee;
     User *savedUser;
-    NSMutableArray *contactsArray;
+    NSMutableArray *personnel;
 }
 - (IBAction)backToDashboard;
 @end
@@ -66,7 +66,7 @@
     if (!assigneeListItems) assigneeListItems = [NSMutableArray array];
     if (!locationSet) locationSet = [NSMutableSet set];
     if (!assigneeSet) assigneeSet = [NSMutableSet set];
-    if (!contactsArray) contactsArray = [NSMutableArray array];
+    if (!personnel) personnel = [NSMutableArray array];
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor darkGrayColor]];
@@ -142,10 +142,9 @@
 
 - (void)filterAssignee {
     assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    contactsArray = [NSMutableArray arrayWithArray:assigneeSet.allObjects];
-    [contactsArray addObjectsFromArray:savedUser.coworkers];
-    for (BHUser *assignee in contactsArray) {
-        if (assignee.fullname.length) [assigneeActionSheet addButtonWithTitle:assignee.fullname];
+    for (id assignee in personnel) {
+        if ([assignee isKindOfClass:[BHUser class]] && [[(BHUser*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(BHUser*)assignee fullname]];
+        else if ([assignee isKindOfClass:[BHSub class]] && [[(BHSub*)assignee name] length]) [assigneeActionSheet addButtonWithTitle:[(BHSub*)assignee name]];
     }
     assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
     [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
@@ -170,18 +169,23 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kCancel]) {
-       
-    } else if (actionSheet == assigneeActionSheet) {
+    if (actionSheet == assigneeActionSheet) {
         //[assigneeListItems removeAllObjects];
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] length]) {
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             if (buttonTitle.length){
-                NSPredicate *testForName = [NSPredicate predicateWithFormat:@"fullname like %@",buttonTitle];
+                NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",buttonTitle];
+                NSPredicate *testForName = [NSPredicate predicateWithFormat:@"name like %@",buttonTitle];
                 for (BHPunchlistItem *item in listItems){
-                    BHUser *user = item.assignees.firstObject;
-                    if([testForName evaluateWithObject:user]) {
-                        [assigneeListItems addObject:item];
+                    id obj = item.assignees.firstObject;
+                    if ([obj isKindOfClass:[BHSub class]]) {
+                        if([testForName evaluateWithObject:obj]) {
+                            [assigneeListItems addObject:item];
+                        }
+                    } else if ([obj isKindOfClass:[BHUser class]]){
+                        if([testForFullName evaluateWithObject:obj]) {
+                            [assigneeListItems addObject:item];
+                        }
                     }
                 }
             }
@@ -205,6 +209,8 @@
     [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:@{@"id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success loading punchlist: %@",responseObject);
         listItems = [BHUtilities punchlistItemsFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"punchlist_items"]];
+        personnel = [BHUtilities personnelFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"personnel"]];
+        NSLog(@"personnel count: %i",personnel.count);
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -293,7 +299,7 @@
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setTitle:@"New Item"];
         [vc setNewItem:YES];
-        [vc setSavedUser:savedUser];
+        if (savedUser)[vc setSavedUser:savedUser];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setNewItem:NO];
@@ -312,8 +318,7 @@
         [vc setTitle:[NSString stringWithFormat:@"%@",item.createdOn]];
         [vc setPunchlistItem:item];
         [vc setLocationSet:locationSet];
-        [vc setAssignees:contactsArray];
-        [vc setSavedUser:savedUser];
+        if (savedUser)[vc setSavedUser:savedUser];
     }
         
 }

@@ -19,9 +19,10 @@
         self.street1 = value;
     } else if ([key isEqualToString:@"street2"]) {
         self.street2 = value;
-    } else if ([key isEqualToString:@"loc"]) {
-        self.latitude = [[value objectForKey:@"lat"] floatValue];
-        self.longitude = [[value objectForKey:@"lng"] floatValue];
+    } else if ([key isEqualToString:@"latitude"]) {
+        self.latitude = [value floatValue];
+    } else if ([key isEqualToString:@"longitude"]) {
+        self.longitude = [value floatValue];
     } else if ([key isEqualToString:@"state"]) {
         self.state = value;
     }else if ([key isEqualToString:@"country"]) {

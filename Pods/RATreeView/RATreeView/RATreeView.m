@@ -31,9 +31,6 @@
 
 @interface RATreeView ()
 
-@property (strong, nonatomic) UITableView *tableView;
-@property (strong, nonatomic) RATreeNodeCollectionController *treeNodeCollectionController;
-
 @end
 
 @implementation RATreeView
@@ -110,13 +107,12 @@
 {
   UITableViewStyle tableViewStyle = [RATreeView tableViewStyleForTreeViewStyle:style];
   
-  UITableView *tableView =  [[UITableView alloc] initWithFrame:frame style:tableViewStyle];
-  tableView.delegate = (id<UITableViewDelegate>)self;
-  tableView.dataSource = (id<UITableViewDataSource>)self;
-  tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-  tableView.backgroundColor = [UIColor clearColor];
-  [self addSubview:tableView];
-  self.tableView = tableView;
+  self.tableView =  [[UITableView alloc] initWithFrame:frame style:tableViewStyle];
+  self.tableView.delegate = (id<UITableViewDelegate>)self;
+  self.tableView.dataSource = (id<UITableViewDataSource>)self;
+  self.tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+  self.tableView.backgroundColor = [UIColor clearColor];
+  [self addSubview:self.tableView];
   
   self.rowsExpandingAnimation = RATreeViewRowAnimationTop;
   self.rowsExpandingAnimation = RATreeViewRowAnimationBottom;
@@ -376,9 +372,17 @@
 
 - (void)reloadRowsForItems:(NSArray *)items withRowAnimation:(RATreeViewRowAnimation)animation
 {
-  NSArray *rows = [self itemsForSelectedRows];
-  UITableViewRowAnimation tableViewRowAnimation = [RATreeView tableViewRowAnimationForTreeViewRowAnimation:animation];
-  [self.tableView reloadRowsAtIndexPaths:rows withRowAnimation:tableViewRowAnimation];
+    NSMutableArray *indexes = [NSMutableArray array];
+    for (id item in items) {
+        NSInteger index = [self.treeNodeCollectionController indexForItem:item];
+        NSLog(@"index: %i",index);
+        RATreeNode *treeNode = [self.treeNodeCollectionController treeNodeForIndex:index];
+        for (int index = [treeNode startIndex] + 1; index <= [treeNode endIndex]; index++) {
+              [indexes addObject:[NSIndexPath indexPathForRow:index inSection:0]];
+            }
+        }
+    UITableViewRowAnimation tableViewRowAnimation = [RATreeView tableViewRowAnimationForTreeViewRowAnimation:animation];
+    [self.tableView reloadRowsAtIndexPaths:indexes withRowAnimation:tableViewRowAnimation];
 }
 
 

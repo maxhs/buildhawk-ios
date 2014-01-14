@@ -18,6 +18,7 @@
 #import <SDWebImage/UIButton+WebCache.h>
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
+#import "BHChecklistViewController.h"
 #import "BHChecklistItemViewController.h"
 #import "BHPunchlistItemViewController.h"
 #import "BHProgressCell.h"
@@ -185,6 +186,10 @@
             if (cell == nil) {
                 cell = [[[NSBundle mainBundle] loadNibNamed:@"BHRecentDocumentCell" owner:self options:nil] lastObject];
             }
+            CGRect frame = cell.frame;
+            frame.size.width = screen.size.width;
+            [cell setFrame:frame];
+            NSLog(@"cell: %@",cell);
             if (!documentsScrollView) {
                 documentsScrollView = [[UIScrollView alloc] initWithFrame:cell.frame];
                 [cell addSubview:documentsScrollView];
@@ -354,11 +359,8 @@
     browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in recentDocuments) {
         MWPhoto *mwPhoto;
-        //if (photo.mimetype && [photo.mimetype isEqualToString:kPdf]){
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        //} else {
-        //    idmPhoto = [IDMPhoto photoWithURL:[NSURL URLWithString:photo.orig]];
-        //}
+        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -397,7 +399,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 3){
+    if (indexPath.section == 1){
+        [self performSegueWithIdentifier:@"Project" sender:indexPath];
+    } else if (indexPath.section == 3){
         BHChecklistItem *item = [upcomingChecklistItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
     } else if (indexPath.section == 4){

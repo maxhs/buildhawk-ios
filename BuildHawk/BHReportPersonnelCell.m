@@ -33,7 +33,7 @@
     self.prefillButton.layer.shadowOpacity =  1.f;
     self.prefillButton.layer.shadowRadius = 2.f;
     self.prefillButton.layer.shadowOffset = CGSizeMake(0, 0);*/
-    [self.prefillButton.titleLabel setTextColor:kDarkerGrayColor];
+    [self.prefillButton setTitleColor:kDarkerGrayColor forState:UIControlStateNormal];
     self.prefillButton.layer.borderColor = kDarkerGrayColor.CGColor;
     self.prefillButton.layer.borderWidth = .5f;
     self.prefillButton.layer.shouldRasterize = YES;
@@ -51,7 +51,7 @@
     button.layer.shadowOpacity =  1.f;
     button.layer.shadowRadius = 2.f;
     button.layer.shadowOffset = CGSizeMake(0, 0);
-    [button.titleLabel setTextColor:[UIColor whiteColor]];
+    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
 }
 
 @end
