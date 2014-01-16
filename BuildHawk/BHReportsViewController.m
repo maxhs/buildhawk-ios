@@ -447,7 +447,7 @@ static NSString * const kPickFromList = @"Pick from company list";
 - (void)outlineTextView:(UITextView*)textView {
     textView.layer.borderColor = [UIColor darkGrayColor].CGColor;
     textView.layer.borderWidth = .5f;
-    textView.layer.cornerRadius = 3.f;
+    textView.layer.cornerRadius = 2.f;
     textView.clipsToBounds = YES;
 }
 
@@ -963,7 +963,6 @@ static NSString * const kPickFromList = @"Pick from company list";
                 }];
             }];
         } else if (photo.image) {
-            NSLog(@"had photo image");
             [imageButton setImage:photo.image forState:UIControlStateNormal];
             [UIView animateWithDuration:.25 animations:^{
                 [imageButton setAlpha:1.0];
@@ -971,7 +970,7 @@ static NSString * const kPickFromList = @"Pick from company list";
         }
         [imageButton setTag:[_report.photos indexOfObject:photo]];
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),6,imageSize, imageSize)];
-        imageButton.imageView.layer.cornerRadius = 3.0;
+        imageButton.imageView.layer.cornerRadius = 2.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.imageView.layer.shouldRasterize = YES;
@@ -1097,7 +1096,7 @@ static NSString * const kPickFromList = @"Pick from company list";
         [parameters setObject:_report.identifier forKey:@"report_id"];
     
         [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success removing personnel: %@",responseObject);
+            //NSLog(@"success removing personnel: %@",responseObject);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure removing personnel: %@",error.description);
     }];
@@ -1139,9 +1138,8 @@ static NSString * const kPickFromList = @"Pick from company list";
         if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
     }
 
-    NSLog(@"put parameters: %@",parameters);
     [manager PUT:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_report.identifier] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success updating report: %@",responseObject);
+        NSLog(@"Success updating report: %@",responseObject);
         BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
         for (BHReport *report in reports){
             if ([report.identifier isEqualToString:newReport.identifier]) {
@@ -1166,7 +1164,7 @@ static NSString * const kPickFromList = @"Pick from company list";
         [manager POST:[NSString stringWithFormat:@"%@/reports/photo",kApiBaseUrl] parameters:@{@"id":_report.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":_report.title, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"save existing report photo response object: %@",responseObject);
+            NSLog(@"Success posting image to API: %@",responseObject);
             BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
             for (BHReport *report in reports){
                 if ([report.identifier isEqualToString:newReport.identifier]) {
@@ -1178,7 +1176,6 @@ static NSString * const kPickFromList = @"Pick from company list";
             NSLog(@"failure posting image to API: %@",error.description);
         }];
     } else {
-        NSLog(@"should be redrawing scrollview for new report");
         [self redrawScrollView];
     }
 }
@@ -1221,9 +1218,8 @@ static NSString * const kPickFromList = @"Pick from company list";
         if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
     }
 
-    NSLog(@"new report parameters: %@",parameters);
     [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success creating report: %@",responseObject);
+        NSLog(@"Success creating report: %@",responseObject);
         BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
         [reports replaceObjectAtIndex:[reports indexOfObject:_report] withObject:newReport];
         

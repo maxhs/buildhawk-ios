@@ -24,7 +24,6 @@
 #import "Flurry.h"
 #import "BHPeoplePickerViewController.h"
 
-static NSString *addCommentPlaceholder = @"Add comment...";
 @interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
     BOOL complete;
@@ -195,7 +194,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         if (addCommentCell == nil) {
             addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
         }
-        [addCommentCell.messageTextView setText:addCommentPlaceholder];
+        [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
         
@@ -243,7 +242,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     UIEdgeInsets tempInset = tableViewInset;
     tempInset.bottom += 216;
     self.tableView.contentInset = tempInset;
-    if ([textView.text isEqualToString:addCommentPlaceholder]) {
+    if ([textView.text isEqualToString:kAddCommentPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor darkGrayColor]];
     }
@@ -260,7 +259,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
     if (textView.text.length) {
         addCommentTextView = textView;
     } else {
-        [textView setText:addCommentPlaceholder];
+        [textView setText:kAddCommentPlaceholder];
         [textView setTextColor:[UIColor colorWithWhite:.75 alpha:1.0]];
     }
     [self doneEditing];
@@ -675,7 +674,7 @@ static NSString *addCommentPlaceholder = @"Add comment...";
         }
         [imageButton setTag:[_item.photos indexOfObject:photo]];
         [imageButton.titleLabel setHidden:YES];
-        imageButton.imageView.layer.cornerRadius = 3.0;
+        imageButton.imageView.layer.cornerRadius = 2.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.layer.shouldRasterize = YES;

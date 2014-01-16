@@ -18,6 +18,8 @@
 #import "Flurry.h"
 #import "BHTabBarViewController.h"
 #import "BHPeoplePickerViewController.h"
+#import "BHAddCommentCell.h"
+#import "BHCommentCell.h"
 
 static NSString *assigneePlaceholder = @"Assign";
 static NSString *locationPlaceholder = @"Location";
@@ -46,6 +48,9 @@ typedef void(^RequestSuccess)(id result);
     UIButton *takePhotoButton;
     int photoIdx;
     NSMutableArray *browserPhotos;
+    UITextView *addCommentTextView;
+    NSDateFormatter *commentFormatter;
+    UIButton *doneButton;
 }
 - (IBAction)assigneeButtonTapped;
 - (IBAction)locationButtonTapped;
@@ -101,6 +106,9 @@ typedef void(^RequestSuccess)(id result);
         manager = [AFHTTPRequestOperationManager manager];
     }
 	[self.completionButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+    commentFormatter = [[NSDateFormatter alloc] init];
+    [commentFormatter setDateStyle:NSDateFormatterShortStyle];
+    [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
     [self addBorderTreatement:self.photoButton];
     [self.photoButton addTarget:self action:@selector(photoButtonTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -165,6 +173,129 @@ typedef void(^RequestSuccess)(id result);
     [super viewDidAppear:animated];
 }
 
+#pragma mark - Table view data source
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 2;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    if (section == 0) return 1;
+    else return self.punchlistItem.comments.count;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if (indexPath.section == 0) {
+        BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
+        if (addCommentCell == nil) {
+            addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
+        }
+        [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
+        addCommentTextView = addCommentCell.messageTextView;
+        addCommentTextView.delegate = self;
+        
+        [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
+        [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
+        addCommentCell.doneButton.layer.cornerRadius = 4.f;
+        addCommentCell.doneButton.clipsToBounds = YES;
+        doneButton = addCommentCell.doneButton;
+        return addCommentCell;
+    } else {
+        BHCommentCell *commentCell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell"];
+        if (commentCell == nil) {
+            commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
+        }
+        BHComment *comment = [self.punchlistItem.comments objectAtIndex:indexPath.row];
+        [commentCell.messageTextView setText:comment.body];
+        if (comment.createdOnString.length){
+            [commentCell.timeLabel setText:comment.createdOnString];
+        } else {
+            [commentCell.timeLabel setText:[commentFormatter stringFromDate:comment.createdOn]];
+        }
+        [commentCell.nameLabel setText:comment.user.fullname];
+        return commentCell;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 80;
+}
+
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+    UIEdgeInsets tempInset = self.tableView.contentInset;
+    tempInset.bottom += 216;
+    self.tableView.contentInset = tempInset;
+    if ([textView.text isEqualToString:kAddCommentPlaceholder] || [textView.text isEqualToString:itemPlaceholder]) {
+        [textView setText:@""];
+        [textView setTextColor:[UIColor darkGrayColor]];
+    }
+    
+    [UIView animateWithDuration:.25 animations:^{
+        doneButton.alpha = 1.0;
+    }];
+    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
+    [cancelButton setTitle:@"Cancel"];
+    [[self navigationItem] setRightBarButtonItem:cancelButton];
+}
+
+
+-(void)textViewDidEndEditing:(UITextView *)textView {
+    if (textView == addCommentTextView){
+        if (textView.text.length) {
+            addCommentTextView = textView;
+        } else {
+            [textView setText:kAddCommentPlaceholder];
+            [textView setTextColor:[UIColor lightGrayColor]];
+        }
+    } else {
+        if (textView.text.length) {
+            self.punchlistItem.body = textView.text;
+        } else {
+            [textView setText:itemPlaceholder];
+            [textView setTextColor:[UIColor lightGrayColor]];
+        }
+    }
+    [self doneEditing];
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)thisText {
+    if ([thisText isEqualToString:@"\n"]) {
+        if (textView == addCommentTextView && textView.text.length) {
+            [self submitComment];
+            [self doneEditing];
+        }
+        [textView resignFirstResponder];
+        return NO;
+    }
+    
+    return YES;
+}
+
+- (void)submitComment {
+    if (addCommentTextView.text.length) {
+        BHComment *comment = [[BHComment alloc] init];
+        comment.body = addCommentTextView.text;
+        comment.createdOnString = @"Just now";
+        User *user = [(BHTabBarViewController*) self.tabBarController user];
+        comment.user = [[BHUser alloc] init];
+        comment.user.fullname = user.fullname;
+        [self.punchlistItem.comments addObject:comment];
+        [self.tableView reloadData];
+        NSDictionary *commentDict = @{@"punchlist_item_id":self.punchlistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+        [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success creating a comment for punchlist item: %@",responseObject);
+            [addCommentTextView setTextColor:[UIColor lightGrayColor]];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"failure creating a comment for punchlist item: %@",error.description);
+        }];
+    }
+    
+    [self doneEditing];
+}
+
 - (void)updatePersonnel:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
     self.punchlistItem.assignees = [info objectForKey:kpersonnel];
@@ -211,6 +342,14 @@ typedef void(^RequestSuccess)(id result);
         self.navigationItem.rightBarButtonItem = saveButton;
     } else {
         self.navigationItem.rightBarButtonItem = createButton;
+    }
+    [UIView animateWithDuration:.25 animations:^{
+        doneButton.alpha = 0.0;
+    }];
+    if (iPad) {
+        
+    } else {
+        [self.tableView setContentInset:UIEdgeInsetsMake(64, 0, 49, 0)];
     }
 }
 
@@ -467,7 +606,7 @@ typedef void(^RequestSuccess)(id result);
             }];
         }
         
-        imageButton.imageView.layer.cornerRadius = 3.0;
+        imageButton.imageView.layer.cornerRadius = 2.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.imageView.layer.shouldRasterize = YES;
@@ -483,7 +622,7 @@ typedef void(^RequestSuccess)(id result);
         if (self.scrollView.isHidden) [self.scrollView setHidden:NO];
         [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             if (iPad) {
-                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-294, 0);
+                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-336, 0);
             } else if (iPhone5) {
                 self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-126, 0);
             } else {
@@ -681,34 +820,6 @@ typedef void(^RequestSuccess)(id result);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to create a punchlist item: %@",error.description);
     }];
-}
-
-- (void)textViewDidBeginEditing:(UITextView *)textView {
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
-    [cancelButton setTitle:@"Cancel"];
-    [[self navigationItem] setRightBarButtonItem:cancelButton];
-    if ([textView.text isEqualToString:itemPlaceholder]) {
-        [textView setText:@""];
-        [textView setTextColor:[UIColor darkGrayColor]];
-    }
-}
-
--(void)textViewDidEndEditing:(UITextView *)textView {
-    if (textView.text.length) {
-        self.punchlistItem.body = textView.text;
-    } else {
-        [textView setText:itemPlaceholder];
-        [textView setTextColor:[UIColor lightGrayColor]];
-    }
-    [self doneEditing];
-}
-
-- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
-    if ([text isEqualToString:@"\n"]) {
-        [textView resignFirstResponder];
-        return NO;
-    }
-    return YES;
 }
 
 - (IBAction)placeCall:(id)sender{

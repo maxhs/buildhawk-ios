@@ -272,7 +272,7 @@
     } else {
         [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
     }
-    cell.photoButton.imageView.layer.cornerRadius = 3.0;
+    cell.photoButton.imageView.layer.cornerRadius = 2.0;
     [cell.photoButton.imageView setBackgroundColor:[UIColor clearColor]];
     [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
     cell.photoButton.imageView.layer.shouldRasterize = YES;
@@ -304,15 +304,15 @@
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setNewItem:NO];
         BHPunchlistItem *item;
-        if (showActive) {
+        if (showActive && activeListItems.count) {
             item = [activeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (showByLocation) {
+        } else if (showByLocation && locationListItems.count) {
             item = [locationListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (showByAssignee) {
+        } else if (showByAssignee && assigneeListItems.count) {
             item = [assigneeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (showCompleted) {
+        } else if (showCompleted && completedListItems.count) {
             item = [completedListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else {
+        } else if (listItems.count) {
             item = [listItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
         [vc setTitle:[NSString stringWithFormat:@"%@",item.createdOn]];

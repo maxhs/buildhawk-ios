@@ -10,7 +10,7 @@
 #import "BHPunchlistItem.h"
 #import "User.h"
 
-@interface BHPunchlistItemViewController : UIViewController
+@interface BHPunchlistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (strong, nonatomic) BHPunchlistItem *punchlistItem;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
@@ -23,6 +23,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *emailButton;
 @property (weak, nonatomic) IBOutlet UIButton *callButton;
 @property (weak, nonatomic) IBOutlet UIButton *textButton;
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) User *savedUser;
 @property (strong, nonatomic) NSSet *locationSet;
 @property BOOL newItem;

@@ -23,8 +23,7 @@
 @property BOOL completed;
 @property (nonatomic, strong) BHUser *completedByUser;
 @property (nonatomic, strong) NSMutableArray *photos;
-@property (nonatomic, strong) NSMutableArray *createdPhotos;
-@property (nonatomic, strong) NSMutableArray *completedPhotos;
+@property (nonatomic, strong) NSMutableArray *comments;
 @property (nonatomic, strong) NSMutableArray *assignees;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;

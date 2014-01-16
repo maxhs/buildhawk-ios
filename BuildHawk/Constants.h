@@ -45,6 +45,7 @@
 #define kpersonnel @"personnel"
 #define kCompanyUser @"Company User"
 #define kCompanyUsers @"Company Users"
+#define kAddCommentPlaceholder @"Add comment..."
 
 #define kHelveticaNeueLight @"HelveticaNeue-Light"
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"

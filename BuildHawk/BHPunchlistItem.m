@@ -31,6 +31,8 @@
         [self.assignees addObject:[[BHSub alloc] initWithDictionary:value]];
     } else if ([key isEqualToString:@"photos"]) {
         self.photos = [BHUtilities photosFromJSONArray:value];
+    } else if ([key isEqualToString:@"comments"]) {
+        self.comments = [BHUtilities commentsFromJSONArray:value];
     }
 }
 
