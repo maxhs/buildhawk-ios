@@ -54,8 +54,6 @@
 		F226815518622D8100D78BDD /* communicateOutlineDark@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F226814F18622D8100D78BDD /* communicateOutlineDark@2x.png */; };
 		F226815C186B699A00D78BDD /* backArrow.png in Resources */ = {isa = PBXBuildFile; fileRef = F226815A186B699A00D78BDD /* backArrow.png */; };
 		F226815D186B699A00D78BDD /* backArrow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F226815B186B699A00D78BDD /* backArrow@2x.png */; };
-		F2268168186B726B00D78BDD /* naImage.png in Resources */ = {isa = PBXBuildFile; fileRef = F2268166186B726B00D78BDD /* naImage.png */; };
-		F2268169186B726B00D78BDD /* naImage@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2268167186B726B00D78BDD /* naImage@2x.png */; };
 		F22681721872609600D78BDD /* miniCamera.png in Resources */ = {isa = PBXBuildFile; fileRef = F22681701872609600D78BDD /* miniCamera.png */; };
 		F22681731872609600D78BDD /* miniCamera@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F22681711872609600D78BDD /* miniCamera@2x.png */; };
 		F22681761872637000D78BDD /* miniChat.png in Resources */ = {isa = PBXBuildFile; fileRef = F22681741872637000D78BDD /* miniChat.png */; };
@@ -249,8 +247,6 @@
 		F226814F18622D8100D78BDD /* communicateOutlineDark@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "communicateOutlineDark@2x.png"; sourceTree = "<group>"; };
 		F226815A186B699A00D78BDD /* backArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = backArrow.png; sourceTree = "<group>"; };
 		F226815B186B699A00D78BDD /* backArrow@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "backArrow@2x.png"; sourceTree = "<group>"; };
-		F2268166186B726B00D78BDD /* naImage.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = naImage.png; sourceTree = "<group>"; };
-		F2268167186B726B00D78BDD /* naImage@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "naImage@2x.png"; sourceTree = "<group>"; };
 		F22681701872609600D78BDD /* miniCamera.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = miniCamera.png; sourceTree = "<group>"; };
 		F22681711872609600D78BDD /* miniCamera@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "miniCamera@2x.png"; sourceTree = "<group>"; };
 		F22681741872637000D78BDD /* miniChat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = miniChat.png; sourceTree = "<group>"; };
@@ -722,8 +718,6 @@
 				F22681751872637000D78BDD /* miniChat@2x.png */,
 				F22681701872609600D78BDD /* miniCamera.png */,
 				F22681711872609600D78BDD /* miniCamera@2x.png */,
-				F2268166186B726B00D78BDD /* naImage.png */,
-				F2268167186B726B00D78BDD /* naImage@2x.png */,
 				F226815A186B699A00D78BDD /* backArrow.png */,
 				F226815B186B699A00D78BDD /* backArrow@2x.png */,
 				F226814A18622D8100D78BDD /* stopAndCheckOutlineDark.png */,
@@ -881,7 +875,6 @@
 				F291F4C217F0B80900A27B46 /* documentsOutline@2x.png in Resources */,
 				F29EF2DE1815A77700F737B7 /* BHReportPersonnelCell.xib in Resources */,
 				F226815518622D8100D78BDD /* communicateOutlineDark@2x.png in Resources */,
-				F2268168186B726B00D78BDD /* naImage.png in Resources */,
 				F22681A9187FB0ED00D78BDD /* cloudy@2x.png in Resources */,
 				F29579CF17F7729B0082DE5A /* menu.png in Resources */,
 				F29EF2E21815BD1100F737B7 /* navBarBackgroundTall.png in Resources */,
@@ -960,7 +953,6 @@
 				F29EF2F11815D32000F737B7 /* BHPersonnelCell.xib in Resources */,
 				F2D7502E17D7B830006375CD /* BuildHawk_app_icon_120.png in Resources */,
 				F226815C186B699A00D78BDD /* backArrow.png in Resources */,
-				F2268169186B726B00D78BDD /* naImage@2x.png in Resources */,
 				F203967617D3E361001CFF61 /* tabBarBackground@2x.png in Resources */,
 				F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */,
 				F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */,
@@ -1184,7 +1176,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BuildHawk/BuildHawk-Prefix.pch";
 				INFOPLIST_FILE = "BuildHawk/BuildHawk-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/maxhs/BuildHawk-ios/BuildHawk",
@@ -1211,7 +1203,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BuildHawk/BuildHawk-Prefix.pch";
 				INFOPLIST_FILE = "BuildHawk/BuildHawk-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/maxhs/BuildHawk-ios/BuildHawk",

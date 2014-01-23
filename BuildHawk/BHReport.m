@@ -15,8 +15,6 @@
         self.identifier = [value stringValue];
     } else if ([key isEqualToString:@"report_type"]) {
         self.type = value;
-    } else if ([key isEqualToString:@"title"]) {
-        self.title = value;
     } else if ([key isEqualToString:@"body"]) {
         self.body = value;
     } else if ([key isEqualToString:@"weather"]) {

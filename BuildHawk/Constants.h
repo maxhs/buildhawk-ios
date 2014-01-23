@@ -34,6 +34,7 @@
 
 #define kChecklist @"Checklist"
 #define kWorklist @"Worklist"
+#define kReports @"Reports"
 #define kPhase @"Phase"
 #define kCategory @"Category"
 #define kItem @"Item"
@@ -61,8 +62,8 @@
 #define kLighterGrayColor [UIColor colorWithWhite:.94 alpha:1.0]
 #define kLightGrayColor [UIColor colorWithWhite:.90 alpha:.9]
 
-#define kDarkerGrayColor [UIColor colorWithWhite:.15 alpha:0.9]
-#define kDarkGrayColor [UIColor colorWithWhite:.15 alpha:1.0]
+#define kDarkerGrayColor [UIColor colorWithWhite:.05 alpha:0.9]
+#define kDarkGrayColor [UIColor colorWithWhite:.05 alpha:1.0]
 #define kBackgroundBlack [UIColor colorWithWhite:1.0 alpha:0.1]
 #define kLightBlueColor [UIColor colorWithRed:(85.0/255.0) green:(140.0/255.0) blue:(200.0/255.0) alpha:1.0]
 #define kBlueColor [UIColor colorWithRed:(51.0/255.0) green:(102.0/255.0) blue:(153.0/255.0) alpha:1.0]

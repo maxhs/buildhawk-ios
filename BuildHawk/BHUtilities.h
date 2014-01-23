@@ -30,4 +30,6 @@
 + (NSDate*)parseDate:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;
++ (BOOL)isIpad;
++ (BOOL)isIPhone5;
 @end

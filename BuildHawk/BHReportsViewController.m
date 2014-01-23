@@ -27,12 +27,14 @@
 static NSString * const kReportPlaceholder = @"Report details...";
 static NSString * const kNewReportPlaceholder = @"Add new report";
 static NSString * const kPickFromList = @"Pick from company list";
+static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
-@interface BHReportsViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate, MWPhotoBrowserDelegate> {
+@interface BHReportsViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *reports;
     NSDateFormatter *dateFormatter;
     BOOL iPhone5;
     BOOL iPad;
+    BOOL choosingDate;
     int windBearing;
     NSString *windDirection;
     NSString *windSpeed;
@@ -41,7 +43,6 @@ static NSString * const kPickFromList = @"Pick from company list";
     NSString *icon;
     NSString *precip;
     NSString *weatherString;
-    UITextField *countTextField;
     UITextView *reportBodyTextView;
     UITextView *weatherTextView;
     UIActionSheet *typePickerActionSheet;
@@ -53,8 +54,7 @@ static NSString * const kPickFromList = @"Pick from company list";
     AFHTTPRequestOperationManager *manager;
     UIButton *photoButton;
     CGRect screen;
-    UIBarButtonItem *saveButton;
-    UIBarButtonItem *createButton;
+
     User *savedUser;
     int removePhotoIdx;
     NSString *currentDateString;
@@ -64,7 +64,6 @@ static NSString * const kPickFromList = @"Pick from company list";
 }
 
 - (IBAction)backToDashboard;
-- (IBAction)showDatePicker;
 - (IBAction)cancelDatePicker;
 @end
 
@@ -101,20 +100,18 @@ static NSString * const kPickFromList = @"Pick from company list";
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     savedUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
     project = [(BHTabBarViewController*)self.tabBarController project];
-    self.navigationItem.title = [NSString stringWithFormat:@"%@: Reports",[project name]];
+    
+    self.navigationController.title = [NSString stringWithFormat:@"%@",[project name]];
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
     if (!reports) reports = [NSMutableArray array];
     page = 0;
-    previousContentOffsetX = 0;
     
     [(UITableView*)[self.scrollView.subviews objectAtIndex:page] setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     [(UITableView*)[self.scrollView.subviews objectAtIndex:page] setBackgroundColor:kLightestGrayColor];
     
     self.datePickerContainer.transform = CGAffineTransformMakeTranslation(0, 220);
     [self.datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:.95]];
-    
-    
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(willShowKeyboard:)
@@ -127,15 +124,16 @@ static NSString * const kPickFromList = @"Pick from company list";
     [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [self loadReports];
     [Flurry logEvent:@"Viewing report"];
-    saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(save)];
-    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(createNewReport) name:@"CreateReport" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(save) name:@"SaveReport" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(doneEditing:) name:@"DoneEditing" object:nil];
 }
 
 - (void)loadWeather:(NSDate*)reportDate forReport:(BHReport*)report {
     int dateInt = [reportDate timeIntervalSince1970];
     if (project.address.latitude && project.address.longitude) {
         [manager GET:[NSString stringWithFormat:@"https://api.forecast.io/forecast/%@/%f,%f,%i",kForecastAPIKey,project.address.latitude, project.address.longitude,dateInt] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"response object %i %@",dateInt,responseObject);
+            //NSLog(@"response object %i %@",dateInt,responseObject);
             NSDictionary *dictionary = [NSDictionary dictionaryWithDictionary:[responseObject objectForKey:@"currently"]];
             NSDictionary *dailyData = [[[responseObject objectForKey:@"daily"] objectForKey:@"data"] firstObject];
             NSString *min = [[dailyData objectForKey:@"apparentTemperatureMin"] stringValue];
@@ -147,9 +145,9 @@ static NSString * const kPickFromList = @"Pick from company list";
                 max = [max substringToIndex:4];
             }
             [report setPrecip:[NSString stringWithFormat:@"%.0f%%", [[dictionary objectForKey:@"precipProbability"] floatValue]*100]];
-            NSLog(@"report precip; %@",report.precip);
             [report setTemp:[NSString stringWithFormat:@"%@° / %@°",min,max]];
             [report setWeatherIcon:[dictionary objectForKey:@"icon"]];
+            [report setWeather:[dailyData objectForKey:@"summary"]];
             if ([[[dictionary objectForKey:@"windSpeed"] stringValue] length])
                 windSpeed = [[[dictionary objectForKey:@"windSpeed"] stringValue] substringToIndex:3];
             windDirection = [self windDirection:[[responseObject objectForKey:@"windBearing"] intValue]];
@@ -158,9 +156,6 @@ static NSString * const kPickFromList = @"Pick from company list";
             dispatch_async(dispatch_get_main_queue(), ^{
                 [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
             });
-
-            [self.scrollView setContentOffset:CGPointMake((screen.size.width*reports.count)-screen.size.width, self.scrollView.contentOffset.y) animated:NO];
-            NSLog(@"page for weather reload: %i",page);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failed to get the weather: %@",error.description);
         }];
@@ -203,10 +198,6 @@ static NSString * const kPickFromList = @"Pick from company list";
     } else return @"";
 }
 
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-}
-
 - (void)dismissOverlay {
     [SVProgressHUD dismiss];
     [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find a report that fit those criteria." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -214,13 +205,14 @@ static NSString * const kPickFromList = @"Pick from company list";
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     if (scrollView == self.scrollView && previousContentOffsetX != scrollView.contentOffset.x){
+        NSLog(@"inside");
         float fractionalPage = scrollView.contentOffset.x / screen.size.width;
         page = lround(fractionalPage);
         _report = [reports objectAtIndex:page];
         if (_report.identifier.length) {
-            self.navigationItem.rightBarButtonItem = saveButton;
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
         } else {
-            self.navigationItem.rightBarButtonItem = createButton;
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"Create" object:nil];
         }
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
         previousContentOffsetX = scrollView.contentOffset.x;
@@ -230,8 +222,9 @@ static NSString * const kPickFromList = @"Pick from company list";
 - (void)loadReports {
     [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting reports: %@",responseObject);
+        //NSLog(@"Success getting reports: %@",responseObject);
         reports = [BHUtilities reportsFromJSONArray:[responseObject objectForKey:@"reports"]];
+        previousContentOffsetX = screen.size.width*reports.count;
         [self drawReports];
         [SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -242,51 +235,53 @@ static NSString * const kPickFromList = @"Pick from company list";
 
 - (void)drawReports{
     if (reports.count) {
-        BHReport *lastReport = reports.lastObject;
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
         [formatter setDateFormat:@"MM/dd/yyyy"];
         NSString *dateString = [formatter stringFromDate:[NSDate date]];
-        if([lastReport isKindOfClass:[BHReport class]] && [lastReport.createdDate isEqualToString:dateString]) {
-            int idx = 1;
-            for (BHReport *report in reports){
-                if (reports.lastObject != report){
-                    UITableView *newTableView = [[UITableView alloc] init];
-                    newTableView.delegate = self;
-                    newTableView.dataSource = self;
-                    [newTableView setFrame:CGRectMake((screen.size.width * idx), 0, self.scrollView.frame.size.width, self.scrollView.frame.size.height)];
-                    [newTableView setContentInset:self.tableView.contentInset];
-                    newTableView.autoresizingMask = self.tableView.autoresizingMask;
-                    [self.scrollView addSubview:newTableView];
-                    idx ++;
+        NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"createdDate == %@",dateString];
+        BOOL foundReport = NO;
+        for (BHReport *report in reports){
+            if([testForTrue evaluateWithObject:report]) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
+                foundReport = YES;
+                if (iPad) {
+                    [self.scrollView setContentSize:CGSizeMake(reports.count*screen.size.width,self.scrollView.frame.size.height-300)];
+                } else {
+                    [self.scrollView setContentSize:CGSizeMake(reports.count*screen.size.width,self.scrollView.frame.size.height-113)];
                 }
+                NSLog(@"you'll be looking at the latest report");
             }
-            _report = lastReport;
-            NSLog(@"you're looking at the first report");
-            self.navigationItem.rightBarButtonItem = saveButton;
-            if (iPad) {
-                [self.scrollView setContentSize:CGSizeMake(reports.count*screen.size.width,self.scrollView.frame.size.height-300)];
-            } else {
-                [self.scrollView setContentSize:CGSizeMake(reports.count*screen.size.width,self.scrollView.frame.size.height-113)];
-            }
-            [self.scrollView setContentOffset:CGPointMake(screen.size.width*(reports.count)-screen.size.width, self.scrollView.contentOffset.y)];
-        } else {
-            int idx = 1;
-            for (BHReport *report in reports){
-                UITableView *newTableView = [[UITableView alloc] init];
-                newTableView.delegate = self;
-                newTableView.dataSource = self;
-                [newTableView setFrame:CGRectMake((screen.size.width * idx), 0, self.scrollView.frame.size.width, self.scrollView.frame.size.height)];
-                [newTableView setContentInset:self.tableView.contentInset];
-                newTableView.autoresizingMask = self.tableView.autoresizingMask;
-                [self.scrollView addSubview:newTableView];
-                idx ++;
-            }
-            NSLog(@"should be a new report");
-            [self newReportObject:dateString];
         }
+        if (!foundReport) {
+            [self newReportObject:dateString];
+            NSLog(@"should be a new report");
+        }
+        
+        int idx = 1;
+        NSLog(@"reports.count: %i",reports.count);
+        for (BHReport *report in reports){
+            UITableView *newTableView = [[UITableView alloc] init];
+            newTableView.delegate = self;
+            newTableView.dataSource = self;
+            newTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+            [newTableView setFrame:CGRectMake((screen.size.width * idx), 0, self.scrollView.frame.size.width, self.scrollView.frame.size.height)];
+            [newTableView setContentInset:self.tableView.contentInset];
+            newTableView.autoresizingMask = self.tableView.autoresizingMask;
+            [self.scrollView addSubview:newTableView];
+            idx ++;
+            _report = report;
+            //[newTableView reloadData];
+        }
+        
+        [self.scrollView setContentOffset:CGPointMake((screen.size.width*reports.count)-screen.size.width, self.scrollView.contentOffset.y) animated:NO];
     } else {
+        //There are no existing reports
         [self newReportObject:nil];
+        _report = reports.firstObject;
+        [self.tableView reloadData];
+        
     }
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -311,7 +306,6 @@ static NSString * const kPickFromList = @"Pick from company list";
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 1) {
-        NSLog(@"_report.personnel.count: %i",1+_report.personnel.count);
         return (1 + _report.personnel.count);
     }
     else return 1;
@@ -327,19 +321,31 @@ static NSString * const kPickFromList = @"Pick from company list";
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPickerCell" owner:self options:nil] lastObject];
         }
         [cell configure];
-        NSString *reportTitle = [_report.title copy];
         [cell.typePickerButton setTitle:_report.type forState:UIControlStateNormal];
-        [cell.datePickerButton setTitle:reportTitle forState:UIControlStateNormal];
+        if (_report.createdDate.length) {
+            [cell.datePickerButton setTitle:_report.createdDate forState:UIControlStateNormal];
+            choosingDate = NO;
+        } else {
+            [cell.datePickerButton setTitle:@"" forState:UIControlStateNormal];
+            choosingDate = YES;
+        }
+        
         [cell.typePickerButton addTarget:self action:@selector(tapTypePicker) forControlEvents:UIControlEventTouchUpInside];
-        [cell.datePickerButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
+        [cell.datePickerButton addTarget:self action:@selector(showDatePicker:) forControlEvents:UIControlEventTouchUpInside];
         
-        [cell.windTextField setDelegate:self];
-        [cell.tempTextField setDelegate:self];
-        [cell.dailySummaryTextView setDelegate:self];
-        weatherTextView = cell.dailySummaryTextView;
-        
-        NSLog(@"report has existing weather for report date: %@ with wind: %@",_report.createdDate, _report.wind);
-        [cell.dailySummaryTextView setText:_report.weather];
+        [cell.windTextField setUserInteractionEnabled:NO];
+        [cell.tempTextField setUserInteractionEnabled:NO];
+        [cell.precipTextField setUserInteractionEnabled:NO];
+        [cell.dailySummaryTextView setUserInteractionEnabled:NO];
+
+        //NSLog(@"report has existing weather for report date: %@ with wind: %@",_report.createdDate, _report.wind);
+        if (_report.weather.length) {
+            [cell.dailySummaryTextView setTextColor:[UIColor darkGrayColor]];
+            [cell.dailySummaryTextView setText:_report.weather];
+        } else {
+            [cell.dailySummaryTextView setTextColor:[UIColor lightGrayColor]];
+            [cell.dailySummaryTextView setText:kWeatherPlaceholder];
+        }
         [cell.tempTextField setText:_report.temp];
         [cell.windTextField setText:_report.wind];
         [cell.precipTextField setText:_report.precip];
@@ -381,19 +387,12 @@ static NSString * const kPickFromList = @"Pick from company list";
             id obj = [_report.personnel objectAtIndex:indexPath.row-1];
             if ([obj isKindOfClass:[BHUser class]]){
                 [cell.personLabel setText:[(BHUser*)obj fullname]];
-                NSLog(@"should be setting person label: %@",[(BHUser*)obj fullname]);
-                [cell.countTextField setText:@"1"];
-                cell.countTextField.userInteractionEnabled = NO;
             } else if ([obj isKindOfClass:[BHSub class]]) {
                 [cell.personLabel setText:[(BHSub*)obj name]];
-                NSLog(@"should be setting person label: %@",[(BHSub*)obj name]);
                 [cell.countTextField setText:[NSString stringWithFormat:@"%@",[(BHSub*)obj count]]];
-                cell.countTextField.userInteractionEnabled = YES;
             }
-            countTextField.delegate = self;
+            
             [cell.removeButton setTag:indexPath.row-1];
-            [cell.countTextField setTag:indexPath.row-1];
-            countTextField = cell.countTextField;
             [cell.removeButton addTarget:self action:@selector(removePersonnel:) forControlEvents:UIControlEventTouchUpInside];
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             return cell;
@@ -419,7 +418,6 @@ static NSString * const kPickFromList = @"Pick from company list";
         [cell configureCell];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell.reportSectionLabel setText:@"General Remarks"];
-        [cell.reportBodyTextView setDelegate:self];
         
         if (_report.body.length) {
             [cell.reportBodyTextView setText:_report.body];
@@ -428,8 +426,8 @@ static NSString * const kPickFromList = @"Pick from company list";
             [cell.reportBodyTextView setText:kReportPlaceholder];
             [cell.reportBodyTextView setTextColor:[UIColor lightGrayColor]];
         }
-        
         reportBodyTextView = cell.reportBodyTextView;
+        reportBodyTextView.delegate = self;
         return cell;
     }
 }
@@ -437,7 +435,7 @@ static NSString * const kPickFromList = @"Pick from company list";
 - (void)pickReport {
     reportActionSheet = [[UIActionSheet alloc] initWithTitle:@"Reports" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
     for (BHReport *report in reports) {
-        [reportActionSheet addButtonWithTitle:report.title];
+        [reportActionSheet addButtonWithTitle:report.createdDate];
     }
     [reportActionSheet addButtonWithTitle:kNewReportPlaceholder];
     reportActionSheet.cancelButtonIndex = [reportActionSheet addButtonWithTitle:@"Cancel"];
@@ -502,10 +500,10 @@ static NSString * const kPickFromList = @"Pick from company list";
 }
 
 -(void)textViewDidBeginEditing:(UITextView *)textView {
-    UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
-    self.navigationItem.rightBarButtonItem = doneButton;
+    NSLog(@"textview began editing");
     [textView becomeFirstResponder];
-    if ([textView.text isEqualToString:kReportPlaceholder]) {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"Done" object:nil];
+    if ([textView.text isEqualToString:kReportPlaceholder] || [textView.text isEqualToString:kWeatherPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor darkGrayColor]];
     }
@@ -519,42 +517,37 @@ static NSString * const kPickFromList = @"Pick from company list";
             [textView setText:kReportPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
-    } else if (textView == weatherTextView) {
-    
+    } else {
+        NSLog(@"textview ended editing");
+        [self doneEditing:textView];
     }
-    [self doneEditing];
 }
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField {
-    UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
+/*- (void)textFieldDidBeginEditing:(UITextField *)textField {
+    NSLog(@"textfield began editing");
     self.navigationItem.rightBarButtonItem = doneButton;
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    self.navigationItem.rightBarButtonItem = nil;
-    if (_report.identifier.length) {
-        self.navigationItem.rightBarButtonItem = saveButton;
-    } else {
-        self.navigationItem.rightBarButtonItem = createButton;
-    }
-    if (textField == countTextField){
+    NSLog(@"textfield tag: %i",textField.tag);
+    
         BHSub *sub = [[BHSub alloc] init];
         sub = [_report.personnel objectAtIndex:textField.tag];
         NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
         [f setNumberStyle:NSNumberFormatterDecimalStyle];
-        NSLog(@"textfield text: %@, tag: %i",textField.text, textField.tag);
         sub.count = [f numberFromString:textField.text];
         [_report.personnel replaceObjectAtIndex:textField.tag withObject:sub];
-    }
-    [self doneEditing];
-}
+        [self doneEditing];
+    
+}*/
 
--(void)doneEditing {
+-(void)doneEditing:(id)obj {
     if (_report.identifier.length){
-        self.navigationItem.rightBarButtonItem = saveButton;
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
     } else {
-        self.navigationItem.rightBarButtonItem = createButton;
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"Create" object:nil];
     }
+    if ([obj isKindOfClass:[UITextView class]]) [obj resignFirstResponder];
     [self.view endEditing:YES];
 }
 
@@ -584,12 +577,12 @@ static NSString * const kPickFromList = @"Pick from company list";
         }
     } else if (actionSheet == reportActionSheet) {
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kNewReportPlaceholder]) {
-            self.navigationItem.rightBarButtonItem = createButton;
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"Create" object:nil];
             [self newReportObject:nil];
         } else {
             for (BHReport *report in reports){
                 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", [reportActionSheet buttonTitleAtIndex:buttonIndex]];
-                if([predicate evaluateWithObject:report.title]) {
+                if([predicate evaluateWithObject:report.createdDate]) {
                     _report = report;
                     break;
                 }
@@ -608,37 +601,26 @@ static NSString * const kPickFromList = @"Pick from company list";
 }
 
 - (void)newReportObject:(NSString*)dateParam {
-    self.navigationItem.rightBarButtonItem = createButton;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"Create" object:nil];
     BHReport *newReport = [[BHReport alloc] init];
     newReport.type = kDaily;
     newReport.personnel = [NSMutableArray array];
     newReport.photos = [NSMutableArray array];
-    newReport.createdDate = newReport.title;
     
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"MM/dd/yyyy"];
     if (dateParam.length){
-        newReport.title = dateParam;
         newReport.createdDate = dateParam;
         [self loadWeather:[formatter dateFromString:dateParam] forReport:newReport];
     } else {
         NSDate *titleDate = [NSDate date];
         newReport.createdAt = titleDate;
-        newReport.title = [formatter stringFromDate:titleDate];
+        newReport.createdDate = [formatter stringFromDate:titleDate];
         [self loadWeather:titleDate forReport:newReport];
     }
     
     [reports addObject:newReport];
-    
-    UITableView *newTableView = [[UITableView alloc] initWithFrame:CGRectMake((screen.size.width * reports.count)-screen.size.width, 0, screen.size.width, screen.size.height) style:UITableViewStylePlain];
-    [newTableView setNeedsLayout];
-    [newTableView setNeedsDisplay];
-    newTableView.delegate = self;
-    newTableView.dataSource = self;
-    [newTableView setContentInset:self.tableView.contentInset];
-    newTableView.autoresizingMask = self.tableView.autoresizingMask;
-    [self.scrollView addSubview:newTableView];
-
+    _report = newReport;
     if (iPad) {
         [self.scrollView setContentSize:CGSizeMake(reports.count*screen.size.width,self.scrollView.frame.size.height-300)];
     } else {
@@ -651,7 +633,7 @@ static NSString * const kPickFromList = @"Pick from company list";
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
             BHSub *sub = [[BHSub alloc] init];
             [sub setName:[[alertView textFieldAtIndex:0] text]];
-            sub.count = [NSNumber numberWithInt:1];
+            sub.count = @"1";
             if (![_report.personnel containsObject:sub]) {
                 [_report.personnel addObject:sub];
                 NSLog(@"just added: %@",sub.name);
@@ -721,7 +703,6 @@ static NSString * const kPickFromList = @"Pick from company list";
 - (void)photoButtonTapped;
 {
     UIActionSheet *actionSheet = nil;
-    //[self doneEditing];
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         actionSheet = [[UIActionSheet alloc] initWithTitle:nil
                                                   delegate:self
@@ -924,21 +905,21 @@ static NSString * const kPickFromList = @"Pick from company list";
 }
 
 -(void)removePhoto {
-    NSLog(@"should be removing photo with id: %i",removePhotoIdx);
-    BHPhoto *photoToRemove = [_report.photos objectAtIndex:removePhotoIdx];
-    if (photoToRemove.identifier.length) {
-        [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success removing photo");
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            
-        }];
+    if ([_report.photos objectAtIndex:removePhotoIdx]){
+        BHPhoto *photoToRemove = [_report.photos objectAtIndex:removePhotoIdx];
+        if (photoToRemove.identifier.length) {
+            [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                NSLog(@"success removing photo");
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                
+            }];
+        }
+        [_report.photos removeObjectAtIndex:removePhotoIdx];
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
     }
-    [_report.photos removeObjectAtIndex:removePhotoIdx];
-    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
 }
 
 - (void)redrawScrollView {
-    NSLog(@"wheres the scrollview: %@",reportScrollView);
     reportScrollView.delegate = self;
     [reportScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     reportScrollView.showsHorizontalScrollIndicator=NO;
@@ -1039,11 +1020,11 @@ static NSString * const kPickFromList = @"Pick from company list";
 
 - (void)willShowKeyboard:(NSNotification *)notification {
     NSDictionary* info = [notification userInfo];
-    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
-    UIEdgeInsets contentInsets;
-    contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height+100, 0.0);
-    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] setContentInset:contentInsets];
-    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] setScrollIndicatorInsets:contentInsets];
+//    CGSize kbSize = [[info objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+//    UIEdgeInsets contentInsets;
+//    contentInsets = UIEdgeInsetsMake(0.0, 0.0, kbSize.height+49, 0.0);
+//    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] setContentInset:contentInsets];
+//    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] setScrollIndicatorInsets:contentInsets];
     [self performSelector:@selector(scrollToAddReport) withObject:nil afterDelay:.25];
 }
 
@@ -1055,20 +1036,19 @@ static NSString * const kPickFromList = @"Pick from company list";
     
 }
 
-- (void)prefill{
+- (void)prefill {
     int currentIdx = [reports indexOfObject:_report];
-    NSLog(@"current report index: %i",-currentIdx+reports.count);
     if (currentIdx != NSNotFound) {
         NSLog(@"current report index: %@",[[reports objectAtIndex:currentIdx-1] createdDate]);
         BHReport *previousReport = [reports objectAtIndex:currentIdx-1];
-        _report.personnel = previousReport.personnel;
+        _report.personnel = [NSMutableArray arrayWithArray:previousReport.personnel];
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
     }
 }
 
 - (void)pickFromList:(id)sender {
     personnelActionSheet = [[UIActionSheet alloc] initWithTitle:@"Personnel" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles: kCompanyUsers,kSubcontractors, kAddOther, nil];
-    [personnelActionSheet showInView:self.view];
+    [personnelActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -1085,14 +1065,13 @@ static NSString * const kPickFromList = @"Pick from company list";
 
 - (void)removePersonnel:(UIButton*)button {
     id object = [_report.personnel objectAtIndex:button.tag];
-    if (_report.identifier.length) {
+    if (_report.identifier.length && object != nil && object != [NSNull null]) {
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         if ([object isKindOfClass:[BHSub class]]){
             [parameters setObject:[(BHSub*)object identifier] forKey:@"sub_id"];
         } else if ([object isKindOfClass:[BHUser class]]) {
             [parameters setObject:[(BHUser*)object identifier] forKey:@"user_id"];
         }
-        
         [parameters setObject:_report.identifier forKey:@"report_id"];
     
         [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -1111,11 +1090,11 @@ static NSString * const kPickFromList = @"Pick from company list";
     [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
     [parameters setObject:project.identifier forKey:@"project_id"];
     if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
-    if (_report.title.length) [parameters setObject:_report.title forKey:@"title"];
+    if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
     if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
     if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
     if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"icon"];
-    if (![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
+    if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
     if (_report.personnel.count) {
         NSMutableArray *subArray = [NSMutableArray array];
         NSMutableArray *userArray = [NSMutableArray array];
@@ -1156,12 +1135,11 @@ static NSString * const kPickFromList = @"Pick from company list";
     }];
 }
 
-
 - (void)saveImage:(BHPhoto*)photo {
     [self saveImageToLibrary:photo.image];
     if (_report.identifier.length){
         NSData *imageData = UIImageJPEGRepresentation(photo.image, 0.5);
-        [manager POST:[NSString stringWithFormat:@"%@/reports/photo",kApiBaseUrl] parameters:@{@"id":_report.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":_report.title, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        [manager POST:[NSString stringWithFormat:@"%@/reports/photo",kApiBaseUrl] parameters:@{@"id":_report.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":_report.createdDate, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success posting image to API: %@",responseObject);
@@ -1191,10 +1169,9 @@ static NSString * const kPickFromList = @"Pick from company list";
     if (_report.temp.length) [parameters setObject:_report.temp forKey:@"temp"];
     if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
     if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
-    if (_report.title.length) [parameters setObject:_report.title forKey:@"title"];
     if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
     if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
-    if (![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
+    if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
 
     if (_report.personnel.count) {
         NSMutableArray *subArray = [NSMutableArray array];
@@ -1231,7 +1208,7 @@ static NSString * const kPickFromList = @"Pick from company list";
                     if (newReport.identifier.length) [photoParameters setObject:newReport.identifier forKey:@"report_id"];
                     [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"photo[user_id]"];
                     if (project.identifier.length) [photoParameters setObject:project.identifier forKey:@"photo[project_id]"];
-                    [photoParameters setObject:newReport.title forKey:@"photo[source]"];
+                    [photoParameters setObject:newReport.createdDate forKey:@"photo[source]"];
                     [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"photo[company_id]"];
                     
                     NSLog(@"photo params: %@",photoParameters);
@@ -1265,7 +1242,7 @@ static NSString * const kPickFromList = @"Pick from company list";
     }];
 }
 
-- (IBAction)showDatePicker{
+- (void)showDatePicker:(UIButton*)button{
     [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         self.datePickerContainer.transform = CGAffineTransformIdentity;
         [self.overlayView setAlpha:0.70];
@@ -1275,7 +1252,7 @@ static NSString * const kPickFromList = @"Pick from company list";
             self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
         
     } completion:^(BOOL finished) {
-        
+
     }];
 }
 
@@ -1284,18 +1261,41 @@ static NSString * const kPickFromList = @"Pick from company list";
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"MM/dd/yyyy"];
     NSString *dateString = [formatter stringFromDate:self.datePicker.date];
-    int reportIdx;
-    for (BHReport *report in reports){
-        if ([report.createdDate isEqualToString:dateString]) {
-            _report = report;
-            reportIdx = [reports indexOfObject:report];
-            [self.scrollView setContentOffset:CGPointMake(0+(screen.size.width*reportIdx), self.scrollView.contentOffset.y) animated:YES];
-            [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
-            return;
+    if (choosingDate) {
+        _report.createdDate = dateString;
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+    } else {
+        int reportIdx;
+        for (BHReport *report in reports){
+            if ([report.createdDate isEqualToString:dateString]) {
+                _report = report;
+                reportIdx = [reports indexOfObject:report];
+                [self.scrollView setContentOffset:CGPointMake(screen.size.width*reportIdx, self.scrollView.contentOffset.y) animated:YES];
+                [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
+                return;
+            }
         }
+        NSLog(@"couldn't find report");
+        [self newReportObject:dateString];
+        int idx = reports.count - 1;
+        UITableView *newTableView = [[UITableView alloc] init];
+        newTableView.delegate = self;
+        newTableView.dataSource = self;
+        newTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
+        [newTableView setFrame:CGRectMake((screen.size.width * idx), 0, self.scrollView.frame.size.width, self.scrollView.frame.size.height)];
+        [newTableView setContentInset:self.tableView.contentInset];
+        newTableView.autoresizingMask = self.tableView.autoresizingMask;
+        [self.scrollView addSubview:newTableView];
+        [self.scrollView setContentOffset:CGPointMake(screen.size.width*idx, self.scrollView.contentOffset.y) animated:YES];
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"Create" object:nil];
     }
-    NSLog(@"couldn't find report");
-    [self newReportObject:dateString];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"Remove" object:nil];
 }
 
 //#pragma mark - CLLocationManagerDelegateMethods

@@ -19,7 +19,7 @@
 @property (nonatomic, strong) NSString *identifier;
 @property (nonatomic, strong) NSString *email;
 @property (nonatomic, strong) NSString *password;
-@property (nonatomic, strong) NSString *phone1;
+@property (nonatomic, strong) NSString *phone;
 @property (nonatomic, strong) NSString *authToken;
 @property (nonatomic, strong) NSArray *deviceTokens;
 @property (nonatomic, strong) NSArray *timestamps;

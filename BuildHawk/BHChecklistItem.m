@@ -39,9 +39,6 @@
         self.comments = [BHUtilities commentsFromJSONArray:value];
     } else if ([key isEqualToString:@"project_id"]) {
         self.projectId = value;
-    } else if ([key isEqualToString:@"critical_date"] && value != [NSNull null]) {
-        //self.dueDate = [BHUtilities parseDate:value];
-        //self.dueDateString = [BHUtilities parseDateReturnString:value];
     }
 }
 

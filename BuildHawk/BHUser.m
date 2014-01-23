@@ -32,8 +32,8 @@ static BHUser *currentUser;
         self.fullname = value;
     } else if ([key isEqualToString:@"authentication_token"]) {
         self.authToken = value;
-    } else if ([key isEqualToString:@"phone1"]) {
-        self.phone1 = value;
+    } else if ([key isEqualToString:@"phone_number"]) {
+        self.phone = value;
     } else if ([key isEqualToString:@"company"]) {
         self.company = [[BHCompany alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"coworkers"]) {
@@ -77,7 +77,7 @@ static BHUser *currentUser;
         self.lname = [decoder decodeObjectForKey:@"lname"];
         self.fullname = [decoder decodeObjectForKey:@"fullname"];
         self.authToken = [decoder decodeObjectForKey:@"authToken"];
-        self.phone1 = [decoder decodeObjectForKey:@"phone1"];
+        self.phone = [decoder decodeObjectForKey:@"phone"];
         self.company = [decoder decodeObjectForKey:@"company"];
         self.coworkers = [decoder decodeObjectForKey:@"coworkers"];
         self.photo = [decoder decodeObjectForKey:@"photo"];
@@ -92,7 +92,7 @@ static BHUser *currentUser;
     [coder encodeObject:self.lname forKey:@"lname"];
     [coder encodeObject:self.fullname forKey:@"fullname"];
     [coder encodeObject:self.authToken forKey:@"authToken"];
-    [coder encodeObject:self.phone1 forKey:@"phone1"];
+    [coder encodeObject:self.phone forKey:@"phone"];
     [coder encodeObject:self.company forKey:@"company"];
     [coder encodeObject:self.coworkers forKey:@"coworkers"];
     [coder encodeObject:self.photo forKey:@"photo"];

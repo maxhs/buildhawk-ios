@@ -13,15 +13,16 @@
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "BHPhotosHeaderView.h"
 
-@interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWPhotoBrowserDelegate> {
+@interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWPhotoBrowserDelegate, UIActionSheetDelegate> {
     BOOL iPad;
     CGRect screen;
     NSMutableArray *sectionArray;
     NSMutableArray *compositePhotos;
     NSMutableArray *browserArray; // for BHPhoto objects
     NSMutableArray *browserPhotos; //for MWPhoto objects
+    UIActionSheet *sortSheet;
 }
-
+-(IBAction)sort;
 @end
 
 @implementation BHPhotosViewController
@@ -47,6 +48,7 @@
     if (!sectionArray) sectionArray = [NSMutableArray array];
     if (!compositePhotos) compositePhotos = [NSMutableArray array];
     if (!browserArray) browserArray = [NSMutableArray array];
+    sortSheet = [[UIActionSheet alloc] initWithTitle:@"Sort" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     } else
@@ -63,6 +65,11 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (IBAction)sort{
+    [sortSheet addButtonWithTitle:@"By User"];
+    [sortSheet showInView:self.view];
 }
 
 #pragma mark - UICollectionView Datasource
@@ -169,8 +176,6 @@
             [headerView configureForTitle:title];
         }
         [headerView setBackgroundColor:[UIColor clearColor]];
-        headerView.layer.borderColor = [UIColor colorWithWhite:1 alpha:.15].CGColor;
-        headerView.layer.borderWidth = .5f;
         return headerView;
     } else {
         UICollectionReusableView *footerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionFooter withReuseIdentifier:@"Footer" forIndexPath:indexPath];

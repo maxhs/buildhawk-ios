@@ -346,11 +346,6 @@ typedef void(^RequestSuccess)(id result);
     [UIView animateWithDuration:.25 animations:^{
         doneButton.alpha = 0.0;
     }];
-    if (iPad) {
-        
-    } else {
-        [self.tableView setContentInset:UIEdgeInsetsMake(64, 0, 49, 0)];
-    }
 }
 
 - (IBAction)photoButtonTapped;
@@ -901,8 +896,8 @@ typedef void(^RequestSuccess)(id result);
             return;
         }
         for (BHUser *user in savedUser.coworkers){
-            if ([user.fullname isEqualToString:buttonTitle] && user.phone1) {
-                [self call:user.phone1];
+            if ([user.fullname isEqualToString:buttonTitle] && user.phone) {
+                [self call:user.phone];
                 return;
             }
         }

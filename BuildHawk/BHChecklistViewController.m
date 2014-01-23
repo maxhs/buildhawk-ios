@@ -37,6 +37,7 @@ typedef void(^RequestSuccess)(id result);
     NSMutableArray *inProgressListItems;
     BOOL iPad;
     BOOL iPhone5;
+    BOOL iOS7;
     CGFloat itemRowHeight;
     CGRect screen;
     id checklistResponse;
@@ -64,10 +65,19 @@ typedef void(^RequestSuccess)(id result);
         tableRect.size.height -= 88;
         [self.treeView setFrame:tableRect];
     }
-    [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 87, 0)];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0){
+        iOS7 = YES;
+        [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 87, 0)];
+    } else {
+        [self.treeView setFrame:CGRectMake(0, 6, screen.size.width, screen.size.height-113)];
+        self.segmentedControl.transform = CGAffineTransformMakeTranslation(0, -8);
+        [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 49, 0)];
+        iOS7 = NO;
+    }
+    
     itemRowHeight = 110;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
-	[self.segmentedControl setTintColor:kDarkGrayColor];
+	if (iOS7)[self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     
     [self.treeView setDelegate:self];
@@ -359,15 +369,15 @@ typedef void(^RequestSuccess)(id result);
         if ([[(BHChecklistItem*)item status] isEqualToString:kCompleted]) {
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
             cell.accessoryView.tintColor = [UIColor whiteColor];
-            [cell setTintColor:[UIColor whiteColor]];
+            if (iOS7)[cell setTintColor:[UIColor whiteColor]];
             [cell.textLabel setTextColor:[UIColor lightGrayColor]];
             [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
             [cell.imageView setAlpha:.5];
         } else if([[(BHChecklistItem*)item status] isEqualToString:kInProgress]) {
-            [cell setTintColor:[UIColor colorWithWhite:1 alpha:.5]];
+            if (iOS7)[cell setTintColor:[UIColor colorWithWhite:1 alpha:.5]];
         } else if([[(BHChecklistItem*)item status] isEqualToString:kNotApplicable]) {
             [cell.imageView setImage:[UIImage imageNamed:@"naImage"]];
-            [cell setTintColor:[UIColor colorWithWhite:1 alpha:.25]];
+            if (iOS7)[cell setTintColor:[UIColor colorWithWhite:1 alpha:.25]];
             [cell.imageView setAlpha:.25];
         }
         

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="4510" systemVersion="13B42" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
     <dependencies>
+        <deployment defaultVersion="1536" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3742"/>
     </dependencies>
     <scenes>
-        <!--Documents View Controller-->
+        <!--Documents View Controller - Documents-->
         <scene sceneID="BZi-7r-xgl">
             <objects>
                 <viewController storyboardIdentifier="Documents" id="Y5j-zz-xxD" customClass="BHDocumentsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="1HK-tZ-Osw">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="x32-vE-Exo">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
@@ -34,14 +35,8 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="MpB-Rh-TCU">
-                        <barButtonItem key="leftBarButtonItem" systemItem="stop" id="Mh0-MI-FVq">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <action selector="backToDashboard" destination="Y5j-zz-xxD" id="6Vt-BD-Ebw"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <tabBarItem key="tabBarItem" title="Documents" image="documents.png" id="Sv1-PG-Wel"/>
+                    <navigationItem key="navigationItem" id="MpB-Rh-TCU"/>
                     <connections>
                         <outlet property="tableView" destination="x32-vE-Exo" id="qQM-Bt-1LX"/>
                         <segue destination="wUF-dK-7Di" kind="push" identifier="ByPhase" id="0zF-UE-phA"/>
@@ -57,7 +52,7 @@
             <objects>
                 <collectionViewController autoresizesArchivedViewToFullSize="NO" id="wUF-dK-7Di" customClass="BHPhotosViewController" sceneMemberID="viewController">
                     <collectionView key="view" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" minimumZoomScale="0.0" maximumZoomScale="0.0" dataMode="prototypes" id="XIe-U0-S5w">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="5" minimumInteritemSpacing="5" id="LP5-tC-Qbn">
                             <size key="itemSize" width="100" height="100"/>
@@ -114,7 +109,13 @@
                             <outlet property="delegate" destination="wUF-dK-7Di" id="A8d-pb-Cd3"/>
                         </connections>
                     </collectionView>
-                    <navigationItem key="navigationItem" id="BwP-hM-0o1"/>
+                    <navigationItem key="navigationItem" id="BwP-hM-0o1">
+                        <barButtonItem key="rightBarButtonItem" systemItem="action" id="jdn-VH-S8m">
+                            <connections>
+                                <action selector="sort" destination="wUF-dK-7Di" id="kGn-gC-ENS"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="collectionView" destination="XIe-U0-S5w" id="gJj-cf-zGQ"/>
                     </connections>
@@ -128,47 +129,39 @@
             <objects>
                 <viewController storyboardIdentifier="Checklist" title="First" id="2" customClass="BHChecklistViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="16">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" id="11w-8t-V8g" customClass="RATreeView">
-                                <rect key="frame" x="0.0" y="68" width="768" height="904"/>
+                            <searchBar contentMode="redraw" translucent="NO" id="b7E-dN-LAd" customClass="BHSearchBar">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="2" id="3eZ-YR-hv3"/>
+                                </connections>
+                            </searchBar>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="s5c-1f-kMS">
+                                <rect key="frame" x="104" y="51" width="560" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
-                                    <searchBar contentMode="redraw" translucent="NO" id="b7E-dN-LAd" customClass="BHSearchBar">
-                                        <rect key="frame" x="0.0" y="-6" width="768" height="44"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                        <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                        <textInputTraits key="textInputTraits"/>
-                                        <connections>
-                                            <outlet property="delegate" destination="2" id="3eZ-YR-hv3"/>
-                                        </connections>
-                                    </searchBar>
-                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="s5c-1f-kMS">
-                                        <rect key="frame" x="104" y="36" width="560" height="29"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <segments>
-                                            <segment title="All"/>
-                                            <segment title="Active"/>
-                                            <segment title="In Progress"/>
-                                            <segment title="Complete"/>
-                                        </segments>
-                                        <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                    </segmentedControl>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                                <segments>
+                                    <segment title="All"/>
+                                    <segment title="Active"/>
+                                    <segment title="In Progress"/>
+                                    <segment title="Complete"/>
+                                </segments>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </segmentedControl>
+                            <view contentMode="scaleToFill" id="11w-8t-V8g" customClass="RATreeView">
+                                <rect key="frame" x="0.0" y="40" width="768" height="878"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="Rux-qp-1co">
-                        <barButtonItem key="leftBarButtonItem" systemItem="stop" id="OG8-vI-yb9">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <action selector="backToDashboard" destination="2" id="MUj-2X-UPg"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <tabBarItem key="tabBarItem" title="Checklists" image="checklists.png" id="68I-cF-rdO"/>
+                    <navigationItem key="navigationItem" id="Rux-qp-1co"/>
                     <connections>
                         <outlet property="searchDisplayController" destination="e6o-tx-7c6" id="g3A-Fs-ovy"/>
                         <outlet property="segmentedControl" destination="s5c-1f-kMS" id="uTV-cH-jvo"/>
@@ -190,51 +183,41 @@
             </objects>
             <point key="canvasLocation" x="2406" y="112"/>
         </scene>
-        <!--Punchlist View Controller-->
+        <!--Punchlist View Controller - Worklists-->
         <scene sceneID="W43-GP-5XY">
             <objects>
                 <viewController storyboardIdentifier="Punchlists" id="r0E-CY-Oux" customClass="BHPunchlistViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="kLe-aJ-dPq">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="m4i-vh-i8d">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <view key="tableFooterView" contentMode="scaleToFill" id="ZPp-do-cke">
-                                    <rect key="frame" x="0.0" y="64" width="768" height="56"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    <subviews>
-                                        <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="7ee-9b-fVh">
-                                            <rect key="frame" x="104" y="19" width="560" height="29"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <segments>
-                                                <segment title="Active"/>
-                                                <segment title="Location"/>
-                                                <segment title="Assignee"/>
-                                                <segment title="Completed"/>
-                                            </segments>
-                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                        </segmentedControl>
-                                    </subviews>
-                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                                </view>
+                                <inset key="contentInset" minX="0.0" minY="40" maxX="0.0" maxY="0.0"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="10" maxX="0.0" maxY="0.0"/>
                                 <connections>
                                     <outlet property="dataSource" destination="r0E-CY-Oux" id="aFn-uu-Q0j"/>
                                     <outlet property="delegate" destination="r0E-CY-Oux" id="OqD-92-f80"/>
                                 </connections>
                             </tableView>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="7ee-9b-fVh">
+                                <rect key="frame" x="44" y="10" width="680" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                <segments>
+                                    <segment title="Active"/>
+                                    <segment title="Location"/>
+                                    <segment title="Assignee"/>
+                                    <segment title="Completed"/>
+                                </segments>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
+                    <tabBarItem key="tabBarItem" title="Worklists" image="punchlists.png" id="bJS-yW-2VK"/>
                     <navigationItem key="navigationItem" id="svI-4B-3Ur">
-                        <barButtonItem key="leftBarButtonItem" systemItem="stop" id="EGF-ty-f6b">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <action selector="backToDashboard" destination="r0E-CY-Oux" id="iUG-qv-RFg"/>
-                            </connections>
-                        </barButtonItem>
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="oNk-jV-T3r">
                             <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
@@ -243,7 +226,6 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="segmentContainerView" destination="ZPp-do-cke" id="39T-6H-uVe"/>
                         <outlet property="segmentedControl" destination="7ee-9b-fVh" id="aoI-Mn-6M4"/>
                         <outlet property="tableView" destination="m4i-vh-i8d" id="qAh-fi-1sD"/>
                         <segue destination="qOL-i6-UJU" kind="push" identifier="PunchlistItem" id="eZr-X3-mJS"/>
@@ -258,16 +240,16 @@
             <objects>
                 <viewController storyboardIdentifier="PunchlistItem" id="qOL-i6-UJU" customClass="BHPunchlistItemViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="VkX-Qb-T3A">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" allowsSelection="NO" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="1Lr-cs-ex4">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="52"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="v94-GW-Bch">
-                                    <rect key="frame" x="0.0" y="64" width="768" height="588"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="768" height="588"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     <subviews>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Worklist item..." id="ozM-yr-VWl">
@@ -413,15 +395,15 @@
             <objects>
                 <viewController storyboardIdentifier="Reports" title="Reports" id="3" customClass="BHReportsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="17">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="DvU-aj-8ES">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" heightSizable="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="LzY-6V-uE2">
-                                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="LzY-6V-uE2">
+                                        <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="340"/>
@@ -436,12 +418,12 @@
                                 </connections>
                             </scrollView>
                             <view alpha="0.0" contentMode="scaleToFill" id="pba-Qr-gW3">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                             <view contentMode="scaleToFill" id="Git-ZO-up8">
-                                <rect key="frame" x="0.0" y="814" width="768" height="210"/>
+                                <rect key="frame" x="0.0" y="750" width="768" height="210"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                                 <subviews>
                                     <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" minuteInterval="1" id="Qju-Rf-WaN">
@@ -502,14 +484,8 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="BTQ-xq-3Y3">
-                        <barButtonItem key="leftBarButtonItem" systemItem="stop" id="Vp6-jK-45Z">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <action selector="backToDashboard" destination="3" id="YcE-hH-aMH"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="uxM-Tr-aoB"/>
+                    <navigationItem key="navigationItem" id="BTQ-xq-3Y3"/>
                     <connections>
                         <outlet property="cancelButton" destination="AcK-zI-l2C" id="TyY-eS-EAg"/>
                         <outlet property="datePicker" destination="Qju-Rf-WaN" id="RZG-wQ-6Uw"/>
@@ -524,7 +500,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="12" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1730" y="1301"/>
+            <point key="canvasLocation" x="2406" y="1275"/>
         </scene>
         <!--Login View Controller-->
         <scene sceneID="P26-3v-PZe">
@@ -621,7 +597,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <tableViewController storyboardIdentifier="DashboardRevealed" id="aNp-Zh-jY7" customClass="BHDashboardDetailViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="OIE-JA-OV6">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
@@ -691,7 +667,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </tableView>
                     <navigationItem key="navigationItem" id="Pnd-SY-B5f"/>
                     <connections>
-                        <segue destination="4" kind="modal" identifier="Project" id="Cv8-k3-7jn"/>
+                        <segue destination="4" kind="push" identifier="Project" id="Cv8-k3-7jn"/>
                         <segue destination="Afz-sP-qEO" kind="push" identifier="ChecklistItem" id="tY6-jf-jEH"/>
                         <segue destination="qOL-i6-UJU" kind="push" identifier="PunchlistItem" id="Aym-Jz-3Mj"/>
                     </connections>
@@ -713,16 +689,16 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             </objects>
             <point key="canvasLocation" x="-2348" y="-260"/>
         </scene>
-        <!--Dashboard View Controller - Dashboard-->
+        <!--Dashboard View Controller-->
         <scene sceneID="oVg-z0-F9n">
             <objects>
                 <viewController storyboardIdentifier="Dashboard" id="hei-1C-lSF" customClass="BHDashboardViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Jvu-K6-e21">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MSS-Fp-KsI">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="950"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="886"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -764,7 +740,8 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Dashboard" id="Owu-gA-B31">
+                    <navigationItem key="navigationItem" id="Owu-gA-B31">
+                        <barButtonItem key="backBarButtonItem" title="Projects" id="vib-mR-Fj4"/>
                         <barButtonItem key="leftBarButtonItem" image="menu.png" id="4Df-GJ-DQf">
                             <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
@@ -779,7 +756,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <outlet property="searchDisplayController" destination="cXD-0W-g83" id="mfr-yT-hcs"/>
                         <outlet property="tableView" destination="MSS-Fp-KsI" id="ohO-eF-Fm9"/>
                         <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardRevealed" id="vI7-Ml-H9J"/>
-                        <segue destination="4" kind="modal" identifier="Project" id="Vim-B7-ekZ"/>
+                        <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -897,22 +874,23 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </tabBar>
                     <connections>
-                        <segue destination="Zoq-VM-3DD" kind="relationship" relationship="viewControllers" id="26"/>
-                        <segue destination="9IM-hO-BsC" kind="relationship" relationship="viewControllers" id="sWe-GH-JoX"/>
-                        <segue destination="CKI-vk-JwW" kind="relationship" relationship="viewControllers" id="54w-KA-HTy"/>
-                        <segue destination="Whi-nK-5Wd" kind="relationship" relationship="viewControllers" id="Vql-iS-oHL"/>
+                        <segue destination="2" kind="relationship" relationship="viewControllers" id="uVp-7o-u4X"/>
+                        <segue destination="Y5j-zz-xxD" kind="relationship" relationship="viewControllers" id="XdC-lm-s70"/>
+                        <segue destination="3" kind="relationship" relationship="viewControllers" id="lkf-TU-56H"/>
+                        <segue destination="r0E-CY-Oux" kind="relationship" relationship="viewControllers" id="yf3-Df-bg8"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="14" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="391" y="24"/>
+            <point key="canvasLocation" x="475" y="-260"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="4rq-ev-GeD">
             <objects>
                 <navigationController id="VAS-mI-M3A" sceneMemberID="viewController">
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="ARr-xb-kzu">
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" translucent="NO" prompted="NO"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="ARr-xb-kzu">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
@@ -925,97 +903,21 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             </objects>
             <point key="canvasLocation" x="-1399" y="-260"/>
         </scene>
-        <!--Checklist Navigation Controller - Checklists-->
-        <scene sceneID="bUW-aQ-hRm">
-            <objects>
-                <navigationController storyboardIdentifier="ChecklistNavigation" id="Zoq-VM-3DD" customClass="BHChecklistNavigationController" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Checklists" image="checklists.png" id="7"/>
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="usm-r8-eDY">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="2" kind="relationship" relationship="rootViewController" id="3kB-LQ-Xjd"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="rEg-Fs-jxa" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1508" y="112"/>
-        </scene>
-        <!--Navigation Controller - Documents-->
-        <scene sceneID="5td-SE-DIc">
-            <objects>
-                <navigationController id="9IM-hO-BsC" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Documents" image="documents.png" id="oPd-oM-9uE"/>
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="5S2-kd-F6q">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="Y5j-zz-xxD" kind="relationship" relationship="rootViewController" id="xoQ-0a-SXf"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Pfk-zU-EQs" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1444" y="-1432"/>
-        </scene>
-        <!--Navigation Controller - Reports-->
-        <scene sceneID="Ywd-4m-0GB">
-            <objects>
-                <navigationController id="CKI-vk-JwW" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="6"/>
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="7Iu-Xh-icS">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="3" kind="relationship" relationship="rootViewController" id="S9j-Qm-pPe"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="9iX-cM-mnS" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="820" y="1301"/>
-        </scene>
-        <!--Navigation Controller - Worklist-->
-        <scene sceneID="lSo-Uf-b6J">
-            <objects>
-                <navigationController id="Whi-nK-5Wd" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Worklist" image="punchlists.png" id="GXT-fp-UKz"/>
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="Tak-GK-ghV">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="r0E-CY-Oux" kind="relationship" relationship="rootViewController" id="r7q-v5-fCA"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="kaS-4v-1fk" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="2676" y="1292"/>
-        </scene>
         <!--Category Checklist View Controller - First-->
         <scene sceneID="rtG-T4-uH6">
             <objects>
                 <viewController storyboardIdentifier="Subcategories" title="First" id="G8i-Sf-6mf" customClass="BHCategoryChecklistViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="GIm-ue-wji">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="zOi-0y-520">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="974"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="910"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="gray" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="CategoryCell" id="794-3l-GLl">
-                                        <rect key="frame" x="0.0" y="86" width="768" height="44"/>
+                                        <rect key="frame" x="0.0" y="22" width="768" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="794-3l-GLl" id="PLc-aq-YIY">
                                             <rect key="frame" x="0.0" y="0.0" width="768" height="43"/>
@@ -1055,12 +957,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <tableViewController storyboardIdentifier="SubcategoryChecklist" id="a1I-W4-l9r" customClass="BHSubcategoryChecklistViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="rlj-jo-kub">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
                             <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="FCd-Ee-aQY">
-                                <rect key="frame" x="0.0" y="86" width="768" height="44"/>
+                                <rect key="frame" x="0.0" y="22" width="768" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="FCd-Ee-aQY" id="f72-c2-Uko">
                                     <rect key="frame" x="0.0" y="0.0" width="768" height="43"/>
@@ -1084,11 +986,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="PeoplePicker" id="XFP-TZ-PCg" customClass="BHPeoplePickerViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="pIX-ZI-BfP">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="EEF-HI-3KG">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
@@ -1143,11 +1045,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="ChecklistItem" id="Afz-sP-qEO" customClass="BHChecklistItemViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="ePX-4f-06Q">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="44" sectionHeaderHeight="10" sectionFooterHeight="10" id="ebQ-g2-KCG">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
                                 <prototypes>
@@ -1202,9 +1104,9 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
     <inferredMetricsTieBreakers>
         <segue reference="Vim-B7-ekZ"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="tY6-jf-jEH"/>
+        <segue reference="b6Y-cM-cBh"/>
         <segue reference="Lue-dQ-dtC"/>
         <segue reference="eZr-X3-mJS"/>
-        <segue reference="bd7-Rv-hQV"/>
+        <segue reference="BC4-fv-9Fr"/>
     </inferredMetricsTieBreakers>
 </document>

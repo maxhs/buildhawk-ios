@@ -75,11 +75,13 @@
             [personnel addObject:user];
         } else if ([dict objectForKey:@"sub"]) {
             BHSub *sub = [[BHSub alloc] initWithDictionary:[dict objectForKey:@"sub"]];
-            if ([dict objectForKey:@"count"]) [sub setCount:[dict objectForKey:@"count"]];
+            if ([dict objectForKey:@"count"]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
+            if ([dict objectForKey:@"id"]) [sub setReportSubId:[dict objectForKey:@"id"]];
             [personnel addObject:sub];
         } else if ([dict objectForKey:@"count"]) {
             BHSub *sub = [[BHSub alloc] initWithDictionary:dict];
-            if ([dict objectForKey:@"count"]) [sub setCount:[dict objectForKey:@"count"]];
+            if ([dict objectForKey:@"count"]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
+            
             [personnel addObject:sub];
         }
     }
@@ -141,6 +143,22 @@
     [stringFormatter setDateStyle:NSDateFormatterShortStyle];
     [stringFormatter setTimeStyle:NSDateFormatterShortStyle];
     return [stringFormatter stringFromDate:theDate];
+}
+
++ (BOOL)isIpad {
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
++ (BOOL)isIPhone5{
+    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        return YES;
+    } else {
+        return NO;
+    }
 }
 
 @end

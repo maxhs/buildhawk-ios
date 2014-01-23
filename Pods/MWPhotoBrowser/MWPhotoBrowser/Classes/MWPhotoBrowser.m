@@ -11,7 +11,7 @@
 #import "MWPhotoBrowser.h"
 #import "MWPhotoBrowserPrivate.h"
 #import "SDImageCache.h"
-#import <TUSafariActivity/TUSafariActivity.h>
+#import "BHSafariActivity.h"
 
 #define PADDING                  10
 #define ACTION_SHEET_OLD_ACTIONS 2000
@@ -1423,7 +1423,7 @@
                     
                 } else {
                     
-                    TUSafariActivity *activity = [[TUSafariActivity alloc] init];
+                    BHSafariActivity *activity = [[BHSafariActivity alloc] init];
                     /*NSMutableArray *items = [NSMutableArray arrayWithObject:[photo underlyingImage]];
                     if (photo.caption) {
                         [items addObject:photo.caption];
@@ -1578,7 +1578,7 @@
         if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
             emailer.modalPresentationStyle = UIModalPresentationPageSheet;
         }
-        [self presentModalViewController:emailer animated:YES];
+        [self presentViewController:emailer animated:YES completion:nil];
         [self hideProgressHUD:NO];
     }
 }

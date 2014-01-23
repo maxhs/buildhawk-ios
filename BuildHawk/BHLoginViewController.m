@@ -109,7 +109,7 @@
             saveUser.subcontractors = user.subcontractors;
             NSLog(@"save user has subcontractors: %i, %@",user.subcontractors.count, saveUser.subcontractors);
             saveUser.photoUrl100 = user.photo.url100;
-            saveUser.phone1 = user.phone1;
+            saveUser.phone = user.phone;
             
             [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 if (success) NSLog(@"done saving user through Magical Record");
@@ -137,7 +137,7 @@
             newUser.subcontractors = user.subcontractors;
             NSLog(@"new user has subcontractors: %i, %@",user.subcontractors.count, saveUser.subcontractors);
             newUser.photoUrl100 = user.photo.url100;
-            newUser.phone1 = user.phone1;
+            newUser.phone = user.phone;
             [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 if (success) NSLog(@"done saving user through Magical Record");
                 else NSLog(@"error saving through MR: %@",error.description);

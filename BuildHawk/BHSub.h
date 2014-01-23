@@ -12,9 +12,10 @@
 
 @property (strong, nonatomic) NSString *identifier;
 @property (strong, nonatomic) NSString *name;
-@property (strong, nonatomic) NSString *phoneNumber;
+@property (strong, nonatomic) NSString *phone;
 @property (strong, nonatomic) NSString *email;
-@property (strong, nonatomic) NSNumber *count;
+@property (strong, nonatomic) NSString *count;
+@property (strong, nonatomic) NSNumber *reportSubId;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 @end

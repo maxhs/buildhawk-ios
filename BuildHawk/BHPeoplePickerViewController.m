@@ -13,9 +13,11 @@
 #import "BHPunchlistItemViewController.h"
 #import "BHChecklistItemViewController.h"
 
-@interface BHPeoplePickerViewController () {
+@interface BHPeoplePickerViewController () <UIAlertViewDelegate> {
     NSMutableArray *filteredUsers;
     NSMutableArray *filteredSubs;
+    UIAlertView *subAlertView;
+    NSIndexPath *selectedIndexPath;
 }
 
 @end
@@ -84,31 +86,51 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    if (self.userArray.count) {
+        [self selectUser:indexPath andCount:@"1"];
+    } else if (self.subArray.count) {
+        selectedIndexPath = indexPath;
+        subAlertView = [[UIAlertView alloc] initWithTitle:@"# of Subcontractor Personnel" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+        subAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [[subAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeNumberPad];
+        [subAlertView show];
+    }
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
+        [self selectUser:nil andCount:[[subAlertView textFieldAtIndex:0] text]];
+    }
+}
+
+- (void)selectUser:(NSIndexPath*)indexPath andCount:(NSString*)count {
     BHUser *user;
     BHSub *sub;
     if (self.userArray.count){
         user = [self.userArray objectAtIndex:indexPath.row];
         [self addPersonnel:user];
     } else if (self.subArray.count){
-        sub = [self.subArray objectAtIndex:indexPath.row];
-        sub.count = [NSNumber numberWithInt:1];
+        sub = [self.subArray objectAtIndex:selectedIndexPath.row];
+        sub.count = count;
         [self addPersonnel:sub];
     }
     id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
     NSDictionary *userInfo;
     if (self.phone) {
-        if (sub.phoneNumber){
-            userInfo = @{@"number":sub.phoneNumber};
-        } else if (user.phone1) {
-            userInfo = @{@"number":user.phone1};
+        if (sub.phone){
+            userInfo = @{@"number":sub.phone};
+        } else if (user.phone) {
+            userInfo = @{@"number":user.phone};
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:@"PlaceCall" object:nil userInfo:userInfo];
     } else if (self.email) {
         if (sub.email){
-            NSLog(@"sub.email: %@",sub.email);
             userInfo = @{@"email":sub.email};
         } else if (user.email) {
-            NSLog(@"user.email: %@",user.email);
             userInfo = @{@"email":user.email};
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:@"SendEmail" object:nil userInfo:userInfo];
@@ -122,8 +144,6 @@
         userInfo = @{kpersonnel:self.personnelArray};
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil userInfo:userInfo];
     }
-    
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
     [self.navigationController popViewControllerAnimated:YES];
 }
 

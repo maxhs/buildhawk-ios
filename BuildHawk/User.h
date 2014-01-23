@@ -21,7 +21,7 @@
 @property (nonatomic, retain) NSString * fname;
 @property (nonatomic, retain) NSString * fullname;
 @property (nonatomic, retain) NSString * lname;
-@property (nonatomic, retain) NSString * phone1;
+@property (nonatomic, retain) NSString * phone;
 @property (nonatomic, retain) NSString * photoUrl100;
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) id bhprojects;

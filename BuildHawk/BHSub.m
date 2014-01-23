@@ -14,9 +14,9 @@
     if ([key isEqualToString:@"id"]) {
         self.identifier = [value stringValue];
     } else if ([key isEqualToString:@"count"]) {
-        self.count = value;
+        self.count = [value stringValue];
     } else if ([key isEqualToString:@"phone_number"]) {
-        self.phoneNumber = value;
+        self.phone = value;
     } else if ([key isEqualToString:@"email"]) {
         self.email = value;
     } else if ([key isEqualToString:@"name"]) {

@@ -27,7 +27,7 @@
         <attribute name="fullname" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="lname" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="phone1" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="phone" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="photoUrl100" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="subcontractors" optional="YES" attributeType="Transformable" syncable="YES"/>
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="users" inverseEntity="Company" syncable="YES"/>

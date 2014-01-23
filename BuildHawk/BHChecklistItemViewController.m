@@ -69,6 +69,7 @@
     } else {
         project = [[BHProject alloc] init];
         project.identifier = _item.projectId;
+        NSLog(@"project.identifier: %@",project.identifier);
     }
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
@@ -95,7 +96,7 @@
 
 - (void)loadItem{
     [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
+        //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
         [_item setComments:[BHUtilities commentsFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"comments"]]];
         [_item setPhotos:[BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]]];
         [_item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
@@ -290,7 +291,7 @@
         [self.tableView reloadData];
         NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
         [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success creating a comment: %@",responseObject);
+            
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"failure creating a comment: %@",error.description);
         }];
@@ -345,7 +346,6 @@
 }
 
 - (void)placeCall:(NSNotification*)notification {
-    NSLog(@"call notification: %@",notification.userInfo);
     NSString *number = [notification.userInfo objectForKey:@"number"];
     if (number != nil && number.length){
         NSString *phoneNumber = [@"tel://" stringByAppendingString:number];
@@ -362,7 +362,6 @@
 #pragma mark - MFMailComposeViewControllerDelegate Methods
 
 - (void)sendMail:(NSNotification*)notification {
-    NSLog(@"email notification: %@",notification.userInfo);
     NSString *destinationEmail = [notification.userInfo objectForKey:@"email"];
     if (destinationEmail && destinationEmail.length){
         if ([MFMailComposeViewController canSendMail]) {
@@ -389,10 +388,8 @@
 }
 
 - (void)sendText {
-    NSLog(@"Should be sending a text");
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
     if ([MFMessageComposeViewController canSendText]){
-        NSLog(@"This device can send texts");
         viewController.messageComposeDelegate = self;
         [viewController setRecipients:nil];
         [self presentViewController:viewController animated:YES completion:^{
@@ -621,17 +618,19 @@
 }
 
 -(void)removePhoto {
-    NSLog(@"should be removing photo with id: %i",removePhotoIdx);
-    BHPhoto *photoToRemove = [_item.photos objectAtIndex:removePhotoIdx];
-    if (photoToRemove.identifier.length) {
-        [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success removing photo");
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            
-        }];
+    //check to make sure the index falls within the bounds of the array
+    if (removePhotoIdx <= _item.photos.count-1){
+        BHPhoto *photoToRemove = [_item.photos objectAtIndex:removePhotoIdx];
+        if (photoToRemove.identifier.length) {
+            [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                NSLog(@"success removing photo");
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                
+            }];
+        }
+        [_item.photos removeObjectAtIndex:removePhotoIdx];
+        [self redrawScrollView:takePhotoButton];
     }
-    [_item.photos removeObjectAtIndex:removePhotoIdx];
-    [self redrawScrollView:takePhotoButton];
 }
 
 - (void)saveImage:(UIImage*)image {

@@ -39,6 +39,7 @@
     BOOL showActive;
     BOOL showByLocation;
     BOOL showByAssignee;
+    BOOL iOS7;
     User *savedUser;
     NSMutableArray *personnel;
 }
@@ -52,13 +53,17 @@
     [super viewDidLoad];
     project =[(BHTabBarViewController*)self.tabBarController project];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Worklists",project.name];
-    self.tableView.tableHeaderView = self.segmentContainerView;
     if (!listItems) listItems = [NSMutableArray array];
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0){
+        iOS7 = YES;
+    } else {
+        iOS7 = NO;
+    }
     [self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    
+    //[self.tableView setTableHeaderView:self.segmentedControl];
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     if (!completedListItems) completedListItems = [NSMutableArray array];
     if (!activeListItems) activeListItems = [NSMutableArray array];
@@ -83,9 +88,6 @@
     [super viewWillAppear:animated];
     [SVProgressHUD showWithStatus:@"Getting Worklist..."];
     [self loadPunchlist];
-    //[self.segmentedControl setSelectedSegmentIndex:0];
-    //showActive = YES;
-    //[self filterActive];
 }
 
 - (void)didReceiveMemoryWarning

@@ -189,7 +189,6 @@
             CGRect frame = cell.frame;
             frame.size.width = screen.size.width;
             [cell setFrame:frame];
-            NSLog(@"cell: %@",cell);
             if (!documentsScrollView) {
                 documentsScrollView = [[UIScrollView alloc] initWithFrame:cell.frame];
                 [cell addSubview:documentsScrollView];

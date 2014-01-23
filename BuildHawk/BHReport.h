@@ -15,7 +15,6 @@
 
 @property (nonatomic, strong) NSString *identifier;
 @property (nonatomic, strong) NSString *type;
-@property (nonatomic, strong) NSString *title;
 @property (nonatomic, strong) NSString *body;
 @property (nonatomic, strong) NSString *createdDate;
 @property (nonatomic, strong) NSString *weather;

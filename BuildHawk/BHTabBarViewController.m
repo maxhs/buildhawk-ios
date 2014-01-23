@@ -13,7 +13,9 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 
 @interface BHTabBarViewController () {
-    UIBarButtonItem *backButton;
+    UIBarButtonItem *saveButton;
+    UIBarButtonItem *createButton;
+    UIBarButtonItem *doneButton;
 }
 
 @end
@@ -34,10 +36,42 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    //self.title = self.project.name;
     //[self loadproject];
     self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
+    saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(saveReport)];
+    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
+    doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showCreate) name:@"Create" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showSave) name:@"Save" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showDone) name:@"Done" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(remove) name:@"Remove" object:nil];
 }
 
+- (void) showCreate{
+    self.navigationItem.rightBarButtonItem = createButton;
+}
+- (void) showSave{
+    self.navigationItem.rightBarButtonItem = saveButton;
+}
+- (void) showDone{
+    self.navigationItem.rightBarButtonItem = doneButton;
+}
+- (void) remove {
+    self.navigationItem.rightBarButtonItem = nil;
+}
+
+- (void)createNewReport {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CreateReport" object:nil];
+}
+
+- (void)saveReport {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"SaveReport" object:nil];
+}
+
+- (void) doneEditing {
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"DoneEditing" object:nil];
+}
 
 - (void)loadproject {
     [SVProgressHUD showWithStatus:@"Fetching project..."];

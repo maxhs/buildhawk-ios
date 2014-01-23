@@ -22,7 +22,7 @@
 @dynamic fname;
 @dynamic fullname;
 @dynamic lname;
-@dynamic phone1;
+@dynamic phone;
 @dynamic photoUrl100;
 @dynamic company;
 @dynamic projects;

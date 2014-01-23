@@ -90,19 +90,14 @@
 
 - (void)loadDetailView {
     for (BHProject *proj in projects){
-        /*if (!recentChecklistItems) recentChecklistItems = [NSMutableArray array];
-        if (!recentDocuments) recentDocuments = [NSMutableArray array];
-        if (!recentlyCompletedWorklistItems) recentlyCompletedWorklistItems = [NSMutableArray array];
-        if (!notifications) notifications = [NSMutableArray array];
-        if (!upcomingChecklistItems) upcomingChecklistItems = [NSMutableArray array];*/
         [categories removeAllObjects];
         [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting dashboard detail view: %@",[responseObject objectForKey:@"project"]);
+            //NSLog(@"Success getting dashboard detail view: %@",[responseObject objectForKey:@"project"]);
             categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
             [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
             
             if (dashboardDetailDict.count == projects.count) {
-                NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
+                //NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
                 [self.tableView reloadData];
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

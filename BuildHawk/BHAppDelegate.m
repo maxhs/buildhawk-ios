@@ -54,16 +54,16 @@
         [self.window setTintColor:[UIColor whiteColor]];
         [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
     }
-    
+    UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:15],
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
-    UIImage *empty = [UIImage imageNamed:@"empty"];
     
-    [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    
+    //[[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
+                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:13],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
     

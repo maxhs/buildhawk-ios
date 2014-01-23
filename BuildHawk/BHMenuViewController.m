@@ -92,8 +92,8 @@
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
         BHUser *coworker = [user.coworkers objectAtIndex:indexPath.row];
         [cell.textLabel setText:coworker.fullname];
-        if (coworker.phone1) {
-            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.phone1, coworker.email]];
+        if (coworker.phone) {
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.phone, coworker.email]];
         } else {
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@", coworker.email]];
         }
@@ -172,7 +172,7 @@
 {
     if (indexPath.section == 1) {
         selectedCoworker = [user.coworkers objectAtIndex:indexPath.row];
-        if (selectedCoworker.phone1) {
+        if (selectedCoworker.phone) {
             [[[UIActionSheet alloc] initWithTitle:@"Contact" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname],[NSString stringWithFormat:@"Call %@",selectedCoworker.fullname], @"Send a text", nil] showInView:self.tableView];
         } else {
             [[[UIActionSheet alloc] initWithTitle:@"Contact" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname], nil] showInView:self.tableView];
@@ -193,7 +193,7 @@
 }
 
 - (void)placeCall {
-    NSString *phoneNumber = [@"tel://" stringByAppendingString:selectedCoworker.phone1];
+    NSString *phoneNumber = [@"tel://" stringByAppendingString:selectedCoworker.phone];
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneNumber]];
 }
 
