@@ -14,6 +14,5 @@
 @interface BHChecklistViewController : GAITrackedViewController
 @property (weak, nonatomic) IBOutlet RATreeView *treeView;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
-@property (strong, nonatomic) NSString *projectId;
 @property int scrollToCategoryRow;
 @end

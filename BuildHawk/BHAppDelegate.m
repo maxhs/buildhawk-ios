@@ -60,10 +60,9 @@
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     
-    
-    //[[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
+    [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:13],
+                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
     
@@ -85,10 +84,6 @@
     [[UITabBar appearance] setTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
-    
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
-        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-    }
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

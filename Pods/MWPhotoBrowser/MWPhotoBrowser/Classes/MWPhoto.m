@@ -29,6 +29,7 @@
 
 @synthesize underlyingImage = _underlyingImage; // synth property from protocol
 @synthesize originalURL = _originalURL;
+@synthesize photoId = _photoId;
 
 #pragma mark - Class Methods
 

@@ -22,9 +22,10 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
+#import <WSAssetPickerController/WSAssetPicker.h>
 #import "BHPeoplePickerViewController.h"
 
-@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
+@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, WSAssetPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
     BOOL complete;
     BOOL emailBool;
@@ -36,7 +37,6 @@
     UIEdgeInsets tableViewInset;
     UIActionSheet *callActionSheet;
     UIActionSheet *emailActionSheet;
-    BHProject *project;
     AFHTTPRequestOperationManager *manager;
     UIScrollView *photoScrollView;
     NSDateFormatter *commentFormatter;
@@ -45,6 +45,7 @@
     UIButton *takePhotoButton;
     NSMutableArray *browserPhotos;
     BOOL iPad;
+    ALAssetsLibrary *library;
 }
 - (IBAction)updateChecklistItem;
 @end
@@ -54,6 +55,7 @@
 @synthesize item = _item;
 @synthesize row = _row;
 @synthesize savedUser = _savedUser;
+@synthesize projectId = _projectId;
 
 - (void)viewDidLoad
 {
@@ -64,18 +66,13 @@
     tableViewInset = self.tableView.contentInset;
     tableViewInset.top += 64;
     self.tableView.backgroundColor = kLightestGrayColor;
-    if ([(BHTabBarViewController*)self.tabBarController project]){
-        project = [(BHTabBarViewController*)self.tabBarController project];
-    } else {
-        project = [[BHProject alloc] init];
-        project.identifier = _item.projectId;
-        NSLog(@"project.identifier: %@",project.identifier);
-    }
+
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     } else {
         iPad = NO;
     }
+    library = [[ALAssetsLibrary alloc]init];
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
@@ -86,6 +83,7 @@
     [self loadItem];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -318,7 +316,7 @@
     [callActionSheet addButtonWithTitle:kCompanyUsers];
     [callActionSheet addButtonWithTitle:kSubcontractors];
     callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
-    [callActionSheet showFromTabBar:self.tabBarController.tabBar];
+    [callActionSheet showInView:self.view];
 }
 
 - (void)emailAction {
@@ -328,7 +326,7 @@
     [emailActionSheet addButtonWithTitle:kCompanyUsers];
     [emailActionSheet addButtonWithTitle:kSubcontractors];
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
-    [emailActionSheet showFromTabBar:self.tabBarController.tabBar];
+    [emailActionSheet showInView:self.view];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -436,19 +434,8 @@
 
 - (void)existingPhotoButtonTapped:(UIButton*)button;
 {
-    UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil
-                                                  delegate:self
-                                         cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:@"Remove"
-                                         otherButtonTitles:@"Photo Gallery", nil];
-    [actionSheet showInView:self.view];
+    [self showPhotoDetail:button.tag];
     removePhotoIdx = button.tag;
-}
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]) {
-        [self removePhoto];
-    }
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
@@ -477,18 +464,15 @@
 }
 
 - (void)choosePhoto {
-    UIImagePickerController *vc = [[UIImagePickerController alloc] init];
-    [vc setSourceType:UIImagePickerControllerSourceTypePhotoLibrary];
-    [vc setDelegate:self];
-    //[vc setAllowsEditing:YES];
-    [self presentViewController:vc animated:YES completion:nil];
+    WSAssetPickerController *controller = [[WSAssetPickerController alloc] initWithAssetsLibrary:library];
+    controller.delegate = self;
+    [self presentViewController:controller animated:YES completion:NULL];
 }
 
 - (void)takePhoto {
     UIImagePickerController *vc = [[UIImagePickerController alloc] init];
     [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
     [vc setDelegate:self];
-    //[vc setAllowsEditing:YES];
     [self presentViewController:vc animated:YES completion:nil];
 }
 
@@ -499,6 +483,39 @@
     [self saveImage:[self fixOrientation:newPhoto.image]];
     [_item.photos addObject:newPhoto];
     [self.tableView reloadData];
+}
+
+- (void)assetPickerControllerDidCancel:(WSAssetPickerController *)sender
+{
+    [self dismissViewControllerAnimated:YES completion:NULL];
+}
+
+- (void)assetPickerController:(WSAssetPickerController *)sender didFinishPickingMediaWithAssets:(NSArray *)assets
+{
+    [self dismissViewControllerAnimated:YES completion:^{
+        for (id asset in assets) {
+            if (asset != nil) {
+                
+                ALAssetRepresentation* representation = [asset defaultRepresentation];
+                
+                // Retrieve the image orientation from the ALAsset
+                UIImageOrientation orientation = UIImageOrientationUp;
+                NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
+                if (orientationValue != nil) {
+                    orientation = [orientationValue intValue];
+                }
+                
+                CGFloat scale  = 1;
+                UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
+                                                     scale:scale orientation:orientation];
+                BHPhoto *newPhoto = [[BHPhoto alloc] init];
+                [newPhoto setImage:[self fixOrientation:image]];
+                [_item.photos addObject:newPhoto];
+                [self saveImage:newPhoto.image];
+            }
+        }
+        [self.tableView reloadData];
+    }];
 }
 
 - (UIImage *)fixOrientation:(UIImage*)image {
@@ -575,7 +592,6 @@
 - (void)savePostToLibrary:(UIImage*)originalImage {
     NSString *albumName = @"BuildHawk";
     UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
-    ALAssetsLibrary *library = [[ALAssetsLibrary alloc]init];
     [library addAssetsGroupAlbumWithName:albumName
                              resultBlock:^(ALAssetsGroup *group) {
                                  
@@ -617,26 +633,30 @@
     [[[UIAlertView alloc] initWithTitle:@"Please Confirm" message:@"Are you sure you want to delete this photo?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Delete", nil] show];
 }
 
--(void)removePhoto {
-    //check to make sure the index falls within the bounds of the array
-    if (removePhotoIdx <= _item.photos.count-1){
-        BHPhoto *photoToRemove = [_item.photos objectAtIndex:removePhotoIdx];
-        if (photoToRemove.identifier.length) {
-            [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photoToRemove.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                NSLog(@"success removing photo");
+-(void)removePhoto:(NSNotification*)notification {
+
+    NSString *photoIdentifier = [notification.userInfo objectForKey:@"photoId"];
+    [SVProgressHUD showWithStatus:@"Deleting photo..."];
+    [_item.photos enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
+            NSLog(@"should be removing photo at index: %i",idx);
+            BHPhoto *photoToRemove = [_item.photos objectAtIndex:idx];
+            [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                [SVProgressHUD dismiss];
+                [_item.photos removeObject:photoToRemove];
+                [self redrawScrollView:takePhotoButton];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 
             }];
+            *stop = YES;
         }
-        [_item.photos removeObjectAtIndex:removePhotoIdx];
-        [self redrawScrollView:takePhotoButton];
-    }
+    }];
 }
 
 - (void)saveImage:(UIImage*)image {
     [self savePostToLibrary:image];
     NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-    [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+    [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_projectId, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"save image response object: %@",responseObject);
@@ -732,6 +752,7 @@
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
+        [mwPhoto setPhotoId:photo.identifier];
         [browserPhotos addObject:mwPhoto];
     }
     

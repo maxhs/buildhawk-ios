@@ -35,6 +35,7 @@
 #define kChecklist @"Checklist"
 #define kWorklist @"Worklist"
 #define kReports @"Reports"
+#define kDocuments @"Documents"
 #define kPhase @"Phase"
 #define kCategory @"Category"
 #define kItem @"Item"

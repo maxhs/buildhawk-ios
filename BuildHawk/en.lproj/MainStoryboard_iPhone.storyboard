@@ -113,7 +113,7 @@
                         </connections>
                     </collectionView>
                     <navigationItem key="navigationItem" id="BwP-hM-0o1">
-                        <barButtonItem key="rightBarButtonItem" systemItem="action" id="0NK-NF-Z2X">
+                        <barButtonItem key="rightBarButtonItem" title="Sort" id="0NK-NF-Z2X">
                             <connections>
                                 <action selector="sort" destination="wUF-dK-7Di" id="hti-xg-lw7"/>
                             </connections>
@@ -135,6 +135,11 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <view contentMode="scaleToFill" id="11w-8t-V8g" customClass="RATreeView">
+                                <rect key="frame" x="0.0" y="38" width="320" height="432"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
                             <searchBar contentMode="redraw" translucent="NO" id="b7E-dN-LAd" customClass="BHSearchBar">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -155,11 +160,6 @@
                                 </segments>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </segmentedControl>
-                            <view contentMode="scaleToFill" id="11w-8t-V8g" customClass="RATreeView">
-                                <rect key="frame" x="0.0" y="38" width="320" height="432"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -197,7 +197,7 @@
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="40" maxX="0.0" maxY="0.0"/>
+                                <inset key="contentInset" minX="0.0" minY="40" maxX="0.0" maxY="49"/>
                                 <connections>
                                     <outlet property="dataSource" destination="r0E-CY-Oux" id="aFn-uu-Q0j"/>
                                     <outlet property="delegate" destination="r0E-CY-Oux" id="OqD-92-f80"/>
@@ -219,7 +219,13 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Worklist" image="punchlists.png" id="hhI-1E-3s4"/>
-                    <navigationItem key="navigationItem" id="Krt-xN-hwL"/>
+                    <navigationItem key="navigationItem" id="Krt-xN-hwL">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="6uZ-if-abY">
+                            <connections>
+                                <segue destination="qOL-i6-UJU" kind="push" identifier="CreateItem" id="2Ta-6e-Buz"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="segmentedControl" destination="7ee-9b-fVh" id="aoI-Mn-6M4"/>
                         <outlet property="tableView" destination="m4i-vh-i8d" id="qAh-fi-1sD"/>
@@ -242,7 +248,7 @@
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="216"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="JbP-Vp-LgM">
                                     <rect key="frame" x="0.0" y="0.0" width="320" height="420"/>
                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -252,7 +258,7 @@
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <inset key="contentInset" minX="4" minY="-64" maxX="8" maxY="0.0"/>
+                                            <inset key="contentInset" minX="4" minY="0.0" maxX="8" maxY="0.0"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
                                             <connections>
@@ -1029,11 +1035,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Cv8-k3-7jn"/>
+        <segue reference="Vim-B7-ekZ"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="POr-kh-1ho"/>
         <segue reference="0zF-UE-phA"/>
-        <segue reference="eZr-X3-mJS"/>
-        <segue reference="bOL-sd-mqt"/>
+        <segue reference="BC4-fv-9Fr"/>
+        <segue reference="2Ta-6e-Buz"/>
+        <segue reference="QKi-s7-jOi"/>
     </inferredMetricsTieBreakers>
 </document>

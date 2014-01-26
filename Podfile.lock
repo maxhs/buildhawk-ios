@@ -31,6 +31,7 @@ PODS:
   - SDWebImage/Core (3.4)
   - SVProgressHUD (0.9)
   - SWRevealViewController (1.0.4)
+  - WSAssetPickerController (0.2.0)
 
 DEPENDENCIES:
   - AFNetworking
@@ -41,6 +42,7 @@ DEPENDENCIES:
   - SDWebImage
   - SVProgressHUD
   - SWRevealViewController
+  - WSAssetPickerController
 
 SPEC CHECKSUMS:
   AFNetworking: 3fa983b1beaba69566a3374612511e2a6e3fe845
@@ -54,5 +56,6 @@ SPEC CHECKSUMS:
   SDWebImage: 366188f04c019bfd712d45e3b36aa52070f4abd8
   SVProgressHUD: 03d4845ec8e64591726428a08236c6a5489d45f8
   SWRevealViewController: 98ee6b717498c14dbf33a0062669a9172049edb7
+  WSAssetPickerController: cd57ba0f59d0d4265fa618036a40afa288ff3699
 
 COCOAPODS: 0.27.1

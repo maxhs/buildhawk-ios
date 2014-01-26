@@ -25,7 +25,7 @@
     } else if ([key isEqualToString:@"created_at"]) {
         self.createdOn = [self parseDateTime:value];
     } else if ([key isEqualToString:@"created_date"]) {
-        self.createdDate = [self parseDate:value];
+        self.createdDate = value;
     } else if ([key isEqualToString:@"id"]) {
         self.identifier = value;
     } else if ([key isEqualToString:@"source"]) {
@@ -38,6 +38,10 @@
         if (value != [NSNull null]) self.mimetype = value;
     } else if ([key isEqualToString:@"phase"]) {
         if (value != [NSNull null] && value != nil) self.phase = value;
+    } else if ([key isEqualToString:@"assignee"]) {
+        self.assignee = value;
+    } else if ([key isEqualToString:@"folder"]) {
+        self.folder = value;
     }
 }
 
@@ -79,6 +83,7 @@
     if (self = [super init]) {
         self.identifier = [decoder decodeObjectForKey:@"identifier"];
         self.phase = [decoder decodeObjectForKey:@"phase"];
+        self.createdDate = [decoder decodeObjectForKey:@"createdDate"];
         self.url100 = [decoder decodeObjectForKey:@"url100"];
         self.url200 = [decoder decodeObjectForKey:@"url200"];
         self.urlLarge = [decoder decodeObjectForKey:@"urlLarge"];
@@ -92,6 +97,7 @@
 
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.identifier forKey:@"identifier"];
+    [coder encodeObject:self.createdDate forKey:@"createdDate"];
     [coder encodeObject:self.phase forKey:@"phase"];
     [coder encodeObject:self.url100 forKey:@"url100"];
     [coder encodeObject:self.url200 forKey:@"url200"];

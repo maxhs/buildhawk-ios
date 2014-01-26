@@ -43,7 +43,7 @@
     User *savedUser;
     NSMutableArray *personnel;
 }
-- (IBAction)backToDashboard;
+
 @end
 
 @implementation BHPunchlistViewController
@@ -64,6 +64,7 @@
     [self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     //[self.tableView setTableHeaderView:self.segmentedControl];
+    NSLog(@"project: %@",project.identifier);
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     if (!completedListItems) completedListItems = [NSMutableArray array];
     if (!activeListItems) activeListItems = [NSMutableArray array];
@@ -81,13 +82,23 @@
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     savedUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(createItem) name:@"CreatePunchlistSegue" object:nil];
+}
 
+- (void)createItem {
+    [self performSegueWithIdentifier:@"CreateItem" sender:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [SVProgressHUD showWithStatus:@"Getting Worklist..."];
     [self loadPunchlist];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ShowCreatePunchlist" object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -301,9 +312,11 @@
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setTitle:@"New Item"];
         [vc setNewItem:YES];
+        [vc setProject:project];
         if (savedUser)[vc setSavedUser:savedUser];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;
+        [vc setProject:project];
         [vc setNewItem:NO];
         BHPunchlistItem *item;
         if (showActive && activeListItems.count) {
@@ -323,12 +336,6 @@
         if (savedUser)[vc setSavedUser:savedUser];
     }
         
-}
-
-- (IBAction)backToDashboard {
-    [self dismissViewControllerAnimated:YES completion:^{
-        
-    }];
 }
 
 @end

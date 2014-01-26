@@ -406,6 +406,7 @@ typedef void(^RequestSuccess)(id result);
         BHChecklistItem *item = (BHChecklistItem*)sender;
         BHChecklistItemViewController *vc = segue.destinationViewController;
         [vc setItem:item];
+        [vc setProjectId:[(BHTabBarViewController*)self.tabBarController project].identifier];
         [vc setSavedUser:savedUser];
     }
 }
@@ -486,7 +487,7 @@ typedef void(^RequestSuccess)(id result);
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
         [self.segmentedControl setAlpha:0.0];
-        self.treeView.transform = CGAffineTransformMakeTranslation(0, -44);
+        //self.treeView.transform = CGAffineTransformMakeTranslation(0, -44);
     }];
 }
 
@@ -555,11 +556,6 @@ typedef void(^RequestSuccess)(id result);
     
     // Return YES to cause the search result table view to be reloaded.
     return NO;
-}
-
-- (void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-    [self.searchDisplayController setActive:NO];
 }
 
 @end

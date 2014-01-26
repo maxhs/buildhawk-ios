@@ -11,7 +11,6 @@
 #import "MWPhotoBrowser.h"
 #import "MWPhotoBrowserPrivate.h"
 #import "SDImageCache.h"
-#import "BHSafariActivity.h"
 
 #define PADDING                  10
 #define ACTION_SHEET_OLD_ACTIONS 2000
@@ -268,8 +267,10 @@
         [items addObject:_actionButton];
     } else {
         // We're not showing the toolbar so try and show in top right
-        if (_actionButton)
-            self.navigationItem.rightBarButtonItem = _actionButton;
+        if (_actionButton){
+            UIBarButtonItem *deleteButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(deletePhoto)];
+            self.navigationItem.rightBarButtonItems = @[deleteButton, _actionButton];
+        }
         [items addObject:fixedSpace];
     }
 
@@ -296,6 +297,20 @@
     [self tilePages];
     _performingLayout = NO;
     
+}
+
+- (void)deletePhoto {
+    [[[UIAlertView alloc] initWithTitle:@"Confirm Deletion" message:@"Are you sure you want to permanently remove this item?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Yes", nil] show];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]) {
+        MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
+        if (photo.photoId.length){
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"DeletePhoto" object:nil userInfo:@{@"photoId":photo.photoId}];
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }
 }
 
 // Release any retained subviews of the main view.
@@ -1381,7 +1396,9 @@
 #pragma mark - Actions
 
 - (void)actionButtonPressed:(id)sender {
-    if (_actionsSheet) {
+    id <MWPhoto> photo = [self photoAtIndex:_currentPageIndex];
+    [[UIApplication sharedApplication] openURL:[(MWPhoto*)photo originalURL]];
+    /*if (_actionsSheet) {
         
         // Dismiss
         [_actionsSheet dismissWithClickedButtonIndex:_actionsSheet.cancelButtonIndex animated:YES];
@@ -1424,24 +1441,24 @@
                 } else {
                     
                     BHSafariActivity *activity = [[BHSafariActivity alloc] init];
-                    /*NSMutableArray *items = [NSMutableArray arrayWithObject:[photo underlyingImage]];
+                    NSMutableArray *items = [NSMutableArray arrayWithObject:[photo underlyingImage]];
                     if (photo.caption) {
                         [items addObject:photo.caption];
                     }
                     if ([(MWPhoto*)photo originalURL]) {
                         [items addObject:[(MWPhoto*)photo originalURL]];
-                    }*/
+                    }
                     
                     self.activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[[(MWPhoto*)photo originalURL]] applicationActivities:@[activity]];
                     
                     // Show loading spinner after a couple of seconds
-                    /* double delayInSeconds = 2.0;
+                    double delayInSeconds = 2.0;
                     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
                     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
                         if (self.activityViewController) {
                             [self showProgressHUDWithMessage:nil];
                         }
-                    });*/
+                    });
 
                     // Show
                     typeof(self) __weak weakSelf = self;
@@ -1460,7 +1477,7 @@
             [self setControlsHidden:NO animated:YES permanent:YES];
 
         }
-    }
+    }*/
 }
 
 #pragma mark - Action Sheet Delegate

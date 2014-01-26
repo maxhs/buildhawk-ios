@@ -10,8 +10,14 @@
 #import "BHPhoto.h"
 
 @interface BHPhotosViewController : UICollectionViewController
-@property (strong, nonatomic) NSArray *photosArray;
+@property (strong, nonatomic) NSMutableArray *photosArray;
 @property (strong, nonatomic) NSMutableArray *phasePhotosArray;
 @property (strong, nonatomic) NSArray *sectionTitles;
+@property (strong, nonatomic) NSArray *userNames;
+@property (strong, nonatomic) NSArray *dates;
 @property int numberOfSections;
+@property BOOL documentsBool;
+@property BOOL checklistsBool;
+@property BOOL reportsBool;
+@property BOOL worklistsBool;
 @end

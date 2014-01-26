@@ -360,6 +360,7 @@
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
+        [mwPhoto setPhotoId:photo.identifier];
         [browserPhotos addObject:mwPhoto];
     }
     

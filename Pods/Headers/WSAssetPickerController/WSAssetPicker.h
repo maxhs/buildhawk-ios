@@ -1,0 +1,1 @@
+../../WSAssetPickerController/src/WSAssetPicker.h

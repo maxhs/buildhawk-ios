@@ -11,7 +11,8 @@
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "BHPhoto.h"
-#import <AFNetworking/UIImageView+AFNetworking.h>
+
+#import <SDWebImage/UIButton+WebCache.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHPhotosViewController.h"
 #import <MWPhotoBrowser/MWPhotoBrowser.h>
@@ -29,6 +30,7 @@
     UIActionSheet *categoryActionSheet;
     UIActionSheet *userActionSheet;
     NSMutableArray *userArray;
+    NSMutableArray *dateArray;
     NSMutableArray *sourceArray;
     NSMutableArray *documentsArray;
     NSMutableArray *checklistArray;
@@ -38,15 +40,11 @@
     CGRect screen;
 }
 
--(IBAction)backToDashboard;
-
 @end
 
 @implementation BHDocumentsViewController
 
-- (void)viewDidLoad
-{
-    
+- (void)viewDidLoad {
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[[(BHTabBarViewController*)self.tabBarController project] name]];
     [self.view setBackgroundColor:[UIColor blackColor]];
     [self.tableView setBackgroundColor:kBackgroundBlack];
@@ -65,17 +63,19 @@
     screen = [UIScreen mainScreen].bounds;
     if (!photosArray) photosArray = [NSMutableArray array];
     if (!userArray) userArray = [NSMutableArray array];
+    if (!dateArray) dateArray = [NSMutableArray array];
     if (!sortedByUser) sortedByUser = [NSMutableArray array];
     if (!sourceArray) sourceArray = [NSMutableArray array];
     if (!checklistArray) checklistArray = [NSMutableArray array];
     if (!reportsArray) reportsArray = [NSMutableArray array];
     if (!worklistArray) worklistArray = [NSMutableArray array];
     if (!documentsArray) documentsArray = [NSMutableArray array];
-    [self loadPhotos];
     sortByDate = NO;
     sortByUser = NO;
     [Flurry logEvent:@"Viewing documents"];
+    [self loadPhotos];
     [super viewDidLoad];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -96,8 +96,7 @@
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"id":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting documents: %@",responseObject);
-        
+        //NSLog(@"Success getting documents: %@",responseObject);
         photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
@@ -117,14 +116,30 @@
             [worklistArray addObject:photo];
         } else if ([photo.source isEqualToString:kReports]){
             [reportsArray addObject:photo];
-        } else if (![sourceArray containsObject:photo.source]) {
-            [sourceArray addObject:photo.source];
+        } else if ([photo.source isEqualToString:kDocuments]){
             [documentsArray addObject:photo];
         }
+        if (![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
         if (photo.userName && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
+
         [photos addObject:photo];
     }
     return photos;
+}
+
+- (void)removePhoto:(NSNotification*)notification {
+    [photosArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kReports]){
+        if (reportsArray.count) [reportsArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kWorklist]){
+        if (worklistArray.count) [worklistArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kDocuments]){
+        if (documentsArray.count) [documentsArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kChecklist]){
+        if (checklistArray.count) [checklistArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    }
+    
+    [self.tableView reloadData];
 }
 
 #pragma mark - Table view data source
@@ -151,89 +166,106 @@
 
     cell.backgroundColor = kDarkerGrayColor;
     cell.textLabel.numberOfLines = 0;
-    
+    cell.userInteractionEnabled = YES;
+    if (iPad) [cell.label setFont:[UIFont systemFontOfSize:18]];
     NSURL *imageUrl;
     switch (indexPath.row) {
         case 0:
-            if (photosArray.count == 1) [cell.label setText:@"All - 1 Item"];
+            if (photosArray.count == 1) {
+                [cell.label setText:@"All - 1 Item"];
+            } else if (photosArray.count == 0) {
+                [cell.label setText:@"All - No items"];
+                cell.userInteractionEnabled = NO;
+            }
             else [cell.label setText:[NSString stringWithFormat:@"All - %i Items",photosArray.count]];
-            imageUrl = [NSURL URLWithString:[(BHPhoto*)photosArray.lastObject url200]];
+            if (iPad){
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)photosArray.lastObject urlLarge]];
+            } else {
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)photosArray.lastObject url200]];
+            }
             break;
         case 1:
-            if (documentsArray.count == 1) [cell.label setText:@"Documents - 1 Item"];
-            else [cell.label setText:[NSString stringWithFormat:@"Documents - %i Items",documentsArray.count]];
-            imageUrl = [NSURL URLWithString:[(BHPhoto*)documentsArray.lastObject url200]];
+            if (documentsArray.count == 1) {
+                [cell.label setText:@"Documents - 1 Item"];
+            } else if (documentsArray.count == 0) {
+                [cell.label setText:@"Documents - No items"];
+                cell.userInteractionEnabled = NO;
+            } else {
+                [cell.label setText:[NSString stringWithFormat:@"Documents - %i Items",documentsArray.count]];
+            }
+            if (iPad){
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)documentsArray.lastObject urlLarge]];
+            } else {
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)documentsArray.lastObject url200]];
+            }
             break;
         case 2:
-            if (checklistArray.count == 1) [cell.label setText:@"Checklist - 1 Item"];
+            if (checklistArray.count == 1) {
+                [cell.label setText:@"Checklist - 1 Item"];
+            } else if (checklistArray.count == 0) {
+                [cell.label setText:@"Checklist - No items"];
+                cell.userInteractionEnabled = NO;
+            }
             else [cell.label setText:[NSString stringWithFormat:@"Checklist - %i Items",checklistArray.count]];
-            imageUrl = [NSURL URLWithString:[(BHPhoto*)checklistArray.lastObject url200]];
+            if (iPad){
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)checklistArray.lastObject urlLarge]];
+            } else {
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)checklistArray.lastObject url200]];
+            }
             break;
         case 3:
-            if (worklistArray.count == 1) [cell.label setText:@"Worklist - 1 Item"];
+            if (worklistArray.count == 1) {
+                [cell.label setText:@"Worklist - 1 Item"];
+            } else if (worklistArray.count == 0) {
+                [cell.label setText:@"Worklist - No items"];
+                cell.userInteractionEnabled = NO;
+            }
             else [cell.label setText:[NSString stringWithFormat:@"Worklist - %i Items",worklistArray.count]];
-            imageUrl = [NSURL URLWithString:[(BHPhoto*)worklistArray.lastObject url200]];
+            if (iPad){
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)worklistArray.lastObject urlLarge]];
+            } else {
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)worklistArray.lastObject url200]];
+            }
             break;
         case 4:
-            if (reportsArray.count == 1) [cell.label setText:@"Reports - 1 Item"];
-            else [cell.label setText:[NSString stringWithFormat:@"Reports - %i Items",reportsArray.count]];
-            imageUrl = [NSURL URLWithString:[(BHPhoto*)reportsArray.lastObject url200]];
+            if (reportsArray.count == 1) {
+                [cell.label setText:@"Reports - 1 Item"];
+            } else if (reportsArray.count == 0) {
+                [cell.label setText:@"Reports - No items"];
+                cell.userInteractionEnabled = NO;
+            } else [cell.label setText:[NSString stringWithFormat:@"Reports - %i Items",reportsArray.count]];
+            
+            if (iPad){
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)reportsArray.lastObject urlLarge]];
+            } else {
+                imageUrl = [NSURL URLWithString:[(BHPhoto*)reportsArray.lastObject url200]];
+            }
             break;
         default:
             break;
     }
-    
-    [cell.mainImageView setImageWithURLRequest:[NSURLRequest requestWithURL:imageUrl] placeholderImage:nil success:^(NSURLRequest *request, NSHTTPURLResponse *response, UIImage *image) {
-        [cell.mainImageView setImage:image];
-        [cell.mainImageView setContentMode:UIViewContentModeScaleAspectFill];
-        cell.mainImageView.clipsToBounds = YES;
-        UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [imageButton setFrame:cell.mainImageView.frame];
-        [imageButton setTag:0];
-        [imageButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
-        [cell addSubview:imageButton];
-        [UIView animateWithDuration:.25 animations:^{
-            [cell.mainImageView setAlpha:1.0];
+    if (imageUrl) {
+        cell.label.transform = CGAffineTransformIdentity;
+        [cell.photoButton setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [cell.photoButton setTag:0];
+            cell.photoButton.userInteractionEnabled = NO;
+            //[cell.photoButton addTarget:self action:@selector(showPhotos) forControlEvents:UIControlEventTouchUpInside];
+            [UIView animateWithDuration:.25 animations:^{
+                [cell.photoButton setAlpha:1.0];
+                [cell.label setAlpha:1.0];
+            }];
         }];
-        
-    } failure:^(NSURLRequest *request, NSHTTPURLResponse *response, NSError *error) {
-        
-    }];
-
+    } else if (photosArray.count) {
+        cell.label.transform = CGAffineTransformMakeTranslation(-80, 0);
+        [UIView animateWithDuration:.25 animations:^{
+            [cell.label setAlpha:1.0];
+        }];
+    }
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     cell.backgroundColor = [UIColor clearColor];
-}
-
-- (void)showPhotoDetail:(UIButton*)button {
-    browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in photosArray) {
-        MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        mwPhoto.originalURL = [NSURL URLWithString:photo.orig];
-        [browserPhotos addObject:mwPhoto];
-    }
-    
-    // Create browser
-    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    
-    // Set options
-    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
-    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
-    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
-    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
-    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
-    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
-    }
-    
-    [browser setCurrentPhotoIndex:button.tag];
-    [self.navigationController pushViewController:browser animated:YES];
-    [browser showNextPhotoAnimated:YES];
-    [browser showPreviousPhotoAnimated:YES];
 }
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
@@ -254,14 +286,10 @@
     button.layer.borderWidth = 0.5f;
     button.layer.shouldRasterize = YES;
     button.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    /*button.layer.shadowColor = kDarkGrayColor.CGColor;
-    button.layer.shadowOpacity =  .5;
-    button.layer.shadowRadius = 2.f;
-    button.layer.shadowOffset = CGSizeMake(0, 0);*/
 }
 
 - (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (iPad) return (screen.size.height-64-56)/5;
+    if (iPad) return (screen.size.height-64-52)/5;
     else return (screen.size.height-64-49)/5;
 }
 
@@ -316,6 +344,8 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     BHPhotosViewController *vc = [segue destinationViewController];
+    if (dateArray.count) [dateArray removeAllObjects];
+    
     NSIndexPath *indexPath = (NSIndexPath*)sender;
     switch (indexPath.row) {
         case 0:
@@ -326,14 +356,15 @@
         {
             NSMutableSet *titleSet = [NSMutableSet set];
             for (BHPhoto *photo in documentsArray){
-                if (photo.source)[titleSet addObject:photo.source];
+                if (photo.folder)[titleSet addObject:photo.folder];
+                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
             NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
             [vc setSectionTitles:sortedArray];
             [vc setNumberOfSections:titleSet.count];
-            NSLog(@"titleset count: %i %i",titleSet.count, documentsArray.count);
+            [vc setDocumentsBool:YES];
             [vc setPhotosArray:documentsArray];
         }
             break;
@@ -342,6 +373,7 @@
             NSMutableSet *titleSet = [NSMutableSet set];
             for (BHPhoto *photo in checklistArray){
                 if (photo.phase)[titleSet addObject:photo.phase];
+                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
@@ -349,58 +381,49 @@
             [vc setSectionTitles:sortedArray];
             [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:checklistArray];
+            [vc setChecklistsBool:YES];
         }
             break;
         case 3:
+        {
+            NSMutableSet *titleSet = [NSMutableSet set];
+            for (BHPhoto *photo in worklistArray){
+                if (photo.assignee)[titleSet addObject:photo.assignee];
+                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
+            }
+            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
+            NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
+            NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
+            [vc setSectionTitles:sortedArray];
+            [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:worklistArray];
-            [vc setNumberOfSections:1];
+            [vc setWorklistsBool:YES];
+        }
             break;
         case 4:
+        {
+            NSMutableSet *titleSet = [NSMutableSet set];
+            for (BHPhoto *photo in reportsArray){
+                if (photo.createdDate)[titleSet addObject:photo.createdDate];
+            }
+            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
+            NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
+            NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
+            [vc setSectionTitles:sortedArray];
+            [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:reportsArray];
-            [vc setNumberOfSections:1];
+            [vc setReportsBool:YES];
+        }
             break;
-            
+
         default:
             break;
     }
-    /*if ([[segue identifier] isEqualToString:@"ByLabel"]){
-        if ([sender isKindOfClass:[NSIndexPath class]]){
-            
-            NSString *sourceLabel = [sourceArray objectAtIndex:indexPath.row];
-            NSPredicate *testForSource = [NSPredicate predicateWithFormat:@"source like %@",sourceLabel];
-            [sortedByUser removeAllObjects];
-            NSMutableArray *tempArray = [NSMutableArray array];
-            for (BHPhoto *photo in photosArray){
-                if([testForSource evaluateWithObject:photo]) {
-                    [tempArray addObject:photo];
-                }
-            }
-            [vc setNumberOfSections:1];
-            [vc setPhotosArray:tempArray];
-            [vc setTitle:sourceLabel];
-        }
-    } else {
-        if (sortByUser) {
-            [vc setNumberOfSections:1];
-            [vc setPhotosArray:sortedByUser];
-            [vc setTitle:[NSString stringWithFormat:@"Taken by: %@",sortUser]];
-        } else if (sortByDate) {
-            [vc setNumberOfSections:1];
-            [vc setPhotosArray:sortedByDate];
-        } else if (sortByCategory) {
-            
-     
-        }
-    }*/
+    [vc setUserNames:userArray];
+    [vc setDates:dateArray];
     [UIView animateWithDuration:.25 animations:^{
         [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height-64, screen.size.width, 49)];
         self.tabBarController.tabBar.alpha = 0.0;
-    }];
-}
-
-- (IBAction)backToDashboard {
-    [self dismissViewControllerAnimated:YES completion:^{
-        
     }];
 }
 

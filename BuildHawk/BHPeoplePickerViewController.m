@@ -23,7 +23,7 @@
 @end
 
 @implementation BHPeoplePickerViewController
-@synthesize userArray, personnelArray, subArray, phone, email;
+@synthesize userArray, personnelArray, subArray, phone, email, worklist;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -89,6 +89,8 @@
     
     if (self.userArray.count) {
         [self selectUser:indexPath andCount:@"1"];
+    } else if (worklist){
+        [self selectUser:indexPath andCount:nil];
     } else if (self.subArray.count) {
         selectedIndexPath = indexPath;
         subAlertView = [[UIAlertView alloc] initWithTitle:@"# of Subcontractor Personnel" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
@@ -98,7 +100,6 @@
     }
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -113,6 +114,9 @@
     if (self.userArray.count){
         user = [self.userArray objectAtIndex:indexPath.row];
         [self addPersonnel:user];
+    } else if (worklist) {
+        sub = [self.subArray objectAtIndex:indexPath.row];
+        [self addPersonnel:sub];
     } else if (self.subArray.count){
         sub = [self.subArray objectAtIndex:selectedIndexPath.row];
         sub.count = count;

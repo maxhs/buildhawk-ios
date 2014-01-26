@@ -587,7 +587,7 @@ CGFloat SVProgressHUDRingThickness = 6;
 - (UIView *)hudView {
     if(!hudView) {
         hudView = [[UIView alloc] initWithFrame:CGRectZero];
-        hudView.layer.cornerRadius = 10;
+        hudView.layer.cornerRadius = 3;
 
         // UIAppearance is used when iOS >= 5.0
 		hudView.backgroundColor = self.hudBackgroundColor;
@@ -684,7 +684,7 @@ CGFloat SVProgressHUDRingThickness = 6;
     }
 #endif
     
-    return [UIColor colorWithWhite:0 alpha:0.8];
+    return [UIColor colorWithWhite:0 alpha:0.85];
 }
 
 - (UIColor *)hudForegroundColor {

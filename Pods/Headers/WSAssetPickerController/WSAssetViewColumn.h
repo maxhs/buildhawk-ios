@@ -1,0 +1,1 @@
+../../WSAssetPickerController/src/WSAssetViewColumn.h

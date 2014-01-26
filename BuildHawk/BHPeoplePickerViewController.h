@@ -14,6 +14,7 @@
 @property (strong, nonatomic) NSMutableArray *userArray;
 @property (strong, nonatomic) NSMutableArray *subArray;
 @property (strong, nonatomic) NSMutableArray *personnelArray;
+@property BOOL worklist;
 @property BOOL phone;
 @property BOOL email;
 

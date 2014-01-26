@@ -7,5 +7,6 @@ pod 'RATreeView', '0.0.4'
 pod 'MagicalRecord'
 pod 'MWPhotoBrowser', '1.2.1' 
 pod 'LDProgressView', '1.1'
+pod 'WSAssetPickerController'
 
 link_with 'BuildHawk'

@@ -14,6 +14,7 @@
 @property (nonatomic, strong) NSString *urlLarge;
 @property (nonatomic, strong) NSString *orig;
 @property (nonatomic, strong) NSString *source;
+@property (nonatomic, strong) NSString *folder;
 @property (nonatomic, strong) NSString *phase;
 @property (nonatomic, strong) NSNumber *filesize;
 @property (nonatomic, strong) NSString *filename;
@@ -21,8 +22,9 @@
 @property (nonatomic, strong) NSString *mimetype;
 @property (nonatomic, strong) NSString *photoSize;
 @property (nonatomic, strong) NSString *userName;
+@property (nonatomic, strong) NSString *assignee;
 @property (strong, nonatomic) NSDate *createdOn;
-@property (strong, nonatomic) NSDate *createdDate;
+@property (strong, nonatomic) NSString *createdDate;
 @property (nonatomic, strong) UIImage *image;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;

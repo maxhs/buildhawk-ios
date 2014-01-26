@@ -108,3 +108,9 @@
 #define COCOAPODS_VERSION_MINOR_SWRevealViewController 0
 #define COCOAPODS_VERSION_PATCH_SWRevealViewController 4
 
+// WSAssetPickerController
+#define COCOAPODS_POD_AVAILABLE_WSAssetPickerController
+#define COCOAPODS_VERSION_MAJOR_WSAssetPickerController 0
+#define COCOAPODS_VERSION_MINOR_WSAssetPickerController 2
+#define COCOAPODS_VERSION_PATCH_WSAssetPickerController 0
+

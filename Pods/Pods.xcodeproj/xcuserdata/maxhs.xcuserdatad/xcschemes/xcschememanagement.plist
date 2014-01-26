@@ -59,6 +59,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>Pods-WSAssetPickerController.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -67,62 +72,67 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>1EFBEC49C63148669AF77673</key>
+		<key>07C7DAA6FC9D4EB9A408D0CE</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>1F81FCCCE0844074B5C369B4</key>
+		<key>273121062C9B429A81654A73</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>3155D45F74974785AC0D7E7D</key>
+		<key>4530081350A447AA9C8C04D6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>35FD42E5847A4B7EB60B350D</key>
+		<key>53A2BE60487F4345A4D06B2A</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>3EDF5D49F24B4E34A3F025F3</key>
+		<key>83B8DC1F6965498897217F3E</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>4990DB5D01B241F1942ED7C4</key>
+		<key>859BD7C372844C1084737B11</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>8F3340BB255E4214ADEC748E</key>
+		<key>968E86AF2B604507BA936A76</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>AFBE30561D744C0FB2456192</key>
+		<key>9EE8CBACAE1A476CB654E5B6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>D04929D73BC94A11A5AE67F9</key>
+		<key>9F898B14340E4D70B43BC490</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>D3629716483C4E8D846FFFE0</key>
+		<key>CF167B9D1DF74368BA435648</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>E334EF44A4784DC9B28073EC</key>
+		<key>E777BED4E9C84FB3AE878DE7</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>F3DF3A998DED4A46B585B061</key>
+		<key>F4D330D43B26435A8242F244</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>F79BEF35D2C54E99A768C765</key>
 		<dict>
 			<key>primary</key>
 			<true/>

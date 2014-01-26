@@ -21,13 +21,15 @@
     NSMutableArray *browserArray; // for BHPhoto objects
     NSMutableArray *browserPhotos; //for MWPhoto objects
     UIActionSheet *sortSheet;
+    BOOL sortByUser;
+    BOOL sortByDate;
 }
 -(IBAction)sort;
 @end
 
 @implementation BHPhotosViewController
 
-@synthesize photosArray, phasePhotosArray;
+@synthesize photosArray, phasePhotosArray, userNames, dates;
 @synthesize numberOfSections = _numberOfSections;
 @synthesize sectionTitles = _sectionTitles;
 
@@ -48,7 +50,8 @@
     if (!sectionArray) sectionArray = [NSMutableArray array];
     if (!compositePhotos) compositePhotos = [NSMutableArray array];
     if (!browserArray) browserArray = [NSMutableArray array];
-    sortSheet = [[UIActionSheet alloc] initWithTitle:@"Sort" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:nil];
+    sortByUser = NO;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     } else
@@ -60,7 +63,6 @@
     [super viewWillAppear:animated];
 }
 
-
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -68,37 +70,92 @@
 }
 
 - (IBAction)sort{
+    sortSheet = [[UIActionSheet alloc] initWithTitle:@"Sort" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
     [sortSheet addButtonWithTitle:@"By User"];
+    if (!self.reportsBool)[sortSheet addButtonWithTitle:@"By Date"];
+    [sortSheet addButtonWithTitle:@"Default"];
+    [sortSheet setCancelButtonIndex:[sortSheet addButtonWithTitle:@"Cancel"]];
     [sortSheet showInView:self.view];
 }
 
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"By User"]) {
+        if (sectionArray.count)[sectionArray removeAllObjects];
+        sortByUser = YES;
+        sortByDate = NO;
+        [self.collectionView reloadData];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"By Date"]) {
+        if (sectionArray.count)[sectionArray removeAllObjects];
+        sortByUser = NO;
+        sortByDate = YES;
+        [self.collectionView reloadData];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Default"]) {
+        if (sectionArray.count)[sectionArray removeAllObjects];
+        sortByUser = NO;
+        sortByDate = NO;
+        [self.collectionView reloadData];
+    }
+}
 #pragma mark - UICollectionView Datasource
 
 - (NSInteger)collectionView:(UICollectionView *)view numberOfItemsInSection:(NSInteger)section {
-    if (self.sectionTitles.count){
-        NSString *sectionTitle = [self.sectionTitles objectAtIndex:section];
-        NSPredicate *testForPhase = [NSPredicate predicateWithFormat:@"phase like %@",sectionTitle];
+    if (sortByUser) {
+        NSString *sectionTitle = [self.userNames objectAtIndex:section];
+        NSPredicate *testForuser = [NSPredicate predicateWithFormat:@"userName contains[cd] %@",sectionTitle];
+        NSMutableArray *sortedByUser = [NSMutableArray array];
+        for (BHPhoto *photo in photosArray){
+            if([testForuser evaluateWithObject:photo]) {
+                [sortedByUser addObject:photo];
+            }
+        }
+        [sectionArray addObject:sortedByUser];
+        return sortedByUser.count;
+    } else if (sortByDate) {
+        NSString *sectionTitle = [self.dates objectAtIndex:section];
+        NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
         NSMutableArray *tempArray = [NSMutableArray array];
         for (BHPhoto *photo in self.photosArray){
-            if([testForPhase evaluateWithObject:photo]) {
+            if([testPredicate evaluateWithObject:photo]) {
                 [tempArray addObject:photo];
             }
         }
         [sectionArray addObject:tempArray];
         return tempArray.count;
-    } else {
+    } else if (self.sectionTitles.count){
+        NSString *sectionTitle = [self.sectionTitles objectAtIndex:section];
+        NSPredicate *testPredicate;
+        if (self.documentsBool) {
+            testPredicate = [NSPredicate predicateWithFormat:@"folder like %@",sectionTitle];
+        } else if (self.worklistsBool) {
+            testPredicate = [NSPredicate predicateWithFormat:@"assignee like %@",sectionTitle];
+        } else if (self.reportsBool) {
+            testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
+        } else {
+            testPredicate = [NSPredicate predicateWithFormat:@"phase like %@",sectionTitle];
+        }
+        NSMutableArray *tempArray = [NSMutableArray array];
+        for (BHPhoto *photo in self.photosArray){
+            if([testPredicate evaluateWithObject:photo]) {
+                [tempArray addObject:photo];
+            }
+        }
+        [sectionArray addObject:tempArray];
+        return tempArray.count;
+    } else  {
         return self.photosArray.count;
     }
 }
 
 - (NSInteger)numberOfSectionsInCollectionView: (UICollectionView *)collectionView {
-    return _numberOfSections;
+    if (sortByUser) return self.userNames.count;
+    else if (sortByDate) return self.dates.count;
+    else return _numberOfSections;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)cv cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     BHCollectionPhotoCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"PhotoCell" forIndexPath:indexPath];
     BHPhoto *photo;
-    if (self.sectionTitles.count) {
+    if (self.sectionTitles.count || sortByUser || sortByDate) {
         NSMutableArray *tempArray = [sectionArray objectAtIndex:indexPath.section];
         photo = [tempArray objectAtIndex:indexPath.row];
         [browserArray addObject:photo];
@@ -111,6 +168,32 @@
     [cell.photoButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
     
     return cell;
+}
+
+-(void)removePhoto:(NSNotification*)notification {
+    NSString *photoIdentifier = [notification.userInfo objectForKey:@"photoId"];
+    [SVProgressHUD showWithStatus:@"Deleting photo..."];
+    [self.photosArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
+            NSLog(@"should be removing photo at index: %i",idx);
+            BHPhoto *photoToRemove = [self.photosArray objectAtIndex:idx];
+            
+            if (self.documentsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kDocuments}];
+            else if (self.reportsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kReports}];
+            else if (self.checklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kChecklist}];
+            else if (self.worklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kWorklist}];
+            
+            [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                [SVProgressHUD dismiss];
+                [self.photosArray removeObject:photoToRemove];
+                [self.collectionView reloadData];
+                
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                
+            }];
+            *stop = YES;
+        }
+    }];
 }
 
 - (void)showPhotoDetail:(UIButton*)button {
@@ -135,6 +218,7 @@
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
+        [mwPhoto setPhotoId:photo.identifier];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -152,6 +236,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
         browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
     }
+    browser.navigationController.navigationItem.rightBarButtonItems = @[[[UIBarButtonItem alloc] initWithTitle:@"Test" style:UIBarButtonItemStylePlain target:self action:@selector(save)]];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
@@ -171,7 +256,14 @@
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath{
     if (kind == UICollectionElementKindSectionHeader){
         BHPhotosHeaderView *headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"Header" forIndexPath:indexPath];
-        NSString *title = [self.sectionTitles objectAtIndex:indexPath.section];
+        NSString *title;
+        if (sortByUser){
+            title = [self.userNames objectAtIndex:indexPath.section];
+        } else if (sortByDate){
+            title = [self.dates objectAtIndex:indexPath.section];
+        } else {
+            title = [self.sectionTitles objectAtIndex:indexPath.section];
+        }
         if ([title isKindOfClass:[NSString class]] && title.length){
             [headerView configureForTitle:title];
         }
@@ -184,7 +276,7 @@
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section {
-    if (self.sectionTitles.count) return CGSizeMake(screen.size.width, 34);
+    if (self.sectionTitles.count) return CGSizeMake(screen.size.width, 30);
     else return CGSizeZero;
 }
 
@@ -210,4 +302,8 @@
     return UIEdgeInsetsMake(5, 5, 5, 5);
 }
 
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    sortSheet = nil;
+}
 @end

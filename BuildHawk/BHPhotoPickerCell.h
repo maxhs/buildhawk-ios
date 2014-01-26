@@ -10,7 +10,7 @@
 
 @interface BHPhotoPickerCell : UITableViewCell
 
-@property (weak, nonatomic) IBOutlet UIImageView *mainImageView;
+@property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UILabel *label;
 
 @end

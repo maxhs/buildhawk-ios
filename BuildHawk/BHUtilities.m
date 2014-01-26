@@ -75,13 +75,12 @@
             [personnel addObject:user];
         } else if ([dict objectForKey:@"sub"]) {
             BHSub *sub = [[BHSub alloc] initWithDictionary:[dict objectForKey:@"sub"]];
-            if ([dict objectForKey:@"count"]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
+            if ([dict objectForKey:@"count"] && [dict objectForKey:@"count"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
             if ([dict objectForKey:@"id"]) [sub setReportSubId:[dict objectForKey:@"id"]];
             [personnel addObject:sub];
         } else if ([dict objectForKey:@"count"]) {
             BHSub *sub = [[BHSub alloc] initWithDictionary:dict];
-            if ([dict objectForKey:@"count"]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
-            
+            if ([dict objectForKey:@"count"] && [dict objectForKey:@"count"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
             [personnel addObject:sub];
         }
     }

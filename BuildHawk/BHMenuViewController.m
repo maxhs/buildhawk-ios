@@ -18,6 +18,10 @@
 #import <CoreData+MagicalRecord.h>
 #import <MessageUI/MessageUI.h>
 
+static NSString *callPlaceholder = @"Call";
+static NSString *emailPlaceholder = @"Email";
+static NSString *textPlaceholder = @"Text Message";
+
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
     BHUser *selectedCoworker;
     User *user;
@@ -173,27 +177,25 @@
     if (indexPath.section == 1) {
         selectedCoworker = [user.coworkers objectAtIndex:indexPath.row];
         if (selectedCoworker.phone) {
-            [[[UIActionSheet alloc] initWithTitle:@"Contact" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname],[NSString stringWithFormat:@"Call %@",selectedCoworker.fullname], @"Send a text", nil] showInView:self.tableView];
+            [[[UIActionSheet alloc] initWithTitle:[NSString stringWithFormat:@"Contact %@",selectedCoworker.fullname] delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:emailPlaceholder,callPlaceholder,textPlaceholder, nil] showInView:self.tableView];
         } else {
-            [[[UIActionSheet alloc] initWithTitle:@"Contact" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname], nil] showInView:self.tableView];
+            [[[UIActionSheet alloc] initWithTitle:[NSString stringWithFormat:@"Contact %@",selectedCoworker.fullname] delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:emailPlaceholder,nil] showInView:self.tableView];
         }
     }
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"Email %@",selectedCoworker.fullname]]) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:emailPlaceholder]) {
         [self sendMail:selectedCoworker.email];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"Call %@",selectedCoworker.fullname]]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:callPlaceholder]) {
         [self placeCall];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Send a text"]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:textPlaceholder]) {
         [self sendText];
-    } /*else if (buttonIndex == actionSheet.cancelButtonIndex) {
-        [actionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
-    }*/
+    }
 }
 
 - (void)placeCall {
-    NSString *phoneNumber = [@"tel://" stringByAppendingString:selectedCoworker.phone];
+    NSString *phoneNumber = [@"tel://" stringByAppendingString:[[selectedCoworker.phone stringByReplacingOccurrencesOfString:@" " withString:@""] stringByReplacingOccurrencesOfString:@"-" withString:@""]];
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneNumber]];
 }
 
@@ -225,7 +227,7 @@
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
     if ([MFMessageComposeViewController canSendText]){
         viewController.messageComposeDelegate = self;
-        [viewController setRecipients:nil];
+        [viewController setRecipients:@[selectedCoworker.phone]];
         [self presentViewController:viewController animated:YES completion:^{
             
         }];
