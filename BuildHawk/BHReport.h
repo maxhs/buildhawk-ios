@@ -21,6 +21,7 @@
 @property (nonatomic, strong) NSString *weatherIcon;
 @property (nonatomic, strong) NSString *temp;
 @property (nonatomic, strong) NSString *precip;
+@property (nonatomic, strong) NSString *humidity;
 @property (nonatomic, strong) NSString *wind;
 @property (nonatomic, strong) NSDate *createdAt;
 @property (nonatomic, strong) NSDate *updatedAt;

@@ -57,6 +57,7 @@
 //Reports
 #define kDaily @"Daily"
 #define kSafety @"Safety"
+#define kSafety @"Monthly"
 
 //Colors
 #define kLightestGrayColor [UIColor colorWithWhite:.97 alpha:1.0]

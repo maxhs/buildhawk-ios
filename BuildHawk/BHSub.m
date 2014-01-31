@@ -45,18 +45,13 @@
     [super setValuesForKeysWithDictionary:keyedValues];
 }
 
-/*- (id)initWithCoder:(NSCoder *)decoder {
+- (id)initWithCoder:(NSCoder *)decoder {
     if (self = [super init]) {
         self.identifier = [decoder decodeObjectForKey:@"identifier"];
+        self.count = [decoder decodeObjectForKey:@"count"];
+        self.name = [decoder decodeObjectForKey:@"name"];
+        self.phone = [decoder decodeObjectForKey:@"phone"];
         self.email = [decoder decodeObjectForKey:@"email"];
-        self.fname = [decoder decodeObjectForKey:@"fname"];
-        self.lname = [decoder decodeObjectForKey:@"lname"];
-        self.fullname = [decoder decodeObjectForKey:@"fullname"];
-        self.authToken = [decoder decodeObjectForKey:@"authToken"];
-        self.phone1 = [decoder decodeObjectForKey:@"phone1"];
-        self.company = [decoder decodeObjectForKey:@"company"];
-        self.coworkers = [decoder decodeObjectForKey:@"coworkers"];
-        self.photo = [decoder decodeObjectForKey:@"photo"];
     }
     return self;
 }
@@ -64,14 +59,9 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.identifier forKey:@"identifier"];
     [coder encodeObject:self.email forKey:@"email"];
-    [coder encodeObject:self.fname forKey:@"fname"];
-    [coder encodeObject:self.lname forKey:@"lname"];
-    [coder encodeObject:self.fullname forKey:@"fullname"];
-    [coder encodeObject:self.authToken forKey:@"authToken"];
-    [coder encodeObject:self.phone1 forKey:@"phone1"];
-    [coder encodeObject:self.company forKey:@"company"];
-    [coder encodeObject:self.coworkers forKey:@"coworkers"];
-    [coder encodeObject:self.photo forKey:@"photo"];
-}*/
+    [coder encodeObject:self.name forKey:@"name"];
+    [coder encodeObject:self.count forKey:@"count"];
+    [coder encodeObject:self.phone forKey:@"phone"];
+}
 
 @end

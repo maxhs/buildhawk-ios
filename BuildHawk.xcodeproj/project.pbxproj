@@ -93,6 +93,8 @@
 		F28F3117181098590066320B /* BHUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F3116181098590066320B /* BHUtilities.m */; };
 		F28F311A18109CFD0066320B /* BHRecentDocumentCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F311918109CFD0066320B /* BHRecentDocumentCell.m */; };
 		F28F311C18109D0B0066320B /* BHRecentDocumentCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F28F311B18109D0B0066320B /* BHRecentDocumentCell.xib */; };
+		F28F9A04189C4140000A46D4 /* BHReportWeatherCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F9A03189C4140000A46D4 /* BHReportWeatherCell.m */; };
+		F28F9A08189C417C000A46D4 /* BHReportWeatherCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A07189C417C000A46D4 /* BHReportWeatherCell.xib */; };
 		F291F4B617F0B33000A27B46 /* BHChecklistItemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */; };
 		F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */; };
 		F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B817F0B80900A27B46 /* communicateOutline.png */; };
@@ -303,6 +305,9 @@
 		F28F311818109CFD0066320B /* BHRecentDocumentCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHRecentDocumentCell.h; sourceTree = "<group>"; };
 		F28F311918109CFD0066320B /* BHRecentDocumentCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHRecentDocumentCell.m; sourceTree = "<group>"; };
 		F28F311B18109D0B0066320B /* BHRecentDocumentCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHRecentDocumentCell.xib; sourceTree = "<group>"; };
+		F28F9A02189C4140000A46D4 /* BHReportWeatherCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportWeatherCell.h; sourceTree = "<group>"; };
+		F28F9A03189C4140000A46D4 /* BHReportWeatherCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportWeatherCell.m; sourceTree = "<group>"; };
+		F28F9A07189C417C000A46D4 /* BHReportWeatherCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHReportWeatherCell.xib; sourceTree = "<group>"; };
 		F291F4B417F0B33000A27B46 /* BHChecklistItemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistItemViewController.h; sourceTree = "<group>"; };
 		F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistItemViewController.m; sourceTree = "<group>"; };
 		F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "communicateOutline@2x.png"; sourceTree = "<group>"; };
@@ -483,6 +488,9 @@
 				F239BBA017D877D9003097E6 /* BHReportPickerCell.h */,
 				F239BBA117D877D9003097E6 /* BHReportPickerCell.m */,
 				F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */,
+				F28F9A02189C4140000A46D4 /* BHReportWeatherCell.h */,
+				F28F9A03189C4140000A46D4 /* BHReportWeatherCell.m */,
+				F28F9A07189C417C000A46D4 /* BHReportWeatherCell.xib */,
 				F28F3100180F1A120066320B /* BHReportPhotoCell.h */,
 				F28F3101180F1A120066320B /* BHReportPhotoCell.m */,
 				F28F3103180F1A1F0066320B /* BHReportPhotoCell.xib */,
@@ -961,6 +969,7 @@
 				F226815018622D8100D78BDD /* stopAndCheckOutlineDark.png in Resources */,
 				F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */,
 				F203967D17D3E648001CFF61 /* whiteTabBackground.png in Resources */,
+				F28F9A08189C417C000A46D4 /* BHReportWeatherCell.xib in Resources */,
 				F203967E17D3E648001CFF61 /* whiteTabBackground@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1060,6 +1069,7 @@
 				F2A594EE17FBC3C400B818B5 /* BHCollectionPhotoCell.m in Sources */,
 				F29EF2EC1815C3BB00F737B7 /* BHChecklistNavigationController.m in Sources */,
 				F203962A17D16DC2001CFF61 /* BHPhoto.m in Sources */,
+				F28F9A04189C4140000A46D4 /* BHReportWeatherCell.m in Sources */,
 				F292ABFD17F9E8E40020DE13 /* BHListItemPhotoCell.m in Sources */,
 				F2B1F0F317D7DD660007A4E3 /* BHCategoryChecklistViewController.m in Sources */,
 				F28F3102180F1A120066320B /* BHReportPhotoCell.m in Sources */,

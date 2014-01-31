@@ -135,7 +135,7 @@
         }
         NSMutableArray *tempArray = [NSMutableArray array];
         for (BHPhoto *photo in self.photosArray){
-            if([testPredicate evaluateWithObject:photo]) {
+            if([photo isKindOfClass:[BHPhoto class]] && [testPredicate evaluateWithObject:photo]) {
                 [tempArray addObject:photo];
             }
         }

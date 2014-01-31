@@ -49,7 +49,7 @@
     [self.view setBackgroundColor:[UIColor blackColor]];
     [self.tableView setBackgroundColor:kBackgroundBlack];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.2]];
-    [self.tableView setScrollEnabled:NO];
+    //[self.tableView setScrollEnabled:NO];
     if ([BHUtilities isIPhone5]) {
         iPhone5 = YES;
     } else {

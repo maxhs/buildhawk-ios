@@ -740,7 +740,7 @@ typedef void(^RequestSuccess)(id result);
     if ([segue.identifier isEqualToString:@"PeoplePicker"]){
         [vc setUserArray:savedUser.coworkers];
     } else if ([segue.identifier isEqualToString:@"SubPicker"]){
-        [vc setWorklist:YES];
+        [vc setCountNotNeeded:YES];
         [vc setSubArray:savedUser.subcontractors];
     }
 }
@@ -848,7 +848,7 @@ typedef void(^RequestSuccess)(id result);
         [callActionSheet addButtonWithTitle:user.fullname];
     }
     callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
-    [callActionSheet showFromTabBar:self.tabBarController.tabBar];
+    [callActionSheet showInView:self.view];
 }
 
 - (IBAction)placeText:(id)sender{
@@ -868,12 +868,14 @@ typedef void(^RequestSuccess)(id result);
         [emailActionSheet addButtonWithTitle:user.fullname];
     }
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
-    [emailActionSheet showFromTabBar:self.tabBarController.tabBar];
+    [emailActionSheet showInView:self.view];
 }
 
 - (void)call:(NSString*)phone {
-    NSString *phoneNumber = [@"tel://" stringByAppendingString:phone];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneNumber]];
+    if (!iPad){
+        NSString *phoneNumber = [@"tel://" stringByAppendingString:phone];
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneNumber]];
+    }
 }
 
 

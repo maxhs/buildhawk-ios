@@ -322,7 +322,7 @@
 - (void)emailAction {
     emailBool = YES;
     phoneBool = NO;
-    emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Send email:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
+    emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
     [emailActionSheet addButtonWithTitle:kCompanyUsers];
     [emailActionSheet addButtonWithTitle:kSubcontractors];
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
@@ -337,6 +337,7 @@
         [vc setEmail:YES];
     }
     if ([segue.identifier isEqualToString:@"SubPicker"]) {
+        [vc setCountNotNeeded:YES];
         [vc setSubArray:_savedUser.subcontractors];
     } else if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
         [vc setUserArray:_savedUser.coworkers];
@@ -344,16 +345,18 @@
 }
 
 - (void)placeCall:(NSNotification*)notification {
-    NSString *number = [notification.userInfo objectForKey:@"number"];
-    if (number != nil && number.length){
-        NSString *phoneNumber = [@"tel://" stringByAppendingString:number];
-        NSString *phoneString = [phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
-        phoneString= [phoneString stringByReplacingOccurrencesOfString:@"(" withString:@""];
-        phoneString= [phoneString stringByReplacingOccurrencesOfString:@")" withString:@""];
-        phoneString= [phoneString stringByReplacingOccurrencesOfString:@"-" withString:@""];
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneString]];
-    } else {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We don't have a phone number for this contact." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    if (!iPad){
+        NSString *number = [notification.userInfo objectForKey:@"number"];
+        if (number != nil && number.length){
+            NSString *phoneNumber = [@"tel://" stringByAppendingString:number];
+            NSString *phoneString = [phoneNumber stringByReplacingOccurrencesOfString:@" " withString:@""];
+            phoneString= [phoneString stringByReplacingOccurrencesOfString:@"(" withString:@""];
+            phoneString= [phoneString stringByReplacingOccurrencesOfString:@")" withString:@""];
+            phoneString= [phoneString stringByReplacingOccurrencesOfString:@"-" withString:@""];
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneString]];
+        } else {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We don't have a phone number for this contact." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
     }
 }
 

@@ -82,7 +82,7 @@
     [parameters setObject:password forKey:@"user[password]"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"user[device_token]"];
     [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"log in response object: %@",responseObject);
+        //NSLog(@"log in response object: %@",responseObject);
         user = [[BHUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
@@ -99,7 +99,7 @@
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", user.identifier];
         User *saveUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
         if (saveUser) {
-            NSLog(@"found existing MR user");
+            NSLog(@"Found existing user through Magical Record");
             saveUser.identifier = user.identifier;
             saveUser.lname = user.lname;
             saveUser.email = user.email;
@@ -107,7 +107,6 @@
             saveUser.fname = user.fname;
             saveUser.coworkers = user.coworkers;
             saveUser.subcontractors = user.subcontractors;
-            NSLog(@"save user has subcontractors: %i, %@",user.subcontractors.count, saveUser.subcontractors);
             saveUser.photoUrl100 = user.photo.url100;
             saveUser.phone = user.phone;
             
@@ -135,12 +134,12 @@
             newUser.fname = user.fname;
             newUser.coworkers = user.coworkers;
             newUser.subcontractors = user.subcontractors;
-            NSLog(@"new user has subcontractors: %i, %@",user.subcontractors.count, saveUser.subcontractors);
+
             newUser.photoUrl100 = user.photo.url100;
             newUser.phone = user.phone;
             [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                if (success) NSLog(@"done saving user through Magical Record");
-                else NSLog(@"error saving through MR: %@",error.description);
+                if (success && !error) NSLog(@"Done saving user through Magical Record without errors");
+                else NSLog(@"Error saving through MR: %@",error.description);
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
                 [UIView animateWithDuration:.3 animations:^{
                     self.loginContainerView.transform = CGAffineTransformIdentity;

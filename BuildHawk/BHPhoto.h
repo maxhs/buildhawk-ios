@@ -15,6 +15,7 @@
 @property (nonatomic, strong) NSString *orig;
 @property (nonatomic, strong) NSString *source;
 @property (nonatomic, strong) NSString *folder;
+@property (nonatomic, strong) NSString *folderId;
 @property (nonatomic, strong) NSString *phase;
 @property (nonatomic, strong) NSNumber *filesize;
 @property (nonatomic, strong) NSString *filename;

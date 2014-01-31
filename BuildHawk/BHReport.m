@@ -25,6 +25,8 @@
         self.wind = value;
     } else if ([key isEqualToString:@"precip"]) {
         self.precip = value;
+    } else if ([key isEqualToString:@"humidity"]) {
+        self.humidity = value;
     } else if ([key isEqualToString:@"weather_icon"]) {
         self.weatherIcon = value;
     } else if ([key isEqualToString:@"personnel"]) {

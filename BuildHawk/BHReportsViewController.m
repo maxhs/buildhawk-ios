@@ -9,6 +9,7 @@
 #import "BHReportsViewController.h"
 #import "BHReportPickerCell.h"
 #import "BHReportSectionCell.h"
+#import "BHReportWeatherCell.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHTabBarViewController.h"
 #import "BHProject.h"
@@ -125,8 +126,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     int dateInt = [reportDate timeIntervalSince1970];
     if (project.address.latitude && project.address.longitude) {
         [manager GET:[NSString stringWithFormat:@"https://api.forecast.io/forecast/%@/%f,%f,%i",kForecastAPIKey,project.address.latitude, project.address.longitude,dateInt] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"response object %i %@",dateInt,responseObject);
-            NSDictionary *dictionary = [NSDictionary dictionaryWithDictionary:[responseObject objectForKey:@"currently"]];
+            NSLog(@"response object %i %@",dateInt,responseObject);
+            NSDictionary *weatherDict = [NSDictionary dictionaryWithDictionary:[responseObject objectForKey:@"currently"]];
             NSDictionary *dailyData = [[[responseObject objectForKey:@"daily"] objectForKey:@"data"] firstObject];
             NSString *min = [[dailyData objectForKey:@"apparentTemperatureMin"] stringValue];
             NSString *max = [[dailyData objectForKey:@"apparentTemperatureMax"] stringValue];
@@ -136,15 +137,20 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             if (max.length > 4){
                 max = [max substringToIndex:4];
             }
-            [report setPrecip:[NSString stringWithFormat:@"%.0f%%", [[dictionary objectForKey:@"precipProbability"] floatValue]*100]];
+            [report setHumidity:[NSString stringWithFormat:@"%.0f%%", [[weatherDict objectForKey:@"humidity"] floatValue]*100]];
+            [report setPrecip:[NSString stringWithFormat:@"%.0f%%", [[weatherDict objectForKey:@"precipProbability"] floatValue]*100]];
             [report setTemp:[NSString stringWithFormat:@"%@° / %@°",max,min]];
-            [report setWeatherIcon:[dictionary objectForKey:@"icon"]];
+            [report setWeatherIcon:[weatherDict objectForKey:@"icon"]];
             [report setWeather:[dailyData objectForKey:@"summary"]];
-            if ([[[dictionary objectForKey:@"windSpeed"] stringValue] length])
-                windSpeed = [[[dictionary objectForKey:@"windSpeed"] stringValue] substringToIndex:3];
+            if ([[[weatherDict objectForKey:@"windSpeed"] stringValue] length]){
+                windSpeed = [[weatherDict objectForKey:@"windSpeed"] stringValue];
+                if (windSpeed.length > 3){
+                    windSpeed = [windSpeed substringToIndex:3];
+                }
+            }
             windDirection = [self windDirection:[[responseObject objectForKey:@"windBearing"] intValue]];
             [report setWind:[NSString stringWithFormat:@"%@mph %@",windSpeed, windDirection]];
-            weatherString = [NSString stringWithFormat:@"%@. Temp: %@. Wind: %@mph %@.",[dictionary objectForKey:@"summary"],temp,windSpeed, windDirection];
+            weatherString = [NSString stringWithFormat:@"%@. Temp: %@. Wind: %@mph %@.",[weatherDict objectForKey:@"summary"],temp,windSpeed, windDirection];
             dispatch_async(dispatch_get_main_queue(), ^{
                 [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
             });
@@ -194,7 +200,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [super viewWillAppear:animated];
     if (reports.count) {
         page = reports.count - 1;
-        NSLog(@"reloading on viewwillappear with page: %i",page);
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
     }
 }
@@ -210,7 +215,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     if (scrollView == self.scrollView && previousContentOffsetX != scrollView.contentOffset.x){
         float fractionalPage = scrollView.contentOffset.x / screen.size.width;
         page = lround(fractionalPage);
-        NSLog(@"inside page: %i",page);
         _report = [reports objectAtIndex:page];
         if (_report.identifier.length) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
@@ -238,7 +242,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (void)drawReports{
     if (reports.count) {
-        page = reports.count - 1;
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
         [formatter setDateFormat:@"MM/dd/yyyy"];
         NSString *dateString = [formatter stringFromDate:[NSDate date]];
@@ -253,12 +256,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 } else {
                     [self.scrollView setContentSize:CGSizeMake(reports.count*screen.size.width,self.scrollView.frame.size.height-113)];
                 }
-                NSLog(@"you'll be looking at the latest report");
             }
         }
         if (!foundReport) {
             [self newReportObject:dateString];
-            NSLog(@"should be a new report");
         }
         
         int idx = 1;
@@ -277,15 +278,16 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             _report = report;
         }
         
+        //reload the latest report
+        page = reports.count - 1;
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
         [self.scrollView setContentOffset:CGPointMake((screen.size.width*reports.count)-screen.size.width, self.scrollView.contentOffset.y) animated:NO];
     } else {
         //There are no existing reports
         [self newReportObject:nil];
         _report = reports.firstObject;
         [self.tableView reloadData];
-        
     }
-    
 }
 
 - (void)didReceiveMemoryWarning
@@ -298,12 +300,12 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 4;
+    return 5;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 1) {
+    if (section == 2) {
         return (1 + _report.personnel.count);
     }
     else return 1;
@@ -331,12 +333,20 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [cell.typePickerButton addTarget:self action:@selector(tapTypePicker) forControlEvents:UIControlEventTouchUpInside];
         [cell.datePickerButton addTarget:self action:@selector(showDatePicker:) forControlEvents:UIControlEventTouchUpInside];
         
+        return cell;
+    } else if (indexPath.section == 1) {
+        static NSString *CellIdentifier = @"ReportWeatherCell";
+        BHReportWeatherCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportWeatherCell" owner:self options:nil] lastObject];
+        }
+
         [cell.windTextField setUserInteractionEnabled:NO];
         [cell.tempTextField setUserInteractionEnabled:NO];
         [cell.precipTextField setUserInteractionEnabled:NO];
-        [cell.dailySummaryTextView setUserInteractionEnabled:NO];
-
-        //NSLog(@"report has existing weather for report date: %@ with wind: %@",_report.createdDate, _report.wind);
+        [cell.humidityTextField setUserInteractionEnabled:NO];
+        
         if (_report.weather.length) {
             [cell.dailySummaryTextView setTextColor:[UIColor darkGrayColor]];
             [cell.dailySummaryTextView setText:_report.weather];
@@ -344,9 +354,14 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             [cell.dailySummaryTextView setTextColor:[UIColor lightGrayColor]];
             [cell.dailySummaryTextView setText:kWeatherPlaceholder];
         }
+        
+        weatherTextView = cell.dailySummaryTextView;
+        weatherTextView.delegate = self;
+        
         [cell.tempTextField setText:_report.temp];
         [cell.windTextField setText:_report.wind];
         [cell.precipTextField setText:_report.precip];
+        [cell.humidityTextField setText:_report.humidity];
         
         if ([_report.weatherIcon isEqualToString:@"clear-day"] || [_report.weatherIcon isEqualToString:@"clear-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"sunny"]];
         else if ([_report.weatherIcon isEqualToString:@"cloudy"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"cloudy"]];
@@ -358,7 +373,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         } else [cell.weatherImageView setImage:nil];
         
         return cell;
-    } else if (indexPath.section == 1) {
+    } else if (indexPath.section == 2) {
         if (indexPath.row == 0) {
             static NSString *CellIdentifier = @"ReportPersonnelCell";
             BHReportPersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -399,7 +414,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             return cell;
         }
-    } else if (indexPath.section == 2) {
+    } else if (indexPath.section == 3) {
         BHReportPhotoCell *cell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPhotoCell" owner:self options:nil] lastObject];
@@ -454,13 +469,17 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     switch (indexPath.section) {
         case 0:
-            return 170;
+            return 70;
             break;
         case 1:
+            if ([_report.type isEqualToString:kDaily]) return 100;
+            else return 0;
+            break;
+        case 2:
             if (indexPath.row == 0) return 140;
             else return 66;
             break;
-        case 2:
+        case 3:
             return 120;
             break;
         default:
@@ -470,35 +489,39 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 }
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 32)];
-    [headerView setBackgroundColor:[UIColor clearColor]];
-    UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 1)];
-    [separator setBackgroundColor:kLightGrayColor];
-    [headerView addSubview:separator];
-    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,screen.size.width,32)];
-    [headerLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:15]];
-    [headerLabel setBackgroundColor:kDarkerGrayColor];
-    [headerLabel setTextAlignment:NSTextAlignmentCenter];
-    [headerLabel setTextColor:[UIColor whiteColor]];
-        switch (section) {
-            case 0:
-                [headerLabel setText:@"Report Info"];
-                break;
-            case 1:
-                [headerLabel setText:@"Personnel on Site"];
-                break;
-            case 2:
-                [headerLabel setText:@"Photos"];
-                break;
-            case 3:
-                [headerLabel setText:@"Notes"];
-                break;
-            default:
-                [headerLabel setText:@""];
-                break;
-        }
-    [headerView addSubview:headerLabel];
-    return headerView;
+    if (section == 1){
+        return nil;
+    } else {
+        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 32)];
+        [headerView setBackgroundColor:[UIColor clearColor]];
+        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 1)];
+        [separator setBackgroundColor:kLightGrayColor];
+        [headerView addSubview:separator];
+        UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,screen.size.width,32)];
+        [headerLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:15]];
+        [headerLabel setBackgroundColor:kDarkerGrayColor];
+        [headerLabel setTextAlignment:NSTextAlignmentCenter];
+        [headerLabel setTextColor:[UIColor whiteColor]];
+            switch (section) {
+                case 0:
+                    [headerLabel setText:@"Report Info"];
+                    break;
+                case 2:
+                    [headerLabel setText:@"Personnel on Site"];
+                    break;
+                case 3:
+                    [headerLabel setText:@"Photos"];
+                    break;
+                case 4:
+                    [headerLabel setText:@"Notes"];
+                    break;
+                default:
+                    [headerLabel setText:@""];
+                    break;
+            }
+        [headerView addSubview:headerLabel];
+        return headerView;
+    }
 }
 
 -(void)textViewDidBeginEditing:(UITextView *)textView {
@@ -509,7 +532,9 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [textView setTextColor:[UIColor darkGrayColor]];
     }
     if (textView == reportBodyTextView){
-        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:4] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+    } else if (textView == weatherTextView){
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     }
 }
 
@@ -521,6 +546,13 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             [textView setText:kReportPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
+    } else if (textView == weatherTextView) {
+        if (textView.text.length) {
+            _report.weather = textView.text;
+        } else {
+            [textView setText:kWeatherPlaceholder];
+            [textView setTextColor:[UIColor lightGrayColor]];
+        }
     } else {
         NSLog(@"textview ended editing");
         [self doneEditing];
@@ -528,9 +560,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    NSLog(@"textfield began editing");
     if (textField == countTextField) {
-        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:(countTextField.tag+1) inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:(countTextField.tag+1) inSection:2] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"Done" object:nil];
 }
@@ -1083,9 +1114,11 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     if (_report.identifier.length && object != nil && object != [NSNull null]) {
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         if ([object isKindOfClass:[BHSub class]]){
-            [parameters setObject:[(BHSub*)object identifier] forKey:@"sub_id"];
+            BHSub *sub = (BHSub*)object;
+            if (sub.identifier)[parameters setObject:sub.identifier forKey:@"sub_id"];
         } else if ([object isKindOfClass:[BHUser class]]) {
-            [parameters setObject:[(BHUser*)object identifier] forKey:@"user_id"];
+            BHUser *user = (BHUser*)object;
+            if (user.identifier)[parameters setObject:user.identifier forKey:@"user_id"];
         }
         [parameters setObject:_report.identifier forKey:@"report_id"];
     
@@ -1108,6 +1141,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
     if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
     if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
+    if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
     if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
     if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
     if (_report.personnel.count) {
@@ -1187,6 +1221,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     if (_report.wind) [parameters setObject:_report.wind forKey:@"wind"];
     if (_report.temp.length) [parameters setObject:_report.temp forKey:@"temp"];
     if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
+    if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
     if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
     if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
     if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
@@ -1217,7 +1252,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success creating report: %@",responseObject);
         BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
-        [reports replaceObjectAtIndex:[reports indexOfObject:_report] withObject:newReport];
+        
+        if ([reports indexOfObject:_report] != NSNotFound){
+            [reports replaceObjectAtIndex:[reports indexOfObject:_report] withObject:newReport];
+        }
     
         if (newReport.identifier.length){
             for (BHPhoto *photo in _report.photos) {

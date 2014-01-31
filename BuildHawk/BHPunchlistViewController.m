@@ -220,10 +220,9 @@
 
 - (void)loadPunchlist {
     [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:@{@"id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success loading punchlist: %@",responseObject);
+        //NSLog(@"Success loading punchlist: %@",responseObject);
         listItems = [BHUtilities punchlistItemsFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"punchlist_items"]];
         personnel = [BHUtilities personnelFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"personnel"]];
-        NSLog(@"personnel count: %i",personnel.count);
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];

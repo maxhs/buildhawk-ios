@@ -40,8 +40,10 @@
         if (value != [NSNull null] && value != nil) self.phase = value;
     } else if ([key isEqualToString:@"assignee"]) {
         self.assignee = value;
-    } else if ([key isEqualToString:@"folder"]) {
+    } else if ([key isEqualToString:@"folder_name"]) {
         self.folder = value;
+    } else if ([key isEqualToString:@"folder_id"]) {
+        self.folderId = value;
     }
 }
 

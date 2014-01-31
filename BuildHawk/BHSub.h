@@ -18,4 +18,5 @@
 @property (strong, nonatomic) NSNumber *reportSubId;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;
+- (void)encodeWithCoder:(NSCoder *)coder;
 @end
