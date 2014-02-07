@@ -25,6 +25,7 @@ static NSString *textPlaceholder = @"Text Message";
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
     BHUser *selectedCoworker;
     User *user;
+    CGRect screen;
 }
 @property (strong, nonatomic) UISwitch *emailPermissionsSwitch;
 @property (strong, nonatomic) UISwitch *pushPermissionsSwitch;
@@ -43,12 +44,11 @@ static NSString *textPlaceholder = @"Text Message";
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     user = [User MR_findFirstWithPredicate:predicate inContext:localContext];
-    NSLog(@"user coworkers from menu? %@",user.coworkers);
-    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        
-    } else {
-        self.logoutButton.transform = CGAffineTransformMakeTranslation(0, -88);
-    }
+    //NSLog(@"user coworkers from menu? %@",user.coworkers);
+    screen = [UIScreen mainScreen].bounds;
+    [self.logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
+    [self.logoutButton setBackgroundColor:kDarkGrayColor];
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -96,7 +96,9 @@ static NSString *textPlaceholder = @"Text Message";
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
         BHUser *coworker = [user.coworkers objectAtIndex:indexPath.row];
         [cell.textLabel setText:coworker.fullname];
-        if (coworker.phone) {
+        if (coworker.formatted_phone) {
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.formatted_phone, coworker.email]];
+        } else if (coworker.phone) {
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.phone, coworker.email]];
         } else {
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@", coworker.email]];

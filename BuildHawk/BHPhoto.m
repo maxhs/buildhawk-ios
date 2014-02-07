@@ -44,6 +44,8 @@
         self.folder = value;
     } else if ([key isEqualToString:@"folder_id"]) {
         self.folderId = value;
+    } else if ([key isEqualToString:@"name"]) {
+        self.name = value;
     }
 }
 

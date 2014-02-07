@@ -30,6 +30,8 @@
     BOOL complete;
     BOOL emailBool;
     BOOL phoneBool;
+    BOOL saveToLibrary;
+    BOOL shouldSave;
     NSString *mainPhoneNumber;
     NSString *recipientEmail;
     UITextView *addCommentTextView;
@@ -47,7 +49,7 @@
     BOOL iPad;
     ALAssetsLibrary *library;
 }
-- (IBAction)updateChecklistItem;
+
 @end
 
 @implementation BHChecklistItemViewController
@@ -84,6 +86,10 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
+
+    self.navigationItem.hidesBackButton = YES;
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    self.navigationItem.leftBarButtonItem = backButton;
 }
 
 - (void)didReceiveMemoryWarning
@@ -238,6 +244,7 @@
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
+    shouldSave = YES;
     UIEdgeInsets tempInset = tableViewInset;
     tempInset.bottom += 216;
     self.tableView.contentInset = tempInset;
@@ -467,12 +474,14 @@
 }
 
 - (void)choosePhoto {
+    saveToLibrary = NO;
     WSAssetPickerController *controller = [[WSAssetPickerController alloc] initWithAssetsLibrary:library];
     controller.delegate = self;
     [self presentViewController:controller animated:YES completion:NULL];
 }
 
 - (void)takePhoto {
+    saveToLibrary = YES;
     UIImagePickerController *vc = [[UIImagePickerController alloc] init];
     [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
     [vc setDelegate:self];
@@ -593,43 +602,45 @@
 }
 
 - (void)savePostToLibrary:(UIImage*)originalImage {
-    NSString *albumName = @"BuildHawk";
-    UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
-    [library addAssetsGroupAlbumWithName:albumName
-                             resultBlock:^(ALAssetsGroup *group) {
-                                 
-                             }
-                            failureBlock:^(NSError *error) {
-                                NSLog(@"error adding album");
-                            }];
-    
-    __block ALAssetsGroup* groupToAddTo;
-    [library enumerateGroupsWithTypes:ALAssetsGroupAlbum
-                           usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
-                               if ([[group valueForProperty:ALAssetsGroupPropertyName] isEqualToString:albumName]) {
-                                   
-                                   groupToAddTo = group;
+    if (saveToLibrary){
+        NSString *albumName = @"BuildHawk";
+        UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
+        [library addAssetsGroupAlbumWithName:albumName
+                                 resultBlock:^(ALAssetsGroup *group) {
+                                     
+                                 }
+                                failureBlock:^(NSError *error) {
+                                    NSLog(@"error adding album");
+                                }];
+        
+        __block ALAssetsGroup* groupToAddTo;
+        [library enumerateGroupsWithTypes:ALAssetsGroupAlbum
+                               usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+                                   if ([[group valueForProperty:ALAssetsGroupPropertyName] isEqualToString:albumName]) {
+                                       
+                                       groupToAddTo = group;
+                                   }
                                }
-                           }
-                         failureBlock:^(NSError* error) {
-                             NSLog(@"failed to enumerate albums:\nError: %@", [error localizedDescription]);
-                         }];
-    
-    [library writeImageToSavedPhotosAlbum:imageToSave.CGImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
-        if (error.code == 0) {
-            [library assetForURL:assetURL
-                     resultBlock:^(ALAsset *asset) {
-                         // assign the photo to the album
-                         [groupToAddTo addAsset:asset];
-                     }
-                    failureBlock:^(NSError* error) {
-                        NSLog(@"failed to retrieve image asset:\nError: %@ ", [error localizedDescription]);
-                    }];
-        }
-        else {
-            NSLog(@"saved image failed.\nerror code %i\n%@", error.code, [error localizedDescription]);
-        }
-    }];
+                             failureBlock:^(NSError* error) {
+                                 NSLog(@"failed to enumerate albums:\nError: %@", [error localizedDescription]);
+                             }];
+        
+        [library writeImageToSavedPhotosAlbum:imageToSave.CGImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
+            if (error.code == 0) {
+                [library assetForURL:assetURL
+                         resultBlock:^(ALAsset *asset) {
+                             // assign the photo to the album
+                             [groupToAddTo addAsset:asset];
+                         }
+                        failureBlock:^(NSError* error) {
+                            NSLog(@"failed to retrieve image asset:\nError: %@ ", [error localizedDescription]);
+                        }];
+            }
+            else {
+                NSLog(@"saved image failed.\nerror code %i\n%@", error.code, [error localizedDescription]);
+            }
+        }];
+    }
 }
 
 -(void)removeConfirm {
@@ -720,7 +731,7 @@
     }];
 }
 
-- (IBAction)updateChecklistItem {
+- (void)updateChecklistItem {
     manager.requestSerializer = [AFJSONRequestSerializer serializer];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     [parameters setObject:_item.identifier forKey:@"id"];
@@ -737,7 +748,7 @@
         [parameters setObject:commentArray forKey:@"comments"];
     [SVProgressHUD showWithStatus:@"Updating item..."];
     [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success updating checklist item %@",responseObject);
+        //NSLog(@"Success updating checklist item %@",responseObject);
         BHChecklistItem *updatedItem = [[BHChecklistItem alloc] initWithDictionary:[responseObject objectForKey:@"checklist_item"]];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
         [self.navigationController popViewControllerAnimated:YES];
@@ -795,6 +806,7 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    shouldSave = YES;
     if (indexPath.section == 1) {
         switch (indexPath.row) {
             case 0:
@@ -828,8 +840,20 @@
     }
 }
 
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
+        [self updateChecklistItem];
+    }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+        [self.navigationController popViewControllerAnimated:YES];
+    }
+}
+
 - (void)back {
-    
+    if (shouldSave) {
+        [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
+    } else {
+        [self.navigationController popViewControllerAnimated:YES];
+    }
 }
 
 @end

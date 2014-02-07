@@ -178,8 +178,7 @@
             NSLog(@"should be removing photo at index: %i",idx);
             BHPhoto *photoToRemove = [self.photosArray objectAtIndex:idx];
             
-            if (self.documentsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kDocuments}];
-            else if (self.reportsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kReports}];
+            if (self.reportsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kReports}];
             else if (self.checklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kChecklist}];
             else if (self.worklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kWorklist}];
             

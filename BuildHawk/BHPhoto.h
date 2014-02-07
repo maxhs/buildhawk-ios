@@ -18,7 +18,7 @@
 @property (nonatomic, strong) NSString *folderId;
 @property (nonatomic, strong) NSString *phase;
 @property (nonatomic, strong) NSNumber *filesize;
-@property (nonatomic, strong) NSString *filename;
+@property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *identifier;
 @property (nonatomic, strong) NSString *mimetype;
 @property (nonatomic, strong) NSString *photoSize;

@@ -726,7 +726,7 @@ CGFloat SVProgressHUDRingThickness = 6;
     }
 #endif
     
-    return [UIFont boldSystemFontOfSize:16];
+    return [UIFont systemFontOfSize:17];
 }
 
 @end

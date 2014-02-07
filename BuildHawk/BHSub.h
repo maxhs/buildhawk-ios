@@ -13,6 +13,7 @@
 @property (strong, nonatomic) NSString *identifier;
 @property (strong, nonatomic) NSString *name;
 @property (strong, nonatomic) NSString *phone;
+@property (nonatomic, strong) NSString *formatted_phone;
 @property (strong, nonatomic) NSString *email;
 @property (strong, nonatomic) NSString *count;
 @property (strong, nonatomic) NSNumber *reportSubId;

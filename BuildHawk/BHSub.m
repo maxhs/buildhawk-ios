@@ -17,6 +17,8 @@
         self.count = [value stringValue];
     } else if ([key isEqualToString:@"phone_number"]) {
         self.phone = value;
+    } else if ([key isEqualToString:@"formatted_phone"]) {
+        self.formatted_phone = value;
     } else if ([key isEqualToString:@"email"]) {
         self.email = value;
     } else if ([key isEqualToString:@"name"]) {
@@ -51,6 +53,7 @@
         self.count = [decoder decodeObjectForKey:@"count"];
         self.name = [decoder decodeObjectForKey:@"name"];
         self.phone = [decoder decodeObjectForKey:@"phone"];
+        self.formatted_phone = [decoder decodeObjectForKey:@"formatted_phone"];
         self.email = [decoder decodeObjectForKey:@"email"];
     }
     return self;
@@ -62,6 +65,7 @@
     [coder encodeObject:self.name forKey:@"name"];
     [coder encodeObject:self.count forKey:@"count"];
     [coder encodeObject:self.phone forKey:@"phone"];
+    [coder encodeObject:self.formatted_phone forKey:@"formatted_phone"];
 }
 
 @end

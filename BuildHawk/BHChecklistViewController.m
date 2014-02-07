@@ -164,7 +164,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)filterCompleted {
     [completedListItems removeAllObjects];
-    NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"completed == YES"];
+    NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"status like %@",kCompleted];
     for (BHChecklistItem *item in listItems){
         if([testForTrue evaluateWithObject:item]) {
             [completedListItems addObject:item];
@@ -221,7 +221,7 @@ typedef void(^RequestSuccess)(id result);
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDict in array) {
         BHChecklistItem *item = [[BHChecklistItem alloc] initWithDictionary:itemDict];
-        if (onlyActive && [item.status isEqualToString:kNotApplicable]) {
+        if (onlyActive && ([item.status isEqualToString:kNotApplicable] || [item.status isEqualToString:kCompleted])) {
             
         } else {
             [items addObject:item];
@@ -316,21 +316,8 @@ typedef void(^RequestSuccess)(id result);
                 cell.textLabel.text = ((BHCategory *)item).name;
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"Subcategories %d", numberOfChildren];
             } else if ([item isKindOfClass:[BHChecklistItem class]]) {
-                if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
-                    [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
-                } else if ([[(BHChecklistItem*)item type] isEqualToString:@"S&C"]) {
-                    [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
-                } else {
-                    [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
-                }
                 [cell.detailTextLabel setText:[(BHChecklistItem*)item subcategory]];
-                if ([[(BHChecklistItem*)item photosCount] intValue] > 0) {
-                    cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniCamera"]];
-                } else if ([(BHChecklistItem*)item commentsCount] > 0) {
-                    cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"miniChat"]];
-                } else {
-                    cell.accessoryView = UITableViewCellAccessoryNone;
-                }
+                
             }
             break;
         case 1:
@@ -358,12 +345,22 @@ typedef void(^RequestSuccess)(id result);
         cell.textLabel.numberOfLines = 5;
         [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
 
-        if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
-            [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
-        } else if ([[(BHChecklistItem*)item type] isEqualToString:@"S&C"]) {
-            [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+        if (treeNodeInfo.treeDepthLevel == 2){
+            if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+            } else if ([[(BHChecklistItem*)item type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+            }
         } else {
-            [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+            if ([[(BHChecklistItem*)item type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
+            } else if ([[(BHChecklistItem*)item type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+            }
         }
         
         if ([[(BHChecklistItem*)item status] isEqualToString:kCompleted]) {

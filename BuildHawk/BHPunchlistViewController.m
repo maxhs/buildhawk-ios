@@ -40,10 +40,10 @@
     BOOL showByLocation;
     BOOL showByAssignee;
     BOOL iOS7;
+    BOOL firstLoad;
     User *savedUser;
     NSMutableArray *personnel;
 }
-
 @end
 
 @implementation BHPunchlistViewController
@@ -53,7 +53,8 @@
     [super viewDidLoad];
     project =[(BHTabBarViewController*)self.tabBarController project];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Worklists",project.name];
-    if (!listItems) listItems = [NSMutableArray array];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    self.tableView.rowHeight = 82;
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0){
@@ -61,11 +62,11 @@
     } else {
         iOS7 = NO;
     }
+    firstLoad = YES;
     [self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    //[self.tableView setTableHeaderView:self.segmentedControl];
-    NSLog(@"project: %@",project.identifier);
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    //if (!listItems) listItems = [NSMutableArray array];
     if (!completedListItems) completedListItems = [NSMutableArray array];
     if (!activeListItems) activeListItems = [NSMutableArray array];
     if (!locationListItems) locationListItems = [NSMutableArray array];
@@ -120,7 +121,6 @@
         case 0:
             showActive = YES;
             [self filterActive];
-            [self.tableView reloadData];
             break;
         case 1:
             showByLocation = YES;
@@ -140,6 +140,7 @@
 }
 
 - (void)handleRefresh:(id)sender {
+    firstLoad = YES;
     [SVProgressHUD showWithStatus:@"Refreshing..."];
     [self loadPunchlist];
 }
@@ -219,10 +220,29 @@
 }
 
 - (void)loadPunchlist {
+    
     [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:@{@"id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading punchlist: %@",responseObject);
+        [listItems removeAllObjects];
         listItems = [BHUtilities punchlistItemsFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"punchlist_items"]];
         personnel = [BHUtilities personnelFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"personnel"]];
+        
+        [activeListItems removeAllObjects];
+        for (BHPunchlistItem *item in listItems){
+            if(!item.completed) {
+                [activeListItems addObject:item];
+            }
+            if (item.location.length) {
+                [locationSet addObject:item.location];
+            }
+            if (item.assignees) {
+                [assigneeSet addObject:item.assignees.firstObject];
+            }
+        }
+        if (firstLoad){
+            showActive = YES;
+            firstLoad = NO;
+        }
         [self.tableView reloadData];
         [SVProgressHUD dismiss];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -269,15 +289,9 @@
         item = [assigneeListItems objectAtIndex:indexPath.row];
     } else {
         item = [listItems objectAtIndex:indexPath.row];
-        if (item.location.length) {
-            [locationSet addObject:item.location];
-        }
-        if (item.assignees) {
-            [assigneeSet addObject:item.assignees.firstObject];
-        }
     }
     [cell.itemLabel setText:item.body];
-    [cell.itemLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:18]];
+    [cell.itemLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:19]];
     cell.itemLabel.numberOfLines = 0;
     if (item.photos.count) {
         [cell.photoButton setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] url100]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
@@ -294,8 +308,12 @@
     return cell;
 }
 
-- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 88;
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    }
 }
 
 #pragma mark - Table view delegate
@@ -312,6 +330,7 @@
         [vc setTitle:@"New Item"];
         [vc setNewItem:YES];
         [vc setProject:project];
+        [vc setLocationSet:locationSet];
         if (savedUser)[vc setSavedUser:savedUser];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;

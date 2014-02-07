@@ -30,7 +30,6 @@
 {
     [MagicalRecord setupCoreDataStack];
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
-    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
     [self customizeAppearance];
     
     [Flurry setCrashReportingEnabled:YES];
@@ -56,13 +55,13 @@
     }
     UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:15],
+                                    NSFontAttributeName : [UIFont systemFontOfSize:16],
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     
     [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:14],
+                                    NSFontAttributeName : [UIFont systemFontOfSize:15],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
     
@@ -74,11 +73,11 @@
     
     [[UITabBarItem appearance] setTitleTextAttributes: @{
                     NSForegroundColorAttributeName : [UIColor whiteColor],
-                                NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueLight size:13.0],
+                                NSFontAttributeName : [UIFont systemFontOfSize:13.0],
     } forState:UIControlStateNormal];
     [[UITabBarItem appearance] setTitleTextAttributes:@{
                  NSForegroundColorAttributeName : [UIColor colorWithWhite:.2 alpha:1.0],
-                            NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:13.0],
+                            NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:13],
         } forState:UIControlStateSelected];
     [[UITabBar appearance] setSelectionIndicatorImage:[UIImage imageNamed:@"whiteTabBackground"]];
     [[UITabBar appearance] setTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
@@ -106,6 +105,7 @@
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -122,7 +122,6 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
 {
     [Flurry logEvent:@"Did Receive Remote Notification"];
-    NSLog(@"Just received a remote notification: %@",pushMessage);
 }
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken

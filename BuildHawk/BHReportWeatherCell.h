@@ -11,6 +11,10 @@
 @interface BHReportWeatherCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIView *weatherContainerView;
 @property (weak, nonatomic) IBOutlet UITextView *dailySummaryTextView;
+@property (weak, nonatomic) IBOutlet UILabel *windLabel;
+@property (weak, nonatomic) IBOutlet UILabel *tempLabel;
+@property (weak, nonatomic) IBOutlet UILabel *precipLabel;
+@property (weak, nonatomic) IBOutlet UILabel *humidityLabel;
 @property (weak, nonatomic) IBOutlet UITextField *windTextField;
 @property (weak, nonatomic) IBOutlet UITextField *precipTextField;
 @property (weak, nonatomic) IBOutlet UITextField *tempTextField;

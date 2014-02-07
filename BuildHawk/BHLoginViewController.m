@@ -60,7 +60,7 @@
 }
 
 - (void)adjustLoginContainer {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsAuthToken]) {
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
         [self.loginContainerView setAlpha:0.0];
         [self login:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] andPassword:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]];
     }

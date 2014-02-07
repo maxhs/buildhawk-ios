@@ -95,6 +95,28 @@
 		F28F311C18109D0B0066320B /* BHRecentDocumentCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F28F311B18109D0B0066320B /* BHRecentDocumentCell.xib */; };
 		F28F9A04189C4140000A46D4 /* BHReportWeatherCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F9A03189C4140000A46D4 /* BHReportWeatherCell.m */; };
 		F28F9A08189C417C000A46D4 /* BHReportWeatherCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A07189C417C000A46D4 /* BHReportWeatherCell.xib */; };
+		F28F9A0B189C6A27000A46D4 /* BHFoldersViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F9A0A189C6A27000A46D4 /* BHFoldersViewController.m */; };
+		F28F9A0D189D890C000A46D4 /* empty100.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A0C189D890C000A46D4 /* empty100.png */; };
+		F28F9A2518A33F5E000A46D4 /* BuildHawk_app_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2018A33F5D000A46D4 /* BuildHawk_app_icon_114.png */; };
+		F28F9A2618A33F5E000A46D4 /* BuildHawk_app_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2118A33F5E000A46D4 /* BuildHawk_app_icon_57.png */; };
+		F28F9A2718A33F5E000A46D4 /* BuildHawk_app_icon_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2218A33F5E000A46D4 /* BuildHawk_app_icon_1024.png */; };
+		F28F9A2818A33F5E000A46D4 /* BuildHawk_app_icon_256.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2318A33F5E000A46D4 /* BuildHawk_app_icon_256.png */; };
+		F28F9A2918A33F5E000A46D4 /* BuildHawk_app_icon_120.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2418A33F5E000A46D4 /* BuildHawk_app_icon_120.png */; };
+		F28F9A2D18A34CF2000A46D4 /* BuildHawk_app_icon_100.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2A18A34CF2000A46D4 /* BuildHawk_app_icon_100.png */; };
+		F28F9A2E18A34CF2000A46D4 /* BuildHawk_app_icon_72.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2B18A34CF2000A46D4 /* BuildHawk_app_icon_72.png */; };
+		F28F9A2F18A34CF2000A46D4 /* BuildHawk_app_icon_144.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A2C18A34CF2000A46D4 /* BuildHawk_app_icon_144.png */; };
+		F28F9A3418A34D43000A46D4 /* BuildHawk_app_icon_152.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3018A34D43000A46D4 /* BuildHawk_app_icon_152.png */; };
+		F28F9A3518A34D43000A46D4 /* BuildHawk_app_icon_80.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3118A34D43000A46D4 /* BuildHawk_app_icon_80.png */; };
+		F28F9A3618A34D43000A46D4 /* BuildHawk_app_icon_76.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3218A34D43000A46D4 /* BuildHawk_app_icon_76.png */; };
+		F28F9A3718A34D43000A46D4 /* BuildHawk_app_icon_50.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3318A34D43000A46D4 /* BuildHawk_app_icon_50.png */; };
+		F28F9A3A18A34D5C000A46D4 /* BuildHawk_app_icon_29.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3818A34D5C000A46D4 /* BuildHawk_app_icon_29.png */; };
+		F28F9A3B18A34D5C000A46D4 /* BuildHawk_app_icon_58.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3918A34D5C000A46D4 /* BuildHawk_app_icon_58.png */; };
+		F28F9A3D18A34E04000A46D4 /* BuildHawk_app_icon_40.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A3C18A34E04000A46D4 /* BuildHawk_app_icon_40.png */; };
+		F28F9A4C18A45989000A46D4 /* zoom.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A4A18A45989000A46D4 /* zoom.png */; };
+		F28F9A4D18A45989000A46D4 /* zoom@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A4B18A45989000A46D4 /* zoom@2x.png */; };
+		F28F9A5018A45D43000A46D4 /* BHProjectDocsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F9A4F18A45D43000A46D4 /* BHProjectDocsViewController.m */; };
+		F28F9A5318A49EF3000A46D4 /* miniCameraButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A5118A49EF2000A46D4 /* miniCameraButton.png */; };
+		F28F9A5418A49EF3000A46D4 /* miniCameraButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F28F9A5218A49EF3000A46D4 /* miniCameraButton@2x.png */; };
 		F291F4B617F0B33000A27B46 /* BHChecklistItemViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */; };
 		F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */; };
 		F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */ = {isa = PBXBuildFile; fileRef = F291F4B817F0B80900A27B46 /* communicateOutline.png */; };
@@ -179,10 +201,6 @@
 		F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */; };
 		F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FF417D0F9FC00F09C6F /* BHDashboardDetailViewController.m */; };
 		F2BC8047180486F000FCD8D5 /* BuildHawk.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2BC8045180486F000FCD8D5 /* BuildHawk.xcdatamodeld */; };
-		F2D7502C17D7B830006375CD /* BuildHawk_app_icon_57.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502817D7B830006375CD /* BuildHawk_app_icon_57.png */; };
-		F2D7502D17D7B830006375CD /* BuildHawk_app_icon_114.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502917D7B830006375CD /* BuildHawk_app_icon_114.png */; };
-		F2D7502E17D7B830006375CD /* BuildHawk_app_icon_120.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502A17D7B830006375CD /* BuildHawk_app_icon_120.png */; };
-		F2D7502F17D7B830006375CD /* BuildHawk_app_icon_1024.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D7502B17D7B830006375CD /* BuildHawk_app_icon_1024.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -308,6 +326,30 @@
 		F28F9A02189C4140000A46D4 /* BHReportWeatherCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportWeatherCell.h; sourceTree = "<group>"; };
 		F28F9A03189C4140000A46D4 /* BHReportWeatherCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportWeatherCell.m; sourceTree = "<group>"; };
 		F28F9A07189C417C000A46D4 /* BHReportWeatherCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHReportWeatherCell.xib; sourceTree = "<group>"; };
+		F28F9A09189C6A27000A46D4 /* BHFoldersViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHFoldersViewController.h; sourceTree = "<group>"; };
+		F28F9A0A189C6A27000A46D4 /* BHFoldersViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHFoldersViewController.m; sourceTree = "<group>"; };
+		F28F9A0C189D890C000A46D4 /* empty100.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = empty100.png; sourceTree = "<group>"; };
+		F28F9A2018A33F5D000A46D4 /* BuildHawk_app_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_114.png; sourceTree = "<group>"; };
+		F28F9A2118A33F5E000A46D4 /* BuildHawk_app_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_57.png; sourceTree = "<group>"; };
+		F28F9A2218A33F5E000A46D4 /* BuildHawk_app_icon_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_1024.png; sourceTree = "<group>"; };
+		F28F9A2318A33F5E000A46D4 /* BuildHawk_app_icon_256.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_256.png; sourceTree = "<group>"; };
+		F28F9A2418A33F5E000A46D4 /* BuildHawk_app_icon_120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_120.png; sourceTree = "<group>"; };
+		F28F9A2A18A34CF2000A46D4 /* BuildHawk_app_icon_100.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_100.png; sourceTree = "<group>"; };
+		F28F9A2B18A34CF2000A46D4 /* BuildHawk_app_icon_72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_72.png; sourceTree = "<group>"; };
+		F28F9A2C18A34CF2000A46D4 /* BuildHawk_app_icon_144.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_144.png; sourceTree = "<group>"; };
+		F28F9A3018A34D43000A46D4 /* BuildHawk_app_icon_152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_152.png; sourceTree = "<group>"; };
+		F28F9A3118A34D43000A46D4 /* BuildHawk_app_icon_80.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_80.png; sourceTree = "<group>"; };
+		F28F9A3218A34D43000A46D4 /* BuildHawk_app_icon_76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_76.png; sourceTree = "<group>"; };
+		F28F9A3318A34D43000A46D4 /* BuildHawk_app_icon_50.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_50.png; sourceTree = "<group>"; };
+		F28F9A3818A34D5C000A46D4 /* BuildHawk_app_icon_29.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_29.png; sourceTree = "<group>"; };
+		F28F9A3918A34D5C000A46D4 /* BuildHawk_app_icon_58.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_58.png; sourceTree = "<group>"; };
+		F28F9A3C18A34E04000A46D4 /* BuildHawk_app_icon_40.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_40.png; sourceTree = "<group>"; };
+		F28F9A4A18A45989000A46D4 /* zoom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = zoom.png; sourceTree = "<group>"; };
+		F28F9A4B18A45989000A46D4 /* zoom@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "zoom@2x.png"; sourceTree = "<group>"; };
+		F28F9A4E18A45D43000A46D4 /* BHProjectDocsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHProjectDocsViewController.h; sourceTree = "<group>"; };
+		F28F9A4F18A45D43000A46D4 /* BHProjectDocsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHProjectDocsViewController.m; sourceTree = "<group>"; };
+		F28F9A5118A49EF2000A46D4 /* miniCameraButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = miniCameraButton.png; sourceTree = "<group>"; };
+		F28F9A5218A49EF3000A46D4 /* miniCameraButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "miniCameraButton@2x.png"; sourceTree = "<group>"; };
 		F291F4B417F0B33000A27B46 /* BHChecklistItemViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistItemViewController.h; sourceTree = "<group>"; };
 		F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistItemViewController.m; sourceTree = "<group>"; };
 		F291F4B717F0B80900A27B46 /* communicateOutline@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "communicateOutline@2x.png"; sourceTree = "<group>"; };
@@ -430,10 +472,6 @@
 		F2B29FF317D0F9FC00F09C6F /* BHDashboardDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDashboardDetailViewController.h; sourceTree = "<group>"; };
 		F2B29FF417D0F9FC00F09C6F /* BHDashboardDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardDetailViewController.m; sourceTree = "<group>"; };
 		F2BC8046180486F000FCD8D5 /* BuildHawk.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BuildHawk.xcdatamodel; sourceTree = "<group>"; };
-		F2D7502817D7B830006375CD /* BuildHawk_app_icon_57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_57.png; sourceTree = "<group>"; };
-		F2D7502917D7B830006375CD /* BuildHawk_app_icon_114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_114.png; sourceTree = "<group>"; };
-		F2D7502A17D7B830006375CD /* BuildHawk_app_icon_120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_120.png; sourceTree = "<group>"; };
-		F2D7502B17D7B830006375CD /* BuildHawk_app_icon_1024.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = BuildHawk_app_icon_1024.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -712,6 +750,11 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				F28F9A5118A49EF2000A46D4 /* miniCameraButton.png */,
+				F28F9A5218A49EF3000A46D4 /* miniCameraButton@2x.png */,
+				F28F9A4A18A45989000A46D4 /* zoom.png */,
+				F28F9A4B18A45989000A46D4 /* zoom@2x.png */,
+				F28F9A0C189D890C000A46D4 /* empty100.png */,
 				F22681A0187FB0ED00D78BDD /* wind.png */,
 				F22681A1187FB0ED00D78BDD /* wind@2x.png */,
 				F22681A2187FB0ED00D78BDD /* cloudy.png */,
@@ -754,13 +797,24 @@
 				F291F4BA17F0B80900A27B46 /* stopAndCheckOutline@2x.png */,
 				F291F4BB17F0B80900A27B46 /* documentsOutline.png */,
 				F291F4BC17F0B80900A27B46 /* documentsOutline@2x.png */,
+				F28F9A3C18A34E04000A46D4 /* BuildHawk_app_icon_40.png */,
+				F28F9A3818A34D5C000A46D4 /* BuildHawk_app_icon_29.png */,
+				F28F9A3918A34D5C000A46D4 /* BuildHawk_app_icon_58.png */,
+				F28F9A3018A34D43000A46D4 /* BuildHawk_app_icon_152.png */,
+				F28F9A3118A34D43000A46D4 /* BuildHawk_app_icon_80.png */,
+				F28F9A3218A34D43000A46D4 /* BuildHawk_app_icon_76.png */,
+				F28F9A3318A34D43000A46D4 /* BuildHawk_app_icon_50.png */,
+				F28F9A2018A33F5D000A46D4 /* BuildHawk_app_icon_114.png */,
+				F28F9A2118A33F5E000A46D4 /* BuildHawk_app_icon_57.png */,
+				F28F9A2218A33F5E000A46D4 /* BuildHawk_app_icon_1024.png */,
+				F28F9A2318A33F5E000A46D4 /* BuildHawk_app_icon_256.png */,
+				F28F9A2418A33F5E000A46D4 /* BuildHawk_app_icon_120.png */,
+				F28F9A2A18A34CF2000A46D4 /* BuildHawk_app_icon_100.png */,
+				F28F9A2B18A34CF2000A46D4 /* BuildHawk_app_icon_72.png */,
+				F28F9A2C18A34CF2000A46D4 /* BuildHawk_app_icon_144.png */,
 				F2B1F0E317D7BE810007A4E3 /* Default.png */,
 				F2B1F0E417D7BE810007A4E3 /* Default@2x.png */,
 				F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */,
-				F2D7502817D7B830006375CD /* BuildHawk_app_icon_57.png */,
-				F2D7502917D7B830006375CD /* BuildHawk_app_icon_114.png */,
-				F2D7502A17D7B830006375CD /* BuildHawk_app_icon_120.png */,
-				F2D7502B17D7B830006375CD /* BuildHawk_app_icon_1024.png */,
 				F203967B17D3E648001CFF61 /* whiteTabBackground.png */,
 				F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */,
 				F203967717D3E4F6001CFF61 /* reportsSelected.png */,
@@ -807,6 +861,10 @@
 				F2B29FE217D0F31B00F09C6F /* BHDocumentsViewController.m */,
 				F2A594E917FBC13C00B818B5 /* BHPhotosViewController.h */,
 				F2A594EA17FBC13C00B818B5 /* BHPhotosViewController.m */,
+				F28F9A09189C6A27000A46D4 /* BHFoldersViewController.h */,
+				F28F9A0A189C6A27000A46D4 /* BHFoldersViewController.m */,
+				F28F9A4E18A45D43000A46D4 /* BHProjectDocsViewController.h */,
+				F28F9A4F18A45D43000A46D4 /* BHProjectDocsViewController.m */,
 				F203965A17D3DD6B001CFF61 /* BHPunchlistViewController.h */,
 				F203965B17D3DD6B001CFF61 /* BHPunchlistViewController.m */,
 				F228707817DFC89300A88475 /* BHPunchlistItemViewController.h */,
@@ -881,30 +939,34 @@
 			files = (
 				F295B1CC183A8A34009121BA /* BHProgressCell.xib in Resources */,
 				F291F4C217F0B80900A27B46 /* documentsOutline@2x.png in Resources */,
+				F28F9A2D18A34CF2000A46D4 /* BuildHawk_app_icon_100.png in Resources */,
 				F29EF2DE1815A77700F737B7 /* BHReportPersonnelCell.xib in Resources */,
 				F226815518622D8100D78BDD /* communicateOutlineDark@2x.png in Resources */,
 				F22681A9187FB0ED00D78BDD /* cloudy@2x.png in Resources */,
+				F28F9A5318A49EF3000A46D4 /* miniCameraButton.png in Resources */,
 				F29579CF17F7729B0082DE5A /* menu.png in Resources */,
 				F29EF2E21815BD1100F737B7 /* navBarBackgroundTall.png in Resources */,
 				F2B29FC717D0F31B00F09C6F /* InfoPlist.strings in Resources */,
 				F2B29FD617D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard in Resources */,
-				F2D7502C17D7B830006375CD /* BuildHawk_app_icon_57.png in Resources */,
 				F22681AB187FB0ED00D78BDD /* sunny@2x.png in Resources */,
 				F203962D17D171CF001CFF61 /* logo.png in Resources */,
 				F226819F187DE66800D78BDD /* rainy@2x.png in Resources */,
 				F203962E17D171CF001CFF61 /* logo@2x.png in Resources */,
 				F2B1F0E617D7BE820007A4E3 /* Default.png in Resources */,
 				F203963717D2DD9C001CFF61 /* textField.png in Resources */,
+				F28F9A2718A33F5E000A46D4 /* BuildHawk_app_icon_1024.png in Resources */,
 				F292AC1117F9F2DE0020DE13 /* textButton.png in Resources */,
 				F292AC0417F9EFF70020DE13 /* BHAddCommentCell.xib in Resources */,
 				F22681771872637000D78BDD /* miniChat@2x.png in Resources */,
 				F292AC1417F9F2DE0020DE13 /* mailButton@2x.png in Resources */,
 				F203963817D2DD9C001CFF61 /* loginBackground.png in Resources */,
 				F203963917D2DD9C001CFF61 /* loginBackground@2x.png in Resources */,
+				F28F9A2E18A34CF2000A46D4 /* BuildHawk_app_icon_72.png in Resources */,
 				F22681A6187FB0ED00D78BDD /* wind.png in Resources */,
 				F226815118622D8100D78BDD /* stopAndCheckOutlineDark@2x.png in Resources */,
 				F292ABF517F9E5660020DE13 /* BHChecklistMessageCell.xib in Resources */,
 				F203963A17D2DD9C001CFF61 /* textField@2x.png in Resources */,
+				F28F9A3718A34D43000A46D4 /* BuildHawk_app_icon_50.png in Resources */,
 				F203963D17D2DE9E001CFF61 /* loginButtonBackground.png in Resources */,
 				F226819C187DE66800D78BDD /* partly.png in Resources */,
 				F203963E17D2DE9E001CFF61 /* loginButtonBackground@2x.png in Resources */,
@@ -915,17 +977,18 @@
 				F226819D187DE66800D78BDD /* partly@2x.png in Resources */,
 				F226815418622D8100D78BDD /* communicateOutlineDark.png in Resources */,
 				F29579CB17F771B80082DE5A /* dashboard.png in Resources */,
-				F2D7502F17D7B830006375CD /* BuildHawk_app_icon_1024.png in Resources */,
 				F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */,
+				F28F9A2818A33F5E000A46D4 /* BuildHawk_app_icon_256.png in Resources */,
 				F22681A7187FB0ED00D78BDD /* wind@2x.png in Resources */,
 				F203964E17D3CDD9001CFF61 /* empty.png in Resources */,
 				F291F4C117F0B80900A27B46 /* documentsOutline.png in Resources */,
 				F239BBA617D8CA71003097E6 /* BHReportSectionCell.xib in Resources */,
 				F22681761872637000D78BDD /* miniChat.png in Resources */,
 				F226815318622D8100D78BDD /* documentsOutlineDark@2x.png in Resources */,
+				F28F9A4D18A45989000A46D4 /* zoom@2x.png in Resources */,
+				F28F9A3B18A34D5C000A46D4 /* BuildHawk_app_icon_58.png in Resources */,
 				F292ABFF17F9E8F10020DE13 /* BHListItemPhotoCell.xib in Resources */,
 				F22681AA187FB0ED00D78BDD /* sunny.png in Resources */,
-				F2D7502D17D7B830006375CD /* BuildHawk_app_icon_114.png in Resources */,
 				F203966817D3E052001CFF61 /* checklists.png in Resources */,
 				F2B1F0E817D7BE820007A4E3 /* Default-568h@2x.png in Resources */,
 				F291F4BF17F0B80900A27B46 /* stopAndCheckOutline.png in Resources */,
@@ -935,11 +998,15 @@
 				F28F3104180F1A1F0066320B /* BHReportPhotoCell.xib in Resources */,
 				F22681721872609600D78BDD /* miniCamera.png in Resources */,
 				F291F4C017F0B80900A27B46 /* stopAndCheckOutline@2x.png in Resources */,
+				F28F9A2518A33F5E000A46D4 /* BuildHawk_app_icon_114.png in Resources */,
+				F28F9A5418A49EF3000A46D4 /* miniCameraButton@2x.png in Resources */,
 				F203966A17D3E052001CFF61 /* documents.png in Resources */,
 				F292AC0E17F9F2DE0020DE13 /* callButton@2x.png in Resources */,
+				F28F9A2618A33F5E000A46D4 /* BuildHawk_app_icon_57.png in Resources */,
 				F22681731872609600D78BDD /* miniCamera@2x.png in Resources */,
 				F203966B17D3E052001CFF61 /* documents@2x.png in Resources */,
 				F203966C17D3E052001CFF61 /* punchlists.png in Resources */,
+				F28F9A3A18A34D5C000A46D4 /* BuildHawk_app_icon_29.png in Resources */,
 				F29EF2E91815BE1B00F737B7 /* navBarBackground@2x.png in Resources */,
 				F226819E187DE66800D78BDD /* rainy.png in Resources */,
 				F292AC1217F9F2DE0020DE13 /* textButton@2x.png in Resources */,
@@ -952,16 +1019,20 @@
 				F203966F17D3E052001CFF61 /* reports@2x.png in Resources */,
 				F29579CC17F771B80082DE5A /* dashboard@2x.png in Resources */,
 				F29579D017F7729B0082DE5A /* menu@2x.png in Resources */,
+				F28F9A0D189D890C000A46D4 /* empty100.png in Resources */,
 				F292AC1317F9F2DE0020DE13 /* mailButton.png in Resources */,
 				F226815218622D8100D78BDD /* documentsOutlineDark.png in Resources */,
+				F28F9A3D18A34E04000A46D4 /* BuildHawk_app_icon_40.png in Resources */,
 				F22681A8187FB0ED00D78BDD /* cloudy.png in Resources */,
 				F2B1F0E717D7BE820007A4E3 /* Default@2x.png in Resources */,
 				F29EF2E31815BD1100F737B7 /* navBarBackgroundTall@2x.png in Resources */,
+				F28F9A4C18A45989000A46D4 /* zoom.png in Resources */,
 				F203967517D3E361001CFF61 /* tabBarBackground.png in Resources */,
 				F29EF2F11815D32000F737B7 /* BHPersonnelCell.xib in Resources */,
-				F2D7502E17D7B830006375CD /* BuildHawk_app_icon_120.png in Resources */,
 				F226815C186B699A00D78BDD /* backArrow.png in Resources */,
 				F203967617D3E361001CFF61 /* tabBarBackground@2x.png in Resources */,
+				F28F9A3518A34D43000A46D4 /* BuildHawk_app_icon_80.png in Resources */,
+				F28F9A2918A33F5E000A46D4 /* BuildHawk_app_icon_120.png in Resources */,
 				F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */,
 				F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */,
 				F203967917D3E4F6001CFF61 /* reportsSelected.png in Resources */,
@@ -969,8 +1040,11 @@
 				F226815018622D8100D78BDD /* stopAndCheckOutlineDark.png in Resources */,
 				F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */,
 				F203967D17D3E648001CFF61 /* whiteTabBackground.png in Resources */,
+				F28F9A3618A34D43000A46D4 /* BuildHawk_app_icon_76.png in Resources */,
 				F28F9A08189C417C000A46D4 /* BHReportWeatherCell.xib in Resources */,
 				F203967E17D3E648001CFF61 /* whiteTabBackground@2x.png in Resources */,
+				F28F9A2F18A34CF2000A46D4 /* BuildHawk_app_icon_144.png in Resources */,
+				F28F9A3418A34D43000A46D4 /* BuildHawk_app_icon_152.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1055,10 +1129,12 @@
 				F22CBC431819B35B0042A6E0 /* Company.m in Sources */,
 				F21DC9C617EAB43300280C5B /* BHChecklistItem.m in Sources */,
 				F291F4D117F0D50600A27B46 /* BHCategory.m in Sources */,
+				F28F9A0B189C6A27000A46D4 /* BHFoldersViewController.m in Sources */,
 				F29579D517F7ACA30082DE5A /* BHChecklist.m in Sources */,
 				F203961B17D12FC6001CFF61 /* BHUser.m in Sources */,
 				F22681801873666300D78BDD /* BHSub.m in Sources */,
 				F203961E17D12FF4001CFF61 /* BHCompany.m in Sources */,
+				F28F9A5018A45D43000A46D4 /* BHProjectDocsViewController.m in Sources */,
 				F230675217E63F0C006536B8 /* BHPunchlist.m in Sources */,
 				F203962117D12FFF001CFF61 /* BHProject.m in Sources */,
 				F226817D18734E0C00D78BDD /* BHPeoplePickerViewController.m in Sources */,

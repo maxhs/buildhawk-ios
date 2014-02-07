@@ -14,6 +14,31 @@
 		<dict>
 			<key>CFBundleIconFiles</key>
 			<array>
+				<string>BuildHawk_app_icon_80</string>
+				<string>BuildHawk_app_icon_29</string>
+				<string>BuildHawk_app_icon_58</string>
+				<string>BuildHawk_app_icon_120</string>
+				<string>BuildHawk_app_icon_114</string>
+				<string>BuildHawk_app_icon_57</string>
+			</array>
+		</dict>
+	</dict>
+	<key>CFBundleIcons~ipad</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>BuildHawk_app_icon_40</string>
+				<string>BuildHawk_app_icon_50</string>
+				<string>BuildHawk_app_icon_58</string>
+				<string>BuildHawk_app_icon_80</string>
+				<string>BuildHawk_app_icon_100</string>
+				<string>BuildHawk_app_icon_144</string>
+				<string>BuildHawk_app_icon_72</string>
+				<string>BuildHawk_app_icon_76</string>
+				<string>BuildHawk_app_icon_152</string>
+				<string>BuildHawk_app_icon_29</string>
 				<string>BuildHawk_app_icon_120</string>
 				<string>BuildHawk_app_icon_114</string>
 				<string>BuildHawk_app_icon_57</string>
