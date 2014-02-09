@@ -29,7 +29,10 @@
 
 @implementation BHPhotosViewController
 
-@synthesize photosArray, phasePhotosArray, userNames, dates;
+@synthesize photosArray = _photosArray;
+@synthesize phasePhotosArray = _phasePhotosArray;
+@synthesize userNames = _userNames;
+@synthesize dates = _dates;
 @synthesize numberOfSections = _numberOfSections;
 @synthesize sectionTitles = _sectionTitles;
 
@@ -51,6 +54,7 @@
     if (!compositePhotos) compositePhotos = [NSMutableArray array];
     if (!browserArray) browserArray = [NSMutableArray array];
     sortByUser = NO;
+    sortByDate = NO;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
@@ -71,7 +75,7 @@
 
 - (IBAction)sort{
     sortSheet = [[UIActionSheet alloc] initWithTitle:@"Sort" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    [sortSheet addButtonWithTitle:@"By User"];
+    [sortSheet addButtonWithTitle:@"Taken/Uploaded By"];
     if (!self.reportsBool)[sortSheet addButtonWithTitle:@"By Date"];
     [sortSheet addButtonWithTitle:@"Default"];
     [sortSheet setCancelButtonIndex:[sortSheet addButtonWithTitle:@"Cancel"]];
@@ -79,15 +83,15 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"By User"]) {
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Taken/Uploaded By"]) {
         if (sectionArray.count)[sectionArray removeAllObjects];
         sortByUser = YES;
         sortByDate = NO;
         [self.collectionView reloadData];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"By Date"]) {
         if (sectionArray.count)[sectionArray removeAllObjects];
-        sortByUser = NO;
         sortByDate = YES;
+        sortByUser = NO;
         [self.collectionView reloadData];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Default"]) {
         if (sectionArray.count)[sectionArray removeAllObjects];
@@ -100,10 +104,10 @@
 
 - (NSInteger)collectionView:(UICollectionView *)view numberOfItemsInSection:(NSInteger)section {
     if (sortByUser) {
-        NSString *sectionTitle = [self.userNames objectAtIndex:section];
+        NSString *sectionTitle = [_userNames objectAtIndex:section];
         NSPredicate *testForuser = [NSPredicate predicateWithFormat:@"userName contains[cd] %@",sectionTitle];
         NSMutableArray *sortedByUser = [NSMutableArray array];
-        for (BHPhoto *photo in photosArray){
+        for (BHPhoto *photo in _photosArray){
             if([testForuser evaluateWithObject:photo]) {
                 [sortedByUser addObject:photo];
             }
@@ -111,18 +115,18 @@
         [sectionArray addObject:sortedByUser];
         return sortedByUser.count;
     } else if (sortByDate) {
-        NSString *sectionTitle = [self.dates objectAtIndex:section];
+        NSString *sectionTitle = [_dates objectAtIndex:section];
         NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
         NSMutableArray *tempArray = [NSMutableArray array];
-        for (BHPhoto *photo in self.photosArray){
+        for (BHPhoto *photo in _photosArray){
             if([testPredicate evaluateWithObject:photo]) {
                 [tempArray addObject:photo];
             }
         }
         [sectionArray addObject:tempArray];
         return tempArray.count;
-    } else if (self.sectionTitles.count){
-        NSString *sectionTitle = [self.sectionTitles objectAtIndex:section];
+    } else if (_sectionTitles.count){
+        NSString *sectionTitle = [_sectionTitles objectAtIndex:section];
         NSPredicate *testPredicate;
         if (self.documentsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"folder like %@",sectionTitle];
@@ -134,7 +138,7 @@
             testPredicate = [NSPredicate predicateWithFormat:@"phase like %@",sectionTitle];
         }
         NSMutableArray *tempArray = [NSMutableArray array];
-        for (BHPhoto *photo in self.photosArray){
+        for (BHPhoto *photo in _photosArray){
             if([photo isKindOfClass:[BHPhoto class]] && [testPredicate evaluateWithObject:photo]) {
                 [tempArray addObject:photo];
             }
@@ -142,25 +146,25 @@
         [sectionArray addObject:tempArray];
         return tempArray.count;
     } else  {
-        return self.photosArray.count;
+        return _photosArray.count;
     }
 }
 
 - (NSInteger)numberOfSectionsInCollectionView: (UICollectionView *)collectionView {
-    if (sortByUser) return self.userNames.count;
-    else if (sortByDate) return self.dates.count;
+    if (sortByUser) return _userNames.count;
+    else if (sortByDate) return _dates.count;
     else return _numberOfSections;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)cv cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     BHCollectionPhotoCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"PhotoCell" forIndexPath:indexPath];
     BHPhoto *photo;
-    if (self.sectionTitles.count || sortByUser || sortByDate) {
+    if (_sectionTitles.count || sortByUser || sortByDate) {
         NSMutableArray *tempArray = [sectionArray objectAtIndex:indexPath.section];
         photo = [tempArray objectAtIndex:indexPath.row];
         [browserArray addObject:photo];
     } else {
-        photo = [self.photosArray objectAtIndex:indexPath.row];
+        photo = [_photosArray objectAtIndex:indexPath.row];
         [browserArray addObject:photo];
     }
     [cell.photoButton setTag:[browserArray indexOfObject:photo]];
@@ -173,10 +177,10 @@
 -(void)removePhoto:(NSNotification*)notification {
     NSString *photoIdentifier = [notification.userInfo objectForKey:@"photoId"];
     [SVProgressHUD showWithStatus:@"Deleting photo..."];
-    [self.photosArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    [_photosArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
-            NSLog(@"should be removing photo at index: %i",idx);
-            BHPhoto *photoToRemove = [self.photosArray objectAtIndex:idx];
+            //NSLog(@"should be removing photo at index: %i",idx);
+            BHPhoto *photoToRemove = [_photosArray objectAtIndex:idx];
             
             if (self.reportsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kReports}];
             else if (self.checklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kChecklist}];
@@ -184,7 +188,7 @@
             
             [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 [SVProgressHUD dismiss];
-                [self.photosArray removeObject:photoToRemove];
+                [_photosArray removeObject:photoToRemove];
                 [self.collectionView reloadData];
                 
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -198,12 +202,12 @@
 - (void)showPhotoDetail:(UIButton*)button {
     //reorder photos based on tap
     NSMutableArray *secondSlice = [NSMutableArray array];
-    for (int i=button.tag ; i<self.photosArray.count ; i++){
-        [secondSlice addObject:[self.photosArray objectAtIndex:i]];
+    for (int i=button.tag ; i<_photosArray.count ; i++){
+        [secondSlice addObject:[_photosArray objectAtIndex:i]];
     }
     NSMutableArray *firstSlice = [NSMutableArray array];
     for (int i=0 ; i<button.tag ; i++){
-        [firstSlice addObject:[self.photosArray objectAtIndex:i]];
+        [firstSlice addObject:[_photosArray objectAtIndex:i]];
     }
     compositePhotos = [NSMutableArray new];
     [compositePhotos addObjectsFromArray:secondSlice];
@@ -257,11 +261,11 @@
         BHPhotosHeaderView *headerView = [collectionView dequeueReusableSupplementaryViewOfKind:UICollectionElementKindSectionHeader withReuseIdentifier:@"Header" forIndexPath:indexPath];
         NSString *title;
         if (sortByUser){
-            title = [self.userNames objectAtIndex:indexPath.section];
+            title = [_userNames objectAtIndex:indexPath.section];
         } else if (sortByDate){
-            title = [self.dates objectAtIndex:indexPath.section];
+            title = [_dates objectAtIndex:indexPath.section];
         } else {
-            title = [self.sectionTitles objectAtIndex:indexPath.section];
+            title = [_sectionTitles objectAtIndex:indexPath.section];
         }
         if ([title isKindOfClass:[NSString class]] && title.length){
             [headerView configureForTitle:title];
@@ -275,7 +279,7 @@
 }
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout referenceSizeForHeaderInSection:(NSInteger)section {
-    if (self.sectionTitles.count) return CGSizeMake(screen.size.width, 30);
+    if (_sectionTitles.count || sortByDate || sortByUser) return CGSizeMake(screen.size.width, 30);
     else return CGSizeZero;
 }
 

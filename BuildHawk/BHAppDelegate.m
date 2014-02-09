@@ -114,6 +114,21 @@
     [MagicalRecord cleanUp];
 }
 
+- (void)logout {
+    NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
+    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
+    [NSUserDefaults resetStandardUserDefaults];
+    UIStoryboard *storyboard;
+    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
+    } else {
+        storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPad" bundle:nil];
+    }
+    self.window.rootViewController = [storyboard instantiateInitialViewController];
+    
+    [SVProgressHUD dismiss];
+}
+
 #pragma mark uncaughtExceptionHandler
 void uncaughtExceptionHandler(NSException *exception) {
     //[Flurry logError:exception.name message:exception.description exception:exception];

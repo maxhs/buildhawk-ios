@@ -378,6 +378,9 @@
         case 0:
         {
             BHPhotosViewController *vc = [segue destinationViewController];
+            for (BHPhoto *photo in photosArray){
+                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
+            }
             [vc setPhotosArray:photosArray];
             [vc setNumberOfSections:1];
             [vc setUserNames:userArray];
@@ -425,6 +428,8 @@
             [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:checklistArray];
             [vc setChecklistsBool:YES];
+            [vc setUserNames:userArray];
+            [vc setDates:dateArray];
         }
             break;
         case 3:

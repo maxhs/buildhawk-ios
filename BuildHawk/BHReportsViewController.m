@@ -318,13 +318,12 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         //reload the latest report
         page = reports.count - 1;
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
-        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] addSubview:refreshControl];
+
         [self.scrollView setContentOffset:CGPointMake((screen.size.width*reports.count)-screen.size.width, self.scrollView.contentOffset.y) animated:NO];
     } else {
         //There are no existing reports
         [self newReportObject:nil];
         _report = reports.firstObject;
-        [self.tableView addSubview:refreshControl];
         [self.tableView reloadData];
     }
 }
@@ -339,7 +338,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    [tableView addSubview:refreshControl];
+    
     return 5;
 }
 
@@ -474,7 +473,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPhotoCell" owner:self options:nil] lastObject];
         }
         reportScrollView = cell.photoScrollView;
-        if (iPad) photoButton.transform = CGAffineTransformMakeTranslation(224, 0);
+        if (iPad && !_report.photos.count) photoButton.transform = CGAffineTransformMakeTranslation(224, 0);
         photoButton = cell.photoButton;
         [photoButton addTarget:self action:@selector(photoButtonTapped) forControlEvents:UIControlEventTouchUpInside];
         [cell configureCell];
@@ -586,6 +585,14 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             }
         [headerView addSubview:headerLabel];
         return headerView;
+    }
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        //[tableView addSubview:refreshControl];
     }
 }
 
@@ -1076,7 +1083,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [SVProgressHUD showWithStatus:@"Deleting photo..."];
     [_report.photos enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
-            NSLog(@"should be removing photo at index: %i",idx);
+            
             BHPhoto *photoToRemove = [_report.photos objectAtIndex:idx];
             [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 [SVProgressHUD dismiss];
@@ -1100,25 +1107,25 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     int index = 0;
     for (BHPhoto *photo in _report.photos) {
         __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [imageButton setAlpha:0.0];
+        //[imageButton setAlpha:0.0];
         
         if (photo.url200.length){
             [imageButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                [UIView animateWithDuration:.25 animations:^{
+                /*[UIView animateWithDuration:.25 animations:^{
                     [imageButton setAlpha:1.0];
-                }];
+                }];*/
             }];
         } if (photo.url100.length){
             [imageButton setImageWithURL:[NSURL URLWithString:photo.url100] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                [UIView animateWithDuration:.25 animations:^{
+                /*[UIView animateWithDuration:.25 animations:^{
                     [imageButton setAlpha:1.0];
-                }];
+                }];*/
             }];
         } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
-            [UIView animateWithDuration:.25 animations:^{
+            /*[UIView animateWithDuration:.25 animations:^{
                 [imageButton setAlpha:1.0];
-            }];
+            }];*/
         }
         [imageButton setTag:[_report.photos indexOfObject:photo]];
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),6,imageSize, imageSize)];
@@ -1134,8 +1141,9 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     
     [reportScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     if (reportScrollView.isHidden) [reportScrollView setHidden:NO];
-    if (_report.photos.count > 0) {
+    if (_report.photos.count) {
         [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            
             photoButton.transform = CGAffineTransformMakeTranslation(-120, 0);
             [reportScrollView setAlpha:1.0];
         } completion:^(BOOL finished) {
@@ -1147,7 +1155,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             photoButton.transform = CGAffineTransformMakeTranslation(224, 0);
         } else {
             [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                
                 photoButton.transform = CGAffineTransformIdentity;
                 [reportScrollView setAlpha:0.0];
             } completion:^(BOOL finished) {
@@ -1363,16 +1370,13 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success creating report: %@",responseObject);
         [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
-        BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
-        
-        if ([reports indexOfObject:_report] != NSNotFound){
-            [reports replaceObjectAtIndex:[reports indexOfObject:_report] withObject:newReport];
-        }
-    
-        if (newReport.identifier.length){
+        NSMutableArray *storedPhotos = [NSMutableArray arrayWithArray:_report.photos];
+        _report = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
+        _report.photos = storedPhotos;
+        if (_report.identifier.length){
             for (BHPhoto *photo in _report.photos) {
                 if (photo.image){
-                    [self uploadPhoto:photo.image withReportId:newReport.identifier];
+                    [self uploadPhoto:photo.image withReportId:_report.identifier];
                 }
             }
         }

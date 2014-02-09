@@ -26,6 +26,8 @@ static NSString *textPlaceholder = @"Text Message";
     BHUser *selectedCoworker;
     User *user;
     CGRect screen;
+    BOOL iPhone5;
+    BOOL iPad;
 }
 @property (strong, nonatomic) UISwitch *emailPermissionsSwitch;
 @property (strong, nonatomic) UISwitch *pushPermissionsSwitch;
@@ -48,7 +50,13 @@ static NSString *textPlaceholder = @"Text Message";
     screen = [UIScreen mainScreen].bounds;
     [self.logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
     [self.logoutButton setBackgroundColor:kDarkGrayColor];
-    
+    if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        iPhone5 = YES;
+    } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+        iPhone5 = NO;
+    } else {
+        iPad = YES;
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -79,8 +87,9 @@ static NSString *textPlaceholder = @"Text Message";
         UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 30, cell.frame.size.width-80, cell.frame.size.height)];
         [nameLabel setText:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFullName]];
         [nameLabel setBackgroundColor:[UIColor clearColor]];
-        [nameLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:18]];
+        [nameLabel setFont:[UIFont systemFontOfSize:19]];
         [nameLabel setTextColor:[UIColor whiteColor]];
+        [nameLabel setNumberOfLines:0];
         CGRect textRect = cell.textLabel.frame;
         textRect.origin.x += 80;
         [cell.textLabel setFrame:textRect];
@@ -111,9 +120,17 @@ static NSString *textPlaceholder = @"Text Message";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0 && indexPath.row == 0) {
-        return 100;
+        if (iPhone5 || iPad){
+            return 100;
+        } else {
+            return 90;
+        }
     } else {
-        return 88;
+        if (iPhone5 || iPad){
+            return 88;
+        } else {
+            return 66;
+        }
     }
 }
 

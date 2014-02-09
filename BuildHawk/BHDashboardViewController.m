@@ -19,6 +19,7 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHTabBarViewController.h"
 #import "Constants.h"
+#import "BHAppDelegate.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate> {
     CGRect searchContainerRect;
@@ -37,6 +38,7 @@
     NSMutableArray *categories;
     NSMutableDictionary *dashboardDetailDict;
     AFHTTPRequestOperationManager *manager;
+    CGRect screen;
 }
 
 @property (weak, nonatomic) IBOutlet UIView *searchContainerBackgroundView;
@@ -50,7 +52,8 @@
     if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
         self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     }
-    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
+    screen = [UIScreen mainScreen].bounds;
+    if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = NO;
@@ -62,7 +65,13 @@
     if (!filteredProjects) filteredProjects = [NSMutableArray array];
     
     SWRevealViewController *revealController = [self revealViewController];
-    [self.navigationController.navigationBar addGestureRecognizer:revealController.panGestureRecognizer];
+    if (iPad){
+        revealController.rearViewRevealWidth = screen.size.width - 62;
+    } else {
+        revealController.rearViewRevealWidth = screen.size.width - 52;
+    }
+    
+    //[self.navigationController.navigationBar addGestureRecognizer:revealController.panGestureRecognizer];
     searchContainerRect = self.searchContainerView.frame;
     
     NSDate *now = [NSDate date];
@@ -123,19 +132,25 @@
 }
 
 - (void)loadProjects {
-    [SVProgressHUD showWithStatus:@"Fetching projects..."];
-    [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"load projects response object: %@",responseObject);
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
-        [SVProgressHUD dismiss];
-        [self.tableView reloadData];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error while loading projects: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        [SVProgressHUD dismiss];
-    }];
+    
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [SVProgressHUD showWithStatus:@"Fetching projects..."];
+        [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"load projects response object: %@",responseObject);
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
+            [SVProgressHUD dismiss];
+            [self.tableView reloadData];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error while loading projects: %@",error.description);
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            [SVProgressHUD dismiss];
+        }];
+    } else {
+        [(BHAppDelegate*)[UIApplication sharedApplication].delegate logout];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please log in and try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 }
 
 - (void)saveToMR:(id)forSave {

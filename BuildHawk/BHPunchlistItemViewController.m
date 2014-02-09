@@ -1023,7 +1023,11 @@ typedef void(^RequestSuccess)(id result);
             [self.assigneeButton setTitle:newSub.name forState:UIControlStateNormal];
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
-        [self updateItem];
+        if (self.punchlistItem.identifier && self.punchlistItem.identifier.length){
+            [self updateItem];
+        } else {
+            [self createItem];
+        }
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self.navigationController popViewControllerAnimated:YES];
     }

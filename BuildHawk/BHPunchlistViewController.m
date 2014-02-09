@@ -293,6 +293,7 @@
     [cell.itemLabel setText:item.body];
     [cell.itemLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:19]];
     cell.itemLabel.numberOfLines = 0;
+
     if (item.photos.count) {
         [cell.photoButton setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] url100]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
     } else {
