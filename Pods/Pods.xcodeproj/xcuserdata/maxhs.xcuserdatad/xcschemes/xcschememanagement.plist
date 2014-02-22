@@ -9,7 +9,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>Pods-DACircularProgress.xcscheme</key>
+		<key>Pods-CTAssetsPickerController.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -19,22 +19,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>Pods-MBProgressHUD.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>Pods-MWPhotoBrowser.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>Pods-MagicalRecord.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>Pods-PSTCollectionView.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -59,7 +44,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>Pods-WSAssetPickerController.xcscheme</key>
+		<key>Pods-vfrReader.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -72,67 +57,52 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>07C7DAA6FC9D4EB9A408D0CE</key>
+		<key>02AFAED3D3A34CD0A6DE64C3</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>273121062C9B429A81654A73</key>
+		<key>0BDE4776417042838DAF6080</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>4530081350A447AA9C8C04D6</key>
+		<key>3EC507C5074547E98E998650</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>53A2BE60487F4345A4D06B2A</key>
+		<key>4C1BA56A1E24480394A53851</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>83B8DC1F6965498897217F3E</key>
+		<key>5941F0D3F44243CC9D409574</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>859BD7C372844C1084737B11</key>
+		<key>5BE8A143BA7F457BA6830D1F</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>968E86AF2B604507BA936A76</key>
+		<key>919A8F1E4EFF4339A93CB6FF</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>9EE8CBACAE1A476CB654E5B6</key>
+		<key>A58A0369FCFC4E138482E036</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>9F898B14340E4D70B43BC490</key>
+		<key>B5B4CD1992C1410E9293026C</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>CF167B9D1DF74368BA435648</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>E777BED4E9C84FB3AE878DE7</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>F4D330D43B26435A8242F244</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>F79BEF35D2C54E99A768C765</key>
+		<key>FA12A705658742FFB2C65A14</key>
 		<dict>
 			<key>primary</key>
 			<true/>

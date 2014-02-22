@@ -16,7 +16,7 @@
 #import "BHPunchlistItem.h"
 #import "BHRecentDocumentCell.h"
 #import <SDWebImage/UIButton+WebCache.h>
-#import <MWPhotoBrowser/MWPhotoBrowser.h>
+#import "MWPhotoBrowser.h"
 #import "Flurry.h"
 #import "BHChecklistViewController.h"
 #import "BHChecklistItemViewController.h"
@@ -359,8 +359,7 @@
     for (BHPhoto *photo in recentDocuments) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
-        [mwPhoto setPhotoId:photo.identifier];
+        [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     

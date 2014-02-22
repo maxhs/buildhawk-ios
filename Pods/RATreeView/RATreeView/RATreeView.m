@@ -375,7 +375,6 @@
     NSMutableArray *indexes = [NSMutableArray array];
     for (id item in items) {
         NSInteger index = [self.treeNodeCollectionController indexForItem:item];
-        NSLog(@"index: %i",index);
         RATreeNode *treeNode = [self.treeNodeCollectionController treeNodeForIndex:index];
         for (int index = [treeNode startIndex] + 1; index <= [treeNode endIndex]; index++) {
               [indexes addObject:[NSIndexPath indexPathForRow:index inSection:0]];

@@ -24,6 +24,46 @@
  
 */
 
+/*
+
+ RELEASE NOTES
+ 
+ Version 1.1.1 (Current Version)
+ 
+ - You can now get a tapGestureRecognizer from the class. See the tapGestureRecognizer method for more information.
+ 
+ - Both the panGestureRecognizer and the tapGestureRecognizer are now attached to the revealViewController's front content view
+    by default, so they will start working just by calling their access methods even if you do not attach them to any of your views.
+    This enables you to dissable interactions on your views -for example based on position- without breaking normal gesture behavior.
+ 
+ - Corrected a bug that caused a crash on iOS6 and earlier.
+ 
+ Version 1.1.0
+
+ - The method setFrontViewController:animated now performs the correct animations both for left and right controllers.
+
+ - The class now automatically handles the status bar appearance depending on the currently shown child controller.
+
+ Version 1.0.8
+ 
+ - Support for constant width frontView by setting a negative value to reveal widths. See properties rearViewRevealWidth and rightViewRevealWidth
+ 
+ - Support for draggableBorderWidth. See property of the same name.
+ 
+ - The Pan gesture recongnizer can be disabled by implementing the following delegate method and returning NO
+    revealControllerPanGestureShouldBegin:
+
+ - Added the ability to track pan gesture reveal progress through the following new delegate methods
+    revealController:panGestureBeganFromLocation:progress:
+    revealController:panGestureMovedToLocation:progress:
+    revealController:panGestureEndedToLocation:progress:
+ 
+ Previous Versions
+ 
+ - No release notes were updated for previous versions.
+
+*/
+
 
 #import <UIKit/UIKit.h>
 
@@ -35,11 +75,18 @@
 // Enum values for setFrontViewPosition:animated:
 typedef enum
 {
+    // Front controller is removed from view. Animated transitioning from this state will cause the same
+    // effect than animating from FrontViewPositionLeftSideMost. Use this instead of FrontViewPositionLeftSideMost when
+    // you want to remove the front view controller view from the view hierarchy.
     FrontViewPositionLeftSideMostRemoved,
+    
+    // Left most position, front view is presented left-offseted by rightViewRevealWidth+rigthViewRevealOverdraw
     FrontViewPositionLeftSideMost,
+    
+    // Left position, front view is presented left-offseted by rightViewRevealWidth
     FrontViewPositionLeftSide,
 
-    // Left position, rear view is hidden behind front controller
+    // Center position, rear view is hidden behind front controller
 	FrontViewPositionLeft,
     
     // Right possition, front view is presented right-offseted by rearViewRevealWidth
@@ -50,7 +97,7 @@ typedef enum
     
     // Front controller is removed from view. Animated transitioning from this state will cause the same
     // effect than animating from FrontViewPositionRightMost. Use this instead of FrontViewPositionRightMost when
-    // you intent to remove the front controller view to be removed from the view hierarchy.
+    // you intent to remove the front controller view from the view hierarchy.
     FrontViewPositionRightMostRemoved,
     
 } FrontViewPosition;
@@ -93,15 +140,24 @@ typedef enum
 - (void)revealToggle:(id)sender;
 - (void)rightRevealToggle:(id)sender; // <-- simetric implementation of the above for the rightViewController
 
-// The following method will provide a panGestureRecognizer suitable to be added to any view on the frontController
-// in order to perform usual drag and swipe gestures on the frontViewController to reveal the rear views. This
-// is usually added on the top bar of a front controller.
+// The following method will provide a panGestureRecognizer suitable to be added to any view
+// in order to perform usual drag and swipe gestures to reveal the rear views. This is usually added to the top bar
+// of a front controller, but it can be added to your frontViewController view or to the reveal controller view to provide full screen panning.
+// The provided panGestureRecognizer is initially added to the reveal controller's front container view, so you can dissable
+// user interactions on your controllers views and the recognizer will continue working. 
 - (UIPanGestureRecognizer*)panGestureRecognizer;
+
+// The following method will provide a tapGestureRecognizer suitable to be added to any view on the frontController
+// for concealing the rear views. By default no tap recognizer is created or added to any view, however if you call this method after
+// the controller's view has been loaded the recognizer is added to the reveal controller's front container view.
+// Thus, you can disable user interactions on your frontViewController view without affecting the tap recognizer.
+- (UITapGestureRecognizer*)tapGestureRecognizer;
 
 // The following properties are provided for further customization, they are set to default values on initialization,
 // you should not generally have to set them
 
-// Defines how much of the rear or right view is shown, default is 260.
+// Defines how much of the rear or right view is shown, default is 260. A negative value indicates that the reveal width should be
+// computed by substracting the full front view width, so the revealed frontView width is constant.
 @property (assign, nonatomic) CGFloat rearViewRevealWidth;
 @property (assign, nonatomic) CGFloat rightViewRevealWidth; // <-- simetric implementation of the above for the rightViewController
 
@@ -113,6 +169,10 @@ typedef enum
 @property (assign, nonatomic) CGFloat rearViewRevealDisplacement;
 @property (assign, nonatomic) CGFloat rightViewRevealDisplacement;
 
+// Defines a width on the border of the view attached to the panGesturRecognizer where the gesture is allowed,
+// default is 0 which means no restriction.
+@property (assign, nonatomic) CGFloat draggableBorderWidth;
+
 // If YES (the default) the controller will bounce to the Left position when dragging further than 'rearViewRevealWidth'
 @property (assign, nonatomic) BOOL bounceBackOnOverdraw;
 @property (assign, nonatomic) BOOL bounceBackOnLeftOverdraw;
@@ -120,6 +180,12 @@ typedef enum
 // If YES (default is NO) the controller will allow permanent dragging up to the rightMostPosition
 @property (assign, nonatomic) BOOL stableDragOnOverdraw;
 @property (assign, nonatomic) BOOL stableDragOnLeftOverdraw; // <-- simetric implementation of the above for the rightViewController
+
+// If YES (default is NO) the front view controller will be ofsseted vertically by the height of a navigation bar.
+// Use this on iOS7 when you add an instance of RevealViewController as a child of a UINavigationController (or another SWRevealViewController)
+// and you want the front view controller to be presented below the navigation bar of its UINavigationController grand parent .
+// The rearViewController will still appear full size and blurred behind the navigation bar of its UINavigationController grand parent
+@property (assign, nonatomic) BOOL presentFrontViewHierarchically;
 
 // Velocity required for the controller to toggle its state based on a swipe movement, default is 300
 @property (assign, nonatomic) CGFloat quickFlickVelocity;
@@ -150,13 +216,30 @@ typedef enum
 
 @optional
 
+// The following delegate methods will be called before and after the front view moves to a position
 - (void)revealController:(SWRevealViewController *)revealController willMoveToPosition:(FrontViewPosition)position;
 - (void)revealController:(SWRevealViewController *)revealController didMoveToPosition:(FrontViewPosition)position;
 
+// This will be called inside the reveal animation, thus you can use it to place your own code that will be animated in sync
 - (void)revealController:(SWRevealViewController *)revealController animateToPosition:(FrontViewPosition)position;
 
+// Implement this to return NO when you want the pan gesture recognizer to be ignored
+- (BOOL)revealControllerPanGestureShouldBegin:(SWRevealViewController *)revealController;
+
+// Implement this to return NO when you want the tap gesture recognizer to be ignored
+- (BOOL)revealControllerTapGestureShouldBegin:(SWRevealViewController *)revealController;
+
+// Called when the gestureRecognizer began and ended
 - (void)revealControllerPanGestureBegan:(SWRevealViewController *)revealController;
 - (void)revealControllerPanGestureEnded:(SWRevealViewController *)revealController;
+
+// The following methods provide a means to track the evolution of the gesture recognizer.
+// The 'location' parameter is the X origin coordinate of the front view as the user drags it
+// The 'progress' parameter is a positive value from 0 to 1 indicating the front view location relative to the
+// rearRevealWidth or rightRevealWidth. 1 is fully revealed, dragging ocurring in the overDraw region will result in values above 1.
+- (void)revealController:(SWRevealViewController *)revealController panGestureBeganFromLocation:(CGFloat)location progress:(CGFloat)progress;
+- (void)revealController:(SWRevealViewController *)revealController panGestureMovedToLocation:(CGFloat)location progress:(CGFloat)progress;
+- (void)revealController:(SWRevealViewController *)revealController panGestureEndedToLocation:(CGFloat)location progress:(CGFloat)progress;
 
 @end
 

@@ -9,7 +9,7 @@
 #import "BHFoldersViewController.h"
 #import "BHPhotoPickerCell.h"
 #import <SDWebImage/UIButton+WebCache.h>
-#import <MWPhotoBrowser/MWPhotoBrowser.h>
+#import "MWPhotoBrowser.h"
 #import "BHProjectDocsViewController.h"
 
 @interface BHFoldersViewController () <MWPhotoBrowserDelegate, UITableViewDataSource, UITableViewDelegate> {
@@ -155,26 +155,12 @@
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    NSString *photoIdentifier = [notification.userInfo objectForKey:@"photoId"];
-    [SVProgressHUD showWithStatus:@"Deleting photo..."];
-    [_photosArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
-            NSLog(@"should be removing photo at index: %i",idx);
-            BHPhoto *photoToRemove = [_photosArray objectAtIndex:idx];
-            
-            [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [SVProgressHUD dismiss];
-                [_photosArray removeObject:photoToRemove];
-                [[[_photoSet.allObjects objectAtIndex:tapped.section] objectForKey:[_sectionTitles objectAtIndex:tapped.section]] removeObject:photoToRemove];
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kDocuments}];
-                [self.tableView reloadData];
-                
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                
-            }];
-            *stop = YES;
-        }
-    }];
+    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    if (photoToRemove){
+        [_photosArray removeObject:photoToRemove];
+        [[[_photoSet.allObjects objectAtIndex:tapped.section] objectForKey:[_sectionTitles objectAtIndex:tapped.section]] removeObject:photoToRemove];
+        [self.tableView reloadData];
+    }
 }
 
 - (void)showBrowser {
@@ -182,8 +168,7 @@
     for (BHPhoto *photo in browserArray) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
-        [mwPhoto setPhotoId:photo.identifier];
+        [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     

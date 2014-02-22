@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "GAI.h"
+//#import "GAI.h"
 
 @interface BHAppDelegate : UIResponder <UIApplicationDelegate>
 

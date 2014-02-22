@@ -1,61 +1,55 @@
 PODS:
-  - AFNetworking (2.0.0):
+  - AFNetworking (2.1.0):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
     - AFNetworking/UIKit
-  - AFNetworking/NSURLConnection (2.0.0):
+  - AFNetworking/NSURLConnection (2.1.0):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/Reachability (2.0.0)
-  - AFNetworking/Security (2.0.0)
-  - AFNetworking/Serialization (2.0.0)
-  - AFNetworking/UIKit (2.0.0):
+  - AFNetworking/NSURLSession (2.1.0):
     - AFNetworking/NSURLConnection
-  - DACircularProgress (2.1.0)
+  - AFNetworking/Reachability (2.1.0)
+  - AFNetworking/Security (2.1.0)
+  - AFNetworking/Serialization (2.1.0)
+  - AFNetworking/UIKit (2.1.0):
+    - AFNetworking/NSURLConnection
+  - CTAssetsPickerController (1.5.2)
   - LDProgressView (1.1)
-  - MagicalRecord (2.2)
-  - MBProgressHUD (0.8)
-  - MWPhotoBrowser (1.2.1):
-    - DACircularProgress
-    - MBProgressHUD
-    - PSTCollectionView (~> 1.2)
-    - SDWebImage (~> 3.5)
-  - PSTCollectionView (1.2.0)
+  - MagicalRecord (2.2):
+    - MagicalRecord/Core
+  - MagicalRecord/Core (2.2)
   - RATreeView (0.0.4)
-  - SDWebImage (3.4):
+  - SDWebImage (3.5.2):
     - SDWebImage/Core
-  - SDWebImage/Core (3.4)
-  - SVProgressHUD (0.9)
-  - SWRevealViewController (1.0.4)
-  - WSAssetPickerController (0.2.0)
+  - SDWebImage/Core (3.5.2)
+  - SVProgressHUD (1.0)
+  - SWRevealViewController (1.1.1)
+  - vfrReader (2.6.2)
 
 DEPENDENCIES:
   - AFNetworking
+  - CTAssetsPickerController (~> 1.5.0)
   - LDProgressView (= 1.1)
   - MagicalRecord
-  - MWPhotoBrowser (= 1.2.1)
   - RATreeView (= 0.0.4)
   - SDWebImage
-  - SVProgressHUD
+  - SVProgressHUD (= 1.0)
   - SWRevealViewController
-  - WSAssetPickerController
+  - vfrReader
 
 SPEC CHECKSUMS:
-  AFNetworking: 3fa983b1beaba69566a3374612511e2a6e3fe845
-  DACircularProgress: 8c8f20c8dffdd647fbf570ddecbc2b1b59da5888
+  AFNetworking: c7d7901a83f631414c7eda1737261f696101a5cd
+  CTAssetsPickerController: bb78e88095a9a56eae2e0b3e66c61c0401d031d5
   LDProgressView: 6cf4c56e2455efe2c2fd924b2d0c5e69d3709d19
-  MagicalRecord: b1fc46c99a9749fe7fe7e6f43a89b62ef5201933
-  MBProgressHUD: 2bbc6f470111daf7f3eaa4eb12b8cbf01c4c0622
-  MWPhotoBrowser: cd204e6b02686f6fae5034932ad8382f9963f2fc
-  PSTCollectionView: fb2ad2790c6efa306b2caf10315b2c1464d1f5c6
+  MagicalRecord: 95d49d74ef752cd52f6ad87bcb474817fc3978cf
   RATreeView: a23fcec38f7cd5e17f5ed0c03ed2a04187e3b6bf
-  SDWebImage: 366188f04c019bfd712d45e3b36aa52070f4abd8
-  SVProgressHUD: 03d4845ec8e64591726428a08236c6a5489d45f8
-  SWRevealViewController: 98ee6b717498c14dbf33a0062669a9172049edb7
-  WSAssetPickerController: cd57ba0f59d0d4265fa618036a40afa288ff3699
+  SDWebImage: fe7ce01ae4e0a884d168f59c9dd82d35baf8429e
+  SVProgressHUD: 5e10939a296debf5fe5a5895eda9539b8b2114f1
+  SWRevealViewController: de412df00a42c2f90fde7f300de05c29e0cb7bf3
+  vfrReader: b6b005af559b8430dad01120f00fb341bdc8a420
 
 COCOAPODS: 0.27.1

@@ -36,11 +36,11 @@
     [Flurry startSession:kFlurryKey];
     
     // Optional: automatically send uncaught exceptions to Google Analytics.
-    [GAI sharedInstance].trackUncaughtExceptions = YES;
+    /*[GAI sharedInstance].trackUncaughtExceptions = YES;
     [GAI sharedInstance].dispatchInterval = 20;
     [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
     // Initialize tracker.
-    [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];
+    [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];*/
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [self.window makeKeyAndVisible];
     return YES;

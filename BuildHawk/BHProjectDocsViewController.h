@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <MWPhotoBrowser/MWPhotoBrowser.h>
+#import "MWPhotoBrowser.h"
 
 @interface BHProjectDocsViewController : UIViewController <UITableViewDelegate,UITableViewDataSource,MWPhotoBrowserDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;

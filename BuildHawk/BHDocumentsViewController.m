@@ -15,10 +15,9 @@
 #import <SDWebImage/UIButton+WebCache.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHPhotosViewController.h"
-#import <MWPhotoBrowser/MWPhotoBrowser.h>
 #import "Flurry.h"
 
-@interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, MWPhotoBrowserDelegate> {
+@interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
     BOOL iPhone5;
     BOOL iPad;
     NSMutableArray *photosArray;
@@ -119,6 +118,11 @@
 
 - (NSMutableArray *)photosFromJSONArray:(NSArray *) array {
     NSMutableArray *photos = [NSMutableArray arrayWithCapacity:array.count];
+    if (checklistArray.count) [checklistArray removeAllObjects];
+    if (worklistArray.count) [worklistArray removeAllObjects];
+    if (reportsArray.count) [reportsArray removeAllObjects];
+    if (documentsArray.count) [documentsArray removeAllObjects];
+    
     for (NSDictionary *photoDictionary in array) {
         BHPhoto *photo = [[BHPhoto alloc] initWithDictionary:photoDictionary];
         if ([photo.source isEqualToString:kChecklist]) {
@@ -290,16 +294,6 @@
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     cell.backgroundColor = [UIColor clearColor];
-}
-
-- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
-    return browserPhotos.count;
-}
-
-- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
-    if (index < browserPhotos.count)
-        return [browserPhotos objectAtIndex:index];
-    return nil;
 }
 
 - (void)buttonTreatment:(UIButton*)button {

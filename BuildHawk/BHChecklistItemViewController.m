@@ -20,12 +20,12 @@
 #import "BHTabBarViewController.h"
 #import <SDWebImage/UIButton+WebCache.h>
 #import <AssetsLibrary/AssetsLibrary.h>
-#import <MWPhotoBrowser/MWPhotoBrowser.h>
+#import "MWPhotoBrowser.h"
 #import "Flurry.h"
-#import <WSAssetPickerController/WSAssetPicker.h>
+#import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "BHPeoplePickerViewController.h"
 
-@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, WSAssetPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
+@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, CTAssetsPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
     BOOL complete;
     BOOL emailBool;
@@ -85,7 +85,7 @@
     [self loadItem];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
 
     self.navigationItem.hidesBackButton = YES;
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
@@ -466,16 +466,12 @@
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Take Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
             [self takePhoto];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove"]) {
-        [self removeConfirm];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Photo Gallery"]) {
-        [self showPhotoDetail:removePhotoIdx];
     }
 }
 
 - (void)choosePhoto {
     saveToLibrary = NO;
-    WSAssetPickerController *controller = [[WSAssetPickerController alloc] initWithAssetsLibrary:library];
+    CTAssetsPickerController *controller = [[CTAssetsPickerController alloc] init];
     controller.delegate = self;
     [self presentViewController:controller animated:YES completion:NULL];
 }
@@ -497,17 +493,11 @@
     [self.tableView reloadData];
 }
 
-- (void)assetPickerControllerDidCancel:(WSAssetPickerController *)sender
-{
-    [self dismissViewControllerAnimated:YES completion:NULL];
-}
-
-- (void)assetPickerController:(WSAssetPickerController *)sender didFinishPickingMediaWithAssets:(NSArray *)assets
-{
+- (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
+    
     [self dismissViewControllerAnimated:YES completion:^{
         for (id asset in assets) {
             if (asset != nil) {
-                
                 ALAssetRepresentation* representation = [asset defaultRepresentation];
                 
                 // Retrieve the image orientation from the ALAsset
@@ -526,7 +516,7 @@
                 [self saveImage:newPhoto.image];
             }
         }
-        [self.tableView reloadData];
+        [self redrawScrollView:takePhotoButton];
     }];
 }
 
@@ -643,28 +633,15 @@
     }
 }
 
--(void)removeConfirm {
-    [[[UIAlertView alloc] initWithTitle:@"Please Confirm" message:@"Are you sure you want to delete this photo?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Delete", nil] show];
-}
-
 -(void)removePhoto:(NSNotification*)notification {
-
-    NSString *photoIdentifier = [notification.userInfo objectForKey:@"photoId"];
-    [SVProgressHUD showWithStatus:@"Deleting photo..."];
-    [_item.photos enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
-            NSLog(@"should be removing photo at index: %i",idx);
-            BHPhoto *photoToRemove = [_item.photos objectAtIndex:idx];
-            [manager DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [SVProgressHUD dismiss];
-                [_item.photos removeObject:photoToRemove];
-                [self redrawScrollView:takePhotoButton];
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                
-            }];
-            *stop = YES;
+    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    for (BHPhoto *photo in _item.photos){
+        if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
+            [_item.photos removeObject:photo];
+            [self redrawScrollView:takePhotoButton];
+            break;
         }
-    }];
+    }
 }
 
 - (void)saveImage:(UIImage*)image {
@@ -673,7 +650,7 @@
     [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_projectId, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
         [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"save image response object: %@",responseObject);
+        // NSLog(@"save image response object: %@",responseObject);
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":_item.category}];
         _item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
         [self redrawScrollView:takePhotoButton];
@@ -705,6 +682,8 @@
         } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         }
+        imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageButton.imageView.clipsToBounds = YES;
         [imageButton setTag:[_item.photos indexOfObject:photo]];
         [imageButton.titleLabel setHidden:YES];
         imageButton.imageView.layer.cornerRadius = 2.0;
@@ -765,8 +744,7 @@
     for (BHPhoto *photo in _item.photos) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
-        [mwPhoto setPhotoId:photo.identifier];
+        [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     

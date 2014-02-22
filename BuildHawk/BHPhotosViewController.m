@@ -10,7 +10,7 @@
 #import "BHCollectionPhotoCell.h"
 #import <SDWebImage/UIButton+WebCache.h>
 #import <SDWebImage/UIImageView+WebCache.h>
-#import <MWPhotoBrowser/MWPhotoBrowser.h>
+#import "MWPhotoBrowser.h"
 #import "BHPhotosHeaderView.h"
 
 @interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWPhotoBrowserDelegate, UIActionSheetDelegate> {
@@ -23,6 +23,7 @@
     UIActionSheet *sortSheet;
     BOOL sortByUser;
     BOOL sortByDate;
+    int browserIndex;
 }
 -(IBAction)sort;
 @end
@@ -53,9 +54,10 @@
     if (!sectionArray) sectionArray = [NSMutableArray array];
     if (!compositePhotos) compositePhotos = [NSMutableArray array];
     if (!browserArray) browserArray = [NSMutableArray array];
+    if (!browserPhotos) browserPhotos = [NSMutableArray array];
     sortByUser = NO;
     sortByDate = NO;
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     } else
@@ -83,18 +85,22 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    browserIndex = 0;
     if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Taken/Uploaded By"]) {
+        if (browserArray.count) [browserArray removeAllObjects];
         if (sectionArray.count)[sectionArray removeAllObjects];
         sortByUser = YES;
         sortByDate = NO;
         [self.collectionView reloadData];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"By Date"]) {
+        if (browserArray.count) [browserArray removeAllObjects];
         if (sectionArray.count)[sectionArray removeAllObjects];
         sortByDate = YES;
         sortByUser = NO;
         [self.collectionView reloadData];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Default"]) {
         if (sectionArray.count)[sectionArray removeAllObjects];
+        if (browserArray.count) [browserArray removeAllObjects];
         sortByUser = NO;
         sortByDate = NO;
         [self.collectionView reloadData];
@@ -103,6 +109,7 @@
 #pragma mark - UICollectionView Datasource
 
 - (NSInteger)collectionView:(UICollectionView *)view numberOfItemsInSection:(NSInteger)section {
+
     if (sortByUser) {
         NSString *sectionTitle = [_userNames objectAtIndex:section];
         NSPredicate *testForuser = [NSPredicate predicateWithFormat:@"userName contains[cd] %@",sectionTitle];
@@ -110,6 +117,7 @@
         for (BHPhoto *photo in _photosArray){
             if([testForuser evaluateWithObject:photo]) {
                 [sortedByUser addObject:photo];
+                [browserArray addObject:photo];
             }
         }
         [sectionArray addObject:sortedByUser];
@@ -121,6 +129,7 @@
         for (BHPhoto *photo in _photosArray){
             if([testPredicate evaluateWithObject:photo]) {
                 [tempArray addObject:photo];
+                [browserArray addObject:photo];
             }
         }
         [sectionArray addObject:tempArray];
@@ -140,12 +149,14 @@
         NSMutableArray *tempArray = [NSMutableArray array];
         for (BHPhoto *photo in _photosArray){
             if([photo isKindOfClass:[BHPhoto class]] && [testPredicate evaluateWithObject:photo]) {
+                [browserArray addObject:photo];
                 [tempArray addObject:photo];
             }
         }
         [sectionArray addObject:tempArray];
         return tempArray.count;
     } else  {
+        browserArray = [NSMutableArray arrayWithArray:_photosArray];
         return _photosArray.count;
     }
 }
@@ -162,66 +173,41 @@
     if (_sectionTitles.count || sortByUser || sortByDate) {
         NSMutableArray *tempArray = [sectionArray objectAtIndex:indexPath.section];
         photo = [tempArray objectAtIndex:indexPath.row];
-        [browserArray addObject:photo];
+        [cell.photoButton setTag:browserIndex];
     } else {
         photo = [_photosArray objectAtIndex:indexPath.row];
-        [browserArray addObject:photo];
+        [cell.photoButton setTag:[_photosArray indexOfObject:photo]];
     }
-    [cell.photoButton setTag:[browserArray indexOfObject:photo]];
+    
+    browserIndex++;
     [cell configureForPhoto:photo];
-    [cell.photoButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.photoButton addTarget:self action:@selector(showBrowser:) forControlEvents:UIControlEventTouchUpInside];
     
     return cell;
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    NSString *photoIdentifier = [notification.userInfo objectForKey:@"photoId"];
-    [SVProgressHUD showWithStatus:@"Deleting photo..."];
-    [_photosArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        if ([[(BHPhoto*)obj identifier] isEqualToString:photoIdentifier]){
-            //NSLog(@"should be removing photo at index: %i",idx);
-            BHPhoto *photoToRemove = [_photosArray objectAtIndex:idx];
-            
-            if (self.reportsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kReports}];
-            else if (self.checklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kChecklist}];
-            else if (self.worklistsBool) [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:@{@"photo":photoToRemove,@"type":kWorklist}];
-            
-            [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[notification.userInfo objectForKey:@"photoId"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [SVProgressHUD dismiss];
-                [_photosArray removeObject:photoToRemove];
-                [self.collectionView reloadData];
-                
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                
-            }];
-            *stop = YES;
+    NSString *photoIdentifier = [[notification.userInfo objectForKey:@"photo"] identifier];
+    for (BHPhoto *photo in _photosArray) {
+        if ([photo.identifier isEqualToString:photoIdentifier]) {
+            [_photosArray removeObject:photo];
+            [browserArray removeAllObjects];
+            [sectionArray removeAllObjects];
+            [self.collectionView reloadData];
+            return;
         }
-    }];
+    }
+    [browserArray removeAllObjects];
+    [sectionArray removeAllObjects];
+    [self.collectionView reloadData];
 }
 
-- (void)showPhotoDetail:(UIButton*)button {
-    //reorder photos based on tap
-    NSMutableArray *secondSlice = [NSMutableArray array];
-    for (int i=button.tag ; i<_photosArray.count ; i++){
-        [secondSlice addObject:[_photosArray objectAtIndex:i]];
-    }
-    NSMutableArray *firstSlice = [NSMutableArray array];
-    for (int i=0 ; i<button.tag ; i++){
-        [firstSlice addObject:[_photosArray objectAtIndex:i]];
-    }
-    compositePhotos = [NSMutableArray new];
-    [compositePhotos addObjectsFromArray:secondSlice];
-    [compositePhotos addObjectsFromArray:firstSlice];
-    [self showBrowser:button.tag];
-}
-
-- (void)showBrowser:(int)idx {
-    browserPhotos = [NSMutableArray new];
+- (void)showBrowser:(UIButton*)button {
+    [browserPhotos removeAllObjects];
     for (BHPhoto *photo in browserArray) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
-        [mwPhoto setPhotoId:photo.identifier];
+        [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -243,7 +229,7 @@
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
-    [browser setCurrentPhotoIndex:idx];
+    [browser setCurrentPhotoIndex:button.tag];
 }
 
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
@@ -302,7 +288,7 @@
 }
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
-    return UIEdgeInsetsMake(5, 5, 5, 5);
+    return UIEdgeInsetsMake(5, 0, 5, 0);
 }
 
 - (void)viewDidDisappear:(BOOL)animated {

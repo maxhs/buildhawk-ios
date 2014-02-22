@@ -21,7 +21,7 @@
 #import "BHChecklist.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "Flurry.h"
-#import "GAI.h"
+//#import "GAI.h"
 #import "User.h"
 
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
@@ -103,7 +103,6 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)reloadChecklist:(NSNotification*)notification {
-    NSLog(@"reloading checklist: %@",[notification.userInfo objectForKey:@"category"]);
     NSMutableArray *array = [NSMutableArray array];
     for (id cat in self.checklist.children){
         if ([cat isKindOfClass:[BHCategory class]] && [[(BHCategory*)cat name] isEqualToString:[notification.userInfo objectForKey:@"category"]]) {
@@ -116,7 +115,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    self.screenName = @"Checklist view controller";
+    //self.screenName = @"Checklist view controller";
     if (scrollToCategoryRow > 0){
         [self.treeView scrollToRowForItem:[self.checklist.children objectAtIndex:self.scrollToCategoryRow] atScrollPosition:RATreeViewScrollPositionTop animated:YES];
     }

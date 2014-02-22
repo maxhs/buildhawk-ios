@@ -66,8 +66,17 @@
     }
 }
 
+- (BOOL)diskImageExistsForURL:(NSURL *)url
+{
+    NSString *key = [self cacheKeyForURL:url];
+    return [self.imageCache diskImageExistsWithKey:key];
+}
+
 - (id<SDWebImageOperation>)downloadWithURL:(NSURL *)url options:(SDWebImageOptions)options progress:(SDWebImageDownloaderProgressBlock)progressBlock completed:(SDWebImageCompletedWithFinishedBlock)completedBlock
 {    
+    // Invoking this method without a completedBlock is pointless
+    NSParameterAssert(completedBlock);
+    
     // Very common mistake is to send the URL using NSString object instead of NSURL. For some strange reason, XCode won't
     // throw any warning for this type mismatch. Here we failsafe this error by allowing URLs to be passed as NSString.
     if ([url isKindOfClass:NSString.class])
@@ -90,16 +99,13 @@
         isFailedUrl = [self.failedURLs containsObject:url];
     }
 
-    if (!url || !completedBlock || (!(options & SDWebImageRetryFailed) && isFailedUrl))
+    if (!url || (!(options & SDWebImageRetryFailed) && isFailedUrl))
     {
-        if (completedBlock)
+        dispatch_main_sync_safe(^
         {
-            dispatch_main_sync_safe(^
-            {
                 NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorFileDoesNotExist userInfo:nil];
                 completedBlock(nil, error, SDImageCacheTypeNone, YES);
-            });
-        }
+        });
         return operation;
     }
 
@@ -138,6 +144,9 @@
             if (options & SDWebImageLowPriority) downloaderOptions |= SDWebImageDownloaderLowPriority;
             if (options & SDWebImageProgressiveDownload) downloaderOptions |= SDWebImageDownloaderProgressiveDownload;
             if (options & SDWebImageRefreshCached) downloaderOptions |= SDWebImageDownloaderUseNSURLCache;
+            if (options & SDWebImageContinueInBackground) downloaderOptions |= SDWebImageDownloaderContinueInBackground;
+            if (options & SDWebImageHandleCookies) downloaderOptions |= SDWebImageDownloaderHandleCookies;
+            if (options & SDWebImageAllowInvalidSSLCertificates) downloaderOptions |= SDWebImageDownloaderAllowInvalidSSLCertificates;
             if (image && options & SDWebImageRefreshCached)
             {
                 // force progressive off if image already cached but forced refreshing
@@ -191,8 +200,8 @@
 
                             if (transformedImage && finished)
                             {
-                                NSData *dataToStore = [transformedImage isEqual:downloadedImage] ? data : nil;
-                                [self.imageCache storeImage:transformedImage imageData:dataToStore forKey:key toDisk:cacheOnDisk];
+                                BOOL imageWasTransformed = ![transformedImage isEqual:downloadedImage];
+                                [self.imageCache storeImage:transformedImage recalculateFromImage:imageWasTransformed imageData:data forKey:key toDisk:cacheOnDisk];
                             }
                         });
                     }
@@ -205,7 +214,7 @@
 
                         if (downloadedImage && finished)
                         {
-                            [self.imageCache storeImage:downloadedImage imageData:data forKey:key toDisk:cacheOnDisk];
+                            [self.imageCache storeImage:downloadedImage recalculateFromImage:NO imageData:data forKey:key toDisk:cacheOnDisk];
                         }
                     }
                 }

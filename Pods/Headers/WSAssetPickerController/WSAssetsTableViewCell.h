@@ -1,1 +1,0 @@
-../../WSAssetPickerController/src/WSAssetsTableViewCell.h

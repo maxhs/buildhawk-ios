@@ -34,6 +34,15 @@
     [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
     [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
+}
+
+-(void)removePhoto:(NSNotification*)notification {
+    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    if (photoToRemove) {
+        [_photosArray removeObject:photoToRemove];
+        [self.tableView reloadData];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -114,8 +123,7 @@
     for (BHPhoto *photo in _photosArray) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setOriginalURL:[NSURL URLWithString:photo.orig]];
-        [mwPhoto setPhotoId:photo.identifier];
+        [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -148,6 +156,11 @@
     if (index < browserPhotos.count)
         return [browserPhotos objectAtIndex:index];
     return nil;
+}
+
+- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser actionButtonPressedForPhotoAtIndex:(NSUInteger)index {
+    // Do your thing!
+    NSLog(@"action button pressed");
 }
 
 @end

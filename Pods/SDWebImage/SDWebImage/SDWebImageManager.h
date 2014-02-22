@@ -40,7 +40,23 @@ typedef enum
      *
      * Use this flag only if you can't make your URLs static with embeded cache busting parameter.
      */
-    SDWebImageRefreshCached = 1 << 4
+    SDWebImageRefreshCached = 1 << 4,
+
+    /**
+     * In iOS 4+, continue the download of the image if the app goes to background. This is achieved by asking the system for
+     * extra time in background to let the request finish. If the background task expires the operation will be cancelled.
+     */
+    SDWebImageContinueInBackground = 1 << 5,
+    /**
+     * Handles cookies stored in NSHTTPCookieStore by setting
+     * NSMutableURLRequest.HTTPShouldHandleCookies = YES;
+     */
+    SDWebImageHandleCookies = 1 << 6,
+    /**
+     * Enable to allow untrusted SSL ceriticates.
+     * Useful for testing purposes. Use with caution in production.
+     */
+    SDWebImageAllowInvalidSSLCertificates = 1 << 7
 } SDWebImageOptions;
 
 typedef void(^SDWebImageCompletedBlock)(UIImage *image, NSError *error, SDImageCacheType cacheType);
@@ -142,7 +158,9 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  * @param progressBlock A block called while image is downloading
  * @param completedBlock A block called when operation has been completed.
  *
- *   This block as no return value and takes the requested UIImage as first parameter.
+ *   This parameter is required.
+ * 
+ *   This block has no return value and takes the requested UIImage as first parameter.
  *   In case of error the image parameter is nil and the second parameter may contain an NSError.
  *
  *   The third parameter is an `SDImageCacheType` enum indicating if the image was retrived from the local cache
@@ -168,5 +186,10 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  * Check one or more operations running
  */
 - (BOOL)isRunning;
+
+/**
+ * Check if image has already been cached
+ */
+- (BOOL)diskImageExistsForURL:(NSURL *)url;
 
 @end
