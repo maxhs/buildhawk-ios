@@ -28,7 +28,6 @@ PODS:
   - SDWebImage/Core (3.5.2)
   - SVProgressHUD (1.0)
   - SWRevealViewController (1.1.1)
-  - vfrReader (2.6.2)
 
 DEPENDENCIES:
   - AFNetworking
@@ -39,7 +38,6 @@ DEPENDENCIES:
   - SDWebImage
   - SVProgressHUD (= 1.0)
   - SWRevealViewController
-  - vfrReader
 
 SPEC CHECKSUMS:
   AFNetworking: c7d7901a83f631414c7eda1737261f696101a5cd
@@ -50,6 +48,5 @@ SPEC CHECKSUMS:
   SDWebImage: fe7ce01ae4e0a884d168f59c9dd82d35baf8429e
   SVProgressHUD: 5e10939a296debf5fe5a5895eda9539b8b2114f1
   SWRevealViewController: de412df00a42c2f90fde7f300de05c29e0cb7bf3
-  vfrReader: b6b005af559b8430dad01120f00fb341bdc8a420
 
 COCOAPODS: 0.27.1

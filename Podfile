@@ -7,6 +7,5 @@ pod 'RATreeView', '0.0.4'
 pod 'MagicalRecord'
 pod 'LDProgressView', '1.1'
 pod 'CTAssetsPickerController',  '~> 1.5.0'
-pod 'vfrReader'
 
 link_with 'BuildHawk'

@@ -44,11 +44,6 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>Pods-vfrReader.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>Pods.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -57,52 +52,47 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>02AFAED3D3A34CD0A6DE64C3</key>
+		<key>17E8BA4B95A54684B4D0A11C</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>0BDE4776417042838DAF6080</key>
+		<key>1BFB538CC5874D788205D744</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>3EC507C5074547E98E998650</key>
+		<key>32F0715699384C9599F9C122</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>4C1BA56A1E24480394A53851</key>
+		<key>46B36F2E95A34ABD95A6C244</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>5941F0D3F44243CC9D409574</key>
+		<key>A3125F70E9E942CC9545FB14</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>5BE8A143BA7F457BA6830D1F</key>
+		<key>A3E65A574F714FA7BEF970A1</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>919A8F1E4EFF4339A93CB6FF</key>
+		<key>A609F04D3F50481396902FC6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>A58A0369FCFC4E138482E036</key>
+		<key>B37167F4B6CB4077B3BBBB97</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>B5B4CD1992C1410E9293026C</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>FA12A705658742FFB2C65A14</key>
+		<key>BBAED6A4A66947F2B2A69A46</key>
 		<dict>
 			<key>primary</key>
 			<true/>

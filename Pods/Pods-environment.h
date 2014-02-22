@@ -102,9 +102,3 @@
 #define COCOAPODS_VERSION_MINOR_SWRevealViewController 1
 #define COCOAPODS_VERSION_PATCH_SWRevealViewController 1
 
-// vfrReader
-#define COCOAPODS_POD_AVAILABLE_vfrReader
-#define COCOAPODS_VERSION_MAJOR_vfrReader 2
-#define COCOAPODS_VERSION_MINOR_vfrReader 6
-#define COCOAPODS_VERSION_PATCH_vfrReader 2
-
