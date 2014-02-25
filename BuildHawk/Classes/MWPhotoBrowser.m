@@ -216,7 +216,7 @@
     if (photo.source && photo.source.length){
         [userInfo setObject:photo.source forKey:@"type"];
     }
-    NSLog(@"should be removing info %@",userInfo);
+    
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
     [SVProgressHUD showWithStatus:@"Deleting photo..."];
     [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {

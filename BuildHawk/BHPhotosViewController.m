@@ -23,7 +23,6 @@
     UIActionSheet *sortSheet;
     BOOL sortByUser;
     BOOL sortByDate;
-    int browserIndex;
 }
 -(IBAction)sort;
 @end
@@ -85,7 +84,7 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    browserIndex = 0;
+
     if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Taken/Uploaded By"]) {
         if (browserArray.count) [browserArray removeAllObjects];
         if (sectionArray.count)[sectionArray removeAllObjects];
@@ -173,13 +172,10 @@
     if (_sectionTitles.count || sortByUser || sortByDate) {
         NSMutableArray *tempArray = [sectionArray objectAtIndex:indexPath.section];
         photo = [tempArray objectAtIndex:indexPath.row];
-        [cell.photoButton setTag:browserIndex];
     } else {
         photo = [_photosArray objectAtIndex:indexPath.row];
-        [cell.photoButton setTag:[_photosArray indexOfObject:photo]];
     }
-    
-    browserIndex++;
+    [cell.photoButton setTag:[browserArray indexOfObject:photo]];
     [cell configureForPhoto:photo];
     [cell.photoButton addTarget:self action:@selector(showBrowser:) forControlEvents:UIControlEventTouchUpInside];
     

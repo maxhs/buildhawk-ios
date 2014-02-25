@@ -1088,11 +1088,41 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <navigationItem key="navigationItem" id="iKP-yH-kv8"/>
                     <connections>
                         <outlet property="tableView" destination="wqR-1P-o8v" id="fmZ-mE-yDE"/>
+                        <segue destination="Ka9-o9-srm" kind="push" identifier="WebView" id="A8H-HD-cd7"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="cpJ-Ls-BPX" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2656" y="-1346"/>
+        </scene>
+        <!--Web View Controller-->
+        <scene sceneID="kf9-s3-DuT">
+            <objects>
+                <viewController storyboardIdentifier="WebView" id="Ka9-o9-srm" customClass="BHWebViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="0Cf-RR-lYC">
+                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <webView contentMode="scaleToFill" scalesPageToFit="YES" paginationMode="topToBottom" id="Z1r-WG-C2H">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <dataDetectorType key="dataDetectorTypes" phoneNumber="YES" link="YES" address="YES"/>
+                                <connections>
+                                    <outlet property="delegate" destination="Ka9-o9-srm" id="Dnz-wo-d11"/>
+                                </connections>
+                            </webView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="V5L-eb-RKY"/>
+                    <connections>
+                        <outlet property="webView" destination="Z1r-WG-C2H" id="5tD-pk-Od9"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="1xv-1L-LQY" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3040" y="-1346"/>
         </scene>
     </scenes>
     <resources>

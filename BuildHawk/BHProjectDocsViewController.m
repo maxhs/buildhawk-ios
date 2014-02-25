@@ -9,6 +9,7 @@
 #import "BHProjectDocsViewController.h"
 #import "BHPhotoPickerCell.h"
 #import <SDWebImage/UIButton+WebCache.h>
+#import "BHWebViewController.h"
 
 @interface BHProjectDocsViewController () {
     BOOL iPad;
@@ -114,8 +115,18 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [self showBrowser:indexPath.row];
+    //[self showBrowser:indexPath.row];
+    [self performSegueWithIdentifier:@"WebView" sender:indexPath];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(NSIndexPath*)indexPath {
+    if ([segue.identifier isEqualToString:@"WebView"]){
+        BHWebViewController *vc = [segue destinationViewController];
+        BHPhoto *photo = [_photosArray objectAtIndex:indexPath.row];
+        [vc setPhoto:photo];
+        if (photo.name) [vc setTitle:photo.name];
+    }
 }
 
 - (void)showBrowser:(int)idx {

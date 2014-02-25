@@ -165,7 +165,6 @@
         //[savedUser addProjectsObject:project];
     }*/
     [localContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"saved user after projects: %@",savedUser);
         projects = savedUser.bhprojects;
         [self loadDetailView];
         [self.tableView reloadData];

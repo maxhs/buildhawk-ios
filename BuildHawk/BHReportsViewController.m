@@ -215,7 +215,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (reports.count) {
+    if (!currentTableView && reports.count) {
         page = reports.count - 1;
         currentTableView = (UITableView*)[self.scrollView.subviews objectAtIndex:page];
         [currentTableView reloadData];
@@ -250,7 +250,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [SVProgressHUD showWithStatus:@"Fetching reports..."];
         NSString *slashSafeDate = [_report.createdDate stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
         [manager GET:[NSString stringWithFormat:@"%@/reports/%@/review_report",kApiBaseUrl,project.identifier] parameters:@{@"date_string":slashSafeDate} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting report: %@",responseObject);
+            //NSLog(@"Success getting report: %@",responseObject);
             _report = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
             [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
             [SVProgressHUD dismiss];
@@ -461,6 +461,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 id obj = [_report.personnel objectAtIndex:indexPath.row-1];
                 if ([obj isKindOfClass:[BHUser class]]){
                     [cell.personLabel setText:[(BHUser*)obj fullname]];
+                    [cell.countTextField setText:@"1"];
                     [cell.countTextField setUserInteractionEnabled:NO];
                 } else if ([obj isKindOfClass:[BHSub class]]) {
                     [cell.personLabel setText:[(BHSub*)obj name]];
@@ -1249,10 +1250,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             //NSLog(@"success removing personnel: %@",responseObject);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure removing personnel: %@",error.description);
-    }];
+        }];
     }
     [_report.personnel removeObject:object];
-    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+    [currentTableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationAutomatic];
 }
 
 - (void)save {

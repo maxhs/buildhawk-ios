@@ -110,6 +110,7 @@
 		F27889ED18B88D2A00056AB2 /* MWTapDetectingImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889E318B88D2A00056AB2 /* MWTapDetectingImageView.m */; };
 		F27889EE18B88D2A00056AB2 /* MWTapDetectingView.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889E518B88D2A00056AB2 /* MWTapDetectingView.m */; };
 		F27889EF18B88D2A00056AB2 /* MWZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889E718B88D2A00056AB2 /* MWZoomingScrollView.m */; };
+		F27889F518B9ADE300056AB2 /* BHWebViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889F418B9ADE300056AB2 /* BHWebViewController.m */; };
 		F289FE31183406780070E8FC /* BHComment.m in Sources */ = {isa = PBXBuildFile; fileRef = F289FE30183406780070E8FC /* BHComment.m */; };
 		F289FE33183415DA0070E8FC /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F289FE32183415DA0070E8FC /* AssetsLibrary.framework */; };
 		F28F3102180F1A120066320B /* BHReportPhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F3101180F1A120066320B /* BHReportPhotoCell.m */; };
@@ -386,6 +387,8 @@
 		F27889E518B88D2A00056AB2 /* MWTapDetectingView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MWTapDetectingView.m; sourceTree = "<group>"; };
 		F27889E618B88D2A00056AB2 /* MWZoomingScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MWZoomingScrollView.h; sourceTree = "<group>"; };
 		F27889E718B88D2A00056AB2 /* MWZoomingScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MWZoomingScrollView.m; sourceTree = "<group>"; };
+		F27889F318B9ADE300056AB2 /* BHWebViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHWebViewController.h; sourceTree = "<group>"; };
+		F27889F418B9ADE300056AB2 /* BHWebViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHWebViewController.m; sourceTree = "<group>"; };
 		F289FE2F183406780070E8FC /* BHComment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHComment.h; sourceTree = "<group>"; };
 		F289FE30183406780070E8FC /* BHComment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHComment.m; sourceTree = "<group>"; };
 		F289FE32183415DA0070E8FC /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
@@ -1000,6 +1003,8 @@
 				F28F9A0A189C6A27000A46D4 /* BHFoldersViewController.m */,
 				F28F9A4E18A45D43000A46D4 /* BHProjectDocsViewController.h */,
 				F28F9A4F18A45D43000A46D4 /* BHProjectDocsViewController.m */,
+				F27889F318B9ADE300056AB2 /* BHWebViewController.h */,
+				F27889F418B9ADE300056AB2 /* BHWebViewController.m */,
 				F203965A17D3DD6B001CFF61 /* BHPunchlistViewController.h */,
 				F203965B17D3DD6B001CFF61 /* BHPunchlistViewController.m */,
 				F228707817DFC89300A88475 /* BHPunchlistItemViewController.h */,
@@ -1308,6 +1313,7 @@
 				F22CBC3D1819AC2B0042A6E0 /* Project.m in Sources */,
 				F27889CE18B88D2100056AB2 /* PSTCollectionViewLayout.m in Sources */,
 				F27889D218B88D2100056AB2 /* PSTGridLayoutRow.m in Sources */,
+				F27889F518B9ADE300056AB2 /* BHWebViewController.m in Sources */,
 				F27889EC18B88D2A00056AB2 /* MWPhotoBrowser.m in Sources */,
 				F289FE31183406780070E8FC /* BHComment.m in Sources */,
 				F2B1F0F017D7D3E10007A4E3 /* BHPunchlistItem.m in Sources */,

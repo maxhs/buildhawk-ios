@@ -38,10 +38,12 @@ typedef void(^RequestSuccess)(id result);
     BOOL iPad;
     BOOL iPhone5;
     BOOL iOS7;
+    
     CGFloat itemRowHeight;
     CGRect screen;
     id checklistResponse;
     User *savedUser;
+    AFHTTPRequestOperationManager *manager;
 }
 @property (strong, nonatomic) id expanded;
 @property (strong, nonatomic) BHChecklist *checklist;
@@ -74,7 +76,7 @@ typedef void(^RequestSuccess)(id result);
         [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 49, 0)];
         iOS7 = NO;
     }
-    
+    if (!manager) manager = [AFHTTPRequestOperationManager manager];
     itemRowHeight = 110;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
 	if (iOS7)[self.segmentedControl setTintColor:kDarkGrayColor];
@@ -129,24 +131,20 @@ typedef void(^RequestSuccess)(id result);
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
     switch (sender.selectedSegmentIndex) {
         case 0:
-            [self drawChecklistLimitActive:NO];
+            [self drawChecklistLimitActive:NO orCompleted:NO];
             break;
         case 1:
-            [self filterActive];
+            [self drawChecklistLimitActive:YES orCompleted:NO];
             break;
         case 2:
             [self filterInProgress];
             break;
         case 3:
-            [self filterCompleted];
+            [self drawChecklistLimitActive:NO orCompleted:YES];
             break;
         default:
             break;
     }
-}
-
-- (void)filterActive {
-    [self drawChecklistLimitActive:YES];
 }
 
 - (void)filterInProgress {
@@ -161,7 +159,7 @@ typedef void(^RequestSuccess)(id result);
     [self.treeView reloadData];
 }
 
-- (void)filterCompleted {
+/*- (void)filterCompleted {
     [completedListItems removeAllObjects];
     NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"status like %@",kCompleted];
     for (BHChecklistItem *item in listItems){
@@ -171,15 +169,16 @@ typedef void(^RequestSuccess)(id result);
     }
     self.checklist.children = completedListItems;
     [self.treeView reloadData];
-}
+}*/
 
 - (void)loadChecklist {
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         checklistResponse = [[responseObject objectForKey:@"checklist"] objectForKey:@"categories"];
         //NSLog(@"checklistResponse: %@",checklistResponse);
-        [self drawChecklistLimitActive:NO];
-        [SVProgressHUD dismiss];
+        [self drawChecklistLimitActive:NO orCompleted:NO];
+        if (self.isViewLoaded && self.view.window) {
+            [SVProgressHUD dismiss];
+        }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -187,12 +186,12 @@ typedef void(^RequestSuccess)(id result);
     }];
 }
 
-- (void)drawChecklistLimitActive:(BOOL)onlyActive {
+- (void)drawChecklistLimitActive:(BOOL)onlyActive orCompleted:(BOOL)completed {
     [self.checklist.children removeAllObjects];
     for (id cat in checklistResponse) {
         BHCategory *category = [[BHCategory alloc] init];
         [category setName:[cat objectForKey:@"name"]];
-        NSMutableArray *children = [self parseSubcategoryIntoArray:[cat objectForKey:@"subcategories"] active:onlyActive];
+        NSMutableArray *children = [self parseSubcategoryIntoArray:[cat objectForKey:@"subcategories"] completed:completed active:onlyActive];
         if (children.count) {
             [category setChildren:children];
             [categories addObject:category];
@@ -202,12 +201,12 @@ typedef void(^RequestSuccess)(id result);
     [self.treeView reloadData];
 }
 
-- (NSMutableArray *)parseSubcategoryIntoArray:(NSArray*)array active:(BOOL)onlyActive {
+- (NSMutableArray *)parseSubcategoryIntoArray:(NSArray*)array completed:(BOOL)completed active:(BOOL)onlyActive {
     NSMutableArray *subcats = [NSMutableArray array];
     for (id obj in array) {
         BHSubcategory *tempSubcat = [[BHSubcategory alloc] init];
         [tempSubcat setName:[obj objectForKey:@"name"]];
-        NSMutableArray *children = [self itemsFromJSONArray:[obj objectForKey:@"checklist_items"] active:onlyActive];
+        NSMutableArray *children = [self itemsFromJSONArray:[obj objectForKey:@"checklist_items"] completed:completed active:onlyActive];
         if (children.count){
             [tempSubcat setChildren:children];
             [listItems addObjectsFromArray:tempSubcat.children];
@@ -216,12 +215,18 @@ typedef void(^RequestSuccess)(id result);
     }
     return subcats;
 }
-- (NSMutableArray *)itemsFromJSONArray:(NSMutableArray *)array active:(BOOL)onlyActive {
+- (NSMutableArray *)itemsFromJSONArray:(NSMutableArray *)array completed:(BOOL)onlyCompleted active:(BOOL)onlyActive {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDict in array) {
         BHChecklistItem *item = [[BHChecklistItem alloc] initWithDictionary:itemDict];
-        if (onlyActive && ([item.status isEqualToString:kNotApplicable] || [item.status isEqualToString:kCompleted])) {
-            
+        if (onlyCompleted ) {
+            if ([item.status isEqualToString:kCompleted]){
+                [items addObject:item];
+            }
+        } else if (onlyActive) {
+            if (![item.status isEqualToString:kNotApplicable] && ![item.status isEqualToString:kCompleted]) {
+                [items addObject:item];
+            }
         } else {
             [items addObject:item];
         }

@@ -324,6 +324,7 @@ typedef void(^RequestSuccess)(id result);
     shouldSave = YES;
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if (!completed){
+            [[[UIAlertView alloc] initWithTitle:@"Completion Photo" message:@"Can you take a photo of the completed worklist item?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
             [self.completionButton setBackgroundColor:kDarkGrayColor];
             [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
@@ -811,6 +812,7 @@ typedef void(^RequestSuccess)(id result);
         }
     }
     if (self.itemTextView.text) [parameters setObject:self.itemTextView.text forKey:@"body"];
+    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
 
     [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         
@@ -826,11 +828,11 @@ typedef void(^RequestSuccess)(id result);
             
             for (BHPhoto *photo in _punchlistItem.photos){
                 NSData *imageData = UIImageJPEGRepresentation(photo.image, 0.5);
-                NSLog(@"New photo for new punchlist item parameters: %@",parameters);
+                //NSLog(@"New photo for new punchlist item parameters: %@",parameters);
                 [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
                     [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
                 } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                    NSLog(@"save punchlist item photo response object: %@",responseObject);
+                    //NSLog(@"save punchlist item photo response object: %@",responseObject);
                     //_punchlistItem = [responseObject objectForKey:@"punchlist_item"];
                     //[self.tableView reloadData];
                 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -1017,8 +1019,10 @@ typedef void(^RequestSuccess)(id result);
         } else {
             [self createItem];
         }
-    }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self.navigationController popViewControllerAnimated:YES];
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
+        [self takePhoto];
     }
 }
 

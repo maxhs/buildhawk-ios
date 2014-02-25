@@ -38,6 +38,7 @@
     NSMutableArray *browserPhotos;
     CGRect screen;
     UIRefreshControl *refreshControl;
+    AFHTTPRequestOperationManager *manager;
 }
 
 @end
@@ -58,6 +59,7 @@
     } else {
         iPad = NO;
     }
+    if (!manager) manager = [AFHTTPRequestOperationManager manager];
     screen = [UIScreen mainScreen].bounds;
     if (!photosArray) photosArray = [NSMutableArray array];
     if (!userArray) userArray = [NSMutableArray array];
@@ -80,6 +82,7 @@
     [refreshControl setTintColor:[UIColor whiteColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
+    
 }
 
 - (void)handleRefresh:(id)sender {
@@ -102,13 +105,13 @@
 
 - (void)loadPhotos {
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"id":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting documents: %@",responseObject);
         photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [self.tableView reloadData];
-        [SVProgressHUD dismiss];
+        if (photosArray.count == 0)[SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting photos: %@",error.description);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -294,6 +297,10 @@
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     cell.backgroundColor = [UIColor clearColor];
+    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
+        //end of loading
+        if (photosArray.count) [SVProgressHUD dismiss];
+    }
 }
 
 - (void)buttonTreatment:(UIButton*)button {
@@ -472,6 +479,12 @@
         [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height-64, screen.size.width, 49)];
         self.tabBarController.tabBar.alpha = 0.0;
     }];
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    [manager.operationQueue cancelAllOperations];
+    [SVProgressHUD dismiss];
 }
 
 @end
