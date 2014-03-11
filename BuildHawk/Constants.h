@@ -9,9 +9,7 @@
 #ifndef BuildHawk_Constants_h
 #define BuildHawk_Constants_h
 
-#define kApiBaseUrl @"http://www.buildhawk.com/api/v1"
-#define kFilepickerApiKey @"AZYZFD3u7Q46zM1HRulcuz"
-#define kFilepickerBaseUrl @"https://www.filepicker.io/api/path/storage/S3"
+#define kApiBaseUrl @"http://www.buildhawk.com/api/v2"
 
 #define kFlurryKey @"VS4FQPRGGB5BXWWGGXSB"
 

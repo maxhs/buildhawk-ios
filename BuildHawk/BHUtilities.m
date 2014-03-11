@@ -64,6 +64,15 @@
     return users;
 }
 
++ (NSMutableArray *)projectsFromJSONArray:(NSArray *) array {
+    NSMutableArray *projects = [NSMutableArray arrayWithCapacity:array.count];
+    for (NSDictionary *projectDictionary in array) {
+        BHProject *project = [[BHProject alloc] initWithDictionary:projectDictionary];
+        [projects addObject:project];
+    }
+    return projects;
+}
+
 + (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
     NSMutableArray *personnel = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *dict in array) {

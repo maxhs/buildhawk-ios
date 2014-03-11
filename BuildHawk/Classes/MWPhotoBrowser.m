@@ -211,7 +211,9 @@
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     if (photo){
         [userInfo setObject:photo forKey:@"photo"];
-        [userInfo setObject:[photo identifier] forKey:@"photoId"];
+    }
+    if (photo.identifier){
+        [userInfo setObject:photo.identifier forKey:@"photoId"];
     }
     if (photo.source && photo.source.length){
         [userInfo setObject:photo.source forKey:@"type"];

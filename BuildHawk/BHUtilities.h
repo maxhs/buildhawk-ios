@@ -27,6 +27,7 @@
 + (NSMutableArray *)personnelFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)commentsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array;
++ (NSMutableArray *)projectsFromJSONArray:(NSArray *) array;
 + (NSDate*)parseDate:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;

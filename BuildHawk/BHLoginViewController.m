@@ -78,8 +78,8 @@
     if (!password.length)
         password = self.passwordTextField.text;
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:email forKey:@"user[email]"];
-    [parameters setObject:password forKey:@"user[password]"];
+    if (email) [parameters setObject:email forKey:@"user[email]"];
+    if (password) [parameters setObject:password forKey:@"user[password]"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"user[device_token]"];
     [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"log in response object: %@",responseObject);

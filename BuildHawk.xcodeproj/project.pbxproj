@@ -86,6 +86,7 @@
 		F239BBA517D8CA6A003097E6 /* BHReportPickerCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */; };
 		F239BBA617D8CA71003097E6 /* BHReportSectionCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F239BBA417D877FB003097E6 /* BHReportSectionCell.xib */; };
 		F241EA651860D2E400DA0FEA /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F241EA641860D2E400DA0FEA /* Crashlytics.framework */; };
+		F260FD7F18CD039300D7C645 /* BHProjectGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = F260FD7E18CD039300D7C645 /* BHProjectGroup.m */; };
 		F27889C418B88D2100056AB2 /* DACircularProgressView.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889A218B88D2100056AB2 /* DACircularProgressView.m */; };
 		F27889C518B88D2100056AB2 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889A518B88D2100056AB2 /* MBProgressHUD.m */; };
 		F27889C618B88D2100056AB2 /* README.mdown in Resources */ = {isa = PBXBuildFile; fileRef = F27889A618B88D2100056AB2 /* README.mdown */; };
@@ -335,6 +336,8 @@
 		F239BBA317D877E9003097E6 /* BHReportPickerCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BHReportPickerCell.xib; sourceTree = "<group>"; };
 		F239BBA417D877FB003097E6 /* BHReportSectionCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = BHReportSectionCell.xib; sourceTree = "<group>"; };
 		F241EA641860D2E400DA0FEA /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
+		F260FD7D18CD039300D7C645 /* BHProjectGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHProjectGroup.h; sourceTree = "<group>"; };
+		F260FD7E18CD039300D7C645 /* BHProjectGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHProjectGroup.m; sourceTree = "<group>"; };
 		F27889A118B88D2100056AB2 /* DACircularProgressView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DACircularProgressView.h; sourceTree = "<group>"; };
 		F27889A218B88D2100056AB2 /* DACircularProgressView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DACircularProgressView.m; sourceTree = "<group>"; };
 		F27889A418B88D2100056AB2 /* MBProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MBProgressHUD.h; sourceTree = "<group>"; };
@@ -665,6 +668,8 @@
 				F203961D17D12FF4001CFF61 /* BHCompany.m */,
 				F203961F17D12FFF001CFF61 /* BHProject.h */,
 				F203962017D12FFF001CFF61 /* BHProject.m */,
+				F260FD7D18CD039300D7C645 /* BHProjectGroup.h */,
+				F260FD7E18CD039300D7C645 /* BHProjectGroup.m */,
 				F203965717D3DCE9001CFF61 /* BHReport.h */,
 				F203965817D3DCEA001CFF61 /* BHReport.m */,
 				F2B1F0EE17D7D3E10007A4E3 /* BHPunchlistItem.h */,
@@ -1329,6 +1334,7 @@
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
 				F203965F17D3DD7C001CFF61 /* BHReportsViewController.m in Sources */,
 				F27889EA18B88D2A00056AB2 /* MWGridViewController.m in Sources */,
+				F260FD7F18CD039300D7C645 /* BHProjectGroup.m in Sources */,
 				F203967217D3E1E8001CFF61 /* BHTabBarViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
