@@ -1,5 +1,5 @@
 //
-//  Project.h
+//  Sub.h
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 3/15/14.
@@ -9,16 +9,15 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Sub, User;
+@class Project;
 
-@interface Project : NSManagedObject
+@interface Sub : NSManagedObject
 
 @property (nonatomic, retain) NSString * identifier;
 @property (nonatomic, retain) NSString * name;
-@property (nonatomic, retain) id users;
-@property (nonatomic, retain) id subs;
-@property (nonatomic, retain) id reports;
-@property (nonatomic, retain) User *user;
-@property (nonatomic, retain) Sub *sub;
+@property (nonatomic, retain) NSNumber * count;
+@property (nonatomic, retain) NSString * phone;
+@property (nonatomic, retain) NSString * email;
+@property (nonatomic, retain) Project *projects;
 
 @end

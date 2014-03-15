@@ -26,7 +26,7 @@
 + (MWPhoto *)photoWithFilePath:(NSString *)path  __attribute__((deprecated("Use photoWithURL: with a file URL"))); // Depreciated
 + (MWPhoto *)photoWithURL:(NSURL *)url;
 
-- (void)setBhphoto:(id)bhphoto;
+- (void)setBhphoto:(BHPhoto*)photo;
 
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithURL:(NSURL *)url;

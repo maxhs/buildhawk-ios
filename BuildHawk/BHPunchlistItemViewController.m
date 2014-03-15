@@ -39,6 +39,7 @@ typedef void(^RequestSuccess)(id result);
     BOOL completed;
     BOOL shouldUpdateCompletion;
     BOOL saveToLibrary;
+    Project *savedProject;
     UIActionSheet *assigneeActionSheet;
     UIActionSheet *locationActionSheet;
     AFHTTPRequestOperationManager *manager;
@@ -68,7 +69,7 @@ typedef void(^RequestSuccess)(id result);
 @implementation BHPunchlistItemViewController
 
 @synthesize punchlistItem = _punchlistItem;
-@synthesize savedUser, locationSet;
+@synthesize locationSet;
 @synthesize project = _project;
 
 - (void)viewDidLoad
@@ -107,6 +108,9 @@ typedef void(^RequestSuccess)(id result);
         _punchlistItem.assignees = [NSMutableArray array];
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     }
+    NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", _project.identifier];
+    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
     
     shouldSave = NO;
     if (!manager) {
@@ -719,8 +723,8 @@ typedef void(^RequestSuccess)(id result);
 
 -(IBAction)assigneeButtonTapped{
     shouldSave = YES;
-    assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this worklist item" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    [assigneeActionSheet addButtonWithTitle:kCompanyUsers];
+    assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this worklist item:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    [assigneeActionSheet addButtonWithTitle:kUsers];
     [assigneeActionSheet addButtonWithTitle:kSubcontractors];
     [assigneeActionSheet addButtonWithTitle:kAddOther];
     if (_punchlistItem.assignees.count) assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
@@ -743,10 +747,10 @@ typedef void(^RequestSuccess)(id result);
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     BHPeoplePickerViewController *vc = [segue destinationViewController];
     if ([segue.identifier isEqualToString:@"PeoplePicker"]){
-        [vc setUserArray:savedUser.coworkers];
+        [vc setUserArray:savedProject.users];
     } else if ([segue.identifier isEqualToString:@"SubPicker"]){
         [vc setCountNotNeeded:YES];
-        [vc setSubArray:savedUser.subcontractors];
+        [vc setSubArray:savedProject.subs];
     }
 }
 
@@ -849,7 +853,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (IBAction)placeCall:(id)sender{
     callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to call?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in savedUser.coworkers) {
+    for (BHUser *user in savedProject.users) {
         [callActionSheet addButtonWithTitle:user.fullname];
     }
     callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
@@ -858,7 +862,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (IBAction)placeText:(id)sender{
     textActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to text?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in savedUser.coworkers) {
+    for (BHUser *user in savedProject.users) {
         [textActionSheet addButtonWithTitle:user.fullname];
     }
     textActionSheet.cancelButtonIndex = [textActionSheet addButtonWithTitle:@"Cancel"];
@@ -878,7 +882,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (IBAction)sendEmail:(id)sender {
     emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    for (BHUser *user in savedUser.coworkers) {
+    for (BHUser *user in savedProject.users) {
         [emailActionSheet addButtonWithTitle:user.fullname];
     }
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
@@ -933,8 +937,7 @@ typedef void(^RequestSuccess)(id result);
     if (actionSheet == callActionSheet || actionSheet == textActionSheet) {
         NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
         if (![buttonTitle isEqualToString:@"Cancel"]) {
-            
-            for (BHUser *user in savedUser.coworkers){
+            for (BHUser *user in savedProject.users){
                 if ([user.fullname isEqualToString:buttonTitle] && user.phone) {
                     if (actionSheet == callActionSheet){
                         [self call:user.phone];
@@ -944,15 +947,16 @@ typedef void(^RequestSuccess)(id result);
                     return;
                 }
             }
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have a phone number on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have a phone number on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        
     } else if (actionSheet == emailActionSheet) {
         NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
         if ([buttonTitle isEqualToString:@"Cancel"]) {
             [emailActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
             return;
         }
-        for (BHUser *user in savedUser.coworkers){
+        for (BHUser *user in savedProject.users){
             if ([user.fullname isEqualToString:buttonTitle]) {
                 [self sendMail:user.email];
                 return;
@@ -967,7 +971,7 @@ typedef void(^RequestSuccess)(id result);
             [self takePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kCompanyUsers]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kUsers]) {
         [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
         [self performSegueWithIdentifier:@"SubPicker" sender:nil];

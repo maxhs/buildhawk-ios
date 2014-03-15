@@ -159,9 +159,9 @@
             
             NSDictionary *dict = [categories objectAtIndex:indexPath.row];
             [progressCell.itemLabel setText:[dict objectForKey:@"name"]];
-            CGFloat completed = [[dict objectForKey:@"completed_count"] floatValue];
+            CGFloat progress_count = [[dict objectForKey:@"progress_count"] floatValue];
             CGFloat all = [[dict objectForKey:@"item_count"] floatValue];
-            [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*completed/all)]];
+            [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
             LDProgressView *progressView;
             if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
                 progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(415, 25, 300, 16)];
@@ -169,7 +169,7 @@
             } else {
                 progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(215, 25, 100, 16)];
             }
-            progressView.progress = (completed/all);
+            progressView.progress = (progress_count/all);
             progressView.color = kBlueColor;
             progressView.showText = @NO;
             progressView.type = LDProgressSolid;

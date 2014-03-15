@@ -11,8 +11,8 @@
 @interface BHPeoplePickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (strong, nonatomic) NSMutableArray *userArray;
-@property (strong, nonatomic) NSMutableArray *subArray;
+@property (strong, nonatomic) NSArray *userArray;
+@property (strong, nonatomic) NSArray *subArray;
 @property (strong, nonatomic) NSMutableArray *personnelArray;
 @property BOOL countNotNeeded;
 @property BOOL phone;

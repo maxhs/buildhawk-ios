@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="4510" systemVersion="13B42" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5053" systemVersion="13C64" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
     <dependencies>
         <deployment defaultVersion="1536" identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3742"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <scenes>
         <!--Documents View Controller - Documents-->
@@ -855,8 +855,9 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <outlet property="searchContainerView" destination="uEu-Nc-nja" id="hyN-WP-vC0"/>
                         <outlet property="searchDisplayController" destination="cXD-0W-g83" id="mfr-yT-hcs"/>
                         <outlet property="tableView" destination="MSS-Fp-KsI" id="ohO-eF-Fm9"/>
-                        <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardRevealed" id="vI7-Ml-H9J"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardDetail" id="vI7-Ml-H9J"/>
                         <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
+                        <segue destination="RvR-ni-pZv" kind="push" identifier="Group" id="qfH-2b-k2d"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -964,10 +965,41 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             </objects>
             <point key="canvasLocation" x="-1399" y="945"/>
         </scene>
+        <!--Group View Controller-->
+        <scene sceneID="Zdo-XM-RzF">
+            <objects>
+                <viewController storyboardIdentifier="Group" id="RvR-ni-pZv" customClass="BHGroupViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="dVj-fS-Ez2">
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="jJI-nT-BO1">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="RvR-ni-pZv" id="KtK-JW-gbc"/>
+                                    <outlet property="delegate" destination="RvR-ni-pZv" id="fdS-vv-QOG"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="CPi-fP-quB"/>
+                    <connections>
+                        <outlet property="tableView" destination="jJI-nT-BO1" id="BlK-1e-rmI"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="GroupDetail" id="6tY-YJ-yab"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="f64-3x-ddK" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="518" y="-105"/>
+        </scene>
         <!--Tab Bar View Controller-->
         <scene sceneID="15">
             <objects>
                 <tabBarController id="4" customClass="BHTabBarViewController" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="ofP-o1-0l2"/>
                     <nil key="simulatedBottomBarMetrics"/>
                     <tabBar key="tabBar" contentMode="scaleToFill" id="5">
                         <rect key="frame" x="0.0" y="431" width="320" height="49"/>
@@ -983,7 +1015,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="14" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="475" y="-260"/>
+            <point key="canvasLocation" x="1406" y="-290"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="4rq-ev-GeD">
@@ -1203,11 +1235,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Vim-B7-ekZ"/>
         <segue reference="EHj-le-a4N"/>
+        <segue reference="vI7-Ml-H9J"/>
+        <segue reference="Vim-B7-ekZ"/>
+        <segue reference="0zF-UE-phA"/>
         <segue reference="eZr-X3-mJS"/>
         <segue reference="bd7-Rv-hQV"/>
-        <segue reference="0zF-UE-phA"/>
         <segue reference="BC4-fv-9Fr"/>
     </inferredMetricsTieBreakers>
 </document>

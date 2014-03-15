@@ -15,8 +15,7 @@
         self.identifier = [value stringValue];
     } else if ([key isEqualToString:@"name"]) {
         self.name = value;
-    } else if ([key isEqualToString:@"project_groups"]) {
-        NSLog("@project groups url: %@",value);
+    } else if ([key isEqualToString:@"group_projects"]) {
         self.projects = [BHUtilities projectsFromJSONArray:value];
     }
 }

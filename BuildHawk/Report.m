@@ -2,18 +2,28 @@
 //  Report.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 10/21/13.
-//  Copyright (c) 2013 BuildHawk. All rights reserved.
+//  Created by Max Haines-Stiles on 3/15/14.
+//  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Report.h"
+#import "Project.h"
 
 
 @implementation Report
 
-@dynamic type;
-@dynamic createdOnString;
+@dynamic createdDate;
 @dynamic photos;
-@dynamic subcontractors;
+@dynamic personnel;
+@dynamic type;
+@dynamic weather;
+@dynamic weatherIcon;
+@dynamic temp;
+@dynamic precip;
+@dynamic humidity;
+@dynamic body;
+@dynamic users;
+@dynamic identifier;
+@dynamic project;
 
 @end

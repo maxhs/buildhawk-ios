@@ -21,6 +21,8 @@
 #define kForecastAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
 #import <SDWebImage/UIButton+WebCache.h>
 #import "MWPhotoBrowser.h"
+#import "Project.h"
+#import "Report.h"
 #import "Flurry.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "BHPeoplePickerViewController.h"
@@ -58,7 +60,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     AFHTTPRequestOperationManager *manager;
     UIButton *photoButton;
     CGRect screen;
-    User *savedUser;
+    Project *savedProject;
     int removePhotoIdx;
     NSString *currentDateString;
     NSMutableArray *browserPhotos;
@@ -97,17 +99,18 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     } else {
         iPhone5 = NO;
     }
+    project = [(BHTabBarViewController*)self.tabBarController project];
+    
     if (!manager) {
         manager = [AFHTTPRequestOperationManager manager];
         manager.requestSerializer = [AFJSONRequestSerializer serializer];
     }
     library = [[ALAssetsLibrary alloc]init];
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
-    savedUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
-    project = [(BHTabBarViewController*)self.tabBarController project];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
+    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
     
-    self.navigationController.title = [NSString stringWithFormat:@"%@",[project name]];
+    self.navigationController.title = [NSString stringWithFormat:@"%@",project.name];
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
     if (!reports) reports = [NSMutableArray array];
@@ -269,6 +272,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting reports: %@",responseObject);
         reports = [BHUtilities reportsFromJSONArray:[responseObject objectForKey:@"reports"]];
+        [self saveToMR];
         previousContentOffsetX = screen.size.width*reports.count;
         [self drawReports];
         [SVProgressHUD dismiss];
@@ -281,6 +285,29 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }];
 }
 
+- (void)saveToMR {
+    NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+
+    for (BHReport *rep in reports) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", rep.identifier];
+        Report *savedReport = [Report MR_findFirstWithPredicate:predicate inContext:localContext];
+        if (savedReport){
+            //NSLog(@"found saved report %@",rep.createdDate);
+            savedReport.identifier = rep.identifier;
+            savedReport.createdDate = rep.createdDate;
+        } else {
+            //NSLog(@"had to create a new report for createdDate: %@",rep.createdDate);
+            Report *newReport = [Report MR_createInContext:localContext];
+            newReport.identifier = rep.identifier;
+            newReport.createdDate = rep.createdDate;
+        }
+    }
+    
+    [localContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+        //NSLog(@"Any errors saving Reports? %@",error);
+    }];
+}
+
 - (void)refreshReport {
     [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
 }
@@ -290,7 +317,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
         [formatter setDateFormat:@"MM/dd/yyyy"];
         NSString *dateString = [formatter stringFromDate:[NSDate date]];
-        NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"(createdDate == %@)",dateString];
+        NSPredicate *testForTrue = [NSPredicate predicateWithFormat:@"createdDate == %@",dateString];
         BOOL foundReport = NO;
         for (BHReport *report in reports){
             if([testForTrue evaluateWithObject:report]) {
@@ -414,6 +441,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             [cell.dailySummaryTextView setTextColor:[UIColor lightGrayColor]];
             [cell.dailySummaryTextView setText:kWeatherPlaceholder];
         }
+        [cell.windLabel setText:@"Wind:"];
+        [cell.tempLabel setText:@"Temp:"];
+        [cell.humidityLabel setText:@"Humidity:"];
+        [cell.precipLabel setText:@"Precip:"];
         
         weatherTextView = cell.dailySummaryTextView;
         weatherTextView.delegate = self;
@@ -649,11 +680,13 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
     BHSub *sub = [[BHSub alloc] init];
-    sub = [_report.personnel objectAtIndex:textField.tag];
-    NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
-    [f setNumberStyle:NSNumberFormatterDecimalStyle];
-    sub.count = textField.text;
-    [_report.personnel replaceObjectAtIndex:textField.tag withObject:sub];
+    if (textField.tag < _report.personnel.count) {
+        sub = [_report.personnel objectAtIndex:textField.tag];
+        NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
+        [f setNumberStyle:NSNumberFormatterDecimalStyle];
+        sub.count = textField.text;
+        [_report.personnel replaceObjectAtIndex:textField.tag withObject:sub];
+    }
     [self doneEditing];
     
 }
@@ -726,7 +759,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             addOtherAlertView = [[UIAlertView alloc] initWithTitle:@"Add other personnel" message:@"Enter personnel name(s):" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
             addOtherAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
             [addOtherAlertView show];
-        } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kCompanyUsers]) {
+        } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kUsers]) {
             [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
         } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
             [self performSegueWithIdentifier:@"SubPicker" sender:nil];
@@ -1217,18 +1250,18 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 }
 
 - (void)pickFromList:(id)sender {
-    personnelActionSheet = [[UIActionSheet alloc] initWithTitle:@"Personnel" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles: kCompanyUsers,kSubcontractors, kAddOther, nil];
+    personnelActionSheet = [[UIActionSheet alloc] initWithTitle:@"Project Personnel" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles: kUsers,kSubcontractors, kAddOther, nil];
     [personnelActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"PeoplePicker"]){
         BHPeoplePickerViewController *vc = [segue destinationViewController];
-        if (savedUser)[vc setUserArray:savedUser.coworkers];
+        if (savedProject)[vc setUserArray:savedProject.users];
         [vc setPersonnelArray:_report.personnel];
     } else if ([segue.identifier isEqualToString:@"SubPicker"]){
         BHPeoplePickerViewController *vc = [segue destinationViewController];
-        if (savedUser)[vc setSubArray:savedUser.subcontractors];
+        if (savedProject)[vc setSubArray:savedProject.subs];
         [vc setPersonnelArray:_report.personnel];
     }
 }

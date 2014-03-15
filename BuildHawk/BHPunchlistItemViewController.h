@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BHPunchlistItem.h"
-#import "User.h"
+#import "Project.h"
 
 @interface BHPunchlistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
@@ -24,7 +24,6 @@
 @property (weak, nonatomic) IBOutlet UIButton *callButton;
 @property (weak, nonatomic) IBOutlet UIButton *textButton;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (strong, nonatomic) User *savedUser;
 @property (strong, nonatomic) BHProject *project;
 @property (strong, nonatomic) NSSet *locationSet;
 @property BOOL newItem;

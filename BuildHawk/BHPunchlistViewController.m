@@ -19,7 +19,7 @@
 #import "Constants.h"
 #import "BHAppDelegate.h"
 #import "Flurry.h"
-#import "User.h"
+#import "Project.h"
 
 @interface BHPunchlistViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate> {
     NSMutableArray *listItems;
@@ -41,7 +41,7 @@
     BOOL showByAssignee;
     BOOL iOS7;
     BOOL firstLoad;
-    User *savedUser;
+    Project *savedProject;
     NSMutableArray *personnel;
 }
 @end
@@ -81,8 +81,8 @@
     [self.tableView addSubview:refreshControl];
     [Flurry logEvent:@"Viewing punchlist"];
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
-    savedUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
+    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(createItem) name:@"CreatePunchlistSegue" object:nil];
 }
@@ -332,7 +332,7 @@
         [vc setNewItem:YES];
         [vc setProject:project];
         [vc setLocationSet:locationSet];
-        if (savedUser)[vc setSavedUser:savedUser];
+        //if (savedUser)[vc setSavedUser:savedUser];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setProject:project];
@@ -352,7 +352,7 @@
         [vc setTitle:[NSString stringWithFormat:@"%@",item.createdOn]];
         [vc setPunchlistItem:item];
         [vc setLocationSet:locationSet];
-        if (savedUser)[vc setSavedUser:savedUser];
+        //if (savedUser)[vc setSavedUser:savedUser];
     }
         
 }

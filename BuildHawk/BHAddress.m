@@ -25,7 +25,7 @@
         self.longitude = [value floatValue];
     } else if ([key isEqualToString:@"state"]) {
         self.state = value;
-    }else if ([key isEqualToString:@"country"]) {
+    } else if ([key isEqualToString:@"country"]) {
         self.country = value;
     }
 }

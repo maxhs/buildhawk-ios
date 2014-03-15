@@ -8,6 +8,7 @@
 
 #import "BHDashboardViewController.h"
 #import "BHDashboardProjectCell.h"
+#import "BHDashboardGroupCell.h"
 #import "BHDashboardDetailViewController.h"
 #import "BHTabBarViewController.h"
 #import "BHProject.h"
@@ -20,6 +21,7 @@
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "BHAppDelegate.h"
+#import "BHGroupViewController.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate> {
     CGRect searchContainerRect;
@@ -132,11 +134,10 @@
 }
 
 - (void)loadProjects {
-    
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [SVProgressHUD showWithStatus:@"Fetching projects..."];
         [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"load projects response object: %@",responseObject);
+            NSLog(@"load projects response object: %@",responseObject);
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
             [SVProgressHUD dismiss];
@@ -157,13 +158,27 @@
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
     savedUser = [User MR_findFirst];
     savedUser.bhprojects = forSave;
-    /*for (BHProject *proj in projects) {
-        Project *project = [Project MR_createInContext:localContext];
-        project.identifier = proj.identifier;
-        project.name = proj.name;
-        project.users = proj.users;
-        //[savedUser addProjectsObject:project];
-    }*/
+    for (BHProject *proj in forSave) {
+        if (!proj.group){
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", proj.identifier];
+            Project *savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
+            if (savedProject){
+                NSLog(@"found saved project %@",proj.name);
+                savedProject.identifier = proj.identifier;
+                savedProject.name = proj.name;
+                savedProject.users = proj.users;
+                savedProject.subs = proj.subs;
+            } else {
+                NSLog(@"had to create a new proejct for id: %@",proj.name);
+                Project *project = [Project MR_createInContext:localContext];
+                project.identifier = proj.identifier;
+                project.name = proj.name;
+                project.users = proj.users;
+                project.subs = proj.subs;
+            }
+        }
+    }
+
     [localContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
         projects = savedUser.bhprojects;
         [self loadDetailView];
@@ -192,35 +207,52 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"ProjectCell";
-    BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
-    }
+    
     BHProject *project;
     if (tableView == self.searchDisplayController.searchResultsTableView){
         project = [filteredProjects objectAtIndex:indexPath.row];
     } else {
         project = [projects objectAtIndex:indexPath.row];
     }
-    [cell.titleLabel setText:[project name]];
-    [cell.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
-
-    if (project.users.count){
-        [cell.subtitleLabel setText:project.address.formattedAddress];
+    if (project.group) {
+        static NSString *CellIdentifier = @"GroupCell";
+        BHDashboardGroupCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardGroupCell" owner:self options:nil] lastObject];
+        }
+        [cell.nameLabel setText:project.group.name];
+        
+        if (project.group.projects.count){
+            [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %i",project.group.projects.count]];
+        }
+        
+        [cell.nameLabel setTextColor:kDarkGrayColor];
+        return cell;
     } else {
-        [cell.subtitleLabel setText:project.company.name];
+        static NSString *CellIdentifier = @"ProjectCell";
+        BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
+        }
+        [cell.titleLabel setText:[project name]];
+
+        if (project.address.formattedAddress.length){
+            [cell.subtitleLabel setText:project.address.formattedAddress];
+        } else {
+            [cell.subtitleLabel setText:project.company.name];
+        }
+        
+        if (dashboardDetailDict.count){
+            NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
+            [cell.progressLabel setText:[dict objectForKey:@"progress"]];
+        }
+        [cell.projectButton setTag:indexPath.row];
+        [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.titleLabel setTextColor:kDarkGrayColor];
+        return cell;
     }
-    
-    if (dashboardDetailDict.count){
-        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        [cell.progressLabel setText:[dict objectForKey:@"progress"]];
-    }
-    [cell.projectButton setTag:indexPath.row];
-    [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
-    [cell.titleLabel setTextColor:kDarkGrayColor];
-    return cell;
 }
 
 - (CGFloat)calculateCategories:(NSMutableArray*)array {
@@ -314,19 +346,28 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self performSegueWithIdentifier:@"DashboardRevealed" sender:self];
+    BHProject *selectedProject;
+    if (tableView == self.searchDisplayController.searchResultsTableView){
+        [self.searchDisplayController setActive:NO animated:NO];
+        selectedProject = [filteredProjects objectAtIndex:indexPath.row];
+    } else {
+        selectedProject = [projects objectAtIndex:indexPath.row];
+    }
+    if (selectedProject.group){
+        [self performSegueWithIdentifier:@"Group" sender:selectedProject];
+    } else {
+        [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
+    }
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(BHProject*)project {
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
-        UIButton *button = (UIButton*) sender;
-        BHProject *project = [projects objectAtIndex:button.tag];
         [vc setProject:project];
         [vc setUser:savedUser];
-    } else if ([segue.identifier isEqualToString:@"DashboardRevealed"]) {
+    } else if ([segue.identifier isEqualToString:@"DashboardDetail"]) {
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
-        BHProject *project = [projects objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         [detailVC setProject:project];
         NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
         [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
@@ -334,11 +375,21 @@
         [detailVC setRecentDocuments:[BHUtilities photosFromJSONArray:[dict objectForKey:@"recent_documents"]]];
         [detailVC setRecentlyCompletedWorklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
         [detailVC setCategories:[dict objectForKey:@"categories"]];
+    } else if ([segue.identifier isEqualToString:@"Group"]){
+        BHGroupViewController *vc = [segue destinationViewController];
+        [vc setTitle:project.group.name];
+        [vc setProject:project];
     }
 }
 
 - (void)goToProject:(UIButton*)button {
-    [self performSegueWithIdentifier:@"Project" sender:button];
+    BHProject *selectedProject;
+    if (self.searchDisplayController.isActive){
+        selectedProject = [filteredProjects objectAtIndex:button.tag];
+    } else {
+        selectedProject = [projects objectAtIndex:button.tag];
+    }
+    [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {

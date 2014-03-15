@@ -26,6 +26,10 @@
         self.address = [[BHAddress alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"users"]) {
         self.users = [self coworkersFromJSONArray:value];
+    } else if ([key isEqualToString:@"subs"]) {
+        self.subs = [BHUtilities subcontractorsFromJSONArray:value];
+    } else if ([key isEqualToString:@"project_group"]) {
+        self.group = [[BHProjectGroup alloc] initWithDictionary:value];
     }
 }
 

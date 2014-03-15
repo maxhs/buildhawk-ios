@@ -22,7 +22,7 @@
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "Flurry.h"
 //#import "GAI.h"
-#import "User.h"
+#import "Project.h"
 
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
 typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
@@ -38,11 +38,11 @@ typedef void(^RequestSuccess)(id result);
     BOOL iPad;
     BOOL iPhone5;
     BOOL iOS7;
-    
+    BHProject *project;
     CGFloat itemRowHeight;
     CGRect screen;
     id checklistResponse;
-    User *savedUser;
+    Project *savedProject;
     AFHTTPRequestOperationManager *manager;
 }
 @property (strong, nonatomic) id expanded;
@@ -76,9 +76,10 @@ typedef void(^RequestSuccess)(id result);
         [self.treeView setContentInset:UIEdgeInsetsMake(0, 0, 49, 0)];
         iOS7 = NO;
     }
+    project = [(BHTabBarViewController*)self.tabBarController project];
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     itemRowHeight = 110;
-    self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",[[(BHTabBarViewController*)self.tabBarController project] name]];
+    self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",project.name];
 	if (iOS7)[self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     
@@ -98,9 +99,10 @@ typedef void(^RequestSuccess)(id result);
     [self.searchDisplayController.searchBar setShowsCancelButton:NO animated:NO];
     [self.segmentedControl setSelectedSegmentIndex:0];
     [Flurry logEvent:@"Viewing checklist"];
+    
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
-    savedUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
+    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadChecklist:) name:@"ReloadChecklist" object:nil];
 }
 
@@ -172,7 +174,7 @@ typedef void(^RequestSuccess)(id result);
 }*/
 
 - (void)loadChecklist {
-    [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,project.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         checklistResponse = [[responseObject objectForKey:@"checklist"] objectForKey:@"categories"];
         //NSLog(@"checklistResponse: %@",checklistResponse);
         [self drawChecklistLimitActive:NO orCompleted:NO];
@@ -407,8 +409,8 @@ typedef void(^RequestSuccess)(id result);
         BHChecklistItem *item = (BHChecklistItem*)sender;
         BHChecklistItemViewController *vc = segue.destinationViewController;
         [vc setItem:item];
-        [vc setProjectId:[(BHTabBarViewController*)self.tabBarController project].identifier];
-        [vc setSavedUser:savedUser];
+        [vc setProjectId:project.identifier];
+        [vc setSavedProject:savedProject];
     }
 }
 

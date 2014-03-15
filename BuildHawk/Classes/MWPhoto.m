@@ -45,8 +45,8 @@
 	return [[MWPhoto alloc] initWithURL:url];
 }
 
-- (void)setBhphoto:(BHPhoto*)bhphoto {
-    _bhphoto = bhphoto;
+- (void)setBhphoto:(BHPhoto*)photo {
+    _bhphoto = photo;
 }
 
 #pragma mark - Init

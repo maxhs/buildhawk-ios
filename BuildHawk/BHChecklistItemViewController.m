@@ -24,6 +24,7 @@
 #import "Flurry.h"
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "BHPeoplePickerViewController.h"
+#import "Project.h"
 
 @interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, CTAssetsPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
@@ -48,6 +49,7 @@
     NSMutableArray *browserPhotos;
     BOOL iPad;
     ALAssetsLibrary *library;
+    Project *savedProject;
 }
 
 @end
@@ -56,7 +58,7 @@
 
 @synthesize item = _item;
 @synthesize row = _row;
-@synthesize savedUser = _savedUser;
+@synthesize savedProject = _savedProject;
 @synthesize projectId = _projectId;
 
 - (void)viewDidLoad
@@ -90,6 +92,10 @@
     self.navigationItem.hidesBackButton = YES;
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
+    /*NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", _projectId];
+    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];*/
+    NSLog(@"do we have a proejct? %@",_savedProject.name);
 }
 
 - (void)didReceiveMemoryWarning
@@ -319,8 +325,8 @@
 - (void)callAction{
     emailBool = NO;
     phoneBool = YES;
-    callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Place call:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    [callActionSheet addButtonWithTitle:kCompanyUsers];
+    callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to call?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
+    [callActionSheet addButtonWithTitle:kUsers];
     [callActionSheet addButtonWithTitle:kSubcontractors];
     callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
     [callActionSheet showInView:self.view];
@@ -330,7 +336,7 @@
     emailBool = YES;
     phoneBool = NO;
     emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    [emailActionSheet addButtonWithTitle:kCompanyUsers];
+    [emailActionSheet addButtonWithTitle:kUsers];
     [emailActionSheet addButtonWithTitle:kSubcontractors];
     emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
     [emailActionSheet showInView:self.view];
@@ -345,9 +351,9 @@
     }
     if ([segue.identifier isEqualToString:@"SubPicker"]) {
         [vc setCountNotNeeded:YES];
-        [vc setSubArray:_savedUser.subcontractors];
+        [vc setSubArray:_savedProject.subs];
     } else if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
-        [vc setUserArray:_savedUser.coworkers];
+        [vc setUserArray:_savedProject.users];
     }
 }
 
@@ -455,7 +461,7 @@
         if ([buttonTitle isEqualToString:@"Cancel"]) {
             [callActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
             return;
-        } else if ([buttonTitle isEqualToString:kCompanyUsers]) {
+        } else if ([buttonTitle isEqualToString:kUsers]) {
             [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
         } else if ([buttonTitle isEqualToString:kSubcontractors]) {
             [self performSegueWithIdentifier:@"SubPicker" sender:nil];
