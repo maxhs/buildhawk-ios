@@ -36,7 +36,8 @@
 
 @implementation BHDashboardDetailViewController
 
-@synthesize project, categories, recentChecklistItems, recentDocuments, recentlyCompletedWorklistItems, notifications, upcomingChecklistItems;
+@synthesize project = _project;
+@synthesize categories, recentChecklistItems, recentDocuments, recentlyCompletedWorklistItems, notifications, upcomingChecklistItems;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -54,7 +55,7 @@
         iPad = YES;
     }
     self.navigationItem.hidesBackButton = NO;
-    self.navigationItem.title = self.project.name;
+    self.navigationItem.title = _project.name;
     screen = [UIScreen mainScreen].bounds;
     //setup goToProject button
     UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 66)];
@@ -70,11 +71,11 @@
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     
     //[self loadDashboard];
-    [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",self.project.name]];
+    [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
 }
 
 - (void)loadDashboard {
-    [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"recently_completed"]];
         upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
         recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_documents"]];
@@ -93,7 +94,7 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
-        [vc setProject:self.project];
+        [vc setProject:_project];
     } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
         BHChecklistItemViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[BHChecklistItem class]])
@@ -146,8 +147,12 @@
         case 0: {
             static NSString *CellIdentifier = @"SynopsisCell";
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-            [cell.textLabel setText:self.project.address.formattedAddress];
-            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %i",self.project.users.count]];
+            if (_project.address.formattedAddress){
+                [cell.textLabel setText:_project.address.formattedAddress];
+            } else if (_project.address){
+                [cell.textLabel setText:[NSString stringWithFormat:@"%@, %@, %@ %@",_project.address.street1,_project.address.city,_project.address.state,_project.address.zip]];
+            }
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",(_project.users.count + _project.subs.count)]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
         }
             break;
@@ -169,7 +174,12 @@
             } else {
                 progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(215, 25, 100, 16)];
             }
-            progressView.progress = (progress_count/all);
+            if (progress_count && all){
+                progressView.progress = (progress_count/all);
+            } else {
+                progressView.progress = 0.f;
+            }
+            
             progressView.color = kBlueColor;
             progressView.showText = @NO;
             progressView.type = LDProgressSolid;
@@ -371,7 +381,7 @@
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
     browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
     browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
     browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
     browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){

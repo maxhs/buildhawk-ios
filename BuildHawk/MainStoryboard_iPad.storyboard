@@ -379,34 +379,37 @@
                                             </connections>
                                         </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="tEF-DI-kU0" userLabel="Photo Button">
-                                            <rect key="frame" x="0.0" y="200" width="768" height="88"/>
+                                            <rect key="frame" x="388" y="209" width="70" height="70"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <color key="backgroundColor" white="0.90000000000000002" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
-                                            <state key="normal">
+                                            <state key="normal" image="cameraButton.png">
                                                 <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                             </state>
+                                            <connections>
+                                                <action selector="takePhoto" destination="qOL-i6-UJU" eventType="touchUpInside" id="V0V-34-drH"/>
+                                            </connections>
+                                        </button>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="yoR-Kg-WZb" userLabel="Library Button">
+                                            <rect key="frame" x="310" y="209" width="70" height="70"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                            <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
+                                            <state key="normal" image="libraryButton.png">
+                                                <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                            </state>
+                                            <connections>
+                                                <action selector="choosePhoto" destination="qOL-i6-UJU" eventType="touchUpInside" id="H64-FF-VLr"/>
+                                            </connections>
                                         </button>
                                         <scrollView hidden="YES" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="JH8-sq-weD">
-                                            <rect key="frame" x="94" y="200" width="580" height="88"/>
+                                            <rect key="frame" x="168" y="200" width="600" height="88"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                             <connections>
                                                 <outlet property="delegate" destination="qOL-i6-UJU" id="6wt-pO-fns"/>
                                             </connections>
                                         </scrollView>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="yoR-Kg-WZb" userLabel="Photo Label Button">
-                                            <rect key="frame" x="309" y="209" width="149" height="70"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                            <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
-                                            <state key="normal" image="cameraButton.png">
-                                                <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                            </state>
-                                            <connections>
-                                                <action selector="photoButtonTapped" destination="qOL-i6-UJU" eventType="touchUpInside" id="n0Y-ZZ-b6H"/>
-                                            </connections>
-                                        </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="i9p-9k-QeU">
                                             <rect key="frame" x="0.0" y="288" width="768" height="88"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -476,9 +479,9 @@
                         <outlet property="completionButton" destination="ogb-tA-JRf" id="hWF-HK-5JC"/>
                         <outlet property="emailButton" destination="6bM-db-GUT" id="EXl-SL-4mi"/>
                         <outlet property="itemTextView" destination="ozM-yr-VWl" id="jDH-zy-mgV"/>
+                        <outlet property="libraryButton" destination="yoR-Kg-WZb" id="xgQ-4a-R1f"/>
                         <outlet property="locationButton" destination="i9p-9k-QeU" id="tBU-7s-gXu"/>
                         <outlet property="photoButton" destination="tEF-DI-kU0" id="UeK-0u-KS2"/>
-                        <outlet property="photoLabelButton" destination="yoR-Kg-WZb" id="yx5-Et-PAF"/>
                         <outlet property="scrollView" destination="JH8-sq-weD" id="NAN-JK-GOx"/>
                         <outlet property="tableView" destination="1Lr-cs-ex4" id="sJK-DB-5bO"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
@@ -989,11 +992,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <connections>
                         <outlet property="tableView" destination="jJI-nT-BO1" id="BlK-1e-rmI"/>
                         <segue destination="aNp-Zh-jY7" kind="push" identifier="GroupDetail" id="6tY-YJ-yab"/>
+                        <segue destination="4" kind="push" identifier="Project" id="Ycb-Pp-QFw"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="f64-3x-ddK" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="518" y="-105"/>
+            <point key="canvasLocation" x="442" y="-111"/>
         </scene>
         <!--Tab Bar View Controller-->
         <scene sceneID="15">
@@ -1219,6 +1223,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <image name="cameraButton.png" width="70" height="70"/>
         <image name="checklists.png" width="25" height="19"/>
         <image name="documents.png" width="26" height="21"/>
+        <image name="libraryButton.png" width="70" height="70"/>
         <image name="loginBackground.png" width="320" height="568"/>
         <image name="loginButtonBackground.png" width="150" height="52"/>
         <image name="logo.png" width="246" height="32"/>
@@ -1235,12 +1240,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
+        <segue reference="Ycb-Pp-QFw"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="vI7-Ml-H9J"/>
-        <segue reference="Vim-B7-ekZ"/>
-        <segue reference="0zF-UE-phA"/>
+        <segue reference="6tY-YJ-yab"/>
         <segue reference="eZr-X3-mJS"/>
         <segue reference="bd7-Rv-hQV"/>
         <segue reference="BC4-fv-9Fr"/>
+        <segue reference="0zF-UE-phA"/>
     </inferredMetricsTieBreakers>
 </document>

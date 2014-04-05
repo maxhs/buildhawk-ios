@@ -25,7 +25,7 @@
     } else if ([key isEqualToString:@"address"]) {
         self.address = [[BHAddress alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"users"]) {
-        self.users = [self coworkersFromJSONArray:value];
+        self.users = [self usersFromJSONArray:value];
     } else if ([key isEqualToString:@"subs"]) {
         self.subs = [BHUtilities subcontractorsFromJSONArray:value];
     } else if ([key isEqualToString:@"project_group"]) {
@@ -33,13 +33,13 @@
     }
 }
 
-- (NSMutableArray *)coworkersFromJSONArray:(NSArray *) array {
-    NSMutableArray *coworkers = [NSMutableArray arrayWithCapacity:array.count];
+- (NSMutableArray *)usersFromJSONArray:(NSArray *) array {
+    NSMutableArray *users = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *userDictionary in array) {
         BHUser *user = [[BHUser alloc] initWithDictionary:userDictionary];
-        [coworkers addObject:user];
+        [users addObject:user];
     }
-    return coworkers;
+    return users;
 }
 
 - (id)initWithDictionary:(NSDictionary *)dictionary {

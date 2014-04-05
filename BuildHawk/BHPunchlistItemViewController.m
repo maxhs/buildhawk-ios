@@ -50,7 +50,6 @@ typedef void(^RequestSuccess)(id result);
     UIBarButtonItem *createButton;
     UIAlertView *addOtherAlertView;
     UIAlertView *addOtherSubAlertView;
-    UIButton *takePhotoButton;
     int photoIdx;
     NSMutableArray *browserPhotos;
     UITextView *addCommentTextView;
@@ -58,6 +57,7 @@ typedef void(^RequestSuccess)(id result);
     UIButton *doneButton;
     ALAssetsLibrary *library;
     BOOL shouldSave;
+    NSIndexPath *indexPathForDeletion;
 }
 - (IBAction)assigneeButtonTapped;
 - (IBAction)locationButtonTapped;
@@ -79,22 +79,23 @@ typedef void(^RequestSuccess)(id result);
         iPad = YES;
     } else if ([UIScreen mainScreen].bounds.size.height == 568) {
         iPhone5 = YES;
-        [self.photoLabelButton setImage:[UIImage imageNamed:@"cameraButton"] forState:UIControlStateNormal];
     } else {
         iPhone5 = NO;
         self.emailButton.transform = CGAffineTransformMakeTranslation(0, -88);
         self.callButton.transform = CGAffineTransformMakeTranslation(0, -88);
         self.textButton.transform = CGAffineTransformMakeTranslation(0, -88);
-        [self shrinkButton:self.photoButton withAmount:20];
-        [self shrinkButton:self.photoLabelButton withAmount:20];
-        [self shrinkButton:self.locationButton withAmount:20];
-        [self shrinkButton:self.assigneeButton withAmount:20];
-        [self shrinkButton:self.completionButton withAmount:30];
-
-        self.photoButton.transform = CGAffineTransformMakeTranslation(0, -30);
-        [self.photoLabelButton setImage:[UIImage imageNamed:@"miniCameraButton"] forState:UIControlStateNormal];
-
-        self.photoLabelButton.transform = CGAffineTransformMakeTranslation(0, -30);
+       
+        [self shrinkButton:self.photoButton width:16 height:16];
+        [self shrinkButton:self.libraryButton width:16 height:16];
+        [self shrinkButton:self.locationButton width:0 height:20];
+        [self shrinkButton:self.assigneeButton width:0 height:20];
+        [self shrinkButton:self.completionButton width:0 height:30];
+        CGRect itemTextRect = self.itemTextView.frame;
+        itemTextRect.size.height = self.completionButton.frame.size.height;
+        [self.itemTextView setFrame:itemTextRect];
+        
+        self.photoButton.transform = CGAffineTransformMakeTranslation(0, -34);
+        self.libraryButton.transform = CGAffineTransformMakeTranslation(0, -34);
         self.locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
         self.assigneeButton.transform = CGAffineTransformMakeTranslation(0, -70);
         self.scrollView.transform = CGAffineTransformMakeTranslation(0, -32);
@@ -122,9 +123,6 @@ typedef void(^RequestSuccess)(id result);
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
-    [self addBorderTreatement:self.photoButton];
-    [self.photoButton addTarget:self action:@selector(photoButtonTapped) forControlEvents:UIControlEventTouchUpInside];
-    [self.photoLabelButton addTarget:self action:@selector(photoButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [self addBorderTreatement:self.locationButton];
     [self addBorderTreatement:self.assigneeButton];
     
@@ -157,6 +155,14 @@ typedef void(^RequestSuccess)(id result);
     self.navigationItem.hidesBackButton = YES;
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
+}
+
+
+- (void)shrinkButton:(UIButton*)button width:(int)width height:(int)height {
+    CGRect buttonRect = button.frame;
+    buttonRect.size.height -= height;
+    buttonRect.size.width -= width;
+    [button setFrame:buttonRect];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -343,12 +349,6 @@ typedef void(^RequestSuccess)(id result);
     }];
 }
 
-- (void)shrinkButton:(UIButton*)button withAmount:(int)amount {
-    CGRect buttonRect = button.frame;
-    buttonRect.size.height -= amount;
-    [button setFrame:buttonRect];
-}
-
 - (void)doneEditing {
     [self.view endEditing:YES];
     if (_punchlistItem.identifier.length){
@@ -389,7 +389,7 @@ typedef void(^RequestSuccess)(id result);
     [self showPhotoDetail];
 }
 
-- (void)choosePhoto {
+- (IBAction)choosePhoto {
     saveToLibrary = NO;
     CTAssetsPickerController *controller = [[CTAssetsPickerController alloc] init];
     controller.delegate = self;
@@ -397,7 +397,7 @@ typedef void(^RequestSuccess)(id result);
     [self presentViewController:controller animated:YES completion:NULL];
 }
 
-- (void)takePhoto {
+- (IBAction)takePhoto {
     saveToLibrary = YES;
     UIImagePickerController *vc = [[UIImagePickerController alloc] init];
     [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
@@ -415,7 +415,6 @@ typedef void(^RequestSuccess)(id result);
     [self redrawScrollView];
     [self saveImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
 }
-
 
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
     
@@ -649,11 +648,14 @@ typedef void(^RequestSuccess)(id result);
         if (self.scrollView.isHidden) [self.scrollView setHidden:NO];
         [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             if (iPad) {
-                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-336, 0);
+                self.photoButton.transform = CGAffineTransformMakeTranslation(-302, 0);
+                self.libraryButton.transform = CGAffineTransformMakeTranslation(-302, 0);
             } else if (iPhone5) {
-                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-126, 0);
+                self.photoButton.transform = CGAffineTransformMakeTranslation(-96, 0);
+                self.libraryButton.transform = CGAffineTransformMakeTranslation(-96, 0);
             } else {
-                self.photoLabelButton.transform = CGAffineTransformMakeTranslation(-126, -30);
+                self.photoButton.transform = CGAffineTransformMakeTranslation(-96, -32);
+                self.libraryButton.transform = CGAffineTransformMakeTranslation(-86, -32);
             }
         } completion:^(BOOL finished) {
             
@@ -683,7 +685,7 @@ typedef void(^RequestSuccess)(id result);
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
     browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
     browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
     browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
     browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
@@ -908,7 +910,7 @@ typedef void(^RequestSuccess)(id result);
         [controller setToRecipients:@[destinationEmail]];
         if (controller) [self presentViewController:controller animated:YES completion:nil];
     } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
         [alert show];
     }
 }
@@ -926,7 +928,7 @@ typedef void(^RequestSuccess)(id result);
     if (result == MessageComposeResultSent) {
         
     } else if (result == MessageComposeResultFailed) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles: nil];
         [alert show];
     }
     [self dismissViewControllerAnimated:YES completion:nil];
@@ -947,7 +949,7 @@ typedef void(^RequestSuccess)(id result);
                     return;
                 }
             }
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have a phone number on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have a phone number on file with BuildHawk" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
         
     } else if (actionSheet == emailActionSheet) {
@@ -962,7 +964,7 @@ typedef void(^RequestSuccess)(id result);
                 return;
             }
         }
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
             [self choosePhoto];
@@ -998,6 +1000,32 @@ typedef void(^RequestSuccess)(id result);
     }
 }
 
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (_punchlistItem && _punchlistItem.identifier.length && indexPath.section == 1) {
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        indexPathForDeletion = indexPath;
+        [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to delete this comment?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Delete", nil] show];
+    }
+}
+
+- (void)deleteComment {
+    BHComment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
+    [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"successfully deleted comment: %@",responseObject);
+        [_punchlistItem.comments removeObject:comment];
+        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        //NSLog(@"Failed to delete comment: %@",error.description);
+    }];
+}
+
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (alertView == addOtherAlertView) {
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
@@ -1027,6 +1055,8 @@ typedef void(^RequestSuccess)(id result);
         [self.navigationController popViewControllerAnimated:YES];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self takePhoto];
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]){
+        [self deleteComment];
     }
 }
 

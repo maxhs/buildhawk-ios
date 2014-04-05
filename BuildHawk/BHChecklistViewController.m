@@ -183,7 +183,7 @@ typedef void(^RequestSuccess)(id result);
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         [SVProgressHUD dismiss];
     }];
 }
@@ -320,7 +320,7 @@ typedef void(^RequestSuccess)(id result);
         case 0:
             if ([item isKindOfClass:[BHCategory class]]) {
                 cell.textLabel.text = ((BHCategory *)item).name;
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"Subcategories %d", numberOfChildren];
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"Subcategories %ld", (long)numberOfChildren];
             } else if ([item isKindOfClass:[BHChecklistItem class]]) {
                 [cell.detailTextLabel setText:[(BHChecklistItem*)item subcategory]];
                 
@@ -329,7 +329,7 @@ typedef void(^RequestSuccess)(id result);
         case 1:
             if ([item isKindOfClass:[BHSubcategory class]]) {
                 cell.textLabel.text = ((BHSubcategory *)item).name;
-                cell.detailTextLabel.text = [NSString stringWithFormat:@"Items: %d", numberOfChildren];
+                cell.detailTextLabel.text = [NSString stringWithFormat:@"Items: %ld", (long)numberOfChildren];
             }
             break;
         default:
@@ -559,6 +559,11 @@ typedef void(^RequestSuccess)(id result);
     
     // Return YES to cause the search result table view to be reloaded.
     return NO;
+}
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    //[manager.operationQueue cancelAllOperations];
+    [SVProgressHUD dismiss];
 }
 
 @end

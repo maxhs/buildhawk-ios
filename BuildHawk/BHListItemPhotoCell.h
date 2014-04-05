@@ -11,5 +11,7 @@
 @interface BHListItemPhotoCell : UITableViewCell <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIScrollViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UIButton *takePhotoButton;
+@property (weak, nonatomic) IBOutlet UIButton *choosePhotoButton;
+@property (weak, nonatomic) IBOutlet UIView *buttonContainer;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
 @end

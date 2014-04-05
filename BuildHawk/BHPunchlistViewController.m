@@ -250,7 +250,7 @@
         NSLog(@"Error loading worklists: %@",error.description);
         [SVProgressHUD dismiss];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
 }
 

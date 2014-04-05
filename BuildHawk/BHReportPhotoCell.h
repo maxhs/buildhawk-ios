@@ -10,7 +10,8 @@
 
 @interface BHReportPhotoCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
-@property (weak, nonatomic) IBOutlet UIView *labelBackgroundView;
+@property (weak, nonatomic) IBOutlet UIButton *libraryButton;
+@property (weak, nonatomic) IBOutlet UIView *photoButtonContainerView;
 @property (weak, nonatomic) IBOutlet UIScrollView *photoScrollView;
 - (void)configureCell;
 @end

@@ -58,7 +58,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     BHProject *project;
     UIScrollView *reportScrollView;
     AFHTTPRequestOperationManager *manager;
-    UIButton *photoButton;
+    UIView *photoButtonContainer;
     CGRect screen;
     Project *savedProject;
     int removePhotoIdx;
@@ -121,7 +121,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"ReportPersonnel" object:nil];
     
-    [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [self loadReports];
     [Flurry logEvent:@"Viewing report"];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(createNewReport) name:@"CreateReport" object:nil];
@@ -248,9 +247,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }
 }
 - (void)loadReport {
-    
     if (_report.identifier.length){
-        [SVProgressHUD showWithStatus:@"Fetching reports..."];
+        [SVProgressHUD showWithStatus:@"Fetching report..."];
         NSString *slashSafeDate = [_report.createdDate stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
         [manager GET:[NSString stringWithFormat:@"%@/reports/%@/review_report",kApiBaseUrl,project.identifier] parameters:@{@"date_string":slashSafeDate} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting report: %@",responseObject);
@@ -354,7 +352,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
         //[(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
         [self.scrollView setContentOffset:CGPointMake((screen.size.width*reports.count)-screen.size.width, self.scrollView.contentOffset.y) animated:NO];
-        
+
     } else {
         //There are no existing reports
         [self newReportObject:nil andType:nil];
@@ -514,9 +512,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPhotoCell" owner:self options:nil] lastObject];
         }
         reportScrollView = cell.photoScrollView;
-        if (iPad && !_report.photos.count) photoButton.transform = CGAffineTransformMakeTranslation(224, 0);
-        photoButton = cell.photoButton;
-        [photoButton addTarget:self action:@selector(photoButtonTapped) forControlEvents:UIControlEventTouchUpInside];
+        photoButtonContainer = cell.photoButtonContainerView;
+        //if (iPad && !_report.photos.count) photoButtonContainer.transform = CGAffineTransformMakeTranslation(224, 0);
+        [cell.photoButton addTarget:self action:@selector(takePhoto) forControlEvents:UIControlEventTouchUpInside];
+        [cell.libraryButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
         [cell configureCell];
         [self redrawScrollView];
         return cell;
@@ -831,7 +830,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 [_report.personnel addObject:sub];
                 NSLog(@"just added: %@",sub.name);
                 [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
-            } else [[[UIAlertView alloc] initWithTitle:@"Already added!" message:@"Personnel already included" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            } else [[[UIAlertView alloc] initWithTitle:@"Already added!" message:@"Personnel already included" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self save];
@@ -976,8 +975,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         for (id asset in assets) {
             if (asset != nil) {
                 ALAssetRepresentation* representation = [asset defaultRepresentation];
-                
-                // Retrieve the image orientation from the ALAsset
                 UIImageOrientation orientation = UIImageOrientationUp;
                 NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
                 if (orientationValue != nil) {
@@ -990,7 +987,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 BHPhoto *newPhoto = [[BHPhoto alloc] init];
                 [newPhoto setImage:[self fixOrientation:image]];
                 [_report.photos addObject:newPhoto];
-                [self saveImage:newPhoto];
+                if (_report.identifier)[self saveImage:newPhoto];
             }
         }
         [self redrawScrollView];
@@ -1115,7 +1112,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                         }];
             }
             else {
-                NSLog(@"saved image failed.\nerror code %i\n%@", error.code, [error localizedDescription]);
+                NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
             }
         }];
     }
@@ -1185,7 +1182,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     if (_report.photos.count) {
         [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             
-            photoButton.transform = CGAffineTransformMakeTranslation(-120, 0);
+            photoButtonContainer.transform = CGAffineTransformMakeTranslation(-90, 0);
             [reportScrollView setAlpha:1.0];
         } completion:^(BOOL finished) {
             reportScrollView.layer.shouldRasterize = YES;
@@ -1193,10 +1190,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         }];
     } else {
         if (iPad) {
-            photoButton.transform = CGAffineTransformMakeTranslation(224, 0);
+            photoButtonContainer.transform = CGAffineTransformMakeTranslation(224, 0);
         } else {
             [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                photoButton.transform = CGAffineTransformIdentity;
+                photoButtonContainer.transform = CGAffineTransformIdentity;
                 [reportScrollView setAlpha:0.0];
             } completion:^(BOOL finished) {
             }];
@@ -1218,7 +1215,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
     browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
     browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = NO; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
+    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
     browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
     browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
@@ -1241,10 +1238,15 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 }
 
 - (void)prefill {
-    int currentIdx = [reports indexOfObject:_report];
+    NSUInteger currentIdx = [reports indexOfObject:_report];
     if (currentIdx != NSNotFound) {
         BHReport *previousReport = [reports objectAtIndex:currentIdx-1];
         _report.personnel = [NSMutableArray arrayWithArray:previousReport.personnel];
+        for (id obj in _report.personnel){
+            if ([obj isKindOfClass:[BHSub class]]){
+                [(BHSub*)obj setCount:@"0"];
+            }
+        }
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
     }
 }
@@ -1333,9 +1335,9 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             }
         }
         [SVProgressHUD dismiss];
-        [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report saved" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report saved" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         NSLog(@"Failure updating report: %@",error.description);
         [SVProgressHUD dismiss];
     }];
@@ -1412,7 +1414,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         NSMutableArray *storedPhotos = [NSMutableArray arrayWithArray:_report.photos];
         _report = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(type == %@) AND (createdDate == %@)",_report.type, _report.createdDate];
-        int idx;
+        NSUInteger idx;
         for (BHReport *report in reports){
             if([predicate evaluateWithObject:report]) {
                 idx = [reports indexOfObject:report];
@@ -1432,7 +1434,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [SVProgressHUD dismiss];
         [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         NSLog(@"Failure updating report: %@",error.description);
         [SVProgressHUD dismiss];
     }];
@@ -1471,7 +1473,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         _report.createdDate = dateString;
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
     } else {
-        int reportIdx;
+        NSUInteger reportIdx;
         for (BHReport *report in reports){
             if ([report.createdDate isEqualToString:dateString]) {
                 _report = report;
@@ -1484,7 +1486,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         }
         NSLog(@"couldn't find report");
         [self newReportObject:dateString andType:nil];
-        int idx = reports.count - 1;
+        int idx = (int)reports.count - 1;
         UITableView *newTableView = [[UITableView alloc] init];
         newTableView.delegate = self;
         newTableView.dataSource = self;

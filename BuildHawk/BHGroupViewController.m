@@ -134,21 +134,17 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    //BHProject *selectedProject = [_project.group.projects objectAtIndex:indexPath.row];
-    [self performSegueWithIdentifier:@"GroupDetail" sender:self];
+    BHProject *selectedProject = [_project.group.projects objectAtIndex:indexPath.row];
+    [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(BHProject*)project {
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
-        UIButton *button = (UIButton*) sender;
-        BHProject *project = [_project.group.projects objectAtIndex:button.tag];
         [vc setProject:project];
-        //[vc setUser:savedUser];
     } else if ([segue.identifier isEqualToString:@"GroupDetail"]) {
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
-        BHProject *project = [_project.group.projects objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         [detailVC setProject:project];
         NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
         [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
@@ -160,8 +156,10 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    [self performSegueWithIdentifier:@"Project" sender:button];
+    BHProject *selectedProject = [_project.group.projects objectAtIndex:button.tag];
+    [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
+
 /*
 // Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath

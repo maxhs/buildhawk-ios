@@ -121,12 +121,12 @@
                 } completion:^(BOOL finished) {
                     
                 }];
-                [SVProgressHUD dismiss];
+
                 [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
             }];
         } else {
             User *newUser = [User MR_createInContext:localContext];
-            NSLog(@"had to create new MR user");
+            NSLog(@"Created a new MR user");
             newUser.identifier = user.identifier;
             newUser.lname = user.lname;
             newUser.email = user.email;
@@ -138,8 +138,6 @@
             newUser.photoUrl100 = user.photo.url100;
             newUser.phone = user.phone;
             [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                if (success && !error) NSLog(@"Done saving user through Magical Record without errors");
-                else NSLog(@"Error saving through MR: %@",error.description);
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
                 [UIView animateWithDuration:.3 animations:^{
                     self.loginContainerView.transform = CGAffineTransformIdentity;
@@ -148,14 +146,13 @@
                 } completion:^(BOOL finished) {
                     
                 }];
-                [SVProgressHUD dismiss];
                 [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
             }];
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error logging in: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         [SVProgressHUD dismiss];
         [self.loginContainerView setAlpha:1.0];
     }];

@@ -84,7 +84,7 @@ static NSString *textPlaceholder = @"Text Message";
     if (indexPath.section == 0) {
         static NSString *CellIdentifier = @"UserCell";
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-        UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(80, 30, cell.frame.size.width-80, cell.frame.size.height)];
+        UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(76, 32, cell.frame.size.width-80, cell.frame.size.height)];
         [nameLabel setText:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFullName]];
         [nameLabel setBackgroundColor:[UIColor clearColor]];
         [nameLabel setFont:[UIFont systemFontOfSize:19]];
@@ -95,7 +95,7 @@ static NSString *textPlaceholder = @"Text Message";
         [cell.textLabel setFrame:textRect];
         UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15, 30, 50, 50)];
         [imageView setContentMode:UIViewContentModeScaleAspectFill];
-        imageView.layer.cornerRadius = 25.f;
+        imageView.layer.cornerRadius = 2.f;
         imageView.clipsToBounds = YES;
         [cell addSubview:imageView];
         [cell addSubview:nameLabel];
@@ -230,7 +230,7 @@ static NSString *textPlaceholder = @"Text Message";
         [controller setToRecipients:@[destinationEmail]];
         if (controller) [self presentViewController:controller animated:YES completion:nil];
     } else {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
         [alert show];
     }
 }
@@ -259,7 +259,7 @@ static NSString *textPlaceholder = @"Text Message";
     if (result == MessageComposeResultSent) {
         
     } else if (result == MessageComposeResultFailed) {
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles: nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles: nil];
         [alert show];
     }
     [self dismissViewControllerAnimated:YES completion:nil];

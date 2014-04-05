@@ -29,7 +29,6 @@
     UIRefreshControl *refreshControl;
     BOOL iPhone5;
     BOOL iPad;
-    BOOL loadProgress;
     NSMutableArray *filteredProjects;
     User *savedUser;
     NSMutableArray *recentChecklistItems;
@@ -63,8 +62,8 @@
     } else {
         iPad = YES;
     }
-    if (!projects) projects = [NSMutableArray array];
-    if (!filteredProjects) filteredProjects = [NSMutableArray array];
+    projects = [NSMutableArray array];
+    filteredProjects = [NSMutableArray array];
     
     SWRevealViewController *revealController = [self revealViewController];
     if (iPad){
@@ -90,12 +89,14 @@
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
     if (!categories) categories = [NSMutableArray array];
-    loadProgress = YES;
     [self loadProjects];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    if (!projects.count){
+        [SVProgressHUD showWithStatus:@"Fetching projects..."];
+    }
 }
 
 - (IBAction)revealMenu {
@@ -134,13 +135,13 @@
 }
 
 - (void)loadProjects {
+    [SVProgressHUD dismiss];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [SVProgressHUD showWithStatus:@"Fetching projects..."];
         [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"load projects response object: %@",responseObject);
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
-            [SVProgressHUD dismiss];
             [self.tableView reloadData];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error while loading projects: %@",error.description);
@@ -160,16 +161,16 @@
     savedUser.bhprojects = forSave;
     for (BHProject *proj in forSave) {
         if (!proj.group){
-            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", proj.identifier];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", proj.identifier];
             Project *savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
             if (savedProject){
-                NSLog(@"found saved project %@",proj.name);
+                NSLog(@"Found saved project %@",proj.name);
                 savedProject.identifier = proj.identifier;
                 savedProject.name = proj.name;
                 savedProject.users = proj.users;
                 savedProject.subs = proj.subs;
             } else {
-                NSLog(@"had to create a new proejct for id: %@",proj.name);
+                NSLog(@"Creating a new project for local storage: %@",proj.name);
                 Project *project = [Project MR_createInContext:localContext];
                 project.identifier = proj.identifier;
                 project.name = proj.name;
@@ -280,6 +281,7 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+        [SVProgressHUD dismiss];
     }
 }
 

@@ -10,6 +10,7 @@
         <attribute name="reports" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="subs" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="users" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <relationship name="report" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Report" inverseName="project" inverseEntity="Report" syncable="YES"/>
         <relationship name="sub" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Sub" inverseName="projects" inverseEntity="Sub" syncable="YES"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="projects" inverseEntity="User" syncable="YES"/>
     </entity>
@@ -26,7 +27,7 @@
         <attribute name="users" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="weather" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="weatherIcon" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" syncable="YES"/>
+        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="report" inverseEntity="Project" syncable="YES"/>
     </entity>
     <entity name="Sub" representedClassName="Sub" syncable="YES">
         <attribute name="count" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
@@ -53,9 +54,9 @@
     </entity>
     <elements>
         <element name="Company" positionX="0" positionY="0" width="128" height="75"/>
-        <element name="Project" positionX="0" positionY="0" width="128" height="148"/>
+        <element name="Project" positionX="0" positionY="0" width="128" height="163"/>
         <element name="Report" positionX="0" positionY="0" width="128" height="238"/>
-        <element name="User" positionX="0" positionY="0" width="128" height="240"/>
         <element name="Sub" positionX="9" positionY="108" width="128" height="133"/>
+        <element name="User" positionX="0" positionY="0" width="128" height="240"/>
     </elements>
 </model>

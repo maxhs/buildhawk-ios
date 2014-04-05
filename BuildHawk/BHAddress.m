@@ -25,6 +25,8 @@
         self.longitude = [value floatValue];
     } else if ([key isEqualToString:@"state"]) {
         self.state = value;
+    } else if ([key isEqualToString:@"zip"]) {
+        self.zip = value;
     } else if ([key isEqualToString:@"country"]) {
         self.country = value;
     }
@@ -51,6 +53,7 @@
         self.country = [decoder decodeObjectForKey:@"country"];
         self.state = [decoder decodeObjectForKey:@"state"];
         self.street2 = [decoder decodeObjectForKey:@"street2"];
+        self.zip = [decoder decodeObjectForKey:@"zip"];
         self.latitude = [decoder decodeIntegerForKey:@"latitude"];
         self.longitude = [decoder decodeIntegerForKey:@"longitude"];
     }
@@ -64,6 +67,7 @@
     [coder encodeObject:self.state forKey:@"state"];
     [coder encodeObject:self.street2 forKey:@"street2"];
     [coder encodeObject:self.country forKey:@"country"];
+    [coder encodeObject:self.zip forKey:@"zip"];
     [coder encodeInteger:self.latitude forKey:@"latitude"];
     [coder encodeInteger:self.longitude forKey:@"longitude"];
 }

@@ -27,8 +27,7 @@
 }
 
 - (void)configureCell {
-    self.labelBackgroundView.layer.borderColor = [UIColor darkGrayColor].CGColor;
-    self.labelBackgroundView.layer.borderWidth = .5f;
+    
 }
 
 @end

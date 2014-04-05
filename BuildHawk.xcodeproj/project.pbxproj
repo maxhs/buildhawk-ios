@@ -117,6 +117,10 @@
 		F27889EE18B88D2A00056AB2 /* MWTapDetectingView.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889E518B88D2A00056AB2 /* MWTapDetectingView.m */; };
 		F27889EF18B88D2A00056AB2 /* MWZoomingScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889E718B88D2A00056AB2 /* MWZoomingScrollView.m */; };
 		F27889F518B9ADE300056AB2 /* BHWebViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F27889F418B9ADE300056AB2 /* BHWebViewController.m */; };
+		F285E95518E5E532008FFEC1 /* miniLibraryButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F285E95318E5E532008FFEC1 /* miniLibraryButton.png */; };
+		F285E95618E5E532008FFEC1 /* miniLibraryButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F285E95418E5E532008FFEC1 /* miniLibraryButton@2x.png */; };
+		F285E95918E5E5F6008FFEC1 /* libraryButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F285E95718E5E5F6008FFEC1 /* libraryButton.png */; };
+		F285E95A18E5E5F6008FFEC1 /* libraryButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F285E95818E5E5F6008FFEC1 /* libraryButton@2x.png */; };
 		F289FE31183406780070E8FC /* BHComment.m in Sources */ = {isa = PBXBuildFile; fileRef = F289FE30183406780070E8FC /* BHComment.m */; };
 		F289FE33183415DA0070E8FC /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F289FE32183415DA0070E8FC /* AssetsLibrary.framework */; };
 		F28F3102180F1A120066320B /* BHReportPhotoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F28F3101180F1A120066320B /* BHReportPhotoCell.m */; };
@@ -405,6 +409,10 @@
 		F27889E718B88D2A00056AB2 /* MWZoomingScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MWZoomingScrollView.m; sourceTree = "<group>"; };
 		F27889F318B9ADE300056AB2 /* BHWebViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHWebViewController.h; sourceTree = "<group>"; };
 		F27889F418B9ADE300056AB2 /* BHWebViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHWebViewController.m; sourceTree = "<group>"; };
+		F285E95318E5E532008FFEC1 /* miniLibraryButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = miniLibraryButton.png; sourceTree = "<group>"; };
+		F285E95418E5E532008FFEC1 /* miniLibraryButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "miniLibraryButton@2x.png"; sourceTree = "<group>"; };
+		F285E95718E5E5F6008FFEC1 /* libraryButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = libraryButton.png; sourceTree = "<group>"; };
+		F285E95818E5E5F6008FFEC1 /* libraryButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "libraryButton@2x.png"; sourceTree = "<group>"; };
 		F289FE2F183406780070E8FC /* BHComment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHComment.h; sourceTree = "<group>"; };
 		F289FE30183406780070E8FC /* BHComment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHComment.m; sourceTree = "<group>"; };
 		F289FE32183415DA0070E8FC /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
@@ -911,6 +919,10 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				F285E95718E5E5F6008FFEC1 /* libraryButton.png */,
+				F285E95818E5E5F6008FFEC1 /* libraryButton@2x.png */,
+				F285E95318E5E532008FFEC1 /* miniLibraryButton.png */,
+				F285E95418E5E532008FFEC1 /* miniLibraryButton@2x.png */,
 				F28F9A5118A49EF2000A46D4 /* miniCameraButton.png */,
 				F28F9A5218A49EF3000A46D4 /* miniCameraButton@2x.png */,
 				F28F9A4A18A45989000A46D4 /* zoom.png */,
@@ -1070,7 +1082,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = BH;
-				LastUpgradeCheck = 0500;
+				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = BuildHawk;
 				TargetAttributes = {
 					F2B29FB817D0F31B00F09C6F = {
@@ -1140,6 +1152,7 @@
 				F292AC0D17F9F2DE0020DE13 /* callButton.png in Resources */,
 				F226819D187DE66800D78BDD /* partly@2x.png in Resources */,
 				F226815418622D8100D78BDD /* communicateOutlineDark.png in Resources */,
+				F285E95518E5E532008FFEC1 /* miniLibraryButton.png in Resources */,
 				F29579CB17F771B80082DE5A /* dashboard.png in Resources */,
 				F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */,
 				F28F9A2818A33F5E000A46D4 /* BuildHawk_app_icon_256.png in Resources */,
@@ -1150,6 +1163,7 @@
 				F22681761872637000D78BDD /* miniChat.png in Resources */,
 				F226815318622D8100D78BDD /* documentsOutlineDark@2x.png in Resources */,
 				F28F9A4D18A45989000A46D4 /* zoom@2x.png in Resources */,
+				F285E95618E5E532008FFEC1 /* miniLibraryButton@2x.png in Resources */,
 				F28F9A3B18A34D5C000A46D4 /* BuildHawk_app_icon_58.png in Resources */,
 				F292ABFF17F9E8F10020DE13 /* BHListItemPhotoCell.xib in Resources */,
 				F22681AA187FB0ED00D78BDD /* sunny.png in Resources */,
@@ -1188,6 +1202,7 @@
 				F292AC1317F9F2DE0020DE13 /* mailButton.png in Resources */,
 				F226815218622D8100D78BDD /* documentsOutlineDark.png in Resources */,
 				F28F9A3D18A34E04000A46D4 /* BuildHawk_app_icon_40.png in Resources */,
+				F285E95A18E5E5F6008FFEC1 /* libraryButton@2x.png in Resources */,
 				F22681A8187FB0ED00D78BDD /* cloudy.png in Resources */,
 				F2B1F0E717D7BE820007A4E3 /* Default@2x.png in Resources */,
 				F29EF2E31815BD1100F737B7 /* navBarBackgroundTall@2x.png in Resources */,
@@ -1203,6 +1218,7 @@
 				F203967917D3E4F6001CFF61 /* reportsSelected.png in Resources */,
 				F203967A17D3E4F6001CFF61 /* reportsSelected@2x.png in Resources */,
 				F226815018622D8100D78BDD /* stopAndCheckOutlineDark.png in Resources */,
+				F285E95918E5E5F6008FFEC1 /* libraryButton.png in Resources */,
 				F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */,
 				F203967D17D3E648001CFF61 /* whiteTabBackground.png in Resources */,
 				F28F9A3618A34D43000A46D4 /* BuildHawk_app_icon_76.png in Resources */,
@@ -1445,7 +1461,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7CE765D888B94A02BF4CAA11 /* Pods.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1463,7 +1478,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
-				VALID_ARCHS = "armv7 armv7s";
+				VALID_ARCHS = "armv7 armv7s arm64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1472,7 +1487,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7CE765D888B94A02BF4CAA11 /* Pods.xcconfig */;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -1490,7 +1504,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
-				VALID_ARCHS = "armv7 armv7s";
+				VALID_ARCHS = "armv7 armv7s arm64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

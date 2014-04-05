@@ -180,7 +180,7 @@
     browser.displayNavArrows = NO;
     browser.displaySelectionButtons = NO;
     browser.zoomPhotosToFill = YES;
-    browser.alwaysShowControls = NO;
+    browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = YES;
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){

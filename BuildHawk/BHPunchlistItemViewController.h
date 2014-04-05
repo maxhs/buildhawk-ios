@@ -14,7 +14,7 @@
 
 @property (strong, nonatomic) BHPunchlistItem *punchlistItem;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
-@property (weak, nonatomic) IBOutlet UIButton *photoLabelButton;
+@property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;
 @property (weak, nonatomic) IBOutlet UIButton *assigneeButton;
 @property (weak, nonatomic) IBOutlet UITextView *itemTextView;
@@ -28,5 +28,6 @@
 @property (strong, nonatomic) NSSet *locationSet;
 @property BOOL newItem;
 -(IBAction)completionTapped;
--(IBAction)photoButtonTapped;
+-(IBAction)takePhoto;
+-(IBAction)choosePhoto;
 @end
