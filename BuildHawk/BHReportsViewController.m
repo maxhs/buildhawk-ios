@@ -19,7 +19,7 @@
 #import "BHReportPersonnelCell.h"
 #import "BHPersonnelCell.h"
 #define kForecastAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
-#import <SDWebImage/UIButton+WebCache.h>
+#import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
 #import "Project.h"
 #import "Report.h"
@@ -716,7 +716,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 NSLog(@"found report: %@ %@ %@",report.createdDate, report.type, report.identifier);
                 _report = report;
                 _report.type = buttonTitle;
-                int reportIdx = [reports indexOfObject:report];
+                NSUInteger reportIdx = [reports indexOfObject:report];
                 [self.scrollView setContentOffset:CGPointMake(screen.size.width*reportIdx, self.scrollView.contentOffset.y) animated:YES];
                 [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
                 if (_report.identifier.length){

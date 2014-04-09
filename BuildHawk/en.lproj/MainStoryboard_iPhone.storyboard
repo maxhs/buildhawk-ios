@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5053" systemVersion="13C64" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13C64" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
     <dependencies>
         <deployment defaultVersion="1536" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
@@ -871,6 +871,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardDetail" id="vI7-Ml-H9J"/>
                         <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
                         <segue destination="oNc-NS-cxU" kind="push" identifier="Group" id="2Xz-vL-5B7"/>
+                        <segue destination="BJf-DW-Afh" kind="push" identifier="Archived" id="Whj-Jd-XPO"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -976,6 +977,35 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fqf-DO-Q7w" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-679" y="857"/>
+        </scene>
+        <!--Archived View Controller-->
+        <scene sceneID="LMS-ec-EbO">
+            <objects>
+                <viewController storyboardIdentifier="Archived" id="BJf-DW-Afh" customClass="BHArchivedViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="rEk-0m-9gK">
+                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="KLk-ly-EO7">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="BJf-DW-Afh" id="p1n-cS-O3h"/>
+                                    <outlet property="delegate" destination="BJf-DW-Afh" id="V6p-Ss-N3h"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="bt3-Fx-e1u"/>
+                    <connections>
+                        <outlet property="tableView" destination="KLk-ly-EO7" id="PRz-BY-aw6"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="C5W-Gm-baY" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="92" y="869"/>
         </scene>
         <!--Group View Controller-->
         <scene sceneID="M0C-sY-YcR">
@@ -1183,9 +1213,9 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
+        <segue reference="Vim-B7-ekZ"/>
         <segue reference="NH7-r7-qB8"/>
-        <segue reference="eeI-5R-PC5"/>
-        <segue reference="VUC-8h-3wE"/>
+        <segue reference="vI7-Ml-H9J"/>
         <segue reference="POr-kh-1ho"/>
         <segue reference="kFF-g5-AYt"/>
         <segue reference="QKi-s7-jOi"/>

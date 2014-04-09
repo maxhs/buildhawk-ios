@@ -18,7 +18,7 @@
 #import <AddressBook/AddressBook.h>
 #import <AddressBookUI/AddressBookUI.h>
 #import "BHTabBarViewController.h"
-#import <SDWebImage/UIButton+WebCache.h>
+#import "UIButton+WebCache.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhotoBrowser.h"
 #import "Flurry.h"
@@ -258,7 +258,7 @@
     self.tableView.contentInset = tempInset;
     if ([textView.text isEqualToString:kAddCommentPlaceholder]) {
         [textView setText:@""];
-        [textView setTextColor:[UIColor darkGrayColor]];
+        [textView setTextColor:[UIColor blackColor]];
     }
     [UIView animateWithDuration:.25 animations:^{
         doneButton.alpha = 1.0;
@@ -267,17 +267,17 @@
     [cancelButton setTitle:@"Cancel"];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
     if (textView == addCommentTextView){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:4] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     }
 }
 
 
 -(void)textViewDidEndEditing:(UITextView *)textView {
-    if (textView.text.length) {
-        addCommentTextView = textView;
-    } else {
-        [textView setText:kAddCommentPlaceholder];
+    if ([textView.text isEqualToString:@""]) {
+        [textView setText:@"hey"];
         [textView setTextColor:[UIColor colorWithWhite:.75 alpha:1.0]];
+    } else {
+        [textView setTextColor:[UIColor blackColor]];
     }
     [self doneEditing];
 }
@@ -318,8 +318,6 @@
 }
 
 - (void)doneEditing {
-    [addCommentTextView resignFirstResponder];
-    [addCommentTextView setText:@""];
     [self.view endEditing:YES];
     [UIView animateWithDuration:.25 animations:^{
         doneButton.alpha = 0.0;
@@ -756,7 +754,7 @@
     }];
 }
 
-- (void)showPhotoDetail:(int)idx {
+- (void)showPhotoDetail:(NSInteger)idx {
     browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in _item.photos) {
         MWPhoto *mwPhoto;

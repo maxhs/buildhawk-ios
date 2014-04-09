@@ -9,7 +9,7 @@
 #import "BHMenuViewController.h"
 #import "Constants.h"
 #import "BHLoginViewController.h"
-#import <SDWebImage/UIImageView+WebCache.h>
+#import "UIImageView+WebCache.h"
 #import <QuartzCore/QuartzCore.h>
 #import "BHAppDelegate.h"
 #import <SVProgressHUD/SVProgressHUD.h>

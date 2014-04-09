@@ -1,19 +1,18 @@
 //
-//  BHDashboardProjectCell.h
+//  BHArchivedProjectCell.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 9/1/13.
-//  Copyright (c) 2013 BuildHawk. All rights reserved.
+//  Created by Max Haines-Stiles on 4/9/14.
+//  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
 
-@interface BHDashboardProjectCell : UITableViewCell <UIScrollViewDelegate>
+@interface BHArchivedProjectCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UILabel *subtitleLabel;
 @property (weak, nonatomic) IBOutlet UIButton *projectButton;
-@property (weak, nonatomic) IBOutlet UIButton *detailButton;
 @property (weak, nonatomic) IBOutlet UILabel *progressLabel;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
-@property (weak, nonatomic) IBOutlet UIButton *archiveButton;
+@property (weak, nonatomic) IBOutlet UIButton *unarchiveButton;
 @end

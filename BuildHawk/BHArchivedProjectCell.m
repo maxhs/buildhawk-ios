@@ -1,14 +1,14 @@
 //
-//  BHDashboardProjectCell.m
+//  BHArchivedProjectCell.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 9/1/13.
-//  Copyright (c) 2013 BuildHawk. All rights reserved.
+//  Created by Max Haines-Stiles on 4/9/14.
+//  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
-#import "BHDashboardProjectCell.h"
+#import "BHArchivedProjectCell.h"
 
-@implementation BHDashboardProjectCell {
+@implementation BHArchivedProjectCell {
     CGRect screen;
 }
 
@@ -30,16 +30,15 @@
 
 - (void)awakeFromNib {
     screen = [UIScreen mainScreen].bounds;
-    [self.archiveButton setBackgroundColor:[UIColor redColor]];
+    [self.unarchiveButton setBackgroundColor:[UIColor redColor]];
     [self.scrollView setContentSize:CGSizeMake(screen.size.width, 88)];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView.contentOffset.x >= 88){
-        [self.archiveButton setUserInteractionEnabled:YES];
+        [self.unarchiveButton setUserInteractionEnabled:YES];
     } else {
-        [self.archiveButton setUserInteractionEnabled:NO];
+        [self.unarchiveButton setUserInteractionEnabled:NO];
     }
 }
-
 @end

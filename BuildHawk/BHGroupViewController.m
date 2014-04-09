@@ -22,6 +22,7 @@
     NSMutableDictionary *dashboardDetailDict;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
+    BHProject *archivedProject;
 }
 
 @end
@@ -77,10 +78,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    
     BHProject *project = [_project.group.projects objectAtIndex:indexPath.row];
-
-
     static NSString *CellIdentifier = @"ProjectCell";
     BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -100,6 +98,8 @@
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     [cell.titleLabel setTextColor:kDarkGrayColor];
+    [cell.archiveButton setTag:indexPath.row];
+    [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
     return cell;
 
 }
@@ -158,6 +158,30 @@
 - (void)goToProject:(UIButton*)button {
     BHProject *selectedProject = [_project.group.projects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
+}
+
+
+- (void)confirmArchive:(UIButton*)button{
+    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archive, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
+    archivedProject = [_project.group.projects objectAtIndex:button.tag];
+}
+
+- (void)archiveProject{
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Successfully archived the project: %@",responseObject);
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_project.group.projects indexOfObject:archivedProject] inSection:0];
+        [_project.group.projects removeObject:archivedProject];
+        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        NSLog(@"Failed to archive the project: %@",error.description);
+    }];
+}
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Archive"]){
+        [self archiveProject];
+    }
 }
 
 /*

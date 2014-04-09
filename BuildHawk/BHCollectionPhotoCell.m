@@ -7,8 +7,8 @@
 //
 
 #import "BHCollectionPhotoCell.h"
-#import <SDWebImage/UIButton+WebCache.h>
-#import <SDWebImage/UIImageView+WebCache.h>
+#import "UIButton+WebCache.h"
+#import "UIImageView+WebCache.h"
 #import <AFNetworking/UIImageView+AFNetworking.h>
 
 @implementation BHCollectionPhotoCell

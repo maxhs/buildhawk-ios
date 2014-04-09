@@ -22,6 +22,7 @@
 #import "Constants.h"
 #import "BHAppDelegate.h"
 #import "BHGroupViewController.h"
+#import "BHArchivedViewController.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate> {
     CGRect searchContainerRect;
@@ -40,6 +41,9 @@
     NSMutableDictionary *dashboardDetailDict;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
+    BHProject *archivedProject;
+    NSMutableArray *archivedProjects;
+    UIBarButtonItem *archiveButtonItem;
 }
 
 @property (weak, nonatomic) IBOutlet UIView *searchContainerBackgroundView;
@@ -90,6 +94,11 @@
     if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
     if (!categories) categories = [NSMutableArray array];
     [self loadProjects];
+    archiveButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Archived" style:UIBarButtonItemStylePlain target:self action:@selector(getArchived)];
+}
+
+- (void)getArchived {
+    [self performSegueWithIdentifier:@"Archived" sender:nil];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -143,6 +152,7 @@
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             [self saveToMR:[self projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
             [self.tableView reloadData];
+            [self loadArchived];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error while loading projects: %@",error.description);
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -186,6 +196,18 @@
         [self.tableView reloadData];
     }];
 }
+
+- (void)loadArchived {
+    [manager GET:[NSString stringWithFormat:@"%@/projects/archived",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"success getting archived projects: %@",responseObject);
+        archivedProjects = [BHUtilities projectsFromJSONArray:[responseObject objectForKey:@"projects"]];
+        if (archivedProjects.count) self.navigationItem.rightBarButtonItem = archiveButtonItem;
+        else self.navigationItem.rightBarButtonItem = nil;
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failed to get archived projects: %@",error.description);
+    }];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -252,6 +274,8 @@
         [cell.projectButton setTag:indexPath.row];
         [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
         [cell.titleLabel setTextColor:kDarkGrayColor];
+        [cell.archiveButton setTag:indexPath.row];
+        [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
         return cell;
     }
 }
@@ -324,6 +348,29 @@
 }
 */
 
+- (void)confirmArchive:(UIButton*)button{
+    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archive, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
+    archivedProject = [projects objectAtIndex:button.tag];
+}
+
+- (void)archiveProject{
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Successfully archived the project: %@",responseObject);
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[projects indexOfObject:archivedProject] inSection:0];
+        [projects removeObject:archivedProject];
+        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        NSLog(@"Failed to archive the project: %@",error.description);
+    }];
+}
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Archive"]){
+        [self archiveProject];
+    }
+}
+
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     [self.navigationController setNavigationBarHidden:YES animated:YES];
     [UIView animateWithDuration:.2 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
@@ -346,8 +393,7 @@
 
 #pragma mark - Table view delegate
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     BHProject *selectedProject;
     if (tableView == self.searchDisplayController.searchResultsTableView){
         [self.searchDisplayController setActive:NO animated:NO];
@@ -381,6 +427,10 @@
         BHGroupViewController *vc = [segue destinationViewController];
         [vc setTitle:project.group.name];
         [vc setProject:project];
+    } else if ([segue.identifier isEqualToString:@"Archived"]){
+        BHArchivedViewController *vc = [segue destinationViewController];
+        [vc setTitle:@"Archived Projects"];
+        [vc setArchivedProjects:archivedProjects];
     }
 }
 

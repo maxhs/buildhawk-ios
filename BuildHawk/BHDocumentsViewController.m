@@ -12,7 +12,7 @@
 #import "Constants.h"
 #import "BHPhoto.h"
 #import "BHFoldersViewController.h"
-#import <SDWebImage/UIButton+WebCache.h>
+#import "UIButton+WebCache.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import "BHPhotosViewController.h"
 #import "Flurry.h"

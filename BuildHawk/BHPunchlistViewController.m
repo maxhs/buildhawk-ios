@@ -14,7 +14,7 @@
 #import "BHPhoto.h"
 #import <SVProgressHUD/SVProgressHUD.h>
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
-#import <SDWebImage/UIButton+WebCache.h>
+#import "UIButton+WebCache.h"
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "BHAppDelegate.h"
@@ -338,15 +338,15 @@
         [vc setProject:project];
         [vc setNewItem:NO];
         BHPunchlistItem *item;
-        if (showActive && activeListItems.count) {
+        if (showActive && activeListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [activeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (showByLocation && locationListItems.count) {
+        } else if (showByLocation && locationListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [locationListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (showByAssignee && assigneeListItems.count) {
+        } else if (showByAssignee && assigneeListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [assigneeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (showCompleted && completedListItems.count) {
+        } else if (showCompleted && completedListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [completedListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (listItems.count) {
+        } else if (listItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [listItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
         [vc setTitle:[NSString stringWithFormat:@"%@",item.createdOn]];

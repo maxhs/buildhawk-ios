@@ -8,7 +8,7 @@
 
 #import "BHProjectDocsViewController.h"
 #import "BHPhotoPickerCell.h"
-#import <SDWebImage/UIButton+WebCache.h>
+#import "UIButton+WebCache.h"
 #import "BHWebViewController.h"
 
 @interface BHProjectDocsViewController () {

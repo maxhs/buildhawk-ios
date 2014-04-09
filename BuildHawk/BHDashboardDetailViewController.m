@@ -15,7 +15,7 @@
 #import "BHUser.h"
 #import "BHPunchlistItem.h"
 #import "BHRecentDocumentCell.h"
-#import <SDWebImage/UIButton+WebCache.h>
+#import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
 #import "Flurry.h"
 #import "BHChecklistViewController.h"

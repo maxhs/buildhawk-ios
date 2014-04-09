@@ -17,6 +17,7 @@
 #import "Flurry.h"
 #import "NSData+Conversion.h"
 #import <Crashlytics/Crashlytics.h>
+#import "SDWebImageManager.h"
 
 // Use a class extension to expose access to MagicalRecord's private setter methods
 @interface NSManagedObjectContext ()

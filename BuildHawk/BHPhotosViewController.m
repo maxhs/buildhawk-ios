@@ -8,8 +8,8 @@
 
 #import "BHPhotosViewController.h"
 #import "BHCollectionPhotoCell.h"
-#import <SDWebImage/UIButton+WebCache.h>
-#import <SDWebImage/UIImageView+WebCache.h>
+#import "UIButton+WebCache.h"
+#import "UIImageView+WebCache.h"
 #import "MWPhotoBrowser.h"
 #import "BHPhotosHeaderView.h"
 
