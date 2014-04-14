@@ -640,15 +640,15 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                             <view contentMode="scaleToFill" id="0pQ-iG-APx">
-                                <rect key="frame" x="0.0" y="278" width="320" height="274"/>
+                                <rect key="frame" x="0.0" y="278" width="320" height="290"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="textField.png" id="IN2-Qy-OED">
-                                        <rect key="frame" x="10" y="99" width="300" height="33"/>
+                                        <rect key="frame" x="10" y="75" width="300" height="37"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your email" minimumFontSize="17" id="EK6-57-ZkH">
-                                        <rect key="frame" x="18" y="100" width="292" height="33"/>
+                                        <rect key="frame" x="18" y="76" width="292" height="34"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="15"/>
@@ -658,21 +658,21 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </textField>
                                     <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="textField.png" id="JTc-vw-57Y">
-                                        <rect key="frame" x="10" y="144" width="300" height="33"/>
+                                        <rect key="frame" x="10" y="117" width="300" height="37"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                     </imageView>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your password" minimumFontSize="17" id="EQ4-0j-N6W">
-                                        <rect key="frame" x="18" y="144" width="292" height="33"/>
+                                        <rect key="frame" x="18" y="119" width="292" height="33"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                         <textInputTraits key="textInputTraits" returnKeyType="done" secureTextEntry="YES"/>
                                         <connections>
                                             <outlet property="delegate" destination="YSk-d2-LcY" id="C6W-vl-epA"/>
                                         </connections>
                                     </textField>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Nzu-Yg-ThW">
-                                        <rect key="frame" x="85" y="202" width="150" height="52"/>
+                                        <rect key="frame" x="85" y="179" width="150" height="52"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                         <state key="normal" title="Login" backgroundImage="loginButtonBackground.png">
@@ -686,6 +686,18 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                             <action selector="loginTapped" destination="YSk-d2-LcY" eventType="touchUpInside" id="cno-IX-BXT"/>
                                         </connections>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6YN-CS-NlG">
+                                        <rect key="frame" x="80" y="240" width="160" height="38"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                        <state key="normal" title="Forgot password?">
+                                            <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="forgotPassword" destination="YSk-d2-LcY" eventType="touchUpInside" id="V8D-tA-CkZ"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
@@ -695,6 +707,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <navigationItem key="navigationItem" id="SWw-J9-MSa"/>
                     <connections>
                         <outlet property="emailTextField" destination="EK6-57-ZkH" id="Ya7-ZB-wOQ"/>
+                        <outlet property="forgotPasswordButton" destination="6YN-CS-NlG" id="08C-oH-2PD"/>
                         <outlet property="loginContainerView" destination="0pQ-iG-APx" id="JdB-rh-nWQ"/>
                         <outlet property="logoContainerView" destination="Oby-5M-iB8" id="sg2-De-zQY"/>
                         <outlet property="passwordTextField" destination="EQ4-0j-N6W" id="V5K-Rg-XAm"/>
@@ -872,6 +885,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
                         <segue destination="oNc-NS-cxU" kind="push" identifier="Group" id="2Xz-vL-5B7"/>
                         <segue destination="BJf-DW-Afh" kind="push" identifier="Archived" id="Whj-Jd-XPO"/>
+                        <segue destination="ytR-aD-IVu" kind="push" identifier="Demos" id="gNI-JP-Ffn"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -972,11 +986,41 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <connections>
                         <outlet property="logoutButton" destination="R2G-b9-8nM" id="Xdb-Cx-VWl"/>
                         <outlet property="tableView" destination="3FJ-dL-Mut" id="cXz-ws-6fw"/>
+                        <segue destination="t0y-2e-eYo" kind="push" identifier="Settings" id="OlI-2Y-WkV"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fqf-DO-Q7w" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-679" y="857"/>
+            <point key="canvasLocation" x="-783" y="859"/>
+        </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="DZx-7P-zQg">
+            <objects>
+                <viewController storyboardIdentifier="Settings" id="t0y-2e-eYo" customClass="BHSettingsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="igQ-hd-YlK">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="2WQ-7l-TWr">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="t0y-2e-eYo" id="jI3-Tf-sP4"/>
+                                    <outlet property="delegate" destination="t0y-2e-eYo" id="dPq-eo-Jhc"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="Aul-2v-dg5"/>
+                    <connections>
+                        <outlet property="tableView" destination="2WQ-7l-TWr" id="zv3-Rb-sXv"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="02V-Do-PcD" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-355" y="859"/>
         </scene>
         <!--Archived View Controller-->
         <scene sceneID="LMS-ec-EbO">
@@ -1037,6 +1081,37 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 <placeholder placeholderIdentifier="IBFirstResponder" id="LKW-ox-Lq6" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="489" y="562"/>
+        </scene>
+        <!--Demo Projects View Controller-->
+        <scene sceneID="Vcd-Jd-b9o">
+            <objects>
+                <viewController storyboardIdentifier="Demos" id="ytR-aD-IVu" customClass="BHDemoProjectsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="pBm-ew-uIe">
+                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="dQM-rM-svL">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="ytR-aD-IVu" id="H28-g0-IDC"/>
+                                    <outlet property="delegate" destination="ytR-aD-IVu" id="190-M5-O4U"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="IwC-FR-DgR"/>
+                    <connections>
+                        <outlet property="tableView" destination="dQM-rM-svL" id="rQb-4y-Y9M"/>
+                        <segue destination="4" kind="push" identifier="Project" id="CKJ-bJ-q5l"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardDetail" id="yE4-EA-SnA"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="2Gc-nW-7rF" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="489" y="1217"/>
         </scene>
         <!--Tab Bar View Controller-->
         <scene sceneID="15">
@@ -1213,11 +1288,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Vim-B7-ekZ"/>
         <segue reference="NH7-r7-qB8"/>
-        <segue reference="vI7-Ml-H9J"/>
-        <segue reference="POr-kh-1ho"/>
+        <segue reference="yE4-EA-SnA"/>
+        <segue reference="CKJ-bJ-q5l"/>
         <segue reference="kFF-g5-AYt"/>
+        <segue reference="POr-kh-1ho"/>
         <segue reference="QKi-s7-jOi"/>
         <segue reference="JhG-cE-lNU"/>
     </inferredMetricsTieBreakers>

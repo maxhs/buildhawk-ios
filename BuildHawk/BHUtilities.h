@@ -15,6 +15,7 @@
 #import "BHReport.h"
 #import "BHSub.h"
 #import "BHPersonnel.h"
+#import "BHProjectGroup.h"
 
 @interface BHUtilities : NSObject
 
@@ -28,6 +29,7 @@
 + (NSMutableArray *)commentsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)projectsFromJSONArray:(NSArray *) array;
++ (NSMutableArray *)groupsFromJSONArray:(NSArray *) array;
 + (NSDate*)parseDate:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;

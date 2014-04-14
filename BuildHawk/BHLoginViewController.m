@@ -21,12 +21,15 @@
     BOOL iPhone5;
     BHUser *user;
     BOOL iPad;
+    NSString *forgotPasswordEmail;
 }
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIView *logoContainerView;
 @property (weak, nonatomic) IBOutlet UIView *loginContainerView;
+@property (weak, nonatomic) IBOutlet UIButton *forgotPasswordButton;
 -(IBAction)loginTapped;
+-(IBAction)forgotPassword;
 
 @end
 
@@ -70,6 +73,39 @@
     [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
 }
 
+- (IBAction)forgotPassword{
+    if (self.emailTextField.text.length || forgotPasswordEmail.length){
+        NSString *email;
+        if (forgotPasswordEmail.length){
+            email = forgotPasswordEmail;
+        } else {
+            email = self.emailTextField.text;
+        }
+        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+        [manager POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success with forgot password: %@",responseObject);
+            if ([responseObject objectForKey:@"failure"]){
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find an account for that email address." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Password Reset" message:@"You should receive password reset instruction within the next few minutes." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failed to reach forgot password endpoing: %@",error.description);
+        }];
+    } else {
+        UIAlertView *forgotPasswordAlert = [[UIAlertView alloc] initWithTitle:@"Forgot Password?" message:@"Please enter your email address:" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+        forgotPasswordAlert.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [forgotPasswordAlert show];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]){
+        forgotPasswordEmail = [[alertView textFieldAtIndex:0] text];
+        [self forgotPassword];
+    }
+}
+
 - (void)login:(NSString*)email andPassword:(NSString*)password{
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [SVProgressHUD showWithStatus:@"Logging in..."];
@@ -78,9 +114,9 @@
     if (!password.length)
         password = self.passwordTextField.text;
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (email) [parameters setObject:email forKey:@"user[email]"];
-    if (password) [parameters setObject:password forKey:@"user[password]"];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"user[device_token]"];
+    if (email) [parameters setObject:email forKey:@"email"];
+    if (password) [parameters setObject:password forKey:@"password"];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
     [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"log in response object: %@",responseObject);
         user = [[BHUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
@@ -162,12 +198,12 @@
     [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if (iPhone5){
             self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
-            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -180);
+            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -190);
         } else if (iPad) {
             
         } else {
             self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -286);
-            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -210);
+            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
         }
     } completion:^(BOOL finished) {
         

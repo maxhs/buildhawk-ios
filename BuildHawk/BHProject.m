@@ -22,6 +22,8 @@
         self.company = [[BHCompany alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"active"]) {
         self.active = [value boolValue];
+    } else if ([key isEqualToString:@"core"]) {
+        self.demo = [value boolValue];
     } else if ([key isEqualToString:@"address"]) {
         self.address = [[BHAddress alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"users"]) {

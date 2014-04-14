@@ -805,6 +805,16 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="DemoCell" id="1Yh-zY-v3T">
+                                        <rect key="frame" x="0.0" y="22" width="768" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="1Yh-zY-v3T" id="cYo-a6-mVg">
+                                            <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
                                 <connections>
                                     <outlet property="dataSource" destination="hei-1C-lSF" id="8Yy-TS-aeT"/>
                                     <outlet property="delegate" destination="hei-1C-lSF" id="3re-WI-Ezf"/>
@@ -862,6 +872,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
                         <segue destination="RvR-ni-pZv" kind="push" identifier="Group" id="qfH-2b-k2d"/>
                         <segue destination="Aeb-Pi-CzK" kind="push" identifier="Archived" id="PVU-SM-ftc"/>
+                        <segue destination="2KI-aN-Pwf" kind="push" identifier="Demos" id="xV3-g4-3Si"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -963,11 +974,41 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <connections>
                         <outlet property="logoutButton" destination="R2G-b9-8nM" id="Xdb-Cx-VWl"/>
                         <outlet property="tableView" destination="3FJ-dL-Mut" id="cXz-ws-6fw"/>
+                        <segue destination="bjy-WC-Az4" kind="push" identifier="Settings" id="3ea-z5-cdD"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fqf-DO-Q7w" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1399" y="945"/>
+            <point key="canvasLocation" x="-2231" y="867"/>
+        </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="tbp-J8-Sem">
+            <objects>
+                <viewController storyboardIdentifier="Settings" id="bjy-WC-Az4" customClass="BHSettingsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="3MQ-TT-bWD">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="zm3-Ex-U1I">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="bjy-WC-Az4" id="YGQ-7n-qSy"/>
+                                    <outlet property="delegate" destination="bjy-WC-Az4" id="mka-hc-c2x"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="eXk-hl-Xsf"/>
+                    <connections>
+                        <outlet property="tableView" destination="zm3-Ex-U1I" id="JWk-4K-lwG"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="57H-i1-WbX" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1355" y="867"/>
         </scene>
         <!--Archived View Controller-->
         <scene sceneID="djy-Wj-SYI">
@@ -997,6 +1038,37 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5rL-Bc-O3d" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-515" y="867"/>
+        </scene>
+        <!--Demo Projects View Controller-->
+        <scene sceneID="MO1-DZ-nqy">
+            <objects>
+                <viewController storyboardIdentifier="Demos" id="2KI-aN-Pwf" customClass="BHDemoProjectsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="cJI-pK-Ubt">
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="APX-yi-BfD">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="2KI-aN-Pwf" id="9rb-Bc-8Jy"/>
+                                    <outlet property="delegate" destination="2KI-aN-Pwf" id="pb3-DZ-p5J"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="en4-NO-ie3"/>
+                    <connections>
+                        <outlet property="tableView" destination="APX-yi-BfD" id="Zfp-wD-dsV"/>
+                        <segue destination="4" kind="push" identifier="Project" id="Yzx-Gp-SW0"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardDetail" id="u3A-ap-vQO"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="qSf-jG-igZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="442" y="1033"/>
         </scene>
         <!--Group View Controller-->
         <scene sceneID="Zdo-XM-RzF">
@@ -1270,12 +1342,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Vim-B7-ekZ"/>
+        <segue reference="Yzx-Gp-SW0"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="vI7-Ml-H9J"/>
+        <segue reference="u3A-ap-vQO"/>
         <segue reference="eZr-X3-mJS"/>
         <segue reference="bd7-Rv-hQV"/>
-        <segue reference="0zF-UE-phA"/>
         <segue reference="BC4-fv-9Fr"/>
+        <segue reference="0zF-UE-phA"/>
     </inferredMetricsTieBreakers>
 </document>

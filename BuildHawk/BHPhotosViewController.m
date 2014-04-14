@@ -12,6 +12,7 @@
 #import "UIImageView+WebCache.h"
 #import "MWPhotoBrowser.h"
 #import "BHPhotosHeaderView.h"
+#import "BHTabBarViewController.h"
 
 @interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWPhotoBrowserDelegate, UIActionSheetDelegate> {
     BOOL iPad;
@@ -211,6 +212,7 @@
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     
     // Set options
+    if ([(BHProject*)[(BHTabBarViewController*)self.tabBarController project] demo]) browser.displayTrashButton = NO;
     browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
     browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)

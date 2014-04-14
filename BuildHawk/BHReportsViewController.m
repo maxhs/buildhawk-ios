@@ -268,7 +268,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 - (void)loadReports {
     [SVProgressHUD showWithStatus:@"Fetching reports..."];
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting reports: %@",responseObject);
+        NSLog(@"Success getting reports: %@",responseObject);
         reports = [BHUtilities reportsFromJSONArray:[responseObject objectForKey:@"reports"]];
         [self saveToMR];
         previousContentOffsetX = screen.size.width*reports.count;
@@ -1292,55 +1292,59 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 }
 
 - (void)save {
-    [SVProgressHUD showWithStatus:@"Saving report..."];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
-    [parameters setObject:project.identifier forKey:@"project_id"];
-    if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
-    if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
-    if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
-    if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
-    if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
-    if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
-    if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
-    if (_report.personnel.count) {
-        NSMutableArray *subArray = [NSMutableArray array];
-        NSMutableArray *userArray = [NSMutableArray array];
-        for (id obj in _report.personnel) {
-            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-            if ([obj isKindOfClass:[BHUser class]]){
-                BHUser *user = obj;
-                if (user.identifier.length) [dict setObject:user.identifier forKey:@"id"];
-                if (user.fullname.length) [dict setObject:user.fullname forKey:@"full_name"];
-                [userArray addObject:dict];
-            } else if ([obj isKindOfClass:[BHSub class]]) {
-                BHSub *sub = obj;
-                if (sub.identifier.length) [dict setObject:sub.identifier forKey:@"id"];
-                if (sub.name.length) [dict setObject:sub.name forKey:@"name"];
-                if (sub.count) [dict setObject:[NSString stringWithFormat:@"%@",sub.count] forKey:@"count"];
-                [subArray addObject:dict];
+    if (project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        [SVProgressHUD showWithStatus:@"Saving report..."];
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
+        [parameters setObject:project.identifier forKey:@"project_id"];
+        if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
+        if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
+        if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
+        if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
+        if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
+        if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
+        if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
+        if (_report.personnel.count) {
+            NSMutableArray *subArray = [NSMutableArray array];
+            NSMutableArray *userArray = [NSMutableArray array];
+            for (id obj in _report.personnel) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if ([obj isKindOfClass:[BHUser class]]){
+                    BHUser *user = obj;
+                    if (user.identifier.length) [dict setObject:user.identifier forKey:@"id"];
+                    if (user.fullname.length) [dict setObject:user.fullname forKey:@"full_name"];
+                    [userArray addObject:dict];
+                } else if ([obj isKindOfClass:[BHSub class]]) {
+                    BHSub *sub = obj;
+                    if (sub.identifier.length) [dict setObject:sub.identifier forKey:@"id"];
+                    if (sub.name.length) [dict setObject:sub.name forKey:@"name"];
+                    if (sub.count) [dict setObject:[NSString stringWithFormat:@"%@",sub.count] forKey:@"count"];
+                    [subArray addObject:dict];
+                }
             }
+            if (subArray.count)[parameters setObject:subArray forKey:@"report_subs"];
+            if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
         }
-        if (subArray.count)[parameters setObject:subArray forKey:@"report_subs"];
-        if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
-    }
 
-    [manager PUT:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_report.identifier] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success updating report: %@",responseObject);
-        BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
-        for (BHReport *report in reports){
-            if ([report.identifier isEqualToString:newReport.identifier]) {
-                [reports replaceObjectAtIndex:[reports indexOfObject:report] withObject:newReport];
-                break;
+        [manager PUT:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_report.identifier] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success updating report: %@",responseObject);
+            BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
+            for (BHReport *report in reports){
+                if ([report.identifier isEqualToString:newReport.identifier]) {
+                    [reports replaceObjectAtIndex:[reports indexOfObject:report] withObject:newReport];
+                    break;
+                }
             }
-        }
-        [SVProgressHUD dismiss];
-        [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report saved" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        NSLog(@"Failure updating report: %@",error.description);
-        [SVProgressHUD dismiss];
-    }];
+            [SVProgressHUD dismiss];
+            [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report saved" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            NSLog(@"Failure updating report: %@",error.description);
+            [SVProgressHUD dismiss];
+        }];
+    }
 }
 
 - (void)saveImage:(BHPhoto*)photo {
@@ -1353,91 +1357,99 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 }
 
 - (void)uploadPhoto:(UIImage*)image withReportId:(NSString*)reportId {
-    NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-    [manager POST:[NSString stringWithFormat:@"%@/reports/photo",kApiBaseUrl] parameters:@{@"photo[report_id]":reportId, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":kReports, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-        [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-    } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success posting image to API: %@",responseObject);
-        BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
-        for (BHReport *report in reports){
-            if ([report.identifier isEqualToString:newReport.identifier]) {
-                [reports replaceObjectAtIndex:[reports indexOfObject:report] withObject:newReport];
-                break;
+    if (project.demo){
+        
+    } else {
+        NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
+        [manager POST:[NSString stringWithFormat:@"%@/reports/photo",kApiBaseUrl] parameters:@{@"photo[report_id]":reportId, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":project.identifier, @"photo[source]":kReports, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success posting image to API: %@",responseObject);
+            BHReport *newReport = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
+            for (BHReport *report in reports){
+                if ([report.identifier isEqualToString:newReport.identifier]) {
+                    [reports replaceObjectAtIndex:[reports indexOfObject:report] withObject:newReport];
+                    break;
+                }
             }
-        }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"failure posting image to API: %@",error.description);
-    }];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"failure posting image to API: %@",error.description);
+        }];
+    }
 }
 
 - (void)createNewReport {
-    [SVProgressHUD showWithStatus:@"Creating report..."];
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:project.identifier forKey:@"project_id"];
-    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
-    if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
-    if (_report.wind) [parameters setObject:_report.wind forKey:@"wind"];
-    if (_report.temp.length) [parameters setObject:_report.temp forKey:@"temp"];
-    if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
-    if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
-    if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
-    if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
-    if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
-    if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
+    if (project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new reports for demo projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        [SVProgressHUD showWithStatus:@"Creating report..."];
+        manager.requestSerializer = [AFJSONRequestSerializer serializer];
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:project.identifier forKey:@"project_id"];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
+        if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
+        if (_report.wind) [parameters setObject:_report.wind forKey:@"wind"];
+        if (_report.temp.length) [parameters setObject:_report.temp forKey:@"temp"];
+        if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
+        if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
+        if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
+        if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
+        if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
+        if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
 
-    if (_report.personnel.count) {
-        NSMutableArray *subArray = [NSMutableArray array];
-        NSMutableArray *userArray = [NSMutableArray array];
-        for (id obj in _report.personnel) {
-            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-            if ([obj isKindOfClass:[BHUser class]]){
-                BHUser *user = obj;
-                if (user.identifier.length) [dict setObject:user.identifier forKey:@"id"];
-                if (user.fullname.length) [dict setObject:user.fullname forKey:@"full_name"];
-                [userArray addObject:dict];
-            } else if ([obj isKindOfClass:[BHSub class]]) {
-                BHSub *sub = obj;
-                if (sub.identifier.length) [dict setObject:sub.identifier forKey:@"id"];
-                if (sub.name.length) [dict setObject:sub.name forKey:@"name"];
-                if (sub.count) [dict setObject:[NSString stringWithFormat:@"%@",sub.count] forKey:@"count"];
-                [subArray addObject:dict];
-            }
-        }
-        if (subArray.count)[parameters setObject:subArray forKey:@"report_subs"];
-        if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
-    }
-
-    [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success creating report: %@",responseObject);
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
-        NSMutableArray *storedPhotos = [NSMutableArray arrayWithArray:_report.photos];
-        _report = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(type == %@) AND (createdDate == %@)",_report.type, _report.createdDate];
-        NSUInteger idx;
-        for (BHReport *report in reports){
-            if([predicate evaluateWithObject:report]) {
-                idx = [reports indexOfObject:report];
-                break;
-            }
-        }
-        if (idx)[reports replaceObjectAtIndex:idx withObject:_report];
-        _report.photos = storedPhotos;
-        if (_report.identifier.length){
-            for (BHPhoto *photo in _report.photos) {
-                if (photo.image){
-                    [self uploadPhoto:photo.image withReportId:_report.identifier];
+        if (_report.personnel.count) {
+            NSMutableArray *subArray = [NSMutableArray array];
+            NSMutableArray *userArray = [NSMutableArray array];
+            for (id obj in _report.personnel) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if ([obj isKindOfClass:[BHUser class]]){
+                    BHUser *user = obj;
+                    if (user.identifier.length) [dict setObject:user.identifier forKey:@"id"];
+                    if (user.fullname.length) [dict setObject:user.fullname forKey:@"full_name"];
+                    [userArray addObject:dict];
+                } else if ([obj isKindOfClass:[BHSub class]]) {
+                    BHSub *sub = obj;
+                    if (sub.identifier.length) [dict setObject:sub.identifier forKey:@"id"];
+                    if (sub.name.length) [dict setObject:sub.name forKey:@"name"];
+                    if (sub.count) [dict setObject:[NSString stringWithFormat:@"%@",sub.count] forKey:@"count"];
+                    [subArray addObject:dict];
                 }
             }
+            if (subArray.count)[parameters setObject:subArray forKey:@"report_subs"];
+            if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
         }
-        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
-        [SVProgressHUD dismiss];
-        [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        NSLog(@"Failure updating report: %@",error.description);
-        [SVProgressHUD dismiss];
-    }];
+
+        [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success creating report: %@",responseObject);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
+            NSMutableArray *storedPhotos = [NSMutableArray arrayWithArray:_report.photos];
+            _report = [[BHReport alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(type == %@) AND (createdDate == %@)",_report.type, _report.createdDate];
+            NSUInteger idx;
+            for (BHReport *report in reports){
+                if([predicate evaluateWithObject:report]) {
+                    idx = [reports indexOfObject:report];
+                    break;
+                }
+            }
+            if (idx)[reports replaceObjectAtIndex:idx withObject:_report];
+            _report.photos = storedPhotos;
+            if (_report.identifier.length){
+                for (BHPhoto *photo in _report.photos) {
+                    if (photo.image){
+                        [self uploadPhoto:photo.image withReportId:_report.identifier];
+                    }
+                }
+            }
+            [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+            [SVProgressHUD dismiss];
+            [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            NSLog(@"Failure updating report: %@",error.description);
+            [SVProgressHUD dismiss];
+        }];
+    }
 }
 
 - (IBAction)cancelDatePicker{

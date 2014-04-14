@@ -220,8 +220,7 @@
 }
 
 - (void)loadPunchlist {
-    
-    [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:@{@"id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading punchlist: %@",responseObject);
         [listItems removeAllObjects];
         listItems = [BHUtilities punchlistItemsFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"punchlist_items"]];

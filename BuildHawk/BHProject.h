@@ -22,6 +22,7 @@
 @property (nonatomic, strong) BHAddress *address;
 @property (nonatomic, strong) BHCompany *company;
 @property BOOL active;
+@property BOOL demo;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 

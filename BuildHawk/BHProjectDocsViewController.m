@@ -10,6 +10,7 @@
 #import "BHPhotoPickerCell.h"
 #import "UIButton+WebCache.h"
 #import "BHWebViewController.h"
+#import "BHTabBarViewController.h"
 
 @interface BHProjectDocsViewController () {
     BOOL iPad;
@@ -142,6 +143,8 @@
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     
     // Set options
+    BHProject *project = (BHProject*)[(BHTabBarViewController*)self.tabBarController project];
+    if (project.demo) browser.displayTrashButton = NO;
     browser.displayActionButton = YES;
     browser.displayNavArrows = NO;
     browser.displaySelectionButtons = NO;

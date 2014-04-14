@@ -53,6 +53,11 @@
 #define kHelveticaNeueRegular @"HelveticaNeue-Regular"
 #define kHelveticaNeueLightItalic @"HelveticaNeue-LightItalic"
 
+//User walkthrough
+#define kHasSeenDashboard @"hasSeenDashboard"
+#define kHasSeenReport @"hasSeenReport"
+#define kHasSeenChecklist @"hasSeenChecklist"
+
 //Reports
 #define kDaily @"Daily"
 #define kSafety @"Safety"

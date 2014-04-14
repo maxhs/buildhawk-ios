@@ -208,6 +208,8 @@
 		F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FEE17D0F9DA00F09C6F /* BHLoginViewController.m */; };
 		F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */; };
 		F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B29FF417D0F9FC00F09C6F /* BHDashboardDetailViewController.m */; };
+		F2B8178718FA305E002168FD /* BHSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B8178618FA305E002168FD /* BHSettingsViewController.m */; };
+		F2B8178A18FA31E2002168FD /* BHDemoProjectsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */; };
 		F2BC8047180486F000FCD8D5 /* BuildHawk.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2BC8045180486F000FCD8D5 /* BuildHawk.xcdatamodeld */; };
 		F2FAE3ED18F4DCA2005E582B /* NSData+GIF.m in Sources */ = {isa = PBXBuildFile; fileRef = F2FAE3AA18F4DCA2005E582B /* NSData+GIF.m */; };
 		F2FAE3EE18F4DCA2005E582B /* NSData+ImageContentType.m in Sources */ = {isa = PBXBuildFile; fileRef = F2FAE3AC18F4DCA2005E582B /* NSData+ImageContentType.m */; };
@@ -528,6 +530,10 @@
 		F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardViewController.m; sourceTree = "<group>"; };
 		F2B29FF317D0F9FC00F09C6F /* BHDashboardDetailViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDashboardDetailViewController.h; sourceTree = "<group>"; };
 		F2B29FF417D0F9FC00F09C6F /* BHDashboardDetailViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardDetailViewController.m; sourceTree = "<group>"; };
+		F2B8178518FA305E002168FD /* BHSettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSettingsViewController.h; sourceTree = "<group>"; };
+		F2B8178618FA305E002168FD /* BHSettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSettingsViewController.m; sourceTree = "<group>"; };
+		F2B8178818FA31E2002168FD /* BHDemoProjectsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDemoProjectsViewController.h; sourceTree = "<group>"; };
+		F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDemoProjectsViewController.m; sourceTree = "<group>"; };
 		F2BC8046180486F000FCD8D5 /* BuildHawk.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BuildHawk.xcdatamodel; sourceTree = "<group>"; };
 		F2FAE3A918F4DCA2005E582B /* NSData+GIF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+GIF.h"; sourceTree = "<group>"; };
 		F2FAE3AA18F4DCA2005E582B /* NSData+GIF.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+GIF.m"; sourceTree = "<group>"; };
@@ -869,8 +875,12 @@
 				F277D46518D4E0CD00028ACD /* BHGroupViewController.m */,
 				F2FAE44918F5AFAE005E582B /* BHArchivedViewController.h */,
 				F2FAE44A18F5AFAE005E582B /* BHArchivedViewController.m */,
+				F2B8178818FA31E2002168FD /* BHDemoProjectsViewController.h */,
+				F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */,
 				F203963017D2C09E001CFF61 /* BHMenuViewController.h */,
 				F203963117D2C09F001CFF61 /* BHMenuViewController.m */,
+				F2B8178518FA305E002168FD /* BHSettingsViewController.h */,
+				F2B8178618FA305E002168FD /* BHSettingsViewController.m */,
 				F28F3115181098590066320B /* BHUtilities.h */,
 				F28F3116181098590066320B /* BHUtilities.m */,
 				F2B29FF617D0FAB900F09C6F /* Images */,
@@ -1408,6 +1418,7 @@
 				F277D46F18D4FEE900028ACD /* Project.m in Sources */,
 				F2FAE3ED18F4DCA2005E582B /* NSData+GIF.m in Sources */,
 				F28F311A18109CFD0066320B /* BHRecentDocumentCell.m in Sources */,
+				F2B8178718FA305E002168FD /* BHSettingsViewController.m in Sources */,
 				F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */,
 				F292B29018356525005E9123 /* BHPersonnel.m in Sources */,
 				F2FAE40518F4DCA2005E582B /* PSTCollectionViewLayout.m in Sources */,
@@ -1449,6 +1460,7 @@
 				F28F9A04189C4140000A46D4 /* BHReportWeatherCell.m in Sources */,
 				F2FAE3F718F4DCA2005E582B /* UIImage+GIF.m in Sources */,
 				F292ABFD17F9E8E40020DE13 /* BHListItemPhotoCell.m in Sources */,
+				F2B8178A18FA31E2002168FD /* BHDemoProjectsViewController.m in Sources */,
 				F2FAE3F218F4DCA2005E582B /* SDWebImageDownloader.m in Sources */,
 				F2B1F0F317D7DD660007A4E3 /* BHCategoryChecklistViewController.m in Sources */,
 				F2FAE3F918F4DCA2005E582B /* UIImage+WebP.m in Sources */,

@@ -22,11 +22,9 @@
 {
     [super viewDidLoad];
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
-    
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
 }
 
 - (void)didReceiveMemoryWarning
@@ -80,11 +78,12 @@
 }
 
 - (void)unarchiveProject{
-    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/unarchive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully unarchived the project: %@",responseObject);
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_archivedProjects indexOfObject:archivedProject] inSection:0];
         [_archivedProjects removeObject:archivedProject];
-        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        if (_archivedProjects.count == 0) [self.navigationController popViewControllerAnimated:YES];
+        else [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to unarchive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         NSLog(@"Failed to unarchive the project: %@",error.description);

@@ -11,6 +11,7 @@
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
 #import "BHProjectDocsViewController.h"
+#import "BHTabBarViewController.h"
 
 @interface BHFoldersViewController () <MWPhotoBrowserDelegate, UITableViewDataSource, UITableViewDelegate> {
     NSMutableArray *compositePhotos;
@@ -174,7 +175,8 @@
     
     // Create browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    
+    BHProject *project = (BHProject*)[(BHTabBarViewController*)self.tabBarController project];
+    if (project.demo) browser.displayTrashButton = NO;
     // Set options
     browser.displayActionButton = YES;
     browser.displayNavArrows = NO;

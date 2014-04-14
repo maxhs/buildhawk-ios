@@ -176,7 +176,7 @@ typedef void(^RequestSuccess)(id result);
 - (void)loadChecklist {
     [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,project.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         checklistResponse = [[responseObject objectForKey:@"checklist"] objectForKey:@"categories"];
-        //NSLog(@"checklistResponse: %@",checklistResponse);
+        NSLog(@"checklist response: %@",responseObject);
         [self drawChecklistLimitActive:NO orCompleted:NO];
         if (self.isViewLoaded && self.view.window) {
             [SVProgressHUD dismiss];
@@ -563,7 +563,7 @@ typedef void(^RequestSuccess)(id result);
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     //[manager.operationQueue cancelAllOperations];
-    [SVProgressHUD dismiss];
+    //[SVProgressHUD dismiss];
 }
 
 @end

@@ -114,6 +114,15 @@
     return subcontractors;
 }
 
++ (NSMutableArray *)groupsFromJSONArray:(NSArray *) array {
+    NSMutableArray *groups = [NSMutableArray arrayWithCapacity:array.count];
+    for (NSDictionary *groupDictionary in array) {
+        BHProjectGroup *group = [[BHProjectGroup alloc] initWithDictionary:groupDictionary];
+        [groups addObject:group];
+    }
+    return groups;
+}
+
 + (NSDate*)parseDate:(id)value {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];

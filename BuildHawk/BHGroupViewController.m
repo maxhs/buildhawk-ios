@@ -29,7 +29,7 @@
 
 @implementation BHGroupViewController
 
-@synthesize project = _project;
+@synthesize group = _group;
 
 - (void)viewDidLoad
 {
@@ -47,14 +47,14 @@
 }
 
 - (void)loadDetailView {
-    for (BHProject *proj in _project.group.projects){
+    for (BHProject *proj in _group.projects){
         [categories removeAllObjects];
         [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting dashboard detail view: %@",[responseObject objectForKey:@"project"]);
             categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
             [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
             
-            if (dashboardDetailDict.count == _project.group.projects.count) {
+            if (dashboardDetailDict.count == _group.projects.count) {
                 //NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
                 [self.tableView reloadData];
             }
@@ -73,12 +73,12 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _project.group.projects.count;
+    return _group.projects.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    BHProject *project = [_project.group.projects objectAtIndex:indexPath.row];
+    BHProject *project = [_group.projects objectAtIndex:indexPath.row];
     static NSString *CellIdentifier = @"ProjectCell";
     BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -134,7 +134,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    BHProject *selectedProject = [_project.group.projects objectAtIndex:indexPath.row];
+    BHProject *selectedProject = [_group.projects objectAtIndex:indexPath.row];
     [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
@@ -156,21 +156,21 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    BHProject *selectedProject = [_project.group.projects objectAtIndex:button.tag];
+    BHProject *selectedProject = [_group.projects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
 
 
 - (void)confirmArchive:(UIButton*)button{
     [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archive, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
-    archivedProject = [_project.group.projects objectAtIndex:button.tag];
+    archivedProject = [_group.projects objectAtIndex:button.tag];
 }
 
 - (void)archiveProject{
     [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully archived the project: %@",responseObject);
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_project.group.projects indexOfObject:archivedProject] inSection:0];
-        [_project.group.projects removeObject:archivedProject];
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_group.projects indexOfObject:archivedProject] inSection:0];
+        [_group.projects removeObject:archivedProject];
         [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];

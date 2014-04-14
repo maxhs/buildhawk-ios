@@ -297,25 +297,28 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)submitComment {
-    if (addCommentTextView.text.length) {
-        BHComment *comment = [[BHComment alloc] init];
-        comment.body = addCommentTextView.text;
-        comment.createdOnString = @"Just now";
-        User *user = [(BHTabBarViewController*) self.tabBarController user];
-        comment.user = [[BHUser alloc] init];
-        comment.user.fullname = user.fullname;
-        [_punchlistItem.comments addObject:comment];
-        [self.tableView reloadData];
-        
-        NSDictionary *commentDict = @{@"punchlist_item_id":_punchlistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
-        [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"success creating a comment for punchlist item: %@",responseObject);
-            [addCommentTextView setTextColor:[UIColor lightGrayColor]];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"failure creating a comment for punchlist item: %@",error.description);
-        }];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        if (addCommentTextView.text.length) {
+            BHComment *comment = [[BHComment alloc] init];
+            comment.body = addCommentTextView.text;
+            comment.createdOnString = @"Just now";
+            User *user = [(BHTabBarViewController*) self.tabBarController user];
+            comment.user = [[BHUser alloc] init];
+            comment.user.fullname = user.fullname;
+            [_punchlistItem.comments addObject:comment];
+            [self.tableView reloadData];
+            
+            NSDictionary *commentDict = @{@"punchlist_item_id":_punchlistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"success creating a comment for punchlist item: %@",responseObject);
+                [addCommentTextView setTextColor:[UIColor lightGrayColor]];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                NSLog(@"failure creating a comment for punchlist item: %@",error.description);
+            }];
+        }
     }
-    
     [self doneEditing];
 }
 
@@ -568,17 +571,21 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)saveImage:(UIImage*)image {
-    [self saveToLibrary:image];
-    if (_punchlistItem.identifier.length){
-        NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-        [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:@{@"id":_punchlistItem.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_project.identifier, @"photo[source]":kWorklist, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"save punchlist item photo response object: %@",responseObject);
-            _punchlistItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"failure posting image to API: %@",error.description);
-        }];
+    if (_project.demo){
+        
+    } else {
+        [self saveToLibrary:image];
+        if (_punchlistItem.identifier.length){
+            NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
+            [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:@{@"id":_punchlistItem.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_project.identifier, @"photo[source]":kWorklist, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+            } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                NSLog(@"save punchlist item photo response object: %@",responseObject);
+                _punchlistItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                NSLog(@"failure posting image to API: %@",error.description);
+            }];
+        }
     }
 }
 
@@ -757,100 +764,108 @@ typedef void(^RequestSuccess)(id result);
 }
 
 -(void)updateItem {
-    shouldSave = NO;
-    [SVProgressHUD showWithStatus:@"Updating item..."];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    NSString *strippedLocationString;
-    if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-        strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
-                                        [NSCharacterSet whitespaceCharacterSet]];
-            if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
-    }
-    
-    if (_punchlistItem.assignees.count){
-        id assignee = _punchlistItem.assignees.firstObject;
-        if ([assignee isKindOfClass:[BHUser class]]){
-            BHUser *assigneeUser = assignee;
-            if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
-        } else if ([assignee isKindOfClass:[BHSub class]]){
-            BHSub *assigneeSub = assignee;
-            if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
-        }
-    }
-    
-    [parameters setObject:_punchlistItem.identifier forKey:@"id"];
-    if (self.itemTextView.text.length) [parameters setObject:self.itemTextView.text forKey:@"body"];
-    if (completed){
-        [parameters setObject:kCompleted forKey:@"status"];
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        [parameters setObject:@"Not Completed" forKey:@"status"];
+        shouldSave = NO;
+        [SVProgressHUD showWithStatus:@"Updating item..."];
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        NSString *strippedLocationString;
+        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+            strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+                                            [NSCharacterSet whitespaceCharacterSet]];
+                if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
+        }
+        
+        if (_punchlistItem.assignees.count){
+            id assignee = _punchlistItem.assignees.firstObject;
+            if ([assignee isKindOfClass:[BHUser class]]){
+                BHUser *assigneeUser = assignee;
+                if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
+            } else if ([assignee isKindOfClass:[BHSub class]]){
+                BHSub *assigneeSub = assignee;
+                if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
+            }
+        }
+        
+        [parameters setObject:_punchlistItem.identifier forKey:@"id"];
+        if (self.itemTextView.text.length) [parameters setObject:self.itemTextView.text forKey:@"body"];
+        if (completed){
+            [parameters setObject:kCompleted forKey:@"status"];
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+        } else {
+            [parameters setObject:@"Not Completed" forKey:@"status"];
+        }
+        
+        [manager PUT:[NSString stringWithFormat:@"%@/punchlist_items/%@", kApiBaseUrl, _punchlistItem.identifier] parameters:@{@"punchlist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            [self.navigationController popViewControllerAnimated:YES];
+            [SVProgressHUD dismiss];
+            //NSLog(@"Success updating punchlist item: %@",responseObject);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [SVProgressHUD dismiss];
+            NSLog(@"Failed to update punchlist item: %@",error.description);
+        }];
     }
-    
-    [manager PUT:[NSString stringWithFormat:@"%@/punchlist_items/%@", kApiBaseUrl, _punchlistItem.identifier] parameters:@{@"punchlist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [self.navigationController popViewControllerAnimated:YES];
-        [SVProgressHUD dismiss];
-        //NSLog(@"Success updating punchlist item: %@",responseObject);
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [SVProgressHUD dismiss];
-        NSLog(@"Failed to update punchlist item: %@",error.description);
-    }];
 }
 
 -(void)createItem {
-    shouldSave = NO;
-    [SVProgressHUD showWithStatus:@"Adding item..."];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    NSString *strippedLocationString;
-    if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-        strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
-                                  [NSCharacterSet whitespaceCharacterSet]];
-        if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
-    }
-    if (_punchlistItem.assignees.count){
-        id assignee = _punchlistItem.assignees.firstObject;
-        if ([assignee isKindOfClass:[BHUser class]]){
-            BHUser *assigneeUser = assignee;
-            if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
-        } else if ([assignee isKindOfClass:[BHSub class]]){
-            BHSub *assigneeSub = assignee;
-            if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new worklist items for a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        shouldSave = NO;
+        [SVProgressHUD showWithStatus:@"Adding item..."];
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        NSString *strippedLocationString;
+        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+            strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+                                      [NSCharacterSet whitespaceCharacterSet]];
+            if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
         }
-    }
-    if (self.itemTextView.text) [parameters setObject:self.itemTextView.text forKey:@"body"];
-    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-
-    [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        
-        [SVProgressHUD dismiss];
-        BHPunchlistItem *newItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
-        if (newItem.identifier){
-            NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-            [parameters setObject:newItem.identifier forKey:@"id"];
-            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"photo[user_id]"];
-            if (_project.identifier.length) [parameters setObject:_project.identifier forKey:@"photo[project_id]"];
-            [parameters setObject:kWorklist forKey:@"photo[source]"];
-            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])[parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"photo[company_id]"];
-            
-            for (BHPhoto *photo in _punchlistItem.photos){
-                NSData *imageData = UIImageJPEGRepresentation(photo.image, 0.5);
-                //NSLog(@"New photo for new punchlist item parameters: %@",parameters);
-                [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-                    [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-                } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                    //NSLog(@"save punchlist item photo response object: %@",responseObject);
-                    //_punchlistItem = [responseObject objectForKey:@"punchlist_item"];
-                    //[self.tableView reloadData];
-                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                    NSLog(@"failure posting image to API: %@",error.description);
-                }];
+        if (_punchlistItem.assignees.count){
+            id assignee = _punchlistItem.assignees.firstObject;
+            if ([assignee isKindOfClass:[BHUser class]]){
+                BHUser *assigneeUser = assignee;
+                if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
+            } else if ([assignee isKindOfClass:[BHSub class]]){
+                BHSub *assigneeSub = assignee;
+                if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
             }
         }
-        [self.navigationController popViewControllerAnimated:YES];
-        
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failed to create a punchlist item: %@",error.description);
-    }];
+        if (self.itemTextView.text) [parameters setObject:self.itemTextView.text forKey:@"body"];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+
+        [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            
+            [SVProgressHUD dismiss];
+            BHPunchlistItem *newItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
+            if (newItem.identifier){
+                NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+                [parameters setObject:newItem.identifier forKey:@"id"];
+                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"photo[user_id]"];
+                if (_project.identifier.length) [parameters setObject:_project.identifier forKey:@"photo[project_id]"];
+                [parameters setObject:kWorklist forKey:@"photo[source]"];
+                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])[parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"photo[company_id]"];
+                
+                for (BHPhoto *photo in _punchlistItem.photos){
+                    NSData *imageData = UIImageJPEGRepresentation(photo.image, 0.5);
+                    //NSLog(@"New photo for new punchlist item parameters: %@",parameters);
+                    [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                        [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+                    } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        //NSLog(@"save punchlist item photo response object: %@",responseObject);
+                        //_punchlistItem = [responseObject objectForKey:@"punchlist_item"];
+                        //[self.tableView reloadData];
+                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        NSLog(@"failure posting image to API: %@",error.description);
+                    }];
+                }
+            }
+            [self.navigationController popViewControllerAnimated:YES];
+            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failed to create a punchlist item: %@",error.description);
+        }];
+    }
 }
 
 - (IBAction)placeCall:(id)sender{
@@ -1016,14 +1031,18 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)deleteComment {
-    BHComment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
-    [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"successfully deleted comment: %@",responseObject);
-        [_punchlistItem.comments removeObject:comment];
-        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        //NSLog(@"Failed to delete comment: %@",error.description);
-    }];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        BHComment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
+        [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"successfully deleted comment: %@",responseObject);
+            [_punchlistItem.comments removeObject:comment];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            //NSLog(@"Failed to delete comment: %@",error.description);
+        }];
+    }
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -1061,7 +1080,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)back {
-    if (shouldSave) {
+    if (shouldSave && !_project.demo) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self.navigationController popViewControllerAnimated:YES];

@@ -20,6 +20,7 @@
 @interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
     BOOL iPhone5;
     BOOL iPad;
+    BOOL loading;
     NSMutableArray *photosArray;
     NSArray *sortedByDate;
     NSMutableArray *sortedByUser;
@@ -76,7 +77,6 @@
     [self loadPhotos];
     [super viewDidLoad];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
-
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor whiteColor]];
@@ -97,24 +97,25 @@
     }];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
 - (void)loadPhotos {
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
-    
-    [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:@{@"id":[[(BHTabBarViewController*)self.tabBarController project] identifier]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting documents: %@",responseObject);
+    loading = YES;
+    [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
+        //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        loading = NO;
         [self.tableView reloadData];
         if (photosArray.count == 0)[SVProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting photos: %@",error.description);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        loading = NO;
         [SVProgressHUD dismiss];
     }];
 }
@@ -299,7 +300,7 @@
     cell.backgroundColor = [UIColor clearColor];
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        if (photosArray.count) [SVProgressHUD dismiss];
+        if (photosArray.count && !loading) [SVProgressHUD dismiss];
     }
 }
 

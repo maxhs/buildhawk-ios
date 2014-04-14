@@ -89,7 +89,6 @@
                                              selector:@selector(handleMWPhotoLoadingDidEndNotification:)
                                                  name:MWPHOTO_LOADING_DID_END_NOTIFICATION
                                                object:nil];
-    
 }
 
 - (void)dealloc {
@@ -185,8 +184,12 @@
     }
     if (self.displayActionButton) {
         _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"zoom"] style:UIBarButtonItemStylePlain target:self action:@selector(actionButtonPressed:)];
-        UIBarButtonItem *trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(confirmRemove)];
-        self.navigationItem.rightBarButtonItems = @[trashButton, _actionButton];
+        if (self.displayTrashButton){
+            UIBarButtonItem *trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(confirmRemove)];
+            self.navigationItem.rightBarButtonItems = @[trashButton, _actionButton];
+        } else {
+            self.navigationItem.rightBarButtonItem = _actionButton;
+        }
     }
     
     // Update

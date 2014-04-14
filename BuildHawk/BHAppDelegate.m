@@ -25,6 +25,12 @@
 + (void)MR_setDefaultContext:(NSManagedObjectContext *)moc;
 @end
 
+@interface BHAppDelegate () {
+    UIView *overlayView;
+    CGRect screen;
+}
+@end
+
 @implementation BHAppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -54,6 +60,7 @@
         [self.window setTintColor:[UIColor whiteColor]];
         [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
     }
+    
     UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont systemFontOfSize:16],
@@ -84,6 +91,32 @@
     [[UITabBar appearance] setTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
+}
+
+- (UIView*)addOverlay {
+    screen = [UIScreen mainScreen].bounds;
+    if (!overlayView) {
+        NSLog(@"creating the overlay view");
+        overlayView = [[UIButton alloc] initWithFrame:screen];
+        [overlayView setBackgroundColor:[UIColor colorWithWhite:0 alpha:.6]];
+        UITapGestureRecognizer *overlayTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removeOverlay)];
+        overlayTap.numberOfTapsRequired = 1;
+        [overlayView addGestureRecognizer:overlayTap];
+        [overlayView setAlpha:0.0];
+        [self.window addSubview:overlayView];
+    }
+    [UIView animateWithDuration:.25 animations:^{
+        [overlayView setAlpha:1.0];
+    }];
+    return overlayView;
+}
+
+- (void)removeOverlay {
+    [UIView animateWithDuration:.25 animations:^{
+        [overlayView setAlpha:0.0];
+    } completion:^(BOOL finished) {
+        [overlayView removeFromSuperview];
+    }];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
