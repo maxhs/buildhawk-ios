@@ -15,7 +15,9 @@
         self.identifier = [value stringValue];
     } else if ([key isEqualToString:@"name"]) {
         self.name = value;
-    } else if ([key isEqualToString:@"group_projects"]) {
+    } else if ([key isEqualToString:@"projects_count"]) {
+        self.projectsCount = value;
+    } else if ([key isEqualToString:@"projects"]) {
         self.projects = [BHUtilities projectsFromJSONArray:value];
     }
 }

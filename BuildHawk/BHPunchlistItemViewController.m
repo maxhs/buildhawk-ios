@@ -591,12 +591,17 @@ typedef void(^RequestSuccess)(id result);
 
 -(void)removePhoto:(NSNotification*)notification {
     BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
-    for (BHPhoto *photo in _punchlistItem.photos){
-        if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
-            [_punchlistItem.photos removeObject:photo];
-            [self redrawScrollView];
-            break;
+    if (photoToRemove.identifier.length){
+        for (BHPhoto *photo in _punchlistItem.photos){
+            if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
+                [_punchlistItem.photos removeObject:photo];
+                [self redrawScrollView];
+                break;
+            }
         }
+    } else {
+        [_punchlistItem.photos removeObjectAtIndex:photoIdx];
+        [self redrawScrollView];
     }
 }
 
@@ -682,21 +687,28 @@ typedef void(^RequestSuccess)(id result);
     browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in _punchlistItem.photos) {
         MWPhoto *mwPhoto;
-        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        if (mwPhoto.image){
+            mwPhoto = [MWPhoto photoWithImage:mwPhoto.image];
+        } else {
+            mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        }
         [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
 
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
-    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
-    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
-    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
-    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
-    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if (_project.demo == YES) {
+        browser.displayTrashButton = NO;
+    }
+    browser.displayActionButton = YES;
+    browser.displayNavArrows = NO;
+    browser.displaySelectionButtons = NO;
+    browser.zoomPhotosToFill = YES;
+    browser.alwaysShowControls = YES;
+    browser.enableGrid = YES;
+    browser.startOnGrid = NO;
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+        browser.wantsFullScreenLayout = YES;
     }
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
@@ -713,22 +725,6 @@ typedef void(^RequestSuccess)(id result);
         return [browserPhotos objectAtIndex:index];
     return nil;
 }
-
-/*- (void)photoBrowser:(MWPhotoBrowser *)photoBrowser actionButtonPressedForPhotoAtIndex:(NSUInteger)index {
-    // Do your thing!
-    NSLog(@"something tapped");
-    UIActivityViewController *activityView = [[UIActivityViewController alloc] initWithActivityItems:@[@"Hey!"] applicationActivities:nil];
-    
-    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-        [self presentViewController:activityView animated:YES completion:^{
-            
-        }];
-    } else {
-        // Change Rect to position Popover
-        UIPopoverController *popOver = [[UIPopoverController alloc] initWithContentViewController:activityView];
-        [popOver presentPopoverFromRect:CGRectMake(self.view.frame.size.width/2, self.view.frame.size.width/2, 100, 100) inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
-    }
-}*/
 
 -(IBAction)assigneeButtonTapped{
     shouldSave = YES;
@@ -1035,13 +1031,19 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         BHComment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
-        [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"successfully deleted comment: %@",responseObject);
+        if (comment.identifier){
+            [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"successfully deleted comment: %@",responseObject);
+                [_punchlistItem.comments removeObject:comment];
+                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                //NSLog(@"Failed to delete comment: %@",error.description);
+            }];
+        } else {
+            NSLog(@"should be deleting fresh comment");
             [_punchlistItem.comments removeObject:comment];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            //NSLog(@"Failed to delete comment: %@",error.description);
-        }];
+        }
     }
 }
 

@@ -32,6 +32,16 @@
         self.subs = [BHUtilities subcontractorsFromJSONArray:value];
     } else if ([key isEqualToString:@"project_group"]) {
         self.group = [[BHProjectGroup alloc] initWithDictionary:value];
+    } else if ([key isEqualToString:@"recent_documents"]) {
+        self.recentDocuments = [BHUtilities photosFromJSONArray:value];
+    } else if ([key isEqualToString:@"categories"]) {
+        self.checklistCategories = [BHUtilities categoriesFromJSONArray:value];
+    } else if ([key isEqualToString:@"upcoming_items"]) {
+        self.upcomingItems = [BHUtilities checklistItemsFromJSONArray:value];
+    } else if ([key isEqualToString:@"recently_completed"]) {
+        self.recentItems = [BHUtilities checklistItemsFromJSONArray:value];
+    } else if ([key isEqualToString:@"progress"]) {
+        self.progressPercentage = value;
     }
 }
 

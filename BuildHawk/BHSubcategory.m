@@ -16,6 +16,8 @@
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"name"]) {
         self.name = value;
+    } else if ([key isEqualToString:@"progress_percentage"]) {
+        self.progressPercentage = value;
     }
 }
 

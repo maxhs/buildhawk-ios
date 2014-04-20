@@ -21,6 +21,12 @@
 @property (nonatomic, strong) BHProjectGroup *group;
 @property (nonatomic, strong) BHAddress *address;
 @property (nonatomic, strong) BHCompany *company;
+@property (nonatomic, strong) NSMutableArray *recentDocuments;
+@property (nonatomic, strong) NSMutableArray *upcomingItems;
+@property (nonatomic, strong) NSMutableArray *recentItems;
+@property (nonatomic, strong) NSMutableArray *notifications;
+@property (nonatomic, strong) NSMutableArray *checklistCategories;
+@property (nonatomic, strong) NSString *progressPercentage;
 @property BOOL active;
 @property BOOL demo;
 

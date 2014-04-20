@@ -36,6 +36,7 @@
 @synthesize dates = _dates;
 @synthesize numberOfSections = _numberOfSections;
 @synthesize sectionTitles = _sectionTitles;
+@synthesize project = _project;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -212,7 +213,9 @@
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     
     // Set options
-    if ([(BHProject*)[(BHTabBarViewController*)self.tabBarController project] demo]) browser.displayTrashButton = NO;
+    if (_project.demo == YES) {
+        browser.displayTrashButton = NO;
+    }
     browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
     browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)

@@ -24,6 +24,7 @@
 @implementation BHTabBarViewController
 
 @synthesize project, user;
+@synthesize checklistIndexPath = _checklistIndexPath;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -38,10 +39,9 @@
 {
     [super viewDidLoad];
     self.title = self.project.name;
-    //[self loadproject];
     self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
     saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(saveReport)];
-    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
+    createButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createNewReport)];
     doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(punchlistSegue)];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(showCreate) name:@"Create" object:nil];
@@ -81,17 +81,6 @@
 
 - (void) doneEditing {
     [[NSNotificationCenter defaultCenter] postNotificationName:@"DoneEditing" object:nil];
-}
-
-- (void)loadproject {
-    [SVProgressHUD showWithStatus:@"Fetching project..."];
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,self.project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"project response from tab bar vc: %@", responseObject);
-        [SVProgressHUD dismiss];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [SVProgressHUD dismiss];
-    }];
 }
 
 - (void)didReceiveMemoryWarning

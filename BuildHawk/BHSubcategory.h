@@ -14,5 +14,7 @@
 @property (strong, nonatomic) NSMutableArray *children;
 @property (strong, nonatomic) NSString *name;
 @property (strong, nonatomic) NSString *status;
+@property (strong, nonatomic) NSString *progressPercentage;
+
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 @end

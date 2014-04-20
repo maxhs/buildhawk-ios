@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BHPhoto.h"
+#import "BHProject.h"
 
 @interface BHPhotosViewController : UICollectionViewController
 @property (strong, nonatomic) NSMutableArray *photosArray;
@@ -15,6 +16,7 @@
 @property (strong, nonatomic) NSArray *sectionTitles;
 @property (strong, nonatomic) NSArray *userNames;
 @property (strong, nonatomic) NSArray *dates;
+@property (strong, nonatomic) BHProject *project;
 @property int numberOfSections;
 @property BOOL documentsBool;
 @property BOOL checklistsBool;

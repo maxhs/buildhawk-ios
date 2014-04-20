@@ -14,5 +14,4 @@
 @interface BHChecklistViewController : UIViewController
 @property (weak, nonatomic) IBOutlet RATreeView *treeView;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
-@property int scrollToCategoryRow;
 @end

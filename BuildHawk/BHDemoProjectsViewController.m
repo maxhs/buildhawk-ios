@@ -92,10 +92,8 @@
         [cell.subtitleLabel setText:project.company.name];
     }
     
-    if (dashboardDetailDict.count){
-        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        [cell.progressLabel setText:[dict objectForKey:@"progress"]];
-    }
+    [cell.progressLabel setText:project.progressPercentage];
+    
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     [cell.titleLabel setTextColor:kDarkGrayColor];
@@ -117,6 +115,7 @@
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure getting dashboard: %@",error.description);
+            self.tableView.allowsSelection = YES;
         }];
     }
 }
@@ -172,13 +171,12 @@
         BHProject *project = (BHProject*)sender;
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
-        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
-        [detailVC setUpcomingChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"upcoming_items"]]];
-        [detailVC setRecentDocuments:[BHUtilities photosFromJSONArray:[dict objectForKey:@"recent_documents"]]];
-        [detailVC setRecentlyCompletedWorklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
-        [detailVC setCategories:[dict objectForKey:@"categories"]];
     }
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [SVProgressHUD dismiss];
+    [super viewWillDisappear:animated];
 }
 
 @end

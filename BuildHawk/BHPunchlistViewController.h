@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHDeselectableSegmentedControl.h"
 
 @interface BHPunchlistViewController : UIViewController
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
+@property (weak, nonatomic) IBOutlet BHDeselectableSegmentedControl *segmentedControl;
 
 @end

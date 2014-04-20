@@ -27,6 +27,9 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "BHPeoplePickerViewController.h"
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
+#import "BHChooseTopicsViewCell.h"
+#import "BHSafetyTopicsCell.h"
+#import "BHSafetyTopic.h"
 
 static NSString * const kReportPlaceholder = @"Report details...";
 static NSString * const kNewReportPlaceholder = @"Add new report";
@@ -70,6 +73,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     ALAssetsLibrary *library;
     UIRefreshControl *refreshControl;
     UITableView* currentTableView;
+    UIActionSheet *topicsActionSheet;
+    NSMutableArray *_possibleTopics;
 }
 
 - (IBAction)cancelDatePicker;
@@ -265,10 +270,12 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
     }
 }
+
 - (void)loadReports {
-    [SVProgressHUD showWithStatus:@"Fetching reports..."];
+    [SVProgressHUD showWithStatus:@"Fetching reports..." maskType:SVProgressHUDMaskTypeGradient];
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting reports: %@",responseObject);
+        //NSLog(@"Success getting reports: %@",responseObject);
+        [self loadOptions];
         reports = [BHUtilities reportsFromJSONArray:[responseObject objectForKey:@"reports"]];
         [self saveToMR];
         previousContentOffsetX = screen.size.width*reports.count;
@@ -283,10 +290,20 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }];
 }
 
+- (void)loadOptions {
+    [manager GET:[NSString stringWithFormat:@"%@/reports/options",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"success getting possible topics: %@",responseObject);
+        _possibleTopics = [BHUtilities safetyTopicsFromJSONArray:[responseObject objectForKey:@"possible_topics"]];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"failed to get possible topics: %@",error.description);
+    }];
+}
+
 - (void)saveToMR {
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
 
     for (BHReport *rep in reports) {
+        
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", rep.identifier];
         Report *savedReport = [Report MR_findFirstWithPredicate:predicate inContext:localContext];
         if (savedReport){
@@ -371,15 +388,28 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 5;
+    return 8;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 2) {
-        return (1 + _report.personnel.count);
+    if (section == 3) {
+        return (_report.personnel.count);
+    } else if (section == 4){
+        if ([_report.type isEqualToString:kSafety]){
+            return 1;
+        } else {
+            return 0;
+        }
+    } else if (section == 5){
+        if ([_report.type isEqualToString:kSafety]){
+            return _report.safetyTopics.count;
+        } else {
+            return 0;
+        }
+    } else {
+        return 1;
     }
-    else return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -463,50 +493,70 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         
         return cell;
     } else if (indexPath.section == 2) {
-        if (indexPath.row == 0) {
-            static NSString *CellIdentifier = @"ReportPersonnelCell";
-            BHReportPersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-            if (cell == nil) {
-                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPersonnelCell" owner:self options:nil] lastObject];
-            }
-            [cell configureCell];
-            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            [cell.pickFromListButton addTarget:self action:@selector(pickFromList:) forControlEvents:UIControlEventTouchUpInside];
-            if (reports.count > 1){
-                [cell.prefillButton addTarget:self action:@selector(prefill) forControlEvents:UIControlEventTouchUpInside];
-                [cell.prefillButton setAlpha:1];
-            } else {
-                [cell.prefillButton setUserInteractionEnabled:NO];
-                [cell.prefillButton setAlpha:.5];
-            }
-            return cell;
-        } else {
-            static NSString *CellIdentifier = @"PersonnelCell";
-            BHPersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-            if (cell == nil) {
-                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPersonnelCell" owner:self options:nil] lastObject];;
-            }
-            if (_report.personnel && _report.personnel.count && [_report.personnel objectAtIndex:indexPath.row-1]){
-                id obj = [_report.personnel objectAtIndex:indexPath.row-1];
-                if ([obj isKindOfClass:[BHUser class]]){
-                    [cell.personLabel setText:[(BHUser*)obj fullname]];
-                    [cell.countTextField setText:@"1"];
-                    [cell.countTextField setUserInteractionEnabled:NO];
-                } else if ([obj isKindOfClass:[BHSub class]]) {
-                    [cell.personLabel setText:[(BHSub*)obj name]];
-                    [cell.countTextField setTag:indexPath.row-1];
-                    [cell.countTextField setText:[NSString stringWithFormat:@"%@",[(BHSub*)obj count]]];
-                    [cell.countTextField setUserInteractionEnabled:YES];
-                }
-            }
-            countTextField = cell.countTextField;
-            countTextField.delegate = self;
-            [cell.removeButton setTag:indexPath.row-1];
-            [cell.removeButton addTarget:self action:@selector(removePersonnel:) forControlEvents:UIControlEventTouchUpInside];
-            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            return cell;
+        static NSString *CellIdentifier = @"ReportPersonnelCell";
+        BHReportPersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPersonnelCell" owner:self options:nil] lastObject];
         }
+        [cell configureCell];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        [cell.pickFromListButton addTarget:self action:@selector(pickFromList:) forControlEvents:UIControlEventTouchUpInside];
+        if (reports.count > 1){
+            [cell.prefillButton addTarget:self action:@selector(prefill) forControlEvents:UIControlEventTouchUpInside];
+            [cell.prefillButton setAlpha:1];
+        } else {
+            [cell.prefillButton setUserInteractionEnabled:NO];
+            [cell.prefillButton setAlpha:.5];
+        }
+        return cell;
+
     } else if (indexPath.section == 3) {
+        static NSString *CellIdentifier = @"PersonnelCell";
+        BHPersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPersonnelCell" owner:self options:nil] lastObject];;
+        }
+        if (_report.personnel && _report.personnel.count && [_report.personnel objectAtIndex:indexPath.row]){
+            id obj = [_report.personnel objectAtIndex:indexPath.row];
+            if ([obj isKindOfClass:[BHUser class]]){
+                [cell.personLabel setText:[(BHUser*)obj fullname]];
+                [cell.countTextField setText:@"1"];
+                [cell.countTextField setUserInteractionEnabled:NO];
+            } else if ([obj isKindOfClass:[BHSub class]]) {
+                [cell.personLabel setText:[(BHSub*)obj name]];
+                [cell.countTextField setTag:indexPath.row-1];
+                [cell.countTextField setText:[NSString stringWithFormat:@"%@",[(BHSub*)obj count]]];
+                [cell.countTextField setUserInteractionEnabled:YES];
+            }
+        }
+        countTextField = cell.countTextField;
+        countTextField.delegate = self;
+        [cell.removeButton setTag:indexPath.row];
+        [cell.removeButton addTarget:self action:@selector(removePersonnel:) forControlEvents:UIControlEventTouchUpInside];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        return cell;
+    } else if (indexPath.section == 4) {
+        static NSString *CellIdentifier = @"ChooseTopicsCell";
+        BHChooseTopicsViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChooseTopicsViewCell" owner:self options:nil] lastObject];
+        }
+        [cell.chooseTopicsButton addTarget:self action:@selector(chooseTopics:) forControlEvents:UIControlEventTouchUpInside];
+        [cell configureCell];
+        return cell;
+    } else if (indexPath.section == 5) {
+        static NSString *CellIdentifier = @"SafetyTopicCell";
+        BHSafetyTopicsCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSafetyTopicsCell" owner:self options:nil] lastObject];;
+        }
+        BHSafetyTopic *topic = [_report.safetyTopics objectAtIndex:indexPath.row];
+        [cell configureTopic:topic];
+        [cell.removeButton setTag:indexPath.row];
+        [cell.removeButton addTarget:self action:@selector(removeTopic:) forControlEvents:UIControlEventTouchUpInside];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        return cell;
+    } else if (indexPath.section == 6) {
         BHReportPhotoCell *cell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPhotoCell" owner:self options:nil] lastObject];
@@ -570,10 +620,19 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             else return 0;
             break;
         case 2:
-            if (indexPath.row == 0) return 120;
-            else return 66;
+            return 120;
             break;
         case 3:
+            return 66;
+            break;
+        case 4:
+            if ([_report.type isEqualToString:kSafety]) return 80;
+            else return 0;
+            break;
+        case 5:
+            if ([_report.type isEqualToString:kSafety]) return 66;
+            else return 0;
+        case 6:
             return 100;
             break;
         default:
@@ -588,15 +647,24 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (section == 3 || section == 5){
+        return 0;
+    } else if (section == 1 && ![_report.type isEqualToString:kDaily]){
+        return 0;
+    } else if (section == 4 && ![_report.type isEqualToString:kSafety]){
+        return 0;
+    } else {
+        return 22;
+    }
+}
+
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     if (![_report.type isEqualToString:kDaily] && section == 1){
         return nil;
     } else {
-        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 40)];
+        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 22)];
         [headerView setBackgroundColor:[UIColor clearColor]];
-        UIView *separator = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 1)];
-        [separator setBackgroundColor:kLightGrayColor];
-        [headerView addSubview:separator];
         UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,screen.size.width,22)];
         [headerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
         [headerView setBackgroundColor:kDarkerGrayColor];
@@ -613,9 +681,23 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                     [headerLabel setText:@"Personnel on Site"];
                     break;
                 case 3:
-                    [headerLabel setText:@"Photos"];
+                    [headerView setFrame:CGRectMake(0, 0, 0, 0)];
                     break;
                 case 4:
+                    [headerLabel setText:@"Safety Topics Covered"];
+                    [headerView setFrame:CGRectMake(0, 0, 0, 0)];
+                    break;
+                case 5:
+                    [headerView setFrame:CGRectMake(0, 0, 0, 0)];
+                    break;
+                case 6:
+                    if ([_report.type isEqualToString:kSafety]){
+                        [headerLabel setText:@"Photo of Sign In Card / Group"];
+                    } else {
+                        [headerLabel setText:@"Photos"];
+                    }
+                    break;
+                case 7:
                     [headerLabel setText:@"Notes"];
                     break;
                 default:
@@ -643,7 +725,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [textView setTextColor:[UIColor blackColor]];
     }
     if (textView == reportBodyTextView){
-        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:4] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:7] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     } else if (textView == weatherTextView){
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     }
@@ -651,16 +733,18 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 -(void)textViewDidEndEditing:(UITextView *)textView {
     if (textView == reportBodyTextView){
-        if (textView.text.length) {
-            _report.body = textView.text;
-        } else {
+        if ([textView.text isEqualToString:@""]) {
             [textView setText:kReportPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
+            _report.body = @"";
+        } else if (textView.text.length){
+            _report.body = textView.text;
         }
     } else if (textView == weatherTextView) {
         if (textView.text.length) {
             _report.weather = textView.text;
         } else {
+            _report.weather = @"";
             [textView setText:kWeatherPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
@@ -779,6 +863,23 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             }
         }
         [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+    } else if (actionSheet == topicsActionSheet) {
+        NSString *title = [actionSheet buttonTitleAtIndex:buttonIndex];
+        if ([title isEqualToString:@"Cancel"]){
+            
+        } else if ([title isEqualToString:kAddNew]){
+            UIAlertView *newTopicAlertView = [[UIAlertView alloc] initWithTitle:@"New Safety Topic" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
+            newTopicAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+            [newTopicAlertView show];
+        } else {
+            BHSafetyTopic *newTopic = [[BHSafetyTopic alloc] initWithDictionary:@{@"title":title}];
+            if (!_report.safetyTopics){
+                _report.safetyTopics = [NSMutableArray arrayWithObject:newTopic];
+            } else {
+                [_report.safetyTopics addObject:newTopic];
+            }
+            [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+        }
     }
 }
 
@@ -825,20 +926,38 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
             BHSub *sub = [[BHSub alloc] init];
             [sub setName:[[alertView textFieldAtIndex:0] text]];
-            sub.count = @"1";
+            sub.count = @"0";
             if (![_report.personnel containsObject:sub]) {
                 [_report.personnel addObject:sub];
-                NSLog(@"just added: %@",sub.name);
+                [self addSubToProject:sub];
                 [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
-            } else [[[UIAlertView alloc] initWithTitle:@"Already added!" message:@"Personnel already included" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Already added!" message:@"Personnel already included" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self save];
-    }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self.navigationController popViewControllerAnimated:YES];
+    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Add"]) {
+        BHSafetyTopic *topic = [[BHSafetyTopic alloc] init];
+        [topic setTitle:[[alertView textFieldAtIndex:0] text]];
+        if (![_report.safetyTopics containsObject:topic]) {
+            [_report.safetyTopics addObject:topic];
+            [(UITableView*)[self.scrollView.subviews objectAtIndex:page] reloadData];
+        } else {
+            [[[UIAlertView alloc] initWithTitle:nil message:@"Safety topic already added." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
     }
 }
 
+- (void)addSubToProject:(BHSub*)sub {
+    [manager POST:[NSString stringWithFormat:@"%@/subs",kApiBaseUrl] parameters:@{@"name":sub.name,@"project_id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Just added a new sub from reports: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure creating a new sub from reports section: %@",error.description);
+    }];
+}
 
 - (void)dismissDatePicker:(id)sender {
     CGRect toolbarTargetFrame = CGRectMake(0, self.view.bounds.size.height, screen.size.width, 44);
@@ -1124,12 +1243,17 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 -(void)removePhoto:(NSNotification*)notification {
     BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
-    for (BHPhoto *photo in _report.photos){
-        if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
-            [_report.photos removeObject:photo];
-            [self redrawScrollView];
-            break;
+    if (photoToRemove.identifier.length){
+        for (BHPhoto *photo in _report.photos){
+            if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
+                [_report.photos removeObject:photo];
+                [self redrawScrollView];
+                break;
+            }
         }
+    } else {
+        [_report.photos removeObjectAtIndex:removePhotoIdx];
+        [self redrawScrollView];
     }
 }
 
@@ -1205,21 +1329,30 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in _report.photos) {
         MWPhoto *mwPhoto;
-        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        if (photo.image){
+            mwPhoto = [MWPhoto photoWithImage:photo.image];
+        } else if (photo.urlLarge.length) {
+            mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        }
+        
         [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
+    
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
-    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
-    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
-    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
-    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
-    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if (project.demo == YES) {
+        browser.displayTrashButton = NO;
+    }
+    browser.displayActionButton = YES;
+    browser.displayNavArrows = NO;
+    browser.displaySelectionButtons = NO;
+    browser.zoomPhotosToFill = YES;
+    browser.alwaysShowControls = YES;
+    browser.enableGrid = YES;
+    browser.startOnGrid = NO;
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+        browser.wantsFullScreenLayout = YES; //
     }
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
@@ -1256,6 +1389,16 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     [personnelActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
+- (void)chooseTopics:(id)sender {
+    topicsActionSheet = [[UIActionSheet alloc] initWithTitle:@"Safety Topics" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    for (BHSafetyTopic *topic in _possibleTopics){
+        [topicsActionSheet addButtonWithTitle:topic.title];
+    }
+    [topicsActionSheet addButtonWithTitle:kAddNew];
+    topicsActionSheet.cancelButtonIndex = [topicsActionSheet addButtonWithTitle:@"Cancel"];
+    [topicsActionSheet showFromTabBar:self.tabBarController.tabBar];
+}
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"PeoplePicker"]){
         BHPeoplePickerViewController *vc = [segue destinationViewController];
@@ -1272,23 +1415,55 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     id object = [_report.personnel objectAtIndex:button.tag];
     if (_report.identifier.length && object != nil && object != [NSNull null]) {
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:_report.identifier forKey:@"report_id"];
+        
         if ([object isKindOfClass:[BHSub class]]){
             BHSub *sub = (BHSub*)object;
-            if (sub.identifier)[parameters setObject:sub.identifier forKey:@"sub_id"];
+            if (sub.identifier.length){
+                [parameters setObject:sub.identifier forKey:@"sub_id"];
+                [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    //NSLog(@"success removing personnel: %@",responseObject);
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"Failure removing personnel: %@",error.description);
+                }];
+            }
         } else if ([object isKindOfClass:[BHUser class]]) {
             BHUser *user = (BHUser*)object;
-            if (user.identifier)[parameters setObject:user.identifier forKey:@"user_id"];
+            if (user.identifier.length){
+                [parameters setObject:user.identifier forKey:@"user_id"];
+                [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    //NSLog(@"success removing personnel: %@",responseObject);
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"Failure removing personnel: %@",error.description);
+                }];
+            }
         }
-        [parameters setObject:_report.identifier forKey:@"report_id"];
-    
-        [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"success removing personnel: %@",responseObject);
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failure removing personnel: %@",error.description);
-        }];
     }
+    NSIndexPath *forDeletion = [NSIndexPath indexPathForRow:button.tag inSection:3];
     [_report.personnel removeObject:object];
-    [currentTableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationAutomatic];
+    [currentTableView deleteRowsAtIndexPaths:@[forDeletion] withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (void)removeTopic:(UIButton*)button {
+    if (button.tag < _report.safetyTopics.count){
+        BHSafetyTopic *topic = [_report.safetyTopics objectAtIndex:button.tag];
+        if (_report.identifier.length && topic != nil) {
+
+            if (topic.identifier){
+                NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+                [parameters setObject:_report.identifier forKey:@"report_id"];
+                [parameters setObject:topic.identifier forKey:@"safety_topic_id"];
+                [manager DELETE:[NSString stringWithFormat:@"%@/safety_topics/%@",kApiBaseUrl,topic.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    NSLog(@"success removing safety topic: %@",responseObject);
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"Failure removing safety topic: %@",error.description);
+                }];
+            }
+        }
+        NSIndexPath *forDeletion = [NSIndexPath indexPathForRow:button.tag inSection:5];
+        [_report.safetyTopics removeObject:topic];
+    [(UITableView*)[self.scrollView.subviews objectAtIndex:page] deleteRowsAtIndexPaths:@[forDeletion] withRowAnimation:UITableViewRowAnimationFade];
+    }
 }
 
 - (void)save {
@@ -1326,6 +1501,16 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             }
             if (subArray.count)[parameters setObject:subArray forKey:@"report_subs"];
             if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
+        }
+        if (_report.safetyTopics.count) {
+            NSMutableArray *topicsArray = [NSMutableArray array];
+            for (BHSafetyTopic *topic in _report.safetyTopics) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if (topic.identifier) [dict setObject:topic.identifier forKey:@"id"];
+                if (topic.title) [dict setObject:topic.title forKey:@"title"];
+                [topicsArray addObject:dict];
+            }
+            if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
         }
 
         [manager PUT:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_report.identifier] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -1417,6 +1602,16 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             }
             if (subArray.count)[parameters setObject:subArray forKey:@"report_subs"];
             if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
+        }
+        if (_report.safetyTopics.count) {
+            NSMutableArray *topicsArray = [NSMutableArray array];
+            for (BHSafetyTopic *topic in _report.safetyTopics) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if (topic.identifier) [dict setObject:topic.identifier forKey:@"id"];
+                if (topic.title) [dict setObject:topic.title forKey:@"title"];
+                [topicsArray addObject:dict];
+            }
+            if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
         }
 
         [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {

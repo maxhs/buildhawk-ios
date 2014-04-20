@@ -64,9 +64,6 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     return _sectionTitles.count;
-    /*NSDictionary *dict = [_photoSet.allObjects objectAtIndex:section];
-    NSString *key = [[dict allKeys] firstObject];
-    return [(NSArray*)[dict objectForKey:key] count];*/
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath

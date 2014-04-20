@@ -29,10 +29,6 @@
 - (void)configureCell {
     [self buttonTreatment:self.pickFromListButton];
     self.prefillButton.layer.cornerRadius = 8.f;
-    /*self.prefillButton.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-    self.prefillButton.layer.shadowOpacity =  1.f;
-    self.prefillButton.layer.shadowRadius = 2.f;
-    self.prefillButton.layer.shadowOffset = CGSizeMake(0, 0);*/
     [self.prefillButton setTitleColor:kDarkerGrayColor forState:UIControlStateNormal];
     self.prefillButton.layer.borderColor = kDarkerGrayColor.CGColor;
     self.prefillButton.layer.borderWidth = .5f;

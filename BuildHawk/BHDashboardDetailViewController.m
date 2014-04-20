@@ -37,7 +37,6 @@
 @implementation BHDashboardDetailViewController
 
 @synthesize project = _project;
-@synthesize categories, recentChecklistItems, recentDocuments, recentlyCompletedWorklistItems, notifications, upcomingChecklistItems;
 
 - (id)initWithStyle:(UITableViewStyle)style
 {
@@ -69,22 +68,7 @@
     [goToProjectButton setFrame:footerView.frame];
     self.tableView.tableFooterView = footerView;
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
-    
-    //[self loadDashboard];
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
-}
-
-- (void)loadDashboard {
-    [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        recentChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"recently_completed"]];
-        upcomingChecklistItems = [BHUtilities checklistItemsFromJSONArray:[responseObject objectForKey:@"cl_due_soon"]];
-        recentDocuments = [BHUtilities photosFromJSONArray:[responseObject objectForKey:@"recent_documents"]];
-        recentlyCompletedWorklistItems = [BHUtilities punchlistItemsFromJSONArray:[responseObject objectForKey:@"recently_completed"]];
-        categories = [responseObject objectForKey:@"cl_categories"];
-        [self.tableView reloadData];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failure getting dashboard: %@",error.description);
-    }];
 }
 
 - (void)goToProject:(UIButton*)button {
@@ -94,6 +78,9 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[NSIndexPath class]]){
+            [vc setChecklistIndexPath:(NSIndexPath*)sender];
+        }
         [vc setProject:_project];
     } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
         BHChecklistItemViewController *vc = [segue destinationViewController];
@@ -120,18 +107,18 @@
             return 1;
             break;
         case 1:
-            return categories.count;
+            return _project.checklistCategories.count;
             break;
         case 2:
-            if (recentDocuments.count > 0) return 1;
+            if (_project.recentDocuments.count > 0) return 1;
             else return 0;
             break;
         case 3:
-            return upcomingChecklistItems.count;
+            return _project.upcomingItems.count;
             break;
         case 4:
         {
-            return recentChecklistItems.count;
+            return _project.recentItems.count;
         }
             break;
         default:
@@ -159,13 +146,12 @@
         case 1: {
             BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
             [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            
             progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
-            
-            NSDictionary *dict = [categories objectAtIndex:indexPath.row];
-            [progressCell.itemLabel setText:[dict objectForKey:@"name"]];
-            CGFloat progress_count = [[dict objectForKey:@"progress_count"] floatValue];
-            CGFloat all = [[dict objectForKey:@"item_count"] floatValue];
+    
+            BHCategory *category = [_project.checklistCategories objectAtIndex:indexPath.row];
+            [progressCell.itemLabel setText:category.name];
+            CGFloat progress_count = [category.progressCount floatValue];
+            CGFloat all = [category.itemCount floatValue];
             [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
             LDProgressView *progressView;
             if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
@@ -211,15 +197,17 @@
         case 3: {
             static NSString *CellIdentifier = @"UpcomingItemCell";
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            BHChecklistItem *checklistItem = [upcomingChecklistItems objectAtIndex:indexPath.row];
+            BHChecklistItem *checklistItem = [_project.upcomingItems objectAtIndex:indexPath.row];
             [cell.textLabel setText:checklistItem.body];
             if (checklistItem.dueDateString.length) {
                 [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",checklistItem.dueDateString]];
                 [cell.detailTextLabel setTextColor:[UIColor darkGrayColor]];
-            }
-            else {
+            } else {
                 [cell.detailTextLabel setText:@"No critical date listed"];
                 [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
+            }
+            if ([checklistItem.status isEqualToString:kCompleted]){
+                [cell.textLabel setTextColor:[UIColor lightGrayColor]];
             }
             if ([[checklistItem type] isEqualToString:@"Com"]) {
                 [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
@@ -233,7 +221,7 @@
         case 4: {
             static NSString *CellIdentifier = @"RecentItemCell";
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            BHChecklistItem *checklistItem = [recentChecklistItems objectAtIndex:indexPath.row];
+            BHChecklistItem *checklistItem = [_project.recentItems objectAtIndex:indexPath.row];
             [cell.textLabel setText:checklistItem.body];
             if ([[checklistItem type] isEqualToString:@"Com"]) {
                 [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
@@ -259,21 +247,21 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 2:
-            if (recentDocuments.count){
+            if (_project.recentDocuments.count){
                 return 30;
             } else {
                 return 0;
             }
             break;
         case 3:
-            if (upcomingChecklistItems.count){
+            if (_project.upcomingItems.count){
                 return 30;
             } else {
                 return 0;
             }
             break;
         case 4:
-            if (recentChecklistItems.count){
+            if (_project.recentItems.count){
                 return 30;
             } else {
                 return 0;
@@ -288,11 +276,11 @@
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
     UIView* headerView;
-    if (section == 2 && recentDocuments.count == 0) {
+    if (section == 2 && _project.recentDocuments.count == 0) {
         return nil;
-    } else if (section == 4 && recentChecklistItems.count == 0) {
+    } else if (section == 4 && _project.recentItems.count == 0) {
         return nil;
-    } else if (section == 3 && upcomingChecklistItems.count == 0) {
+    } else if (section == 3 && _project.upcomingItems.count == 0) {
         return nil;
     } else {
         headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 54.0)];
@@ -345,7 +333,7 @@
     CGRect photoRect = CGRectMake(5,5,100,100);
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateStyle:NSDateFormatterShortStyle];
-    for (BHPhoto *photo in recentDocuments) {
+    for (BHPhoto *photo in _project.recentDocuments) {
         if (index > 0) photoRect.origin.x += width;
         __weak UIButton *eventButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [documentsScrollView addSubview:eventButton];
@@ -359,14 +347,14 @@
         [eventButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         index++;
     }
-    [documentsScrollView setContentSize:CGSizeMake((recentDocuments.count*105) + 5,documentsScrollView.frame.size.height)];
+    [documentsScrollView setContentSize:CGSizeMake((_project.recentDocuments.count*105) + 5,documentsScrollView.frame.size.height)];
     documentsScrollView.layer.shouldRasterize = YES;
     documentsScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)showPhotoDetail:(UIButton*)button {
     browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in recentDocuments) {
+    for (BHPhoto *photo in _project.recentDocuments) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setBhphoto:photo];
@@ -411,10 +399,10 @@
     if (indexPath.section == 1){
         [self performSegueWithIdentifier:@"Project" sender:indexPath];
     } else if (indexPath.section == 3){
-        BHChecklistItem *item = [upcomingChecklistItems objectAtIndex:indexPath.row];
+        BHChecklistItem *item = [_project.upcomingItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
     } else if (indexPath.section == 4){
-        BHChecklistItem *item = [recentChecklistItems objectAtIndex:indexPath.row];
+        BHChecklistItem *item = [_project.recentItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
     }
 }

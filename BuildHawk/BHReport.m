@@ -39,6 +39,10 @@
         self.updatedAt = [BHUtilities parseDate:value];
     } else if ([key isEqualToString:@"photos"]) {
         self.photos = [BHUtilities photosFromJSONArray:value];
+    } else if ([key isEqualToString:@"safety_topics"]) {
+        self.safetyTopics = [BHUtilities safetyTopicsFromJSONArray:value];
+    } else if ([key isEqualToString:@"possible_topics"]) {
+        self.possibleTopics = [BHUtilities safetyTopicsFromJSONArray:value];
     }
 }
 

@@ -63,7 +63,7 @@
     
     UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont systemFontOfSize:16],
+                                    NSFontAttributeName : [UIFont boldSystemFontOfSize:16],
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     

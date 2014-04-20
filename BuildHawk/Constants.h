@@ -24,6 +24,9 @@
 #define kUserDefaultsCoworkers @"coworkers"
 #define kUserDefaultsDeviceToken @"deviceToken"
 #define kUserDefaultsCompanyId @"companyId"
+#define kUserDefaultsAdmin @"admin"
+#define kUserDefaultsCompanyAdmin @"companyAdmin"
+#define kUserDefaultsUberAdmin @"uberAdmin"
 
 #define kCompleted @"Completed"
 #define kcompleted @"completed"
@@ -38,6 +41,7 @@
 #define kCategory @"Category"
 #define kItem @"Item"
 #define kAddOther @"Add other..."
+#define kAddNew @"Add new..."
 #define kPdf @"application/pdf"
 #define kCancel @"Cancel"
 #define ksubcontractors @"subcontractors"

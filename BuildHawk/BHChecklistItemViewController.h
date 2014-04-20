@@ -16,7 +16,7 @@
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) BHChecklistItem *item;
-@property (strong, nonatomic) NSString *projectId;
+@property (strong, nonatomic) BHProject *project;
 @property (strong, nonatomic) Project *savedProject;
 @property int row;
 

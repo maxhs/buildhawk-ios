@@ -244,7 +244,7 @@
                                     <outlet property="delegate" destination="r0E-CY-Oux" id="OqD-92-f80"/>
                                 </connections>
                             </tableView>
-                            <segmentedControl opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bordered" selectedSegmentIndex="0" id="7ee-9b-fVh">
+                            <segmentedControl opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bordered" selectedSegmentIndex="0" id="7ee-9b-fVh" customClass="BHDeselectableSegmentedControl">
                                 <rect key="frame" x="6" y="10" width="308" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -268,7 +268,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
-                        <outlet property="segmentedControl" destination="7ee-9b-fVh" id="aoI-Mn-6M4"/>
+                        <outlet property="segmentedControl" destination="7ee-9b-fVh" id="woo-ei-MAO"/>
                         <outlet property="tableView" destination="m4i-vh-i8d" id="qAh-fi-1sD"/>
                         <segue destination="qOL-i6-UJU" kind="push" identifier="PunchlistItem" id="eZr-X3-mJS"/>
                     </connections>
@@ -643,13 +643,10 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                 <rect key="frame" x="0.0" y="278" width="320" height="290"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="textField.png" id="IN2-Qy-OED">
-                                        <rect key="frame" x="10" y="75" width="300" height="37"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    </imageView>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your email" minimumFontSize="17" id="EK6-57-ZkH">
-                                        <rect key="frame" x="18" y="76" width="292" height="34"/>
+                                        <rect key="frame" x="18" y="61" width="292" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                         <textInputTraits key="textInputTraits" autocorrectionType="no" keyboardType="emailAddress" returnKeyType="next"/>
@@ -657,13 +654,10 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                             <outlet property="delegate" destination="YSk-d2-LcY" id="L0J-0e-Nt4"/>
                                         </connections>
                                     </textField>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="textField.png" id="JTc-vw-57Y">
-                                        <rect key="frame" x="10" y="117" width="300" height="37"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    </imageView>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your password" minimumFontSize="17" id="EQ4-0j-N6W">
-                                        <rect key="frame" x="18" y="119" width="292" height="33"/>
+                                        <rect key="frame" x="18" y="101" width="292" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                         <textInputTraits key="textInputTraits" returnKeyType="done" secureTextEntry="YES"/>
@@ -672,10 +666,10 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </textField>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Nzu-Yg-ThW">
-                                        <rect key="frame" x="85" y="179" width="150" height="52"/>
+                                        <rect key="frame" x="85" y="172" width="150" height="52"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="18"/>
-                                        <state key="normal" title="Login" backgroundImage="loginButtonBackground.png">
+                                        <state key="normal" title="Login">
                                             <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
@@ -687,7 +681,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6YN-CS-NlG">
-                                        <rect key="frame" x="80" y="240" width="160" height="38"/>
+                                        <rect key="frame" x="80" y="239" width="160" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Forgot password?">
@@ -708,6 +702,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <connections>
                         <outlet property="emailTextField" destination="EK6-57-ZkH" id="Ya7-ZB-wOQ"/>
                         <outlet property="forgotPasswordButton" destination="6YN-CS-NlG" id="08C-oH-2PD"/>
+                        <outlet property="loginButton" destination="Nzu-Yg-ThW" id="92g-yg-gNy"/>
                         <outlet property="loginContainerView" destination="0pQ-iG-APx" id="JdB-rh-nWQ"/>
                         <outlet property="logoContainerView" destination="Oby-5M-iB8" id="sg2-De-zQY"/>
                         <outlet property="passwordTextField" destination="EQ4-0j-N6W" id="V5K-Rg-XAm"/>
@@ -1045,6 +1040,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <navigationItem key="navigationItem" id="bt3-Fx-e1u"/>
                     <connections>
                         <outlet property="tableView" destination="KLk-ly-EO7" id="PRz-BY-aw6"/>
+                        <segue destination="4" kind="push" identifier="ArchivedProject" id="IwH-Rw-ke6"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="C5W-Gm-baY" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1273,14 +1269,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <image name="documents.png" width="26" height="21"/>
         <image name="libraryButton.png" width="70" height="70"/>
         <image name="loginBackground.png" width="320" height="568"/>
-        <image name="loginButtonBackground.png" width="150" height="52"/>
         <image name="logo.png" width="246" height="32"/>
         <image name="mailButton.png" width="97" height="70"/>
         <image name="menu.png" width="21" height="21"/>
         <image name="punchlists.png" width="26" height="22"/>
         <image name="reports.png" width="23" height="23"/>
         <image name="textButton.png" width="97" height="70"/>
-        <image name="textField.png" width="300" height="33"/>
     </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
         <simulatedStatusBarMetrics key="statusBar"/>
@@ -1288,9 +1282,9 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
+        <segue reference="IwH-Rw-ke6"/>
         <segue reference="NH7-r7-qB8"/>
         <segue reference="yE4-EA-SnA"/>
-        <segue reference="CKJ-bJ-q5l"/>
         <segue reference="kFF-g5-AYt"/>
         <segue reference="POr-kh-1ho"/>
         <segue reference="QKi-s7-jOi"/>

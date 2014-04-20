@@ -42,6 +42,12 @@ static BHUser *currentUser;
         self.coworkers = [self coworkersFromJSONArray:value];
     } else if ([key isEqualToString:@"subcontractors"]) {
         self.subcontractors = [BHUtilities subcontractorsFromJSONArray:value];
+    } else if ([key isEqualToString:@"admin"]) {
+        self.admin = [value boolValue];
+    } else if ([key isEqualToString:@"copmany_admin"]) {
+        self.companyAdmin = [value boolValue];
+    } else if ([key isEqualToString:@"uber_admin"]) {
+        self.uberAdmin = [value boolValue];
     } else if ([key isEqualToString:@"url100"]) {
         if (value != [NSNull null]) {
             self.photo = [[BHPhoto alloc] init];

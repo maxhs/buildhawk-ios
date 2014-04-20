@@ -60,7 +60,7 @@
 @synthesize item = _item;
 @synthesize row = _row;
 @synthesize savedProject = _savedProject;
-@synthesize projectId = _projectId;
+@synthesize project = _project;
 
 - (void)viewDidLoad
 {
@@ -82,7 +82,7 @@
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
-    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem)];
+    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem:)];
     [[self navigationItem] setRightBarButtonItem:saveButton];
     [Flurry logEvent:@"Viewing checklist item"];
     [self loadItem];
@@ -296,22 +296,26 @@
 }
 
 - (void)submitComment {
-    if (addCommentTextView.text.length) {
-        BHComment *comment = [[BHComment alloc] init];
-        comment.body = addCommentTextView.text;
-        comment.createdOnString = @"Just now";
-        User *user = [(BHTabBarViewController*) self.tabBarController user];
-        comment.user = [[BHUser alloc] init];
-        comment.user.fullname = user.fullname;
-        [_item.comments addObject:comment];
-        
-        [self.tableView reloadData];
-        NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
-        [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            [self updateChecklistItem:NO];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"failure creating a comment: %@",error.description);
-        }];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to add comments to a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        if (addCommentTextView.text.length) {
+            BHComment *comment = [[BHComment alloc] init];
+            comment.body = addCommentTextView.text;
+            comment.createdOnString = @"Just now";
+            User *user = [(BHTabBarViewController*) self.tabBarController user];
+            comment.user = [[BHUser alloc] init];
+            comment.user.fullname = user.fullname;
+            [_item.comments addObject:comment];
+            
+            [self.tableView reloadData];
+            NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                [self updateChecklistItem:NO];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                NSLog(@"failure creating a comment: %@",error.description);
+            }];
+        }
     }
     
     [self doneEditing];
@@ -644,28 +648,35 @@
 
 -(void)removePhoto:(NSNotification*)notification {
     BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
-    for (BHPhoto *photo in _item.photos){
-        if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
-            [_item.photos removeObject:photo];
-            [self redrawScrollView];
-            break;
+    if (photoToRemove.identifier.length){
+        for (BHPhoto *photo in _item.photos){
+            if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
+                [_item.photos removeObject:photo];
+                [self redrawScrollView];
+                break;
+            }
         }
+    } else {
+        [_item.photos removeObjectAtIndex:removePhotoIdx];
+        [self redrawScrollView];
     }
 }
 
 - (void)saveImage:(UIImage*)image {
-    [self savePostToLibrary:image];
-    NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-    [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_projectId, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-        [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-    } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        // NSLog(@"save image response object: %@",responseObject);
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":_item.category}];
-        _item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
-        //[self.tableView reloadData];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"failure posting image to filepicker: %@",error.description);
-    }];
+    if (!_project.demo){
+        [self savePostToLibrary:image];
+        NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
+        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_project.identifier, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            // NSLog(@"save image response object: %@",responseObject);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":_item.category}];
+            _item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
+            //[self.tableView reloadData];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"failure posting image to filepicker: %@",error.description);
+        }];
+    }
 }
 
 - (void)redrawScrollView {
@@ -721,61 +732,71 @@
 }
 
 - (void)updateChecklistItem:(BOOL)dismiss {
-    manager.requestSerializer = [AFJSONRequestSerializer serializer];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:_item.identifier forKey:@"id"];
-    if (_item.status) [parameters setObject:_item.status forKey:@"status"];
-    if (_item.completed) [parameters setObject:@"true" forKey:@"completed"];
-    if (dismiss){
-        NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:_item.comments.count];
-        for (BHComment *comment in _item.comments) {
-            NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
-            if (comment.identifier) [commentDict setObject:comment.identifier forKey:@"_id"];
-            if (comment.body) [commentDict setObject:comment.body forKey:@"body"];
-            [commentArray addObject:commentDict];
-        }
-        [parameters setObject:commentArray forKey:@"comments"];
-    }
-    if (dismiss)[SVProgressHUD showWithStatus:@"Updating item..."];
-    [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success updating checklist item %@",responseObject);
-        BHChecklistItem *updatedItem = [[BHChecklistItem alloc] initWithDictionary:[responseObject objectForKey:@"checklist_item"]];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        manager.requestSerializer = [AFJSONRequestSerializer serializer];
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:_item.identifier forKey:@"id"];
+        if (_item.status) [parameters setObject:_item.status forKey:@"status"];
+        if (_item.completed) [parameters setObject:@"true" forKey:@"completed"];
         if (dismiss){
-            [self.navigationController popViewControllerAnimated:YES];
-            [SVProgressHUD dismiss];
-        } else {
-            shouldSave = NO;
+            NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:_item.comments.count];
+            for (BHComment *comment in _item.comments) {
+                NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
+                if (comment.identifier) [commentDict setObject:comment.identifier forKey:@"_id"];
+                if (comment.body) [commentDict setObject:comment.body forKey:@"body"];
+                [commentArray addObject:commentDict];
+            }
+            [parameters setObject:commentArray forKey:@"comments"];
         }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failure updating checklist item: %@",error.description);
-        [SVProgressHUD dismiss];
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }];
+        if (dismiss)[SVProgressHUD showWithStatus:@"Updating item..."];
+        [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success updating checklist item %@",responseObject);
+            BHChecklistItem *updatedItem = [[BHChecklistItem alloc] initWithDictionary:[responseObject objectForKey:@"checklist_item"]];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
+            if (dismiss){
+                [self.navigationController popViewControllerAnimated:YES];
+                [SVProgressHUD dismiss];
+            } else {
+                shouldSave = NO;
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failure updating checklist item: %@",error.description);
+            [SVProgressHUD dismiss];
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }];
+    }
 }
 
 - (void)showPhotoDetail:(NSInteger)idx {
     browserPhotos = [NSMutableArray new];
     for (BHPhoto *photo in _item.photos) {
         MWPhoto *mwPhoto;
-        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        if (mwPhoto.image){
+            mwPhoto = [MWPhoto photoWithImage:mwPhoto.image];
+        } else {
+            mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        }
+        
         [mwPhoto setBhphoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
     // Create browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    
-    // Set options
-    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
-    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
-    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
-    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
-    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
-    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    if (_project.demo == YES) {
+        browser.displayTrashButton = NO;
+    }
+    browser.displayActionButton = YES;
+    browser.displayNavArrows = NO;
+    browser.displaySelectionButtons = NO;
+    browser.zoomPhotosToFill = YES;
+    browser.alwaysShowControls = YES;
+    browser.enableGrid = YES;
+    browser.startOnGrid = NO;
     if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
+        browser.wantsFullScreenLayout = YES;
     }
 
     [browser setCurrentPhotoIndex:idx];
@@ -849,14 +870,23 @@
 }
 
 - (void)deleteComment {
-    BHComment *comment = [_item.comments objectAtIndex:indexPathForDeletion.row];
-    [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"successfully deleted comment: %@",responseObject);
-        [_item.comments removeObject:comment];
-        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        //NSLog(@"Failed to delete comment: %@",error.description);
-    }];
+    if (_project.demo){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        BHComment *comment = [_item.comments objectAtIndex:indexPathForDeletion.row];
+        if (comment.identifier){
+            [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"successfully deleted comment: %@",responseObject);
+                [_item.comments removeObject:comment];
+                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                //NSLog(@"Failed to delete comment: %@",error.description);
+            }];
+        } else {
+            [_item.comments removeObject:comment];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        }
+    }
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -870,7 +900,7 @@
 }
 
 - (void)back {
-    if (shouldSave) {
+    if (shouldSave && !_project.demo) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self.navigationController popViewControllerAnimated:YES];

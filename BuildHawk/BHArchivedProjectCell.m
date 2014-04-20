@@ -32,6 +32,15 @@
     screen = [UIScreen mainScreen].bounds;
     [self.unarchiveButton setBackgroundColor:[UIColor redColor]];
     [self.scrollView setContentSize:CGSizeMake(screen.size.width, 88)];
+    [self.unarchiveButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+}
+
+- (void)scroll{
+    if (self.scrollView.contentOffset.x == 0){
+        [self.scrollView setContentOffset:CGPointMake(88, 0) animated:YES];
+    } else {
+        [self.scrollView setContentOffset:CGPointZero animated:YES];
+    }
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {

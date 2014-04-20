@@ -30,6 +30,8 @@
 @property (nonatomic, strong) NSMutableArray *personnel;
 @property (nonatomic, strong) NSMutableArray *users;
 @property (nonatomic, strong) NSMutableArray *photos;
+@property (nonatomic, strong) NSMutableArray *safetyTopics;
+@property (nonatomic, strong) NSMutableArray *possibleTopics;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 

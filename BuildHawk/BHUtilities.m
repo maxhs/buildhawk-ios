@@ -28,6 +28,15 @@
     return items;
 }
 
++ (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array {
+    NSMutableArray *categories = [NSMutableArray arrayWithCapacity:array.count];
+    for (NSDictionary *categoryDictionary in array) {
+        BHCategory *category = [[BHCategory alloc] initWithDictionary:categoryDictionary];
+        [categories addObject:category];
+    }
+    return categories;
+}
+
 + (NSMutableArray *)punchlistItemsFromJSONArray:(NSArray *) array {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDictionary in array) {
@@ -121,6 +130,15 @@
         [groups addObject:group];
     }
     return groups;
+}
+
++ (NSMutableArray *)safetyTopicsFromJSONArray:(NSArray *) array {
+    NSMutableArray *topics = [NSMutableArray arrayWithCapacity:array.count];
+    for (NSDictionary *topicDictionary in array) {
+        BHSafetyTopic *topic = [[BHSafetyTopic alloc] initWithDictionary:topicDictionary];
+        [topics addObject:topic];
+    }
+    return topics;
 }
 
 + (NSDate*)parseDate:(id)value {

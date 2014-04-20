@@ -29,6 +29,9 @@
 @property (nonatomic, strong) BHProject *projects;
 @property (nonatomic, strong) NSArray *coworkers;
 @property (nonatomic, strong) NSArray *subcontractors;
+@property BOOL admin;
+@property BOOL companyAdmin;
+@property BOOL uberAdmin;
 
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 + (BHUser*)currentUser;

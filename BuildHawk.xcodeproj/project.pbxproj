@@ -211,6 +211,12 @@
 		F2B8178718FA305E002168FD /* BHSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B8178618FA305E002168FD /* BHSettingsViewController.m */; };
 		F2B8178A18FA31E2002168FD /* BHDemoProjectsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */; };
 		F2BC8047180486F000FCD8D5 /* BuildHawk.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F2BC8045180486F000FCD8D5 /* BuildHawk.xcdatamodeld */; };
+		F2C2008C18FCE128003C401A /* BHSafetyTopic.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C2008B18FCE128003C401A /* BHSafetyTopic.m */; };
+		F2C2008F18FCE617003C401A /* BHChooseTopicsViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C2008E18FCE617003C401A /* BHChooseTopicsViewCell.m */; };
+		F2C2009218FCE627003C401A /* BHSafetyTopicsCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C2009118FCE627003C401A /* BHSafetyTopicsCell.m */; };
+		F2C2009418FCE637003C401A /* BHSafetyTopicsCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F2C2009318FCE637003C401A /* BHSafetyTopicsCell.xib */; };
+		F2C2009818FCE670003C401A /* BHChooseTopicsViewCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F2C2009718FCE670003C401A /* BHChooseTopicsViewCell.xib */; };
+		F2C2009B18FDF816003C401A /* BHDeselectableSegmentedControl.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C2009A18FDF816003C401A /* BHDeselectableSegmentedControl.m */; };
 		F2FAE3ED18F4DCA2005E582B /* NSData+GIF.m in Sources */ = {isa = PBXBuildFile; fileRef = F2FAE3AA18F4DCA2005E582B /* NSData+GIF.m */; };
 		F2FAE3EE18F4DCA2005E582B /* NSData+ImageContentType.m in Sources */ = {isa = PBXBuildFile; fileRef = F2FAE3AC18F4DCA2005E582B /* NSData+ImageContentType.m */; };
 		F2FAE3EF18F4DCA2005E582B /* SDImageCache.m in Sources */ = {isa = PBXBuildFile; fileRef = F2FAE3AE18F4DCA2005E582B /* SDImageCache.m */; };
@@ -535,6 +541,16 @@
 		F2B8178818FA31E2002168FD /* BHDemoProjectsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDemoProjectsViewController.h; sourceTree = "<group>"; };
 		F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDemoProjectsViewController.m; sourceTree = "<group>"; };
 		F2BC8046180486F000FCD8D5 /* BuildHawk.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BuildHawk.xcdatamodel; sourceTree = "<group>"; };
+		F2C2008A18FCE128003C401A /* BHSafetyTopic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSafetyTopic.h; sourceTree = "<group>"; };
+		F2C2008B18FCE128003C401A /* BHSafetyTopic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSafetyTopic.m; sourceTree = "<group>"; };
+		F2C2008D18FCE617003C401A /* BHChooseTopicsViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChooseTopicsViewCell.h; sourceTree = "<group>"; };
+		F2C2008E18FCE617003C401A /* BHChooseTopicsViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChooseTopicsViewCell.m; sourceTree = "<group>"; };
+		F2C2009018FCE627003C401A /* BHSafetyTopicsCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSafetyTopicsCell.h; sourceTree = "<group>"; };
+		F2C2009118FCE627003C401A /* BHSafetyTopicsCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSafetyTopicsCell.m; sourceTree = "<group>"; };
+		F2C2009318FCE637003C401A /* BHSafetyTopicsCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHSafetyTopicsCell.xib; sourceTree = "<group>"; };
+		F2C2009718FCE670003C401A /* BHChooseTopicsViewCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHChooseTopicsViewCell.xib; sourceTree = "<group>"; };
+		F2C2009918FDF816003C401A /* BHDeselectableSegmentedControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDeselectableSegmentedControl.h; sourceTree = "<group>"; };
+		F2C2009A18FDF816003C401A /* BHDeselectableSegmentedControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDeselectableSegmentedControl.m; sourceTree = "<group>"; };
 		F2FAE3A918F4DCA2005E582B /* NSData+GIF.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+GIF.h"; sourceTree = "<group>"; };
 		F2FAE3AA18F4DCA2005E582B /* NSData+GIF.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+GIF.m"; sourceTree = "<group>"; };
 		F2FAE3AB18F4DCA2005E582B /* NSData+ImageContentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+ImageContentType.h"; sourceTree = "<group>"; };
@@ -726,6 +742,12 @@
 				F2FAE44C18F5B012005E582B /* BHArchivedProjectCell.h */,
 				F2FAE44D18F5B012005E582B /* BHArchivedProjectCell.m */,
 				F2FAE44F18F5B01D005E582B /* BHArchivedProjectCell.xib */,
+				F2C2008D18FCE617003C401A /* BHChooseTopicsViewCell.h */,
+				F2C2008E18FCE617003C401A /* BHChooseTopicsViewCell.m */,
+				F2C2009718FCE670003C401A /* BHChooseTopicsViewCell.xib */,
+				F2C2009018FCE627003C401A /* BHSafetyTopicsCell.h */,
+				F2C2009118FCE627003C401A /* BHSafetyTopicsCell.m */,
+				F2C2009318FCE637003C401A /* BHSafetyTopicsCell.xib */,
 			);
 			name = Cells;
 			sourceTree = "<group>";
@@ -775,6 +797,8 @@
 				F2A594D517F9FCCC00B818B5 /* BHCompleted.m */,
 				F29579D317F7ACA30082DE5A /* BHChecklist.h */,
 				F29579D417F7ACA30082DE5A /* BHChecklist.m */,
+				F2C2008A18FCE128003C401A /* BHSafetyTopic.h */,
+				F2C2008B18FCE128003C401A /* BHSafetyTopic.m */,
 				F292B28E18356525005E9123 /* BHPersonnel.h */,
 				F292B28F18356525005E9123 /* BHPersonnel.m */,
 				F226817E1873666300D78BDD /* BHSub.h */,
@@ -881,6 +905,8 @@
 				F203963117D2C09F001CFF61 /* BHMenuViewController.m */,
 				F2B8178518FA305E002168FD /* BHSettingsViewController.h */,
 				F2B8178618FA305E002168FD /* BHSettingsViewController.m */,
+				F2C2009918FDF816003C401A /* BHDeselectableSegmentedControl.h */,
+				F2C2009A18FDF816003C401A /* BHDeselectableSegmentedControl.m */,
 				F28F3115181098590066320B /* BHUtilities.h */,
 				F28F3116181098590066320B /* BHUtilities.m */,
 				F2B29FF617D0FAB900F09C6F /* Images */,
@@ -1231,6 +1257,7 @@
 				F203962D17D171CF001CFF61 /* logo.png in Resources */,
 				F226819F187DE66800D78BDD /* rainy@2x.png in Resources */,
 				F203962E17D171CF001CFF61 /* logo@2x.png in Resources */,
+				F2C2009818FCE670003C401A /* BHChooseTopicsViewCell.xib in Resources */,
 				F2B1F0E617D7BE820007A4E3 /* Default.png in Resources */,
 				F203963717D2DD9C001CFF61 /* textField.png in Resources */,
 				F28F9A2718A33F5E000A46D4 /* BuildHawk_app_icon_1024.png in Resources */,
@@ -1319,6 +1346,7 @@
 				F28F9A3518A34D43000A46D4 /* BuildHawk_app_icon_80.png in Resources */,
 				F28F9A2918A33F5E000A46D4 /* BuildHawk_app_icon_120.png in Resources */,
 				F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */,
+				F2C2009418FCE637003C401A /* BHSafetyTopicsCell.xib in Resources */,
 				F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */,
 				F203967917D3E4F6001CFF61 /* reportsSelected.png in Resources */,
 				F203967A17D3E4F6001CFF61 /* reportsSelected@2x.png in Resources */,
@@ -1395,6 +1423,7 @@
 				F2FAE44518F4DDB4005E582B /* MWPhotoBrowser.m in Sources */,
 				F22CBC461819B3B30042A6E0 /* User.m in Sources */,
 				F22613F01845BD1E0021DD41 /* NSData+Conversion.m in Sources */,
+				F2C2008C18FCE128003C401A /* BHSafetyTopic.m in Sources */,
 				F28F3117181098590066320B /* BHUtilities.m in Sources */,
 				F2FAE3FB18F4DCA2005E582B /* MBProgressHUD.m in Sources */,
 				F226817A18732C3900D78BDD /* BHPhotosHeaderView.m in Sources */,
@@ -1469,6 +1498,7 @@
 				F2FAE3F418F4DCA2005E582B /* SDWebImageManager.m in Sources */,
 				F239BBA217D877D9003097E6 /* BHReportPickerCell.m in Sources */,
 				F27889F518B9ADE300056AB2 /* BHWebViewController.m in Sources */,
+				F2C2009218FCE627003C401A /* BHSafetyTopicsCell.m in Sources */,
 				F2FAE44618F4DDB4005E582B /* MWTapDetectingImageView.m in Sources */,
 				F289FE31183406780070E8FC /* BHComment.m in Sources */,
 				F2B1F0F017D7D3E10007A4E3 /* BHPunchlistItem.m in Sources */,
@@ -1485,6 +1515,7 @@
 				F292AC0217F9EFE40020DE13 /* BHAddCommentCell.m in Sources */,
 				F2FAE44218F4DDB4005E582B /* MWGridCell.m in Sources */,
 				F2FAE40818F4DCA2005E582B /* PSTGridLayoutItem.m in Sources */,
+				F2C2009B18FDF816003C401A /* BHDeselectableSegmentedControl.m in Sources */,
 				F2FAE40918F4DCA2005E582B /* PSTGridLayoutRow.m in Sources */,
 				F228707A17DFC89300A88475 /* BHPunchlistItemViewController.m in Sources */,
 				F2A594D617F9FCCC00B818B5 /* BHCompleted.m in Sources */,
@@ -1493,6 +1524,7 @@
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
 				F203965F17D3DD7C001CFF61 /* BHReportsViewController.m in Sources */,
 				F2FAE40018F4DCA2005E582B /* PSTCollectionViewCell.m in Sources */,
+				F2C2008F18FCE617003C401A /* BHChooseTopicsViewCell.m in Sources */,
 				F2FAE44418F4DDB4005E582B /* MWPhoto.m in Sources */,
 				F260FD7F18CD039300D7C645 /* BHProjectGroup.m in Sources */,
 				F203967217D3E1E8001CFF61 /* BHTabBarViewController.m in Sources */,

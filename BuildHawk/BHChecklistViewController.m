@@ -24,11 +24,6 @@
 //#import "GAI.h"
 #import "Project.h"
 
-typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
-typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *error);
-typedef void(^RequestFailure)(NSError *error);
-typedef void(^RequestSuccess)(id result);
-
 @interface BHChecklistViewController () <UISearchBarDelegate, UISearchDisplayDelegate, RATreeViewDelegate, RATreeViewDataSource, UITableViewDataSource, UITableViewDelegate> {
     NSMutableArray *categories;
     NSMutableArray *filteredItems;
@@ -44,6 +39,7 @@ typedef void(^RequestSuccess)(id result);
     id checklistResponse;
     Project *savedProject;
     AFHTTPRequestOperationManager *manager;
+    NSIndexPath *indexPathToExpand;
 }
 @property (strong, nonatomic) id expanded;
 @property (strong, nonatomic) BHChecklist *checklist;
@@ -51,8 +47,6 @@ typedef void(^RequestSuccess)(id result);
 @end
 
 @implementation BHChecklistViewController
-
-@synthesize scrollToCategoryRow;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -77,6 +71,11 @@ typedef void(^RequestSuccess)(id result);
         iOS7 = NO;
     }
     project = [(BHTabBarViewController*)self.tabBarController project];
+    
+    if ([(BHTabBarViewController*)self.tabBarController checklistIndexPath]){
+        indexPathToExpand = [(BHTabBarViewController*)self.tabBarController checklistIndexPath];
+    }
+    
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     itemRowHeight = 110;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",project.name];
@@ -120,10 +119,8 @@ typedef void(^RequestSuccess)(id result);
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     //self.screenName = @"Checklist view controller";
-    if (scrollToCategoryRow > 0){
-        [self.treeView scrollToRowForItem:[self.checklist.children objectAtIndex:self.scrollToCategoryRow] atScrollPosition:RATreeViewScrollPositionTop animated:YES];
-    }
 }
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -176,7 +173,7 @@ typedef void(^RequestSuccess)(id result);
 - (void)loadChecklist {
     [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,project.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         checklistResponse = [[responseObject objectForKey:@"checklist"] objectForKey:@"categories"];
-        NSLog(@"checklist response: %@",responseObject);
+        //NSLog(@"checklist response: %@",responseObject);
         [self drawChecklistLimitActive:NO orCompleted:NO];
         if (self.isViewLoaded && self.view.window) {
             [SVProgressHUD dismiss];
@@ -191,8 +188,7 @@ typedef void(^RequestSuccess)(id result);
 - (void)drawChecklistLimitActive:(BOOL)onlyActive orCompleted:(BOOL)completed {
     [self.checklist.children removeAllObjects];
     for (id cat in checklistResponse) {
-        BHCategory *category = [[BHCategory alloc] init];
-        [category setName:[cat objectForKey:@"name"]];
+        BHCategory *category = [[BHCategory alloc] initWithDictionary:cat];
         NSMutableArray *children = [self parseSubcategoryIntoArray:[cat objectForKey:@"subcategories"] completed:completed active:onlyActive];
         if (children.count) {
             [category setChildren:children];
@@ -205,10 +201,9 @@ typedef void(^RequestSuccess)(id result);
 
 - (NSMutableArray *)parseSubcategoryIntoArray:(NSArray*)array completed:(BOOL)completed active:(BOOL)onlyActive {
     NSMutableArray *subcats = [NSMutableArray array];
-    for (id obj in array) {
-        BHSubcategory *tempSubcat = [[BHSubcategory alloc] init];
-        [tempSubcat setName:[obj objectForKey:@"name"]];
-        NSMutableArray *children = [self itemsFromJSONArray:[obj objectForKey:@"checklist_items"] completed:completed active:onlyActive];
+    for (id subcat in array) {
+        BHSubcategory *tempSubcat = [[BHSubcategory alloc] initWithDictionary:subcat];
+        NSMutableArray *children = [self itemsFromJSONArray:[subcat objectForKey:@"checklist_items"] completed:completed active:onlyActive];
         if (children.count){
             [tempSubcat setChildren:children];
             [listItems addObjectsFromArray:tempSubcat.children];
@@ -217,6 +212,7 @@ typedef void(^RequestSuccess)(id result);
     }
     return subcats;
 }
+
 - (NSMutableArray *)itemsFromJSONArray:(NSMutableArray *)array completed:(BOOL)onlyCompleted active:(BOOL)onlyActive {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDict in array) {
@@ -268,9 +264,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)treeView:(RATreeView *)treeView willDisplayCell:(UITableViewCell *)cell forItem:(id)item treeNodeInfo:(RATreeNodeInfo *)treeNodeInfo
 {
-    if (treeNodeInfo.treeDepthLevel == 0) {
-         
-    } else if (treeNodeInfo.treeDepthLevel == 1) {
+    if (treeNodeInfo.treeDepthLevel == 1) {
         cell.backgroundColor = kLightBlueColor;
         if ([[(BHSubcategory*)item status] isEqualToString:kCompleted]) {
             
@@ -303,7 +297,11 @@ typedef void(^RequestSuccess)(id result);
             [cell.textLabel setTextColor:[UIColor whiteColor]];
             [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
         }
-        
+    }
+    if (indexPathToExpand/* && item == [self.checklist.children objectAtIndex:indexPathToExpand.row]*/) {
+        [self.treeView scrollToRowForItem:[self.checklist.children objectAtIndex:indexPathToExpand.row] atScrollPosition:RATreeViewScrollPositionTop animated:YES];
+        //[self.treeView expandRowForItem:item withRowAnimation:RATreeViewRowAnimationAutomatic];
+        indexPathToExpand = nil;
     }
 }
 
@@ -311,6 +309,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (UITableViewCell *)treeView:(RATreeView *)treeView cellForItem:(id)item treeNodeInfo:(RATreeNodeInfo *)treeNodeInfo
 {
+    
     NSInteger numberOfChildren = [treeNodeInfo.children count];
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"cell"];
     [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:24]];
@@ -321,15 +320,29 @@ typedef void(^RequestSuccess)(id result);
             if ([item isKindOfClass:[BHCategory class]]) {
                 cell.textLabel.text = ((BHCategory *)item).name;
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"Subcategories %ld", (long)numberOfChildren];
+                UILabel *progressPercentageLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 22)];
+                [progressPercentageLabel setTextColor:[UIColor lightGrayColor]];
+                [progressPercentageLabel setText:((BHCategory *)item).progressPercentage];
+                [progressPercentageLabel setTextAlignment:NSTextAlignmentRight];
+                progressPercentageLabel.clipsToBounds = NO;
+                [progressPercentageLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
+                cell.accessoryView = progressPercentageLabel;
+                
             } else if ([item isKindOfClass:[BHChecklistItem class]]) {
                 [cell.detailTextLabel setText:[(BHChecklistItem*)item subcategory]];
-                
             }
             break;
         case 1:
             if ([item isKindOfClass:[BHSubcategory class]]) {
                 cell.textLabel.text = ((BHSubcategory *)item).name;
                 cell.detailTextLabel.text = [NSString stringWithFormat:@"Items: %ld", (long)numberOfChildren];
+                UILabel *progressPercentageLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, 60, 22)];
+                [progressPercentageLabel setTextColor:[UIColor whiteColor]];
+                [progressPercentageLabel setText:((BHSubcategory *)item).progressPercentage];
+                [progressPercentageLabel setTextAlignment:NSTextAlignmentRight];
+                progressPercentageLabel.clipsToBounds = NO;
+                [progressPercentageLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+                cell.accessoryView = progressPercentageLabel;
             }
             break;
         default:
@@ -409,7 +422,7 @@ typedef void(^RequestSuccess)(id result);
         BHChecklistItem *item = (BHChecklistItem*)sender;
         BHChecklistItemViewController *vc = segue.destinationViewController;
         [vc setItem:item];
-        [vc setProjectId:project.identifier];
+        [vc setProject:project];
         [vc setSavedProject:savedProject];
     }
 }
@@ -561,9 +574,9 @@ typedef void(^RequestSuccess)(id result);
     return NO;
 }
 - (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
     //[manager.operationQueue cancelAllOperations];
-    //[SVProgressHUD dismiss];
+    [SVProgressHUD dismiss];
+    [super viewWillDisappear:animated];
 }
 
 @end

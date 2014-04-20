@@ -25,6 +25,7 @@
 }
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
+@property (weak, nonatomic) IBOutlet UIButton *loginButton;
 @property (weak, nonatomic) IBOutlet UIView *logoContainerView;
 @property (weak, nonatomic) IBOutlet UIView *loginContainerView;
 @property (weak, nonatomic) IBOutlet UIButton *forgotPasswordButton;
@@ -59,7 +60,25 @@
     } else {
         iPad = YES;
     }
+    [self textFieldTreatment:self.emailTextField];
+    [self textFieldTreatment:self.passwordTextField];
+    
+    [self.loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:.8]];
+    [self.loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [self.loginButton setEnabled:NO];
+    self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.15].CGColor;
+    self.loginButton.layer.borderWidth = .5f;
+    self.loginButton.layer.cornerRadius = 5.f;
     [self adjustLoginContainer];
+}
+
+- (void)textFieldTreatment:(UITextField*)textField {
+    textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.1].CGColor;
+    textField.layer.borderWidth = .5f;
+    textField.layer.cornerRadius = 5.f;
+    UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 7, 20)];
+    textField.leftView = paddingView;
+    textField.leftViewMode = UITextFieldViewModeAlways;
 }
 
 - (void)adjustLoginContainer {
@@ -70,6 +89,7 @@
 }
 
 - (IBAction)loginTapped {
+    [self.loginButton setUserInteractionEnabled:NO];
     [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
 }
 
@@ -118,7 +138,7 @@
     if (password) [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
     [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"log in response object: %@",responseObject);
+        NSLog(@"log in response object: %@",responseObject);
         user = [[BHUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
@@ -129,6 +149,9 @@
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
         [[NSUserDefaults standardUserDefaults] setObject:user.photo.url100 forKey:kUserDefaultsPhotoUrl100];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
+        [[NSUserDefaults standardUserDefaults] setBool:user.admin forKey:kUserDefaultsAdmin];
+        [[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin forKey:kUserDefaultsCompanyAdmin];
+        [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
@@ -147,8 +170,7 @@
             saveUser.phone = user.phone;
             
             [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                if (success) NSLog(@"done saving user through Magical Record");
-                else NSLog(@"error saving through MR: %@",error.description);
+
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
                 [UIView animateWithDuration:.3 animations:^{
                     self.loginContainerView.transform = CGAffineTransformIdentity;
@@ -157,12 +179,12 @@
                 } completion:^(BOOL finished) {
                     
                 }];
-
+                [self.loginButton setUserInteractionEnabled:YES];
                 [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
             }];
         } else {
             User *newUser = [User MR_createInContext:localContext];
-            NSLog(@"Created a new MR user");
+            //NSLog(@"Created a new MR user");
             newUser.identifier = user.identifier;
             newUser.lname = user.lname;
             newUser.email = user.email;
@@ -182,15 +204,17 @@
                 } completion:^(BOOL finished) {
                     
                 }];
+                [self.loginButton setUserInteractionEnabled:YES];
                 [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
             }];
         }
-        
+
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error logging in: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         [SVProgressHUD dismiss];
         [self.loginContainerView setAlpha:1.0];
+        [self.loginButton setUserInteractionEnabled:YES];
     }];
 }
 
@@ -215,6 +239,15 @@
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
+    if (self.emailTextField.text.length && self.passwordTextField.text.length){
+        [self.loginButton setEnabled:YES];
+        [self.loginButton setBackgroundColor:kBlueColor];
+        [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    } else {
+        [self.loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:.8]];
+        [self.loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        [self.loginButton setEnabled:NO];
+    }
     if ([text isEqualToString:@"\n"]) {
         if (self.passwordTextField.text.length && self.emailTextField.text.length) {
             [self login:self.emailTextField.text andPassword:self.passwordTextField.text];

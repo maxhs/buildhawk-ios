@@ -109,6 +109,62 @@
 }
 
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
+
+    switch (sender.selectedSegmentIndex) {
+        case 0:
+            if (showActive == YES){
+                [self resetSegments];
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self.tableView reloadData];
+            } else {
+                [self resetSegments];
+                showActive = YES;
+                [self filterActive];
+            }
+            
+            break;
+        case 1:
+            if (showByLocation == YES){
+                [self resetSegments];
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self.tableView reloadData];
+            } else {
+                [self resetSegments];
+                showByLocation = YES;
+                [self filterLocation];
+            }
+            
+            break;
+        case 2:
+            if (showByAssignee == YES){
+                [self resetSegments];
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self.tableView reloadData];
+            } else {
+                [self resetSegments];
+                showByAssignee = YES;
+                [self filterAssignee];
+            }
+            
+            break;
+        case 3:
+            if (showCompleted == YES){
+                [self resetSegments];
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self.tableView reloadData];
+            } else {
+                [self resetSegments];
+                showCompleted = YES;
+                [self filterCompleted];
+            }
+            
+            break;
+        default:
+            break;
+    }
+}
+
+- (void)resetSegments {
     [completedListItems removeAllObjects];
     [locationListItems removeAllObjects];
     [assigneeListItems removeAllObjects];
@@ -117,26 +173,6 @@
     showByAssignee = NO;
     showByLocation = NO;
     showActive = NO;
-    switch (sender.selectedSegmentIndex) {
-        case 0:
-            showActive = YES;
-            [self filterActive];
-            break;
-        case 1:
-            showByLocation = YES;
-            [self filterLocation];
-            break;
-        case 2:
-            showByAssignee = YES;
-            [self filterAssignee];
-            break;
-        case 3:
-            showCompleted = YES;
-            [self filterCompleted];
-            break;
-        default:
-            break;
-    }
 }
 
 - (void)handleRefresh:(id)sender {
@@ -146,22 +182,26 @@
 }
 
 - (void)filterLocation {
-    locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (NSString *location in locationSet.allObjects) {
-        [locationActionSheet addButtonWithTitle:location];
+    if (locationSet.allObjects.count){
+        locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+        for (NSString *location in locationSet.allObjects) {
+            [locationActionSheet addButtonWithTitle:location];
+        }
+        locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
+        [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
     }
-    locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
-    [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
 - (void)filterAssignee {
-    assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (id assignee in personnel) {
-        if ([assignee isKindOfClass:[BHUser class]] && [[(BHUser*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(BHUser*)assignee fullname]];
-        else if ([assignee isKindOfClass:[BHSub class]] && [[(BHSub*)assignee name] length]) [assigneeActionSheet addButtonWithTitle:[(BHSub*)assignee name]];
+    if (personnel.count){
+        assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+        for (id assignee in personnel) {
+            if ([assignee isKindOfClass:[BHUser class]] && [[(BHUser*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(BHUser*)assignee fullname]];
+            else if ([assignee isKindOfClass:[BHSub class]] && [[(BHSub*)assignee name] length]) [assigneeActionSheet addButtonWithTitle:[(BHSub*)assignee name]];
+        }
+        assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
+        [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
     }
-    assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
-    [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
 }
 
 - (void)filterActive {

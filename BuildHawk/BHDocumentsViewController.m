@@ -40,6 +40,7 @@
     CGRect screen;
     UIRefreshControl *refreshControl;
     AFHTTPRequestOperationManager *manager;
+    BHProject *_project;
 }
 
 @end
@@ -47,7 +48,8 @@
 @implementation BHDocumentsViewController
 
 - (void)viewDidLoad {
-    self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[[(BHTabBarViewController*)self.tabBarController project] name]];
+    _project = [(BHTabBarViewController*)self.tabBarController project];
+    self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[_project name]];
     [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
     [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
     if ([BHUtilities isIPhone5]) {
@@ -105,7 +107,8 @@
 - (void)loadPhotos {
     [SVProgressHUD showWithStatus:@"Fetching documents..."];
     loading = YES;
-    [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,[[(BHTabBarViewController*)self.tabBarController project] identifier]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    
+    [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
         //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -383,10 +386,12 @@
             for (BHPhoto *photo in photosArray){
                 if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
             }
+            [vc setProject:_project];
             [vc setPhotosArray:photosArray];
             [vc setNumberOfSections:1];
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
+            [vc setTitle:@"All"];
         }
             break;
         case 1:
@@ -427,11 +432,13 @@
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
             NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
             [vc setSectionTitles:sortedArray];
+            [vc setProject:_project];
             [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:checklistArray];
             [vc setChecklistsBool:YES];
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
+            [vc setTitle:@"Checklist"];
         }
             break;
         case 3:
@@ -451,6 +458,8 @@
             [vc setWorklistsBool:YES];
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
+            [vc setProject:_project];
+            [vc setTitle:@"Worklist"];
         }
             break;
         case 4:
@@ -469,6 +478,8 @@
             [vc setReportsBool:YES];
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
+            [vc setProject:_project];
+            [vc setTitle:@"Reports"];
         }
             break;
 

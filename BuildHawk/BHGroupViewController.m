@@ -13,13 +13,7 @@
 #import "BHTabBarViewController.h"
 
 @interface BHGroupViewController () {
-    NSMutableArray *recentChecklistItems;
-    NSMutableArray *recentDocuments;
-    NSMutableArray *recentlyCompletedWorklistItems;
-    NSMutableArray *notifications;
-    NSMutableArray *upcomingChecklistItems;
-    NSMutableArray *categories;
-    NSMutableDictionary *dashboardDetailDict;
+    NSMutableArray *_projects;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
     BHProject *archivedProject;
@@ -35,9 +29,8 @@
 {
     [super viewDidLoad];
     manager = [AFHTTPRequestOperationManager manager];
-    if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
-    if (!categories) categories = [NSMutableArray array];
-    [self loadDetailView];
+    [self loadGroup];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 }
 
 - (void)didReceiveMemoryWarning
@@ -46,20 +39,17 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)loadDetailView {
-    for (BHProject *proj in _group.projects){
-        [categories removeAllObjects];
-        [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success getting dashboard detail view: %@",[responseObject objectForKey:@"project"]);
-            categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
-            [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
-            
-            if (dashboardDetailDict.count == _group.projects.count) {
-                //NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
-                [self.tableView reloadData];
-            }
+- (void)loadGroup {
+    if (_group.projectsCount > 0){
+        [SVProgressHUD showWithStatus:@"Fetching Group Projects..."];
+        [manager GET:[NSString stringWithFormat:@"%@/groups/%@",kApiBaseUrl,_group.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success getting group: %@",responseObject);
+            _group = [[BHProjectGroup alloc] initWithDictionary:[responseObject objectForKey:@"group"]];
+            [self.tableView reloadData];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure getting dashboard: %@",error.description);
+            [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong while fetching projects for this group. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [SVProgressHUD dismiss];
         }];
     }
 }
@@ -79,6 +69,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     BHProject *project = [_group.projects objectAtIndex:indexPath.row];
+    
     static NSString *CellIdentifier = @"ProjectCell";
     BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -87,14 +78,14 @@
     }
     [cell.titleLabel setText:[project name]];
     
-    if (project.address){
-        [cell.subtitleLabel setText:[NSString stringWithFormat:@"%@, %@, %@ %@",project.address.street1,project.address.city,project.address.state,project.address.zip]];
+    if (project.address.formattedAddress.length){
+        [cell.subtitleLabel setText:project.address.formattedAddress];
+    } else {
+        [cell.subtitleLabel setText:project.company.name];
     }
     
-    if (dashboardDetailDict.count){
-        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        [cell.progressLabel setText:[dict objectForKey:@"progress"]];
-    }
+    [cell.progressLabel setText:project.progressPercentage];
+
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     [cell.titleLabel setTextColor:kDarkGrayColor];
@@ -129,6 +120,7 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+        [SVProgressHUD dismiss];
     }
 }
 
@@ -146,12 +138,6 @@
     } else if ([segue.identifier isEqualToString:@"GroupDetail"]) {
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
-        NSDictionary *dict = [dashboardDetailDict objectForKey:project.identifier];
-        [detailVC setRecentChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
-        [detailVC setUpcomingChecklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"upcoming_items"]]];
-        [detailVC setRecentDocuments:[BHUtilities photosFromJSONArray:[dict objectForKey:@"recent_documents"]]];
-        [detailVC setRecentlyCompletedWorklistItems:[BHUtilities checklistItemsFromJSONArray:[dict objectForKey:@"recently_completed"]]];
-        [detailVC setCategories:[dict objectForKey:@"categories"]];
     }
 }
 

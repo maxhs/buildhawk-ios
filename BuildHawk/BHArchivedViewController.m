@@ -8,6 +8,7 @@
 
 #import "BHArchivedViewController.h"
 #import "BHArchivedProjectCell.h"
+#import "BHTabBarViewController.h"
 
 @interface BHArchivedViewController (){
     BHProject *archivedProject;
@@ -64,8 +65,7 @@
     }
     
     [cell.projectButton setTag:indexPath.row];
-    [cell.projectButton setUserInteractionEnabled:NO];
-    //[cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     [cell.titleLabel setTextColor:kDarkGrayColor];
     [cell.unarchiveButton setTag:indexPath.row];
     [cell.unarchiveButton addTarget:self action:@selector(confirmUnarchive:) forControlEvents:UIControlEventTouchUpInside];
@@ -73,7 +73,7 @@
 }
 
 - (void)confirmUnarchive:(UIButton*)button {
-    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to unarchive this project?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Unarchive", nil] show];
+    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to make this project active?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Activate", nil] show];
     archivedProject = [_archivedProjects objectAtIndex:button.tag];
 }
 
@@ -91,7 +91,7 @@
 }
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Unarchive"]){
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Activate"]){
         [self unarchiveProject];
     }
 }
@@ -109,53 +109,23 @@
     }
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    BHArchivedProjectCell *cell = (BHArchivedProjectCell*)[tableView cellForRowAtIndexPath:indexPath];
+    [cell scroll];
 }
-*/
 
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+- (void)goToProject:(UIButton*)button {
+    BHProject *selectedProject = [_archivedProjects objectAtIndex:button.tag];
+    [self performSegueWithIdentifier:@"ArchivedProject" sender:selectedProject];
 }
-*/
 
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"Project"]) {
+        BHProject *project = (BHProject*)sender;
+        BHTabBarViewController *vc = [segue destinationViewController];
+        [vc setProject:project];
+        //[vc setUser:savedUser];
+    }
 }
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end
