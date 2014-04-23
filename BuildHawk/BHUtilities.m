@@ -58,8 +58,8 @@
 + (NSMutableArray *)reportsFromJSONArray:(NSArray *) array {
     NSMutableArray *reports = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *reportDictionary in array) {
-        BHReport *report = [[BHReport alloc] initWithDictionary:reportDictionary];
-        [reports addObject:report];
+        //Report *report = [[Report alloc] initWithDictionary:reportDictionary];
+        //[reports addObject:report];
     }
     return reports;
 }

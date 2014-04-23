@@ -13,7 +13,7 @@
 
 @interface BHChecklistItem : NSObject
 
-@property (nonatomic, copy) NSString *identifier;
+@property (nonatomic, copy) NSNumber *identifier;
 @property (nonatomic, copy) NSString *body;
 @property (nonatomic, copy) NSString *type;
 @property (nonatomic, copy) NSString *location;

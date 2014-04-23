@@ -10,10 +10,14 @@
 #import "BHUser.h"
 #import "BHProject.h"
 #import <CoreData/CoreData.h>
+#import "Report.h"
+#import "BHSafetyTopic.h"
 
-@interface BHReport : NSObject
+@interface Report (helper)
 
-@property (nonatomic, strong) NSString *identifier;
+/*@interface BHReport : NSObject
+
+@property (nonatomic, strong) NSNumber *identifier;
 @property (nonatomic, strong) NSString *type;
 @property (nonatomic, strong) NSString *body;
 @property (nonatomic, strong) NSString *createdDate;
@@ -32,7 +36,7 @@
 @property (nonatomic, strong) NSMutableArray *photos;
 @property (nonatomic, strong) NSMutableArray *safetyTopics;
 @property (nonatomic, strong) NSMutableArray *possibleTopics;
-
-- (id) initWithDictionary:(NSDictionary*)dictionary;
-
+*/
+- (void) populateWithDict:(NSDictionary*)dictionary;
+- (void) addSafetyTopic:(BHSafetyTopic*)topic;
 @end

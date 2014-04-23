@@ -11,7 +11,7 @@
 
 @interface BHProjectGroup : NSObject
 @property (nonatomic, strong) NSString *name;
-@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSNumber *identifier;
 @property (nonatomic, strong) NSNumber *projectsCount;
 @property (nonatomic, strong) NSMutableArray *projects;
 

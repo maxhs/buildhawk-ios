@@ -12,7 +12,7 @@
 
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"id"]) {
-        self.identifier = [value stringValue];
+        self.identifier = value;
     } else if ([key isEqualToString:@"category_name"]) {
         self.category = value;
     } else if ([key isEqualToString:@"subcategory_name"]) {

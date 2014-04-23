@@ -185,9 +185,9 @@
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    NSString *photoIdentifier = [[notification.userInfo objectForKey:@"photo"] identifier];
+    NSNumber *photoIdentifier = [notification.userInfo objectForKey:@"photo"];
     for (BHPhoto *photo in _photosArray) {
-        if ([photo.identifier isEqualToString:photoIdentifier]) {
+        if ([photo.identifier isEqualToNumber:photoIdentifier]) {
             [_photosArray removeObject:photo];
             [browserArray removeAllObjects];
             [sectionArray removeAllObjects];

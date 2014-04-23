@@ -446,10 +446,28 @@
             </objects>
             <point key="canvasLocation" x="2303" y="1376"/>
         </scene>
-        <!--Reports View Controller - Reports-->
+        <!--View Controller - Reports-->
+        <scene sceneID="tdm-A1-qCW">
+            <objects>
+                <viewController storyboardIdentifier="Reports" id="PYU-kZ-OjC" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="3Cf-R1-lbT">
+                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="GpF-2H-fqz"/>
+                    <connections>
+                        <segue destination="3" kind="push" identifier="Report" id="7to-sF-Hdh"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="UKP-eM-un5" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1848" y="668"/>
+        </scene>
+        <!--Report View Controller - Reports-->
         <scene sceneID="13">
             <objects>
-                <viewController storyboardIdentifier="Reports" title="Reports" id="3" customClass="BHReportsViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Report" title="Reports" id="3" customClass="BHReportViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="17">
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -556,7 +574,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="12" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1850" y="677"/>
+            <point key="canvasLocation" x="2303" y="662"/>
         </scene>
         <!--People Picker View Controller-->
         <scene sceneID="f2v-ts-e8Y">
@@ -614,7 +632,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </connections>
                 </searchDisplayController>
             </objects>
-            <point key="canvasLocation" x="2519" y="668"/>
+            <point key="canvasLocation" x="2893" y="668"/>
         </scene>
         <!--Login View Controller-->
         <scene sceneID="P26-3v-PZe">
@@ -666,7 +684,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </textField>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Nzu-Yg-ThW">
-                                        <rect key="frame" x="85" y="172" width="150" height="52"/>
+                                        <rect key="frame" x="85" y="167" width="150" height="52"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                         <state key="normal" title="Login">
@@ -681,7 +699,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6YN-CS-NlG">
-                                        <rect key="frame" x="80" y="239" width="160" height="38"/>
+                                        <rect key="frame" x="80" y="229" width="160" height="38"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Forgot password?">
@@ -1124,8 +1142,8 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <connections>
                         <segue destination="2" kind="relationship" relationship="viewControllers" id="KAH-hv-lD5"/>
                         <segue destination="Y5j-zz-xxD" kind="relationship" relationship="viewControllers" id="UDF-ic-rlU"/>
-                        <segue destination="3" kind="relationship" relationship="viewControllers" id="Kp3-wT-2k4"/>
-                        <segue destination="r0E-CY-Oux" kind="relationship" relationship="viewControllers" id="Lin-fq-ZgW"/>
+                        <segue destination="PYU-kZ-OjC" kind="relationship" relationship="viewControllers" id="gvO-Rj-PyM"/>
+                        <segue destination="r0E-CY-Oux" kind="relationship" relationship="viewControllers" id="kCC-Uk-lqd"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="14" sceneMemberID="firstResponder"/>
@@ -1282,12 +1300,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="IwH-Rw-ke6"/>
         <segue reference="NH7-r7-qB8"/>
+        <segue reference="IwH-Rw-ke6"/>
+        <segue reference="bOL-sd-mqt"/>
+        <segue reference="JhG-cE-lNU"/>
         <segue reference="yE4-EA-SnA"/>
         <segue reference="kFF-g5-AYt"/>
         <segue reference="POr-kh-1ho"/>
-        <segue reference="QKi-s7-jOi"/>
-        <segue reference="JhG-cE-lNU"/>
     </inferredMetricsTieBreakers>
 </document>

@@ -19,11 +19,6 @@
 #import <Crashlytics/Crashlytics.h>
 #import "SDWebImageManager.h"
 
-// Use a class extension to expose access to MagicalRecord's private setter methods
-@interface NSManagedObjectContext ()
-+ (void)MR_setRootSavingContext:(NSManagedObjectContext *)context;
-+ (void)MR_setDefaultContext:(NSManagedObjectContext *)moc;
-@end
 
 @interface BHAppDelegate () {
     UIView *overlayView;
@@ -35,7 +30,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    [MagicalRecord setupCoreDataStack];
+    [MagicalRecord setupCoreDataStackWithAutoMigratingSqliteStoreNamed:@"BuildHawk"];
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     [self customizeAppearance];
     
@@ -48,6 +43,22 @@
     [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
     // Initialize tracker.
     [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];*/
+    [[AFNetworkReachabilityManager sharedManager] startMonitoring];
+    [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
+        switch (status) {
+            case AFNetworkReachabilityStatusReachableViaWWAN:
+            case AFNetworkReachabilityStatusReachableViaWiFi:
+                NSLog(@"Connected");
+
+                break;
+            case AFNetworkReachabilityStatusNotReachable:
+            default:
+                NSLog(@"Not online");
+                [self offlineNotification];
+                break;
+        }
+    }];
+    
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [self.window makeKeyAndVisible];
     return YES;
@@ -161,6 +172,10 @@
     self.window.rootViewController = [storyboard instantiateInitialViewController];
     
     [SVProgressHUD dismiss];
+}
+
+- (void)offlineNotification {
+    [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Your device appears to be offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
 }
 
 #pragma mark uncaughtExceptionHandler

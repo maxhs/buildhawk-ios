@@ -165,7 +165,7 @@
             saveUser.fullname = user.fullname;
             saveUser.fname = user.fname;
             saveUser.coworkers = user.coworkers;
-            saveUser.subcontractors = user.subcontractors;
+            //saveUser.subcontractors = user.subcontractors;
             saveUser.photoUrl100 = user.photo.url100;
             saveUser.phone = user.phone;
             
@@ -184,14 +184,14 @@
             }];
         } else {
             User *newUser = [User MR_createInContext:localContext];
-            //NSLog(@"Created a new MR user");
+            NSLog(@"Created a new MR user");
             newUser.identifier = user.identifier;
             newUser.lname = user.lname;
             newUser.email = user.email;
             newUser.fullname = user.fullname;
             newUser.fname = user.fname;
             newUser.coworkers = user.coworkers;
-            newUser.subcontractors = user.subcontractors;
+            //newUser.subcontractors = user.subcontractors;
 
             newUser.photoUrl100 = user.photo.url100;
             newUser.phone = user.phone;

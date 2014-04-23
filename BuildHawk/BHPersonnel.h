@@ -11,7 +11,7 @@
 #import "BHSub.h"
 
 @interface BHPersonnel : NSObject
-@property (strong, nonatomic) NSString *identifier;
+@property (strong, nonatomic) NSNumber *identifier;
 @property (strong, nonatomic) NSNumber *count;
 @property (strong, nonatomic) NSString *name;
 @property (strong, nonatomic) BHUser *user;

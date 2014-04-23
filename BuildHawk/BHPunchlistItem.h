@@ -14,7 +14,7 @@
 
 @interface BHPunchlistItem : NSObject
 
-@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSNumber *identifier;
 @property (nonatomic, strong) NSString *body;
 @property (nonatomic, strong) NSString *location;
 @property (nonatomic, strong) NSString *createdOn;

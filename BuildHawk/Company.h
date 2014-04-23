@@ -2,26 +2,42 @@
 //  Company.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 10/24/13.
-//  Copyright (c) 2013 BuildHawk. All rights reserved.
+//  Created by Max Haines-Stiles on 4/22/14.
+//  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class User;
+@class Project, User;
 
 @interface Company : NSManagedObject
 
 @property (nonatomic, retain) NSString * name;
-@property (nonatomic, retain) NSSet *users;
+@property (nonatomic, retain) NSOrderedSet *users;
+@property (nonatomic, retain) NSOrderedSet *projects;
 @end
 
 @interface Company (CoreDataGeneratedAccessors)
 
+- (void)insertObject:(User *)value inUsersAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromUsersAtIndex:(NSUInteger)idx;
+- (void)insertUsers:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeUsersAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInUsersAtIndex:(NSUInteger)idx withObject:(User *)value;
+- (void)replaceUsersAtIndexes:(NSIndexSet *)indexes withUsers:(NSArray *)values;
 - (void)addUsersObject:(User *)value;
 - (void)removeUsersObject:(User *)value;
-- (void)addUsers:(NSSet *)values;
-- (void)removeUsers:(NSSet *)values;
-
+- (void)addUsers:(NSOrderedSet *)values;
+- (void)removeUsers:(NSOrderedSet *)values;
+- (void)insertObject:(Project *)value inProjectsAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromProjectsAtIndex:(NSUInteger)idx;
+- (void)insertProjects:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeProjectsAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInProjectsAtIndex:(NSUInteger)idx withObject:(Project *)value;
+- (void)replaceProjectsAtIndexes:(NSIndexSet *)indexes withProjects:(NSArray *)values;
+- (void)addProjectsObject:(Project *)value;
+- (void)removeProjectsObject:(Project *)value;
+- (void)addProjects:(NSOrderedSet *)values;
+- (void)removeProjects:(NSOrderedSet *)values;
 @end

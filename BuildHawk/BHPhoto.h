@@ -19,7 +19,7 @@
 @property (nonatomic, strong) NSString *phase;
 @property (nonatomic, strong) NSNumber *filesize;
 @property (nonatomic, strong) NSString *name;
-@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSNumber *identifier;
 @property (nonatomic, strong) NSString *mimetype;
 @property (nonatomic, strong) NSString *photoSize;
 @property (nonatomic, strong) NSString *userName;

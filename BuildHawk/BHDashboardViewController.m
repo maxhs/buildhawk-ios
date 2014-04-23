@@ -57,6 +57,9 @@
 {
     loading = YES;
     [super viewDidLoad];
+    manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
+   
+    
     if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
         self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     }
@@ -94,7 +97,7 @@
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     [self.searchContainerBackgroundView setBackgroundColor:kDarkGrayColor];
-    if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    
     if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
     if (!categories) categories = [NSMutableArray array];
     [self loadProjects];
@@ -176,7 +179,7 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error while loading projects: %@",error.description);
             loading = NO;
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             [SVProgressHUD dismiss];
         }];
@@ -189,12 +192,12 @@
 - (void)loadGroups {
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"load groups response object: %@",responseObject);
+            //NSLog(@"load groups response object: %@",responseObject);
             groups = [BHUtilities groupsFromJSONArray:[responseObject objectForKey:@"groups"]];
             [self loadArchived];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error while loading groups: %@",error.description);
+            //NSLog(@"Error while loading groups: %@",error.description);
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         }];
@@ -204,16 +207,16 @@
     }
 }
 
-- (void)saveToMR:(id)forSave {
+- (void)saveToMR:(NSMutableArray*)projectsArray {
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
     savedUser = [User MR_findFirst];
-    savedUser.bhprojects = forSave;
-    if ([(NSMutableArray*)forSave count] == 0){
+    //savedUser.bhprojects = forSave;
+    if (projectsArray.count == 0){
         NSLog(@"no projects");
         self.tableView.allowsSelection = YES;
         [SVProgressHUD dismiss];
     } else {
-        for (BHProject *proj in forSave) {
+        for (BHProject *proj in projectsArray) {
 
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", proj.identifier];
             Project *savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
@@ -221,22 +224,20 @@
                 NSLog(@"Found saved project %@",proj.name);
                 savedProject.identifier = proj.identifier;
                 savedProject.name = proj.name;
-                savedProject.users = proj.users;
-                savedProject.subs = proj.subs;
+                //savedProject.users = proj.users;
+                //savedProject.subs = proj.subs;
             } else {
                 NSLog(@"Creating a new project for local storage: %@",proj.name);
                 Project *project = [Project MR_createInContext:localContext];
                 project.identifier = proj.identifier;
                 project.name = proj.name;
-                project.users = proj.users;
-                project.subs = proj.subs;
+                //project.users = proj.users;
+                //project.subs = proj.subs;
             }
-            
         }
 
         [localContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-            projects = savedUser.bhprojects;
-            //[self loadDetailView];
+            projects = projectsArray;
             [self.tableView reloadData];
         }];
     }

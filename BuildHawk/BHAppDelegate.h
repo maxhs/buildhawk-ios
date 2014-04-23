@@ -15,4 +15,5 @@
 
 - (void)logout;
 - (UIView*)addOverlay;
+- (void)offlineNotification;
 @end

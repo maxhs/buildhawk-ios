@@ -359,9 +359,9 @@
     }
     if ([segue.identifier isEqualToString:@"SubPicker"]) {
         [vc setCountNotNeeded:YES];
-        [vc setSubArray:_savedProject.subs];
+        [vc setSubArray:_savedProject.subs.array];
     } else if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
-        [vc setUserArray:_savedProject.users];
+        [vc setUserArray:_savedProject.users.array];
     }
 }
 
@@ -648,9 +648,9 @@
 
 -(void)removePhoto:(NSNotification*)notification {
     BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
-    if (photoToRemove.identifier.length){
+    if (photoToRemove.identifier){
         for (BHPhoto *photo in _item.photos){
-            if ([photo.identifier isEqualToString:photoToRemove.identifier]) {
+            if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
                 [_item.photos removeObject:photo];
                 [self redrawScrollView];
                 break;
@@ -696,7 +696,7 @@
                 [UIView animateWithDuration:.25 animations:^{
                     [imageButton setAlpha:1.0];
                 }];
-                [imageButton setTitle:photo.identifier forState:UIControlStateNormal];
+                //[imageButton setTitle:photo.identifier forState:UIControlStateNormal];
             }];
         } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];

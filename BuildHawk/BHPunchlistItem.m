@@ -12,7 +12,7 @@
 
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"id"]) {
-        self.identifier = [value stringValue];
+        self.identifier = value;
     } else if ([key isEqualToString:@"body"]) {
         if (value != [NSNull null] && value != nil) self.body = value;
     } else if ([key isEqualToString:@"location"]) {

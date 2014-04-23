@@ -16,7 +16,7 @@
 @property (nonatomic, strong) NSString *fname;
 @property (nonatomic, strong) NSString *lname;
 @property (nonatomic, strong) NSString *fullname;
-@property (nonatomic, strong) NSString *identifier;
+@property (nonatomic, strong) NSNumber *identifier;
 @property (nonatomic, strong) NSString *email;
 @property (nonatomic, strong) NSString *password;
 @property (nonatomic, strong) NSString *phone;

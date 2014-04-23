@@ -9,7 +9,7 @@
 #ifndef BuildHawk_Constants_h
 #define BuildHawk_Constants_h
 
-#define kApiBaseUrl @"http://www.buildhawk.com/api/v2"
+#define kApiBaseUrl @"https://www.buildhawk.com/api/v2"
 
 #define kFlurryKey @"VS4FQPRGGB5BXWWGGXSB"
 

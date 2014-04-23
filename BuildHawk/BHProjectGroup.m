@@ -12,7 +12,7 @@
 
 - (void)setValue:(id)value forKey:(NSString *)key {
     if ([key isEqualToString:@"id"]) {
-        self.identifier = [value stringValue];
+        self.identifier = value;
     } else if ([key isEqualToString:@"name"]) {
         self.name = value;
     } else if ([key isEqualToString:@"projects_count"]) {
