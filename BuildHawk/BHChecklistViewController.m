@@ -19,7 +19,6 @@
 #import "BHCategory.h"
 #import "BHSubcategory.h"
 #import "BHChecklist.h"
-#import <SVProgressHUD/SVProgressHUD.h>
 #import "Flurry.h"
 //#import "GAI.h"
 #import "Project.h"
@@ -93,7 +92,7 @@
     if (!inProgressListItems) inProgressListItems = [NSMutableArray array];
     
     [self loadChecklist];
-    [SVProgressHUD showWithStatus:@"Loading Checklist..."];
+    [ProgressHUD show:@"Loading Checklist..."];
     
     [self.searchDisplayController.searchBar setShowsCancelButton:NO animated:NO];
     [self.segmentedControl setSelectedSegmentIndex:0];
@@ -176,12 +175,12 @@
         //NSLog(@"checklist response: %@",responseObject);
         [self drawChecklistLimitActive:NO orCompleted:NO];
         if (self.isViewLoaded && self.view.window) {
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     }];
 }
 
@@ -575,7 +574,7 @@
 }
 - (void)viewWillDisappear:(BOOL)animated {
     //[manager.operationQueue cancelAllOperations];
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
     [super viewWillDisappear:animated];
 }
 

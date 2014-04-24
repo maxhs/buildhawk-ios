@@ -6,8 +6,19 @@
         <relationship name="users" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="company" inverseEntity="User" syncable="YES"/>
     </entity>
     <entity name="Project" representedClassName="Project" syncable="YES">
+        <attribute name="active" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="address" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="checklistCategories" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="demo" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="group" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="notifications" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="photos" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="recentDocuments" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="recentItems" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="upcomingItems" optional="YES" attributeType="Transformable" syncable="YES"/>
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="projects" inverseEntity="Company" syncable="YES"/>
         <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="project" inverseEntity="Report" syncable="YES"/>
         <relationship name="subs" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Sub" inverseName="projects" inverseEntity="Sub" syncable="YES"/>
@@ -65,7 +76,7 @@
     </entity>
     <elements>
         <element name="Company" positionX="0" positionY="0" width="128" height="88"/>
-        <element name="Project" positionX="0" positionY="0" width="128" height="133"/>
+        <element name="Project" positionX="0" positionY="0" width="128" height="298"/>
         <element name="Report" positionX="0" positionY="0" width="128" height="328"/>
         <element name="Sub" positionX="9" positionY="108" width="128" height="148"/>
         <element name="User" positionX="0" positionY="0" width="128" height="223"/>

@@ -12,7 +12,6 @@
 #import "UIImageView+WebCache.h"
 #import <QuartzCore/QuartzCore.h>
 #import "BHAppDelegate.h"
-#import <SVProgressHUD/SVProgressHUD.h>
 #import "BHUser.h"
 #import "User.h"
 #import <CoreData+MagicalRecord.h>
@@ -147,7 +146,7 @@ static NSString *textPlaceholder = @"Text Message";
         [initialVC adjustLoginContainer];
         [self presentViewController:initialVC animated:YES completion:nil];
     }
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
 }
 
 /*

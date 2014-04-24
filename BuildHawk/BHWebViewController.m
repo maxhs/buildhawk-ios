@@ -32,19 +32,19 @@
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {
-    [SVProgressHUD showWithStatus:@"Loading..."];
+    [ProgressHUD show:@"Loading..."];
 }
 
 - (void) webViewDidFinishLoad:(UIWebView *)webView {
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
 }
 
 - (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
     [super viewDidDisappear:animated];
 }
 - (void)didReceiveMemoryWarning

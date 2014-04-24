@@ -750,20 +750,20 @@
             }
             [parameters setObject:commentArray forKey:@"comments"];
         }
-        if (dismiss)[SVProgressHUD showWithStatus:@"Updating item..."];
+        if (dismiss)[ProgressHUD show:@"Updating item..."];
         [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success updating checklist item %@",responseObject);
             BHChecklistItem *updatedItem = [[BHChecklistItem alloc] initWithDictionary:[responseObject objectForKey:@"checklist_item"]];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
             if (dismiss){
                 [self.navigationController popViewControllerAnimated:YES];
-                [SVProgressHUD dismiss];
+                [ProgressHUD dismiss];
             } else {
                 shouldSave = NO;
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure updating checklist item: %@",error.description);
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }];
     }
@@ -795,10 +795,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES;
-    }
-
+    
     [browser setCurrentPhotoIndex:idx];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];

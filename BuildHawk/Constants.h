@@ -9,6 +9,11 @@
 #ifndef BuildHawk_Constants_h
 #define BuildHawk_Constants_h
 
+static inline int screenHeight(){ return [UIScreen mainScreen].bounds.size.height; }
+static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width; }
+#define IDIOM    UI_USER_INTERFACE_IDIOM()
+#define IPAD     UIUserInterfaceIdiomPad
+
 #define kApiBaseUrl @"https://www.buildhawk.com/api/v2"
 
 #define kFlurryKey @"VS4FQPRGGB5BXWWGGXSB"

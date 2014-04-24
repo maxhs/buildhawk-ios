@@ -12,7 +12,6 @@
 #import "BHPunchlistItem.h"
 #import "BHPunchlist.h"
 #import "BHPhoto.h"
-#import <SVProgressHUD/SVProgressHUD.h>
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "UIButton+WebCache.h"
 #import "BHTabBarViewController.h"
@@ -93,7 +92,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [SVProgressHUD showWithStatus:@"Getting Worklist..."];
+    [ProgressHUD show:@"Getting Worklist..."];
     [self loadPunchlist];
 }
 
@@ -177,7 +176,7 @@
 
 - (void)handleRefresh:(id)sender {
     firstLoad = YES;
-    [SVProgressHUD showWithStatus:@"Refreshing..."];
+    [ProgressHUD show:@"Refreshing..."];
     [self loadPunchlist];
 }
 
@@ -283,11 +282,11 @@
             firstLoad = NO;
         }
         [self.tableView reloadData];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error loading worklists: %@",error.description);
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];

@@ -171,7 +171,7 @@
     }
     self.window.rootViewController = [storyboard instantiateInitialViewController];
     
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
 }
 
 - (void)offlineNotification {

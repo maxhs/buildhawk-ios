@@ -16,8 +16,6 @@
         self.identifier = value;
     } else if ([key isEqualToString:@"name"]) {
         self.name = value;
-    } else if ([key isEqualToString:@"type"]) {
-        self.type = value;
     } else if ([key isEqualToString:@"company"]) {
         self.company = [[BHCompany alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"active"]) {
@@ -69,7 +67,6 @@
 - (id)initWithCoder:(NSCoder *)decoder {
     if (self = [super init]) {
         self.identifier = [decoder decodeObjectForKey:@"identifier"];
-        self.type = [decoder decodeObjectForKey:@"type"];
         self.name = [decoder decodeObjectForKey:@"name"];
         self.company = [decoder decodeObjectForKey:@"company"];
         self.address = [decoder decodeObjectForKey:@"address"];
@@ -81,7 +78,6 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.identifier forKey:@"identifier"];
     [coder encodeObject:self.name forKey:@"name"];
-    [coder encodeObject:self.type forKey:@"type"];
     [coder encodeObject:self.company forKey:@"company"];
     [coder encodeObject:self.address forKey:@"address"];
     [coder encodeObject:self.users forKey:@"users"];

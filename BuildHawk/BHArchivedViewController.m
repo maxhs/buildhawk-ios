@@ -105,7 +105,7 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     }
 }
 

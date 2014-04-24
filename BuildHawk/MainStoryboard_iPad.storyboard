@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13C64" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
     <dependencies>
-        <deployment defaultVersion="1536" identifier="iOS"/>
+        <deployment defaultVersion="1792" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <scenes>
@@ -493,16 +493,45 @@
             </objects>
             <point key="canvasLocation" x="5310" y="1286"/>
         </scene>
-        <!--View Controller - Reports-->
+        <!--Reports View Controller - Reports-->
         <scene sceneID="QQn-O2-foH">
             <objects>
-                <viewController id="nXn-66-heB" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Reports" id="nXn-66-heB" customClass="BHReportsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="z2a-uX-mC2">
                         <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Ejx-lg-dbz">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="nXn-66-heB" id="qZ0-Jn-8wH"/>
+                                    <outlet property="delegate" destination="nXn-66-heB" id="cZW-tX-U6i"/>
+                                </connections>
+                            </tableView>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="q5h-kg-2Aj" customClass="BHDeselectableSegmentedControl">
+                                <rect key="frame" x="184" y="6" width="400" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <segments>
+                                    <segment title="Daily"/>
+                                    <segment title="Safety"/>
+                                    <segment title="Weekly"/>
+                                </segments>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </segmentedControl>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="uxR-hx-hEt"/>
+                    <connections>
+                        <outlet property="segmentedControl" destination="q5h-kg-2Aj" id="2zn-2u-rhF"/>
+                        <outlet property="tableView" destination="Ejx-lg-dbz" id="9vg-FE-gud"/>
+                        <segue destination="3" kind="push" identifier="Report" id="v3P-e2-fpL"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Fec-Wv-acC" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -513,15 +542,25 @@
             <objects>
                 <viewController storyboardIdentifier="Report" title="Reports" id="3" customClass="BHReportViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="17">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="DvU-aj-8ES">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" heightSizable="YES" flexibleMaxY="YES"/>
                                 <subviews>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="mgU-VT-M8K">
+                                        <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
+                                        <connections>
+                                            <outlet property="dataSource" destination="3" id="tj5-SL-tlG"/>
+                                            <outlet property="delegate" destination="3" id="FpF-E5-Zt0"/>
+                                        </connections>
+                                    </tableView>
                                     <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="LzY-6V-uE2">
-                                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                        <rect key="frame" x="768" y="0.0" width="768" height="960"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="340"/>
@@ -530,18 +569,28 @@
                                             <outlet property="delegate" destination="3" id="cIb-ob-1F7"/>
                                         </connections>
                                     </tableView>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Dfo-A2-OkS">
+                                        <rect key="frame" x="1536" y="0.0" width="768" height="960"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
+                                        <connections>
+                                            <outlet property="dataSource" destination="3" id="xFf-Qz-ggb"/>
+                                            <outlet property="delegate" destination="3" id="oXz-Ps-zPq"/>
+                                        </connections>
+                                    </tableView>
                                 </subviews>
                                 <connections>
                                     <outlet property="delegate" destination="3" id="82b-4g-Yv5"/>
                                 </connections>
                             </scrollView>
                             <view alpha="0.0" contentMode="scaleToFill" id="pba-Qr-gW3">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </view>
                             <view contentMode="scaleToFill" id="Git-ZO-up8">
-                                <rect key="frame" x="0.0" y="814" width="768" height="210"/>
+                                <rect key="frame" x="0.0" y="750" width="768" height="210"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
                                 <subviews>
                                     <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" minuteInterval="1" id="Qju-Rf-WaN">
@@ -605,13 +654,15 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="uxM-Tr-aoB"/>
                     <navigationItem key="navigationItem" id="BTQ-xq-3Y3"/>
                     <connections>
+                        <outlet property="activeTableView" destination="LzY-6V-uE2" id="n9d-Wp-6BL"/>
+                        <outlet property="afterTableView" destination="Dfo-A2-OkS" id="Tmj-9L-USF"/>
+                        <outlet property="beforeTableView" destination="mgU-VT-M8K" id="NoQ-iM-NM9"/>
                         <outlet property="cancelButton" destination="AcK-zI-l2C" id="TyY-eS-EAg"/>
                         <outlet property="datePicker" destination="Qju-Rf-WaN" id="RZG-wQ-6Uw"/>
                         <outlet property="datePickerContainer" destination="Git-ZO-up8" id="plA-yZ-inJ"/>
                         <outlet property="overlayView" destination="pba-Qr-gW3" id="alG-Y8-mxM"/>
                         <outlet property="scrollView" destination="DvU-aj-8ES" id="Z3E-wZ-l6b"/>
                         <outlet property="selectButton" destination="yfU-ZI-xDv" id="ANQ-iz-iFc"/>
-                        <outlet property="tableView" destination="LzY-6V-uE2" id="laF-UX-DSw"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="PeoplePicker" id="b6Y-cM-cBh"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="SubPicker" id="Gag-wf-ZVs"/>
                     </connections>
@@ -1235,11 +1286,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="PeoplePicker" id="XFP-TZ-PCg" customClass="BHPeoplePickerViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="pIX-ZI-BfP">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="EEF-HI-3KG">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>

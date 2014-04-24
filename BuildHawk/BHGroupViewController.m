@@ -41,7 +41,7 @@
 
 - (void)loadGroup {
     if (_group.projectsCount > 0){
-        [SVProgressHUD showWithStatus:@"Fetching Group Projects..."];
+        [ProgressHUD show:@"Fetching Group Projects..."];
         [manager GET:[NSString stringWithFormat:@"%@/groups/%@",kApiBaseUrl,_group.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success getting group: %@",responseObject);
             _group = [[BHProjectGroup alloc] initWithDictionary:[responseObject objectForKey:@"group"]];
@@ -49,7 +49,7 @@
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure getting dashboard: %@",error.description);
             [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong while fetching projects for this group. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
         }];
     }
 }
@@ -120,7 +120,7 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     }
 }
 

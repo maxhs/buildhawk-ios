@@ -60,7 +60,6 @@
     } else {
         _isVCBasedStatusBarAppearance = YES; // default
     }
-    self.wantsFullScreenLayout = YES;
     self.hidesBottomBarWhenPushed = YES;
     _photoCount = NSNotFound;
     _previousLayoutBounds = CGRectZero;
@@ -225,9 +224,9 @@
     
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
     if (photo.identifier){
-        [SVProgressHUD showWithStatus:@"Deleting photo..." maskType:SVProgressHUDMaskTypeGradient];
+        [ProgressHUD show:@"Deleting photo..."];
         [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
             [self.navigationController popViewControllerAnimated:YES];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             
@@ -393,9 +392,9 @@
         // If the frame is zero then definitely leave it alone
         _leaveStatusBarAlone = YES;
     }
-    if (!_leaveStatusBarAlone && self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+    if (!_leaveStatusBarAlone && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
         _previousStatusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
-        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:animated];
+        //[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:animated];
     }
     
     // Navigation bar appearance
@@ -441,7 +440,7 @@
     [self setControlsHidden:NO animated:NO permanent:YES];
     
     // Status bar
-    if (!_leaveStatusBarAlone && self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
+    if (!_leaveStatusBarAlone && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
         [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
     }
     
@@ -1270,7 +1269,7 @@
         } else {
             
             // Status bar and nav bar positioning
-            if (self.wantsFullScreenLayout) {
+            /*if (self.wantsFullScreenLayout) {
                 
                 // Need to get heights and set nav bar position to overcome display issues
                 
@@ -1295,7 +1294,7 @@
                 navBarFrame.origin.y = statusBarHeight;
                 self.navigationController.navigationBar.frame = navBarFrame;
                 
-            }
+            }*/
             
         }
     }

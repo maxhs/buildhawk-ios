@@ -182,9 +182,6 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = YES;
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES;
-    }
 
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];

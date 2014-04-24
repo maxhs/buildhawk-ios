@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13C64" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
     <dependencies>
-        <deployment defaultVersion="1536" identifier="iOS"/>
+        <deployment defaultVersion="1792" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <scenes>
@@ -234,18 +234,8 @@
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="m4i-vh-i8d">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="40" maxX="0.0" maxY="49"/>
-                                <connections>
-                                    <outlet property="dataSource" destination="r0E-CY-Oux" id="aFn-uu-Q0j"/>
-                                    <outlet property="delegate" destination="r0E-CY-Oux" id="OqD-92-f80"/>
-                                </connections>
-                            </tableView>
                             <segmentedControl opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bordered" selectedSegmentIndex="0" id="7ee-9b-fVh" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="6" y="10" width="308" height="29"/>
+                                <rect key="frame" x="4" y="8" width="312" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <segments>
@@ -256,6 +246,16 @@
                                 </segments>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </segmentedControl>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="m4i-vh-i8d">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <inset key="contentInset" minX="0.0" minY="40" maxX="0.0" maxY="49"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="r0E-CY-Oux" id="aFn-uu-Q0j"/>
+                                    <outlet property="delegate" destination="r0E-CY-Oux" id="OqD-92-f80"/>
+                                </connections>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -446,17 +446,43 @@
             </objects>
             <point key="canvasLocation" x="2303" y="1376"/>
         </scene>
-        <!--View Controller - Reports-->
+        <!--Reports View Controller - Reports-->
         <scene sceneID="tdm-A1-qCW">
             <objects>
-                <viewController storyboardIdentifier="Reports" id="PYU-kZ-OjC" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Reports" id="PYU-kZ-OjC" customClass="BHReportsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="3Cf-R1-lbT">
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="PFD-Cw-6rY" customClass="BHDeselectableSegmentedControl">
+                                <rect key="frame" x="8" y="6" width="304" height="29"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <segments>
+                                    <segment title="Daily"/>
+                                    <segment title="Safety"/>
+                                    <segment title="Weekly"/>
+                                </segments>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </segmentedControl>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="VS0-1K-JbD">
+                                <rect key="frame" x="0.0" y="35" width="320" height="469"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="PYU-kZ-OjC" id="4S6-ji-WXP"/>
+                                    <outlet property="delegate" destination="PYU-kZ-OjC" id="oFo-EX-U9G"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="GpF-2H-fqz"/>
                     <connections>
+                        <outlet property="segmentedControl" destination="PFD-Cw-6rY" id="sj0-UY-evu"/>
+                        <outlet property="tableView" destination="VS0-1K-JbD" id="zG2-xV-ePg"/>
                         <segue destination="3" kind="push" identifier="Report" id="7to-sF-Hdh"/>
                     </connections>
                 </viewController>
@@ -484,6 +510,24 @@
                                         <connections>
                                             <outlet property="dataSource" destination="3" id="711-5o-Tgl"/>
                                             <outlet property="delegate" destination="3" id="cIb-ob-1F7"/>
+                                        </connections>
+                                    </tableView>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="DMb-mX-aFr">
+                                        <rect key="frame" x="320" y="0.0" width="320" height="504"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <connections>
+                                            <outlet property="dataSource" destination="3" id="MYB-y4-WVO"/>
+                                            <outlet property="delegate" destination="3" id="JSz-cH-bRR"/>
+                                        </connections>
+                                    </tableView>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="LAP-kd-1sg">
+                                        <rect key="frame" x="640" y="0.0" width="320" height="504"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <connections>
+                                            <outlet property="dataSource" destination="3" id="pRX-it-ZF2"/>
+                                            <outlet property="delegate" destination="3" id="YXF-Hb-3Tm"/>
                                         </connections>
                                     </tableView>
                                 </subviews>
@@ -561,13 +605,15 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="hXH-Mx-Tmg"/>
                     <navigationItem key="navigationItem" id="fzG-Ma-MW3"/>
                     <connections>
+                        <outlet property="activeTableView" destination="DMb-mX-aFr" id="RrQ-8Y-tLr"/>
+                        <outlet property="afterTableView" destination="LAP-kd-1sg" id="hMz-VB-J0r"/>
+                        <outlet property="beforeTableView" destination="LzY-6V-uE2" id="k03-pU-rTh"/>
                         <outlet property="cancelButton" destination="Wil-Vk-K3c" id="wey-dD-pdn"/>
                         <outlet property="datePicker" destination="fEQ-Hl-ZEa" id="64l-GY-xOC"/>
                         <outlet property="datePickerContainer" destination="pXd-NO-LcI" id="Dqg-aN-VXY"/>
                         <outlet property="overlayView" destination="n6y-5E-s2q" id="AQM-rq-TX4"/>
                         <outlet property="scrollView" destination="DvU-aj-8ES" id="Z3E-wZ-l6b"/>
                         <outlet property="selectButton" destination="Pkt-2R-58v" id="5T0-cm-UcD"/>
-                        <outlet property="tableView" destination="LzY-6V-uE2" id="laF-UX-DSw"/>
                         <segue destination="xov-V5-hTJ" kind="push" identifier="PeoplePicker" id="bOL-sd-mqt"/>
                         <segue destination="xov-V5-hTJ" kind="push" identifier="SubPicker" id="0zm-Ej-2IJ"/>
                     </connections>
@@ -1304,8 +1350,8 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <segue reference="IwH-Rw-ke6"/>
         <segue reference="bOL-sd-mqt"/>
         <segue reference="JhG-cE-lNU"/>
+        <segue reference="eZr-X3-mJS"/>
         <segue reference="yE4-EA-SnA"/>
-        <segue reference="kFF-g5-AYt"/>
         <segue reference="POr-kh-1ho"/>
     </inferredMetricsTieBreakers>
 </document>

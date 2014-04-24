@@ -32,11 +32,7 @@
     NSInteger current = self.selectedSegmentIndex;
     [super touchesBegan:touches withEvent:event];
     if (current == self.selectedSegmentIndex) {
-        NSLog(@"cancel segment");
-        //[self sendActionsForControlEvents:UIControlEventValueChanged];
         [super setSelectedSegmentIndex:UISegmentedControlNoSegment];
-    } else {
-        NSLog(@"new segment");
     }
 }
 

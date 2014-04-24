@@ -8,7 +8,6 @@
 
 #import "BHPunchlistItemViewController.h"
 #import "Constants.h"
-#import <SVProgressHUD/SVProgressHUD.h>
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHUser.h"
 #import <MessageUI/MessageUI.h>
@@ -714,9 +713,7 @@ typedef void(^RequestSuccess)(id result);
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES;
-    }
+
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
@@ -771,7 +768,7 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         shouldSave = NO;
-        [SVProgressHUD showWithStatus:@"Updating item..."];
+        [ProgressHUD show:@"Updating item..."];
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         NSString *strippedLocationString;
         if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
@@ -802,10 +799,10 @@ typedef void(^RequestSuccess)(id result);
         
         [manager PATCH:[NSString stringWithFormat:@"%@/punchlist_items/%@", kApiBaseUrl, _punchlistItem.identifier] parameters:@{@"punchlist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [self.navigationController popViewControllerAnimated:YES];
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
             //NSLog(@"Success updating punchlist item: %@",responseObject);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
             NSLog(@"Failed to update punchlist item: %@",error.description);
         }];
     }
@@ -816,7 +813,7 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new worklist items for a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         shouldSave = NO;
-        [SVProgressHUD showWithStatus:@"Adding item..."];
+        [ProgressHUD show:@"Adding item..."];
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         NSString *strippedLocationString;
         if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
@@ -839,7 +836,7 @@ typedef void(^RequestSuccess)(id result);
 
         [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
             BHPunchlistItem *newItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
             if (newItem.identifier){
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];

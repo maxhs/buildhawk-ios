@@ -10,8 +10,9 @@
 #import "Report.h"
 #import "Report+helper.h"
 
-@interface BHReportsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
+@interface BHReportsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
 
 @end

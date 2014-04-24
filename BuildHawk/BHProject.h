@@ -14,7 +14,6 @@
 @interface BHProject : NSObject
 @property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSNumber *identifier;
-@property (nonatomic, strong) NSString *type;
 @property (nonatomic, strong) NSMutableArray *users;
 @property (nonatomic, strong) NSMutableArray *subs;
 @property (nonatomic, strong) NSMutableArray *photos;

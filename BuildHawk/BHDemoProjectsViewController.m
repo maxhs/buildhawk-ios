@@ -62,7 +62,7 @@
 }
 
 - (void)loadDemos {
-    [SVProgressHUD showWithStatus:@"Loading Demo Projects..."];
+    [ProgressHUD show:@"Loading Demo Projects..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"demo projects reponse object: %@",responseObject);
         demoProjects = [BHUtilities projectsFromJSONArray:[responseObject objectForKey:@"projects"]];
@@ -141,7 +141,7 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     }
 }
 
@@ -175,7 +175,7 @@
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
     [super viewWillDisappear:animated];
 }
 

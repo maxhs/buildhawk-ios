@@ -7,10 +7,8 @@
 //
 
 #import "BHTabBarViewController.h"
-#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHPhoto.h"
 #import "BHUser.h"
-#import <SVProgressHUD/SVProgressHUD.h>
 
 @interface BHTabBarViewController () {
     UIBarButtonItem *saveButton;

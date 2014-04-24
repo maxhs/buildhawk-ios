@@ -17,7 +17,6 @@
 #import "BHAddress.h"
 #import "BHCompany.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
-#import <SVProgressHUD/SVProgressHUD.h>
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "BHAppDelegate.h"
@@ -112,7 +111,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if (loading){
-        [SVProgressHUD showWithStatus:@"Fetching projects..."];
+        [ProgressHUD show:@"Fetching projects..."];
     }
     /*if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard]){
         UIView *overlayView = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
@@ -166,9 +165,9 @@
 }
 
 - (void)loadProjects {
-    [SVProgressHUD dismiss];
+
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        [SVProgressHUD showWithStatus:@"Fetching projects..."];
+        [ProgressHUD show:@"Fetching projects..."];
         [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"load projects response object: %@",responseObject);
             loading = NO;
@@ -181,7 +180,7 @@
             loading = NO;
             //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-            [SVProgressHUD dismiss];
+            [ProgressHUD dismiss];
         }];
     } else {
         [(BHAppDelegate*)[UIApplication sharedApplication].delegate logout];
@@ -214,7 +213,7 @@
     if (projectsArray.count == 0){
         NSLog(@"no projects");
         self.tableView.allowsSelection = YES;
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     } else {
         for (BHProject *proj in projectsArray) {
 
@@ -370,7 +369,7 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     }
 }
 

@@ -14,7 +14,6 @@
 #import "BHMenuViewController.h"
 #import "BHDashboardViewController.h"
 #import "Constants.h"
-#import "SVProgressHUD.h"
 
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
@@ -128,7 +127,7 @@
 
 - (void)login:(NSString*)email andPassword:(NSString*)password{
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [SVProgressHUD showWithStatus:@"Logging in..."];
+    [ProgressHUD show:@"Logging in..."];
     if (!email.length)
         email = self.emailTextField.text;
     if (!password.length)
@@ -212,7 +211,7 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error logging in: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
         [self.loginContainerView setAlpha:1.0];
         [self.loginButton setUserInteractionEnabled:YES];
     }];

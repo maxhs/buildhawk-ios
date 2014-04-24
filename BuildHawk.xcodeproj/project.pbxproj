@@ -87,8 +87,11 @@
 		F25699C819087B8800ED9032 /* BHReportsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699C719087B8800ED9032 /* BHReportsViewController.m */; };
 		F25699CB19087F1C00ED9032 /* BHReportCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699CA19087F1C00ED9032 /* BHReportCell.m */; };
 		F25699CD19087F2800ED9032 /* BHReportCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F25699CC19087F2800ED9032 /* BHReportCell.xib */; };
+		F25699D31908C40500ED9032 /* Project.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699D21908C40500ED9032 /* Project.m */; };
+		F25699D61908E13400ED9032 /* calendar.png in Resources */ = {isa = PBXBuildFile; fileRef = F25699D41908E13400ED9032 /* calendar.png */; };
+		F25699D71908E13400ED9032 /* calendar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F25699D51908E13400ED9032 /* calendar@2x.png */; };
+		F25699DA1908EFB300ED9032 /* ProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699D91908EFB300ED9032 /* ProgressHUD.m */; };
 		F260FD7F18CD039300D7C645 /* BHProjectGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = F260FD7E18CD039300D7C645 /* BHProjectGroup.m */; };
-		F26F955719073DAC0022F968 /* Project.m in Sources */ = {isa = PBXBuildFile; fileRef = F26F955619073DAC0022F968 /* Project.m */; };
 		F26F955D19073DAC0022F968 /* Company.m in Sources */ = {isa = PBXBuildFile; fileRef = F26F955C19073DAC0022F968 /* Company.m */; };
 		F26F956019073DAC0022F968 /* Sub.m in Sources */ = {isa = PBXBuildFile; fileRef = F26F955F19073DAC0022F968 /* Sub.m */; };
 		F26F956319073DAD0022F968 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = F26F956219073DAD0022F968 /* User.m */; };
@@ -373,10 +376,14 @@
 		F25699C919087F1C00ED9032 /* BHReportCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportCell.h; sourceTree = "<group>"; };
 		F25699CA19087F1C00ED9032 /* BHReportCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportCell.m; sourceTree = "<group>"; };
 		F25699CC19087F2800ED9032 /* BHReportCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHReportCell.xib; sourceTree = "<group>"; };
+		F25699D11908C40500ED9032 /* Project.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Project.h; sourceTree = "<group>"; };
+		F25699D21908C40500ED9032 /* Project.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Project.m; sourceTree = "<group>"; };
+		F25699D41908E13400ED9032 /* calendar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = calendar.png; sourceTree = "<group>"; };
+		F25699D51908E13400ED9032 /* calendar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "calendar@2x.png"; sourceTree = "<group>"; };
+		F25699D81908EFB300ED9032 /* ProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProgressHUD.h; sourceTree = "<group>"; };
+		F25699D91908EFB300ED9032 /* ProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProgressHUD.m; sourceTree = "<group>"; };
 		F260FD7D18CD039300D7C645 /* BHProjectGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHProjectGroup.h; sourceTree = "<group>"; };
 		F260FD7E18CD039300D7C645 /* BHProjectGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHProjectGroup.m; sourceTree = "<group>"; };
-		F26F955519073DAC0022F968 /* Project.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Project.h; sourceTree = "<group>"; };
-		F26F955619073DAC0022F968 /* Project.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Project.m; sourceTree = "<group>"; };
 		F26F955B19073DAC0022F968 /* Company.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Company.h; sourceTree = "<group>"; };
 		F26F955C19073DAC0022F968 /* Company.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Company.m; sourceTree = "<group>"; };
 		F26F955E19073DAC0022F968 /* Sub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sub.h; sourceTree = "<group>"; };
@@ -681,6 +688,8 @@
 		F203961817D12FA4001CFF61 /* Vendors */ = {
 			isa = PBXGroup;
 			children = (
+				F25699D81908EFB300ED9032 /* ProgressHUD.h */,
+				F25699D91908EFB300ED9032 /* ProgressHUD.m */,
 				F2FAE3A618F4DCA2005E582B /* SDWebImage */,
 				F2FAE42D18F4DDB3005E582B /* MWPhotoBrowser */,
 				F2FAE3C618F4DCA2005E582B /* MBProgressHUD */,
@@ -774,8 +783,6 @@
 				F26F955F19073DAC0022F968 /* Sub.m */,
 				F26F955B19073DAC0022F968 /* Company.h */,
 				F26F955C19073DAC0022F968 /* Company.m */,
-				F26F955519073DAC0022F968 /* Project.h */,
-				F26F955619073DAC0022F968 /* Project.m */,
 				F203961917D12FC6001CFF61 /* BHUser.h */,
 				F203961A17D12FC6001CFF61 /* BHUser.m */,
 				F203962517D16D9C001CFF61 /* BHTimestamp.h */,
@@ -784,6 +791,8 @@
 				F203962917D16DC2001CFF61 /* BHPhoto.m */,
 				F203961C17D12FF4001CFF61 /* BHCompany.h */,
 				F203961D17D12FF4001CFF61 /* BHCompany.m */,
+				F25699D11908C40500ED9032 /* Project.h */,
+				F25699D21908C40500ED9032 /* Project.m */,
 				F203961F17D12FFF001CFF61 /* BHProject.h */,
 				F203962017D12FFF001CFF61 /* BHProject.m */,
 				F260FD7D18CD039300D7C645 /* BHProjectGroup.h */,
@@ -942,6 +951,8 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				F25699D41908E13400ED9032 /* calendar.png */,
+				F25699D51908E13400ED9032 /* calendar@2x.png */,
 				F285E95718E5E5F6008FFEC1 /* libraryButton.png */,
 				F285E95818E5E5F6008FFEC1 /* libraryButton@2x.png */,
 				F285E95318E5E532008FFEC1 /* miniLibraryButton.png */,
@@ -1346,8 +1357,10 @@
 				F29579D017F7729B0082DE5A /* menu@2x.png in Resources */,
 				F28F9A0D189D890C000A46D4 /* empty100.png in Resources */,
 				F292AC1317F9F2DE0020DE13 /* mailButton.png in Resources */,
+				F25699D61908E13400ED9032 /* calendar.png in Resources */,
 				F226815218622D8100D78BDD /* documentsOutlineDark.png in Resources */,
 				F28F9A3D18A34E04000A46D4 /* BuildHawk_app_icon_40.png in Resources */,
+				F25699D71908E13400ED9032 /* calendar@2x.png in Resources */,
 				F285E95A18E5E5F6008FFEC1 /* libraryButton@2x.png in Resources */,
 				F22681A8187FB0ED00D78BDD /* cloudy.png in Resources */,
 				F2B1F0E717D7BE820007A4E3 /* Default@2x.png in Resources */,
@@ -1456,6 +1469,7 @@
 				F2A594EB17FBC13C00B818B5 /* BHPhotosViewController.m in Sources */,
 				F2B29FF217D0F9F000F09C6F /* BHDashboardViewController.m in Sources */,
 				F2FAE40718F4DCA2005E582B /* PSTGridLayoutInfo.m in Sources */,
+				F25699DA1908EFB300ED9032 /* ProgressHUD.m in Sources */,
 				F2B29FF517D0F9FC00F09C6F /* BHDashboardDetailViewController.m in Sources */,
 				F26F955D19073DAC0022F968 /* Company.m in Sources */,
 				F2FAE3ED18F4DCA2005E582B /* NSData+GIF.m in Sources */,
@@ -1536,7 +1550,6 @@
 				F29EF2EF1815D30F00F737B7 /* BHPersonnelCell.m in Sources */,
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
 				F203965F17D3DD7C001CFF61 /* BHReportViewController.m in Sources */,
-				F26F955719073DAC0022F968 /* Project.m in Sources */,
 				F2FAE40018F4DCA2005E582B /* PSTCollectionViewCell.m in Sources */,
 				F2C2008F18FCE617003C401A /* BHChooseTopicsViewCell.m in Sources */,
 				F2FAE44418F4DDB4005E582B /* MWPhoto.m in Sources */,
@@ -1545,6 +1558,7 @@
 				F25699C2190747EA00ED9032 /* Report.m in Sources */,
 				F203967217D3E1E8001CFF61 /* BHTabBarViewController.m in Sources */,
 				F2FAE40618F4DCA2005E582B /* PSTCollectionViewUpdateItem.m in Sources */,
+				F25699D31908C40500ED9032 /* Project.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1596,7 +1610,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1623,7 +1637,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1645,7 +1659,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BuildHawk/BuildHawk-Prefix.pch";
 				INFOPLIST_FILE = "BuildHawk/BuildHawk-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/maxhs/BuildHawk-ios/BuildHawk",
@@ -1671,7 +1685,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "BuildHawk/BuildHawk-Prefix.pch";
 				INFOPLIST_FILE = "BuildHawk/BuildHawk-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/maxhs/BuildHawk-ios/BuildHawk",

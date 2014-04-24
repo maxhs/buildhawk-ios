@@ -2,7 +2,7 @@
 //  Project.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/22/14.
+//  Created by Max Haines-Stiles on 4/23/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -15,10 +15,21 @@
 
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * name;
+@property (nonatomic, retain) id address;
+@property (nonatomic, retain) id photos;
+@property (nonatomic, retain) id group;
+@property (nonatomic, retain) id recentDocuments;
+@property (nonatomic, retain) id upcomingItems;
+@property (nonatomic, retain) id notifications;
+@property (nonatomic, retain) id recentItems;
+@property (nonatomic, retain) id checklistCategories;
+@property (nonatomic, retain) NSString * progressPercentage;
+@property (nonatomic, retain) NSNumber * demo;
+@property (nonatomic, retain) NSNumber * active;
+@property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) NSOrderedSet *reports;
 @property (nonatomic, retain) NSOrderedSet *subs;
 @property (nonatomic, retain) NSOrderedSet *users;
-@property (nonatomic, retain) Company *company;
 @end
 
 @interface Project (CoreDataGeneratedAccessors)

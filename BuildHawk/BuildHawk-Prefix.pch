@@ -17,5 +17,5 @@
     #import "BHUtilities.h"
     #import <CoreData+MagicalRecord.h>
     #import <AFNetworking/AFHTTPRequestOperationManager.h>
-    #import <SVProgressHUD/SVProgressHUD.h>
+    #import "ProgressHUD.h"
 #endif

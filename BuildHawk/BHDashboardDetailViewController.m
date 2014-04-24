@@ -372,9 +372,6 @@
     browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
     browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
     browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0){
-        browser.wantsFullScreenLayout = YES; // iOS 5 & 6 only: Decide if you want the photo browser full screen, i.e. whether the status bar is affected (defaults to YES)
-    }
 
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];

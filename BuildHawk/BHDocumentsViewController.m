@@ -13,7 +13,6 @@
 #import "BHPhoto.h"
 #import "BHFoldersViewController.h"
 #import "UIButton+WebCache.h"
-#import <SVProgressHUD/SVProgressHUD.h>
 #import "BHPhotosViewController.h"
 #import "Flurry.h"
 
@@ -105,7 +104,7 @@
 }
 
 - (void)loadPhotos {
-    [SVProgressHUD showWithStatus:@"Fetching documents..."];
+    [ProgressHUD show:@"Fetching documents..."];
     loading = YES;
     
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -114,12 +113,12 @@
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         loading = NO;
         [self.tableView reloadData];
-        if (photosArray.count == 0)[SVProgressHUD dismiss];
+        if (photosArray.count == 0)[ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting photos: %@",error.description);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         loading = NO;
-        [SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
     }];
 }
 
@@ -303,7 +302,7 @@
     cell.backgroundColor = [UIColor clearColor];
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        if (photosArray.count && !loading) [SVProgressHUD dismiss];
+        if (photosArray.count && !loading) [ProgressHUD dismiss];
     }
 }
 
@@ -496,7 +495,7 @@
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     [manager.operationQueue cancelAllOperations];
-    [SVProgressHUD dismiss];
+    [ProgressHUD dismiss];
 }
 
 @end

@@ -14,6 +14,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *personnelLabel;
 @property (weak, nonatomic) IBOutlet UILabel *notesLabel;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
+@property (weak, nonatomic) IBOutlet UILabel *photoCountBubble;
 
 - (void)configureReport:(Report*)report;
 @end
