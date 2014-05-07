@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-#import "BHPunchlistItem.h"
+#import "PunchlistItem.h"
 
 @interface BHPunchlist : NSObject
 @property (strong, nonatomic) NSMutableArray *listItems;

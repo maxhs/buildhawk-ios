@@ -7,7 +7,8 @@
 //
 
 #import "BHChecklistItemViewController.h"
-#import "BHChecklistItem.h"
+#import "ChecklistItem.h"
+#import "ChecklistItem+helper.h"
 #import "Constants.h"
 #import "BHCommentCell.h"
 #import "BHAddCommentCell.h"
@@ -59,7 +60,6 @@
 
 @synthesize item = _item;
 @synthesize row = _row;
-@synthesize savedProject = _savedProject;
 @synthesize project = _project;
 
 - (void)viewDidLoad
@@ -96,7 +96,7 @@
     /*NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", _projectId];
     savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];*/
-    NSLog(@"do we have a proejct? %@",_savedProject.name);
+    NSLog(@"do we have a proejct? %@",_project.name);
 }
 
 - (void)didReceiveMemoryWarning
@@ -110,7 +110,7 @@
         //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
         [_item setComments:[BHUtilities commentsFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"comments"]]];
         [_item setPhotos:[BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]]];
-        [_item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
+        //[_item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failure getting checklist item: %@",error.description);
@@ -300,13 +300,12 @@
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to add comments to a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            BHComment *comment = [[BHComment alloc] init];
+            Comment *comment = [Comment MR_createEntity];
             comment.body = addCommentTextView.text;
             comment.createdOnString = @"Just now";
             User *user = [(BHTabBarViewController*) self.tabBarController user];
-            comment.user = [[BHUser alloc] init];
-            comment.user.fullname = user.fullname;
-            [_item.comments addObject:comment];
+            comment.user = user;
+            [_item addComment:comment];
             
             [self.tableView reloadData];
             NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
@@ -359,9 +358,9 @@
     }
     if ([segue.identifier isEqualToString:@"SubPicker"]) {
         [vc setCountNotNeeded:YES];
-        [vc setSubArray:_savedProject.subs.array];
+        [vc setSubArray:_project.subs.array];
     } else if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
-        [vc setUserArray:_savedProject.users.array];
+        [vc setUserArray:_project.users.array];
     }
 }
 
@@ -753,7 +752,8 @@
         if (dismiss)[ProgressHUD show:@"Updating item..."];
         [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success updating checklist item %@",responseObject);
-            BHChecklistItem *updatedItem = [[BHChecklistItem alloc] initWithDictionary:[responseObject objectForKey:@"checklist_item"]];
+            ChecklistItem *updatedItem = [ChecklistItem MR_createEntity];
+            [updatedItem populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
             if (dismiss){
                 [self.navigationController popViewControllerAnimated:YES];
@@ -785,7 +785,7 @@
     
     // Create browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    if (_project.demo == YES) {
+    if (_project.demo == [NSNumber numberWithBool:YES]) {
         browser.displayTrashButton = NO;
     }
     browser.displayActionButton = YES;
@@ -826,7 +826,7 @@
                     _item.completed = NO;
                 } else {
                     [_item setStatus:kCompleted];
-                    _item.completed = YES;
+                    _item.completed = @YES;
                 }
                 break;
             case 1:
@@ -870,17 +870,17 @@
     if (_project.demo){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        BHComment *comment = [_item.comments objectAtIndex:indexPathForDeletion.row];
+        Comment *comment = [_item.comments objectAtIndex:indexPathForDeletion.row];
         if (comment.identifier){
             [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
-                [_item.comments removeObject:comment];
+                [_item removeComment:comment];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 //NSLog(@"Failed to delete comment: %@",error.description);
             }];
         } else {
-            [_item.comments removeObject:comment];
+            [_item removeComment:comment];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
         }
     }

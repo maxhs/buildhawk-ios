@@ -11,10 +11,10 @@
 #import "BHDashboardGroupCell.h"
 #import "BHDashboardDetailViewController.h"
 #import "BHTabBarViewController.h"
-#import "BHProject.h"
 #import "User.h"
 #import "Project.h"
-#import "BHAddress.h"
+#import "Project+helper.h"
+#import "Address.h"
 #import "BHCompany.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHTabBarViewController.h"
@@ -22,6 +22,7 @@
 #import "BHAppDelegate.h"
 #import "BHGroupViewController.h"
 #import "BHArchivedViewController.h"
+#import "BHOverlayView.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate,SWRevealViewControllerDelegate> {
     CGRect searchContainerRect;
@@ -42,9 +43,12 @@
     NSMutableDictionary *dashboardDetailDict;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
-    BHProject *archivedProject;
+    Project *archivedProject;
     NSMutableArray *archivedProjects;
     UIBarButtonItem *archiveButtonItem;
+    UIView *overlayBackground;
+    UIImageView *dashboardScreenshot;
+    NSManagedObjectContext *defaultContext;
 }
 
 @property (weak, nonatomic) IBOutlet UIView *searchContainerBackgroundView;
@@ -56,12 +60,12 @@
 {
     loading = YES;
     [super viewDidLoad];
-    manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
-   
+    manager = manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     
     if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
         self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     }
+    [self.view setBackgroundColor:[UIColor blackColor]];
     screen = [UIScreen mainScreen].bounds;
     if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
@@ -110,24 +114,11 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    if (loading){
-        [ProgressHUD show:@"Fetching projects..."];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard]){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
+        [self slide1];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboard];
     }
-    /*if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard]){
-        UIView *overlayView = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
-        UILabel *welcomeLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, screen.size.height/2-50, screen.size.width-40, 100)];
-        [welcomeLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:40]];
-        [welcomeLabel setTextColor:[UIColor whiteColor]];
-        [welcomeLabel setTextAlignment:NSTextAlignmentCenter];
-        [welcomeLabel setText:@"Welcome to\nBuildHawk"];
-        [welcomeLabel setNumberOfLines:0];
-        welcomeLabel.layer.shadowColor = [UIColor blackColor].CGColor;
-        welcomeLabel.layer.shadowOffset = CGSizeMake(1, 1);
-        welcomeLabel.layer.shadowRadius = .5f;
-        welcomeLabel.layer.shadowOpacity    =   .5f;
-        [overlayView addSubview:welcomeLabel];
-        //[[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboard];
-    }*/
 }
 
 - (IBAction)revealMenu {
@@ -142,104 +133,71 @@
     }
 }
 
-/*- (void)loadDetailView {
-    for (BHProject *proj in projects){
-        [categories removeAllObjects];
-        [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success getting dashboard detail view: %@",responseObject);
-            categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
-            [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
-            if (dashboardDetailDict.count == projects.count) {
-                //NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
-                [self.tableView reloadData];
-            }
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            self.tableView.allowsSelection = YES;
-            NSLog(@"Failure getting dashboard: %@",error.description);
-        }];
-    }
-}*/
-
 - (void)handleRefresh:(id)sender {
     [self loadProjects];
 }
 
 - (void)loadProjects {
-
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        [ProgressHUD show:@"Fetching projects..."];
-        [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"load projects response object: %@",responseObject);
-            loading = NO;
-            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-            [self saveToMR:[BHUtilities projectsFromJSONArray:[responseObject objectForKey:@"projects"]]];
-            [self.tableView reloadData];
-            [self loadGroups];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error while loading projects: %@",error.description);
-            loading = NO;
-            //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-            [ProgressHUD dismiss];
-        }];
-    } else {
-        [(BHAppDelegate*)[UIApplication sharedApplication].delegate logout];
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please log in and try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }
+    projects = [[Project MR_findAllSortedBy:@"name" ascending:YES] mutableCopy];
+    //NSLog(@"projects count fetched from MR: %i",projects.count);
+    if (projects.count == 0)[ProgressHUD show:@"Fetching projects..."];
+    else [self.tableView reloadData];
+    [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"load projects response object: %@",responseObject);
+        loading = NO;
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        [self updateProjects:[responseObject objectForKey:@"projects"]];
+        [self loadGroups];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error while loading projects: %@",error.description);
+        loading = NO;
+        //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        [ProgressHUD dismiss];
+    }];
 }
 
-- (void)loadGroups {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"load groups response object: %@",responseObject);
-            groups = [BHUtilities groupsFromJSONArray:[responseObject objectForKey:@"groups"]];
-            [self loadArchived];
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            //NSLog(@"Error while loading groups: %@",error.description);
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        }];
-    } else {
-        [(BHAppDelegate*)[UIApplication sharedApplication].delegate logout];
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please log in and try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }
-}
-
-- (void)saveToMR:(NSMutableArray*)projectsArray {
-    NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
+- (void)updateProjects:(NSArray*)projectsArray {
+    defaultContext = [NSManagedObjectContext MR_defaultContext];
     savedUser = [User MR_findFirst];
-    //savedUser.bhprojects = forSave;
     if (projectsArray.count == 0){
         NSLog(@"no projects");
         self.tableView.allowsSelection = YES;
         [ProgressHUD dismiss];
     } else {
-        for (BHProject *proj in projectsArray) {
-
-            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", proj.identifier];
-            Project *savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];
-            if (savedProject){
-                NSLog(@"Found saved project %@",proj.name);
-                savedProject.identifier = proj.identifier;
-                savedProject.name = proj.name;
-                //savedProject.users = proj.users;
-                //savedProject.subs = proj.subs;
+        for (id obj in projectsArray) {
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [obj objectForKey:@"id"]];
+            Project *project = [Project MR_findFirstWithPredicate:predicate inContext:defaultContext];
+            if (project){
+                NSLog(@"Found saved project %@",project.name);
+                [project populateFromDictionary:obj];
             } else {
-                NSLog(@"Creating a new project for local storage: %@",proj.name);
-                Project *project = [Project MR_createInContext:localContext];
-                project.identifier = proj.identifier;
-                project.name = proj.name;
-                //project.users = proj.users;
-                //project.subs = proj.subs;
+                project = [Project MR_createInContext:defaultContext];
+                NSLog(@"Creating a new project for local storage: %@",project.name);
+                [project populateFromDictionary:obj];
+                [projects addObject:project];
             }
         }
 
-        [localContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-            projects = projectsArray;
+        [defaultContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+            NSLog(@"What happened during dashboard save? %hhd %@",success, error);
             [self.tableView reloadData];
         }];
     }
+}
+
+- (void)loadGroups {
+
+    [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"load groups response object: %@",responseObject);
+        groups = [BHUtilities groupsFromJSONArray:[responseObject objectForKey:@"groups"]];
+        [self loadArchived];
+        //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        //NSLog(@"Error while loading groups: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    }];
 }
 
 - (void)loadArchived {
@@ -288,7 +246,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (indexPath.section == 0){
-        BHProject *project;
+        Project *project;
         if (tableView == self.searchDisplayController.searchResultsTableView){
             project = [filteredProjects objectAtIndex:indexPath.row];
         } else {
@@ -303,10 +261,10 @@
         }
         [cell.titleLabel setText:[project name]];
 
-        if (project.address.formattedAddress.length){
+        if (project.address.formattedAddress){
             [cell.subtitleLabel setText:project.address.formattedAddress];
         } else {
-            [cell.subtitleLabel setText:project.company.name];
+            //[cell.subtitleLabel setText:project.company.name];
         }
         
         [cell.progressLabel setText:project.progressPercentage];
@@ -434,10 +392,10 @@
 
     if (tableView == self.searchDisplayController.searchResultsTableView){
         [self.searchDisplayController setActive:NO animated:NO];
-        BHProject *selectedProject = [filteredProjects objectAtIndex:indexPath.row];
+        Project *selectedProject = [filteredProjects objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
     } else if (indexPath.section == 0) {
-        BHProject *selectedProject = [projects objectAtIndex:indexPath.row];
+        Project *selectedProject = [projects objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
     } else if (indexPath.section == 1) {
         BHProjectGroup *group = [groups objectAtIndex:indexPath.row];
@@ -450,12 +408,12 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Project"]) {
-        BHProject *project = (BHProject*)sender;
+        Project *project = (Project*)sender;
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
         [vc setUser:savedUser];
     } else if ([segue.identifier isEqualToString:@"DashboardDetail"]) {
-        BHProject *project = (BHProject*)sender;
+        Project *project = (Project*)sender;
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     } else if ([segue.identifier isEqualToString:@"Group"]){
@@ -471,7 +429,7 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    BHProject *selectedProject;
+    Project *selectedProject;
     if (self.searchDisplayController.isActive){
         selectedProject = [filteredProjects objectAtIndex:button.tag];
     } else {
@@ -482,7 +440,7 @@
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
     [filteredProjects removeAllObjects]; // First clear the filtered array.
-    for (BHProject *project in projects){
+    for (Project *project in projects){
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
         if([predicate evaluateWithObject:project.name]) {
             [filteredProjects addObject:project];
@@ -508,6 +466,106 @@
     
     // Return YES to cause the search result table view to be reloaded.
     return NO;
+}
+
+#pragma mark Intro Stuff
+- (void)slide1 {
+    BHOverlayView *welcomeLabel = [[BHOverlayView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), screenHeight())];
+    UIImageView *welcomeImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"welcome"]];
+    [welcomeLabel addSubview:welcomeImage];
+    [welcomeImage setAlpha:0.0];
+    [welcomeImage setFrame:CGRectMake(screenWidth()/2-150, screenHeight()/2-70, 300, 100)];
+    [welcomeLabel configureText:@"(Tap anywhere to continue)" atFrame:CGRectMake(screenWidth()/2-150, screenHeight()-70, 300, 50)];
+    [welcomeLabel.label setFont:[UIFont fontWithName:kHelveticaNeueLight size:18]];
+    welcomeLabel.label.layer.shadowColor = [UIColor blackColor].CGColor;
+    [welcomeLabel.label setTextAlignment:NSTextAlignmentCenter];
+    welcomeLabel.label.layer.shadowOffset = CGSizeMake(1, 1);
+    welcomeLabel.label.layer.shadowRadius = .5f;
+    welcomeLabel.label.layer.shadowOpacity    =   .5f;
+
+    [welcomeLabel.tapGesture addTarget:self action:@selector(slide2:)];
+    [overlayBackground addSubview:welcomeLabel];
+    [UIView animateWithDuration:.25 animations:^{
+        [welcomeLabel setAlpha:1.0];
+        [welcomeImage setAlpha:1.0];
+    }];
+}
+
+- (void)slide2:(UITapGestureRecognizer*)sender {
+    BHOverlayView *dashboard = [[BHOverlayView alloc] initWithFrame:screen];
+    
+    if (iPad){
+        dashboardScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"dashboardiPad"]];
+        [dashboardScreenshot setFrame:CGRectMake(29, 30, 710, 462)];
+    } else {
+        dashboardScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"dashboardScreenshot"]];
+        [dashboardScreenshot setFrame:CGRectMake(10, 30, 300, 290)];
+    }
+    [dashboardScreenshot setAlpha:0.0];
+    [overlayBackground addSubview:dashboardScreenshot];
+    
+    [dashboard configureText:@"This is your project dashboard. All your active projects will be listed here." atFrame:CGRectMake(10, dashboardScreenshot.frame.origin.y + dashboardScreenshot.frame.size.height + 20, screenWidth()-20, 100)];
+    [dashboard.tapGesture addTarget:self action:@selector(slide3:)];
+    [dashboard.label setTextAlignment:NSTextAlignmentCenter];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:dashboard];
+        [UIView animateWithDuration:.25 animations:^{
+            [dashboard setAlpha:1.0];
+            [dashboardScreenshot setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)slide3:(UITapGestureRecognizer*)sender {
+    BHOverlayView *dashboard = [[BHOverlayView alloc] initWithFrame:screen];
+    [dashboard configureText:@"\"View Demo Projects\" will show you some examples of how you can use the app." atFrame:CGRectMake(10, dashboardScreenshot.frame.origin.y + dashboardScreenshot.frame.size.height + 20, screenWidth()-20, 100)];
+    [dashboard.tapGesture addTarget:self action:@selector(slide4:)];
+    [dashboard.label setTextAlignment:NSTextAlignmentCenter];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:dashboard];
+        [UIView animateWithDuration:.25 animations:^{
+            [dashboard setAlpha:1.0];
+            [dashboardScreenshot setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)slide4:(UITapGestureRecognizer*)sender {
+    BHOverlayView *progress = [[BHOverlayView alloc] initWithFrame:screen];
+    [progress configureText:@"See detailed project overviews by tapping the % on the right side of each project." atFrame:CGRectMake(10, dashboardScreenshot.frame.origin.y + dashboardScreenshot.frame.size.height + 20, screenWidth()-20, 100)];
+    
+    [progress.tapGesture addTarget:self action:@selector(endIntro:)];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:progress];
+        [UIView animateWithDuration:.25 animations:^{
+            [progress setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)endIntro:(UITapGestureRecognizer*)sender {
+    [UIView animateWithDuration:.35 animations:^{
+        [dashboardScreenshot setAlpha:0.0];
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [UIView animateWithDuration:.35 animations:^{
+            [overlayBackground setAlpha:0.0];
+        }completion:^(BOOL finished) {
+            [overlayBackground removeFromSuperview];
+        }];
+    }];
 }
 
 @end

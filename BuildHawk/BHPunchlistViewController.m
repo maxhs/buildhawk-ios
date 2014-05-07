@@ -9,7 +9,7 @@
 #import "BHPunchlistViewController.h"
 #import "BHPunchlistItemCell.h"
 #import "BHPunchlistItemViewController.h"
-#import "BHPunchlistItem.h"
+#import "PunchlistItem+helper.h"
 #import "BHPunchlist.h"
 #import "BHPhoto.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
@@ -24,7 +24,7 @@
     NSMutableArray *listItems;
     NSDateFormatter *dateFormatter;
     AFHTTPRequestOperationManager *manager;
-    BHProject *project;
+    Project *project;
     NSMutableArray *activeListItems;
     NSMutableArray *completedListItems;
     NSMutableArray *locationListItems;
@@ -195,8 +195,8 @@
     if (personnel.count){
         assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
         for (id assignee in personnel) {
-            if ([assignee isKindOfClass:[BHUser class]] && [[(BHUser*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(BHUser*)assignee fullname]];
-            else if ([assignee isKindOfClass:[BHSub class]] && [[(BHSub*)assignee name] length]) [assigneeActionSheet addButtonWithTitle:[(BHSub*)assignee name]];
+            if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(User*)assignee fullname]];
+            else if ([assignee isKindOfClass:[Sub class]] && [[(Sub*)assignee name] length]) [assigneeActionSheet addButtonWithTitle:[(Sub*)assignee name]];
         }
         assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
         [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
@@ -204,7 +204,7 @@
 }
 
 - (void)filterActive {
-    for (BHPunchlistItem *item in listItems){
+    for (PunchlistItem *item in listItems){
         if(!item.completed) {
             [activeListItems addObject:item];
         }
@@ -213,7 +213,7 @@
 }
 
 - (void)filterCompleted {
-    for (BHPunchlistItem *item in listItems){
+    for (PunchlistItem *item in listItems){
         if(item.completed) {
             [completedListItems addObject:item];
         }
@@ -229,17 +229,19 @@
             if (buttonTitle.length){
                 NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",buttonTitle];
                 NSPredicate *testForName = [NSPredicate predicateWithFormat:@"name like %@",buttonTitle];
-                for (BHPunchlistItem *item in listItems){
-                    id obj = item.assignees.firstObject;
-                    if ([obj isKindOfClass:[BHSub class]]) {
-                        if([testForName evaluateWithObject:obj]) {
-                            [assigneeListItems addObject:item];
-                        }
-                    } else if ([obj isKindOfClass:[BHUser class]]){
-                        if([testForFullName evaluateWithObject:obj]) {
+                for (PunchlistItem *item in listItems){
+                    
+                    if (item.subAssignees.count) {
+                        if([testForName evaluateWithObject:item.subAssignees.firstObject]) {
                             [assigneeListItems addObject:item];
                         }
                     }
+                    if (item.userAssignees.count){
+                        if([testForFullName evaluateWithObject:item.userAssignees.firstObject]) {
+                            [assigneeListItems addObject:item];
+                        }
+                    }
+                    
                 }
             }
             [self.tableView reloadData];
@@ -248,7 +250,7 @@
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] length]) {
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             NSPredicate *testForLocation = [NSPredicate predicateWithFormat:@"location like %@",buttonTitle];
-            for (BHPunchlistItem *item in listItems){
+            for (PunchlistItem *item in listItems){
                 if([testForLocation evaluateWithObject:item]) {
                     [locationListItems addObject:item];
                 }
@@ -260,21 +262,21 @@
 
 - (void)loadPunchlist {
     [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success loading punchlist: %@",responseObject);
+        NSLog(@"Success loading punchlist: %@",responseObject);
         [listItems removeAllObjects];
-        listItems = [BHUtilities punchlistItemsFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"punchlist_items"]];
+        //listItems = [BHUtilities punchlistItemsFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"punchlist_items"]];
         personnel = [BHUtilities personnelFromJSONArray:[[responseObject objectForKey:@"punchlist"] objectForKey:@"personnel"]];
         
         [activeListItems removeAllObjects];
-        for (BHPunchlistItem *item in listItems){
+        for (PunchlistItem *item in listItems){
             if(!item.completed) {
                 [activeListItems addObject:item];
             }
             if (item.location.length) {
                 [locationSet addObject:item.location];
             }
-            if (item.assignees) {
-                [assigneeSet addObject:item.assignees.firstObject];
+            if (item.userAssignees) {
+                [assigneeSet addObject:item.userAssignees.firstObject];
             }
         }
         if (firstLoad){
@@ -316,7 +318,7 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPunchlistItemCell" owner:self options:nil] lastObject];
     }
     
-    BHPunchlistItem *item;
+    PunchlistItem *item;
     if (completedListItems.count || showCompleted) {
         item = [completedListItems objectAtIndex:indexPath.row];
     } else if (activeListItems.count || showActive) {
@@ -375,7 +377,7 @@
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setProject:project];
         [vc setNewItem:NO];
-        BHPunchlistItem *item;
+        PunchlistItem *item;
         if (showActive && activeListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [activeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         } else if (showByLocation && locationListItems.count > self.tableView.indexPathForSelectedRow.row) {
@@ -387,7 +389,7 @@
         } else if (listItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [listItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
-        [vc setTitle:[NSString stringWithFormat:@"%@",item.createdOn]];
+        [vc setTitle:[NSString stringWithFormat:@"%@",item.createdAt]];
         [vc setPunchlistItem:item];
         [vc setLocationSet:locationSet];
         //if (savedUser)[vc setSavedUser:savedUser];

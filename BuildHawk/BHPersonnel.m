@@ -16,8 +16,6 @@
         self.count = value;
     } else if ([key isEqualToString:@"user"]) {
         self.user = [[BHUser alloc] initWithDictionary:value];
-    } else if ([key isEqualToString:@"sub"]) {
-        self.sub = [[BHSub alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"name"]) {
         self.name = [value stringValue];
     }

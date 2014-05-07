@@ -12,6 +12,7 @@
 #import "MWPhotoBrowserPrivate.h"
 #import "SDImageCache.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
+#import "BHAppDelegate.h"
 
 #define PADDING                  10
 #define ACTION_SHEET_OLD_ACTIONS 2000
@@ -225,7 +226,7 @@
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
     if (photo.identifier){
         [ProgressHUD show:@"Deleting photo..."];
-        [[AFHTTPRequestOperationManager manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [ProgressHUD dismiss];
             [self.navigationController popViewControllerAnimated:YES];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

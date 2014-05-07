@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Project, Sub, User;
+@class Project, Sub/*, User*/;
 
 @interface Report : NSManagedObject
 

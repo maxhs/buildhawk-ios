@@ -8,13 +8,13 @@
 
 #import <Foundation/Foundation.h>
 #import "BHUser.h"
-#import "BHSub.h"
+#import "Sub+helper.h"
 
 @interface BHPersonnel : NSObject
 @property (strong, nonatomic) NSNumber *identifier;
 @property (strong, nonatomic) NSNumber *count;
 @property (strong, nonatomic) NSString *name;
 @property (strong, nonatomic) BHUser *user;
-@property (strong, nonatomic) BHSub *sub;
+@property (strong, nonatomic) Sub *sub;
 - (id) initWithDictionary:(NSDictionary*)dictionary;
 @end

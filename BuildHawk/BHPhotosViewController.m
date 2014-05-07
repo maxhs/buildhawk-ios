@@ -213,7 +213,7 @@
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     
     // Set options
-    if (_project.demo == YES) {
+    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]) {
         browser.displayTrashButton = NO;
     }
     browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)

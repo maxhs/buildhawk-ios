@@ -14,11 +14,10 @@
 #import "BHMenuViewController.h"
 #import "BHDashboardViewController.h"
 #import "Constants.h"
-
+#import "User+helper.h"
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
     BOOL iPhone5;
-    BHUser *user;
     BOOL iPad;
     NSString *forgotPasswordEmail;
 }
@@ -137,76 +136,48 @@
     if (password) [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
     [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"log in response object: %@",responseObject);
-        user = [[BHUser alloc] initWithDictionary:[responseObject objectForKey:@"user"]];
+        //NSLog(@"log in response object: %@",responseObject);
+        
+        NSManagedObjectContext *localContext = [NSManagedObjectContext MR_defaultContext];
+        
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
+        User *user = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+        if (user) {
+            NSLog(@"Found existing user through Magical Record");
+
+        } else {
+            user = [User MR_createInContext:localContext];
+            NSLog(@"Created a new MR user");
+        }
+        [user populateFromDictionary:[responseObject objectForKey:@"user"]];
+
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] setObject:user.authToken forKey:kUserDefaultsAuthToken];
-        [[NSUserDefaults standardUserDefaults] setObject:user.fname forKey:kUserDefaultsFirstName];
-        [[NSUserDefaults standardUserDefaults] setObject:user.lname forKey:kUserDefaultsLastName];
+        [[NSUserDefaults standardUserDefaults] setObject:user.firstName forKey:kUserDefaultsFirstName];
+        [[NSUserDefaults standardUserDefaults] setObject:user.lastName forKey:kUserDefaultsLastName];
         [[NSUserDefaults standardUserDefaults] setObject:user.fullname forKey:kUserDefaultsFullName];
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
-        [[NSUserDefaults standardUserDefaults] setObject:user.photo.url100 forKey:kUserDefaultsPhotoUrl100];
+        //[[NSUserDefaults standardUserDefaults] setObject:user.photo.url100 forKey:kUserDefaultsPhotoUrl100];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
-        [[NSUserDefaults standardUserDefaults] setBool:user.admin forKey:kUserDefaultsAdmin];
-        [[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin forKey:kUserDefaultsCompanyAdmin];
-        [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin forKey:kUserDefaultsUberAdmin];
+        //[[NSUserDefaults standardUserDefaults] setBool:user.admin forKey:kUserDefaultsAdmin];
+        //[[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin forKey:kUserDefaultsCompanyAdmin];
+        //[[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
-        NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", user.identifier];
-        User *saveUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
-        if (saveUser) {
-            NSLog(@"Found existing user through Magical Record");
-            saveUser.identifier = user.identifier;
-            saveUser.lname = user.lname;
-            saveUser.email = user.email;
-            saveUser.fullname = user.fullname;
-            saveUser.fname = user.fname;
-            saveUser.coworkers = user.coworkers;
-            //saveUser.subcontractors = user.subcontractors;
-            saveUser.photoUrl100 = user.photo.url100;
-            saveUser.phone = user.phone;
-            
-            [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
-                [UIView animateWithDuration:.3 animations:^{
-                    self.loginContainerView.transform = CGAffineTransformIdentity;
-                    self.logoContainerView.transform = CGAffineTransformIdentity;
-                    [self.view endEditing:YES];
-                } completion:^(BOOL finished) {
-                    
-                }];
-                [self.loginButton setUserInteractionEnabled:YES];
-                [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+        [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            NSLog(@"user's company: %@",user.company);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
+            [UIView animateWithDuration:.3 animations:^{
+                self.loginContainerView.transform = CGAffineTransformIdentity;
+                self.logoContainerView.transform = CGAffineTransformIdentity;
+                [self.view endEditing:YES];
+            } completion:^(BOOL finished) {
+                
             }];
-        } else {
-            User *newUser = [User MR_createInContext:localContext];
-            NSLog(@"Created a new MR user");
-            newUser.identifier = user.identifier;
-            newUser.lname = user.lname;
-            newUser.email = user.email;
-            newUser.fullname = user.fullname;
-            newUser.fname = user.fname;
-            newUser.coworkers = user.coworkers;
-            //newUser.subcontractors = user.subcontractors;
-
-            newUser.photoUrl100 = user.photo.url100;
-            newUser.phone = user.phone;
-            [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
-                [UIView animateWithDuration:.3 animations:^{
-                    self.loginContainerView.transform = CGAffineTransformIdentity;
-                    self.logoContainerView.transform = CGAffineTransformIdentity;
-                    [self.view endEditing:YES];
-                } completion:^(BOOL finished) {
-                    
-                }];
-                [self.loginButton setUserInteractionEnabled:YES];
-                [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
-            }];
-        }
+            [self.loginButton setUserInteractionEnabled:YES];
+            [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+        }];
 
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error logging in: %@",error.description);

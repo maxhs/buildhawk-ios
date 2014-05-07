@@ -7,7 +7,7 @@
 //
 
 #import "BHSubcategoryChecklistViewController.h"
-#import "BHChecklistItem.h"
+#import "ChecklistItem.h"
 #import "BHChecklistItemViewController.h"
 #import "Constants.h"
 

@@ -9,7 +9,7 @@
 #import "BHAppDelegate.h"
 #import "BHUser.h"
 #import "BHCompany.h"
-#import "BHProject.h"
+#import "Project.h"
 #import "BHProjectCollection.h"
 #import "Constants.h"
 #import "BHLoginViewController.h"
@@ -18,6 +18,7 @@
 #import "NSData+Conversion.h"
 #import <Crashlytics/Crashlytics.h>
 #import "SDWebImageManager.h"
+#import "UIImage+ImageEffects.h"
 
 
 @interface BHAppDelegate () {
@@ -58,7 +59,7 @@
                 break;
         }
     }];
-    
+    _manager = [AFHTTPRequestOperationManager manager];
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [self.window makeKeyAndVisible];
     return YES;
@@ -108,18 +109,29 @@
     screen = [UIScreen mainScreen].bounds;
     if (!overlayView) {
         NSLog(@"creating the overlay view");
-        overlayView = [[UIButton alloc] initWithFrame:screen];
-        [overlayView setBackgroundColor:[UIColor colorWithWhite:0 alpha:.6]];
-        UITapGestureRecognizer *overlayTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removeOverlay)];
-        overlayTap.numberOfTapsRequired = 1;
-        [overlayView addGestureRecognizer:overlayTap];
-        [overlayView setAlpha:0.0];
-        [self.window addSubview:overlayView];
+        overlayView = [[UIView alloc] initWithFrame:screen];
     }
+    
+    [overlayView setBackgroundColor:[UIColor colorWithPatternImage:[self blurredSnapshot]]];
+    /*UITapGestureRecognizer *overlayTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removeOverlay)];
+    overlayTap.numberOfTapsRequired = 1;
+    [overlayView addGestureRecognizer:overlayTap];*/
+    [overlayView setAlpha:0.0];
+    [self.window addSubview:overlayView];
+    
     [UIView animateWithDuration:.25 animations:^{
         [overlayView setAlpha:1.0];
     }];
     return overlayView;
+}
+
+-(UIImage *)blurredSnapshot {
+    UIGraphicsBeginImageContextWithOptions([UIScreen mainScreen].bounds.size, NO, self.window.screen.scale);
+    [self.window drawViewHierarchyInRect:self.window.frame afterScreenUpdates:NO];
+    UIImage *snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIImage *blurredSnapshotImage = [snapshotImage applyDarkEffect];
+    UIGraphicsEndImageContext();
+    return blurredSnapshotImage;
 }
 
 - (void)removeOverlay {
@@ -157,21 +169,6 @@
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     [MagicalRecord cleanUp];
-}
-
-- (void)logout {
-    NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
-    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
-    [NSUserDefaults resetStandardUserDefaults];
-    UIStoryboard *storyboard;
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
-    } else {
-        storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPad" bundle:nil];
-    }
-    self.window.rootViewController = [storyboard instantiateInitialViewController];
-    
-    [ProgressHUD dismiss];
 }
 
 - (void)offlineNotification {

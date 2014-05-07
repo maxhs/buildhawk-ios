@@ -7,6 +7,10 @@
 //
 
 #import "BHUtilities.h"
+#import "ChecklistItem+helper.h"
+#import "Cat+helper.h"
+#import "Comment.h"
+#import "Comment+helper.h"
 
 @implementation BHUtilities
 
@@ -22,7 +26,8 @@
 + (NSMutableArray *)checklistItemsFromJSONArray:(NSArray *) array {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDictionary in array) {
-        BHChecklistItem *item = [[BHChecklistItem alloc] initWithDictionary:itemDictionary];
+        ChecklistItem *item = [ChecklistItem MR_createEntity];
+        [item populateFromDictionary:itemDictionary];
         [items addObject:item];
     }
     return items;
@@ -31,19 +36,11 @@
 + (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array {
     NSMutableArray *categories = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *categoryDictionary in array) {
-        BHCategory *category = [[BHCategory alloc] initWithDictionary:categoryDictionary];
+        Cat *category = [Cat MR_createEntity];
+        [category populateFromDictionary:categoryDictionary];
         [categories addObject:category];
     }
     return categories;
-}
-
-+ (NSMutableArray *)punchlistItemsFromJSONArray:(NSArray *) array {
-    NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *itemDictionary in array) {
-        BHPunchlistItem *item = [[BHPunchlistItem alloc] initWithDictionary:itemDictionary];
-        [items addObject:item];
-    }
-    return items;
 }
 
 + (NSMutableArray *)photosFromJSONArray:(NSArray *) array {
@@ -75,10 +72,10 @@
 
 + (NSMutableArray *)projectsFromJSONArray:(NSArray *) array {
     NSMutableArray *projects = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *projectDictionary in array) {
+    /*for (NSDictionary *projectDictionary in array) {
         BHProject *project = [[BHProject alloc] initWithDictionary:projectDictionary];
         [projects addObject:project];
-    }
+    }*/
     return projects;
 }
 
@@ -92,23 +89,24 @@
             BHUser *user = [[BHUser alloc] initWithDictionary:dict];
             [personnel addObject:user];
         } else if ([dict objectForKey:@"sub"]) {
-            BHSub *sub = [[BHSub alloc] initWithDictionary:[dict objectForKey:@"sub"]];
-            if ([dict objectForKey:@"count"] && [dict objectForKey:@"count"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
+            /*Sub *sub = [[Sub alloc] :[dict objectForKey:@"sub"]];
+            if ([dict objectForKey:@"hours"] && [dict objectForKey:@"hours"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
             if ([dict objectForKey:@"id"]) [sub setReportSubId:[dict objectForKey:@"id"]];
-            [personnel addObject:sub];
+            [personnel addObject:sub];*/
         } else if ([dict objectForKey:@"count"]) {
-            BHSub *sub = [[BHSub alloc] initWithDictionary:dict];
+            /*Sub *sub = [[Sub alloc] initWithDictionary:dict];
             if ([dict objectForKey:@"count"] && [dict objectForKey:@"count"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
-            [personnel addObject:sub];
+            [personnel addObject:sub];*/
         }
     }
     return personnel;
 }
 
-+ (NSMutableArray *)commentsFromJSONArray:(NSArray *) array {
-    NSMutableArray *comments = [NSMutableArray arrayWithCapacity:array.count];
++ (NSOrderedSet *)commentsFromJSONArray:(NSArray *) array {
+    NSMutableOrderedSet *comments = [NSMutableOrderedSet orderedSetWithCapacity:array.count];
     for (NSDictionary *commentDictionary in array) {
-        BHComment *comment = [[BHComment alloc] initWithDictionary:commentDictionary];
+        Comment *comment = [Comment MR_createEntity];
+        [comment populateFromDictionary:commentDictionary];
         [comments addObject:comment];
     }
     return comments;
@@ -116,10 +114,10 @@
 
 + (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array {
     NSMutableArray *subcontractors = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *subDictionary in array) {
-        BHSub *sub = [[BHSub alloc] initWithDictionary:subDictionary];
+    /*for (NSDictionary *subDictionary in array) {
+        Sub *sub = [[Sub alloc] initWithDictionary:subDictionary];
         [subcontractors addObject:sub];
-    }
+    }*/
     return subcontractors;
 }
 

@@ -64,6 +64,8 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 
 //User walkthrough
 #define kHasSeenDashboard @"hasSeenDashboard"
+#define kHasSeenDashboardDetail @"hasSeenDashboardDetail"
+#define kHasSeenWorklist @"hasSeenWorklist"
 #define kHasSeenReport @"hasSeenReport"
 #define kHasSeenChecklist @"hasSeenChecklist"
 
@@ -73,6 +75,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kWeekly @"Weekly"
 
 //Colors
+#define kBackgroundFade 0.3f
 #define kLightestGrayColor [UIColor colorWithWhite:.95 alpha:1.0]
 #define kLighterGrayColor [UIColor colorWithWhite:.925 alpha:1.0]
 #define kLightGrayColor [UIColor colorWithWhite:.90 alpha:.9]

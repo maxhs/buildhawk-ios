@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHProject.h"
+#import "Project.h"
 #import "BHProjectGroup.h"
 
 @interface BHGroupViewController : UIViewController <UITableViewDelegate, UITableViewDelegate>

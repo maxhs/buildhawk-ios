@@ -39,7 +39,7 @@ static BHUser *currentUser;
     } else if ([key isEqualToString:@"company"]) {
         self.company = [[BHCompany alloc] initWithDictionary:value];
     } else if ([key isEqualToString:@"coworkers"]) {
-        self.coworkers = [self coworkersFromJSONArray:value];
+        self.coworkers = [BHUtilities coworkersFromJSONArray:value];
     } else if ([key isEqualToString:@"subcontractors"]) {
         self.subcontractors = [BHUtilities subcontractorsFromJSONArray:value];
     } else if ([key isEqualToString:@"admin"]) {
@@ -54,15 +54,6 @@ static BHUser *currentUser;
             [self.photo setUrl100:value];
         }
     }
-}
-
-- (NSArray *)coworkersFromJSONArray:(NSArray *) array {
-    NSMutableArray *coworkers = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *userDictionary in array) {
-        BHUser *user = [[BHUser alloc] initWithDictionary:userDictionary];
-        [coworkers addObject:user];
-    }
-    return [NSArray arrayWithArray:coworkers];
 }
 
 - (id)initWithDictionary:(NSDictionary *)dictionary {

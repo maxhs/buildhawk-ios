@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "BHProject.h"
+#import "Project.h"
 
 @interface BHProjectGroup : NSObject
 @property (nonatomic, strong) NSString *name;

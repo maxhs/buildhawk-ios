@@ -22,6 +22,8 @@
 #import "BHPunchlistViewController.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
+#import "PunchlistItem+helper.h"
+#import "Comment+helper.h"
 
 static NSString *assigneePlaceholder = @"Assign";
 static NSString *locationPlaceholder = @"Location";
@@ -103,9 +105,7 @@ typedef void(^RequestSuccess)(id result);
     if (_punchlistItem.identifier){
         [self redrawScrollView];
     } else {
-        _punchlistItem = [[BHPunchlistItem alloc] init];
-        _punchlistItem.photos = [NSMutableArray array];
-        _punchlistItem.assignees = [NSMutableArray array];
+        _punchlistItem = [PunchlistItem MR_createEntity];
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     }
     NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
@@ -177,13 +177,13 @@ typedef void(^RequestSuccess)(id result);
         [self.itemTextView setTextColor:[UIColor lightGrayColor]];
     }
     
-    if (_punchlistItem.assignees.count) {
-        id assignee = _punchlistItem.assignees.firstObject;
-        if ([assignee isKindOfClass:[BHUser class]]){
-            BHUser *assigneeUser = assignee;
+    if (_punchlistItem.userAssignees.count) {
+        id assignee = _punchlistItem.userAssignees.firstObject;
+        if ([assignee isKindOfClass:[User class]]){
+            User *assigneeUser = assignee;
             if (assigneeUser.fullname.length) [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
-        } else if ([assignee isKindOfClass:[BHSub class]]){
-            BHSub *assigneeSub = assignee;
+        } else if ([assignee isKindOfClass:[Sub class]]){
+            Sub *assigneeSub = assignee;
             if (assigneeSub.name.length) [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeSub.name] forState:UIControlStateNormal];
         }
     }
@@ -307,13 +307,12 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            BHComment *comment = [[BHComment alloc] init];
+            Comment *comment = [Comment MR_createEntity];
             comment.body = addCommentTextView.text;
             comment.createdOnString = @"Just now";
-            User *user = [(BHTabBarViewController*) self.tabBarController user];
-            comment.user = [[BHUser alloc] init];
-            comment.user.fullname = user.fullname;
-            [_punchlistItem.comments addObject:comment];
+            User *currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+            comment.user = currentUser;
+            [_punchlistItem addComment:comment];
             [self.tableView reloadData];
             
             NSDictionary *commentDict = @{@"punchlist_item_id":_punchlistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
@@ -330,7 +329,8 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)updatePersonnel:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
-    _punchlistItem.assignees = [info objectForKey:kpersonnel];
+    NSLog(@"update personnel: %@",[info objectForKey:kpersonnel]);
+    //_punchlistItem.assignees = [info objectForKey:kpersonnel];
 }
 
 - (void)addBorderTreatement:(UIButton*)button {
@@ -418,9 +418,9 @@ typedef void(^RequestSuccess)(id result);
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self.scrollView setAlpha:0.0];
     [picker dismissViewControllerAnimated:YES completion:nil];
-    BHPhoto *newPhoto = [[BHPhoto alloc] init];
+    Photo *newPhoto = [Photo MR_createEntity];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
-    [_punchlistItem.photos addObject:newPhoto];
+    [_punchlistItem addPhoto:newPhoto];
     [self redrawScrollView];
     [self saveImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
 }
@@ -442,9 +442,9 @@ typedef void(^RequestSuccess)(id result);
                 CGFloat scale  = 1;
                 UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                      scale:scale orientation:orientation];
-                BHPhoto *newPhoto = [[BHPhoto alloc] init];
+                Photo *newPhoto = [Photo MR_createEntity];
                 [newPhoto setImage:[self fixOrientation:image]];
-                [_punchlistItem.photos addObject:newPhoto];
+                [_punchlistItem addPhoto:newPhoto];
                 [self saveImage:newPhoto.image];
             }
         }
@@ -587,7 +587,7 @@ typedef void(^RequestSuccess)(id result);
                 [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
             } success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 NSLog(@"save punchlist item photo response object: %@",responseObject);
-                _punchlistItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
+                [_punchlistItem populateFromDictionary:[responseObject objectForKey:@"punchlist_item"]];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"failure posting image to API: %@",error.description);
             }];
@@ -596,17 +596,17 @@ typedef void(^RequestSuccess)(id result);
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove.identifier){
-        for (BHPhoto *photo in _punchlistItem.photos){
+        for (Photo *photo in _punchlistItem.photos){
             if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
-                [_punchlistItem.photos removeObject:photo];
+                [_punchlistItem removePhoto:photo];
                 [self redrawScrollView];
                 break;
             }
         }
     } else {
-        [_punchlistItem.photos removeObjectAtIndex:photoIdx];
+        [_punchlistItem removePhoto:photoToRemove];
         [self redrawScrollView];
     }
 }
@@ -703,7 +703,7 @@ typedef void(^RequestSuccess)(id result);
     }
 
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    if (_project.demo == YES) {
+    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]) {
         browser.displayTrashButton = NO;
     }
     browser.displayActionButton = YES;
@@ -733,10 +733,10 @@ typedef void(^RequestSuccess)(id result);
 -(IBAction)assigneeButtonTapped{
     shouldSave = YES;
     assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this worklist item:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    [assigneeActionSheet addButtonWithTitle:kUsers];
+    [assigneeActionSheet addButtonWithTitle:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]];
     [assigneeActionSheet addButtonWithTitle:kSubcontractors];
     [assigneeActionSheet addButtonWithTitle:kAddOther];
-    if (_punchlistItem.assignees.count) assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
+    if (_punchlistItem.userAssignees.count || _punchlistItem.subAssignees.count) assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
     assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
     [assigneeActionSheet showInView:self.view];
 }
@@ -777,15 +777,12 @@ typedef void(^RequestSuccess)(id result);
                 if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
         }
         
-        if (_punchlistItem.assignees.count){
-            id assignee = _punchlistItem.assignees.firstObject;
-            if ([assignee isKindOfClass:[BHUser class]]){
-                BHUser *assigneeUser = assignee;
-                if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
-            } else if ([assignee isKindOfClass:[BHSub class]]){
-                BHSub *assigneeSub = assignee;
-                if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
-            }
+        if (_punchlistItem.userAssignees.count){
+            User *assigneeUser = _punchlistItem.userAssignees.firstObject;
+            if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
+        } else if (_punchlistItem.subAssignees.count){
+            Sub *assigneeSub = _punchlistItem.subAssignees.firstObject;
+            if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
         }
         
         [parameters setObject:_punchlistItem.identifier forKey:@"id"];
@@ -821,23 +818,23 @@ typedef void(^RequestSuccess)(id result);
                                       [NSCharacterSet whitespaceCharacterSet]];
             if (strippedLocationString.length) [parameters setObject:strippedLocationString forKey:@"location"];
         }
-        if (_punchlistItem.assignees.count){
-            id assignee = _punchlistItem.assignees.firstObject;
-            if ([assignee isKindOfClass:[BHUser class]]){
-                BHUser *assigneeUser = assignee;
-                if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
-            } else if ([assignee isKindOfClass:[BHSub class]]){
-                BHSub *assigneeSub = assignee;
-                if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
-            }
+        
+        if (_punchlistItem.userAssignees.count){
+            User *assigneeUser = _punchlistItem.userAssignees.firstObject;
+            if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
+        } else if (_punchlistItem.subAssignees.count){
+            Sub *assigneeSub = _punchlistItem.subAssignees.firstObject;
+            if (assigneeSub.name.length) [parameters setObject:assigneeSub.name forKey:@"sub_assignee"];
         }
+        
         if (self.itemTextView.text) [parameters setObject:self.itemTextView.text forKey:@"body"];
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
 
         [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             [ProgressHUD dismiss];
-            BHPunchlistItem *newItem = [[BHPunchlistItem alloc] initWithDictionary:[responseObject objectForKey:@"punchlist_item"]];
+            PunchlistItem *newItem = [PunchlistItem MR_createEntity];
+            [newItem populateFromDictionary:[responseObject objectForKey:@"punchlist_item"]];
             if (newItem.identifier){
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
                 [parameters setObject:newItem.identifier forKey:@"id"];
@@ -988,13 +985,13 @@ typedef void(^RequestSuccess)(id result);
             [self takePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kUsers]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]]) {
         [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
         [self performSegueWithIdentifier:@"SubPicker" sender:nil];
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         if (buttonIndex == assigneeActionSheet.destructiveButtonIndex){
-            [_punchlistItem.assignees removeAllObjects];
+            //[_punchlistItem.userAssignees removeAllObjects];
             [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
         } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kAddOther]){
             addOtherSubAlertView = [[UIAlertView alloc] initWithTitle:@"Add a subcontractor" message:@"Enter name:" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
@@ -1034,18 +1031,18 @@ typedef void(^RequestSuccess)(id result);
     if (_project.demo){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        BHComment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
+        Comment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
         if (comment.identifier){
             [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
-                [_punchlistItem.comments removeObject:comment];
+                [_punchlistItem removeComment:comment];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 //NSLog(@"Failed to delete comment: %@",error.description);
             }];
         } else {
             NSLog(@"should be deleting fresh comment");
-            [_punchlistItem.comments removeObject:comment];
+            [_punchlistItem removeComment:comment];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
         }
     }
@@ -1058,15 +1055,15 @@ typedef void(^RequestSuccess)(id result);
         }
     } else if (alertView == addOtherSubAlertView) {
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
-            BHSub *newSub = [[BHSub alloc] init];
+            Sub *newSub = [Sub MR_createEntity];
             newSub.name = [[alertView textFieldAtIndex:0] text];
 
-            if (!_punchlistItem.assignees) {
+            /*if (!_punchlistItem.assignees) {
                 _punchlistItem.assignees = [NSMutableArray array];
                 [_punchlistItem.assignees addObject:newSub];
             } else {
                 [_punchlistItem.assignees replaceObjectAtIndex:0 withObject:newSub];
-            }
+            }*/
 
             [self.assigneeButton setTitle:newSub.name forState:UIControlStateNormal];
         }

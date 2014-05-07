@@ -109,10 +109,6 @@
 - (void)hudCreate
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 {
-    UIColor *spinnerColor;
-    UIColor *statusColor;
-    spinnerColor = [UIColor whiteColor];
-    statusColor = [UIColor whiteColor];
     
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	if (hud == nil)
@@ -124,10 +120,11 @@
         [hud setShadowImage:[UIImage new]
                   forToolbarPosition:UIToolbarPositionAny];
         
-        [hud setBarStyle:UIBarStyleBlackTranslucent];
-        [hud setTintColor:[UIColor blackColor]];
+        [hud setBarStyle:UIBarStyleDefault];
 		hud.translucent = YES;
 		hud.layer.cornerRadius = 7;
+        hud.layer.borderColor = kDarkerGrayColor.CGColor;
+        hud.layer.borderWidth = 1.f;
 		hud.layer.masksToBounds = YES;
 		//-----------------------------------------------------------------------------------------------------------------------------------------
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rotate:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -137,23 +134,22 @@
 	if (spinner == nil)
 	{
 		spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-		spinner.color = spinnerColor;
+		spinner.color = [UIColor blackColor];
 		spinner.hidesWhenStopped = YES;
 	}
 	if (spinner.superview == nil) [hud addSubview:spinner];
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	if (image == nil)
 	{
-		image = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];
+		image = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 20, 20)];
 	}
 	if (image.superview == nil) [hud addSubview:image];
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	if (label == nil)
 	{
 		label = [[UILabel alloc] initWithFrame:CGRectZero];
-        label.font = [UIFont fontWithName:kHelveticaNeueLight size:19];
-        label.shadowColor = [UIColor clearColor];
-		label.textColor = [UIColor whiteColor];
+        label.font = [UIFont fontWithName:kHelveticaNeueLight size:17];
+		label.textColor = [UIColor blackColor];
 		label.backgroundColor = [UIColor clearColor];
 		label.textAlignment = NSTextAlignmentCenter;
 		label.baselineAdjustment = UIBaselineAdjustmentAlignCenters;

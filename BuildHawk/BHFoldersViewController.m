@@ -172,7 +172,7 @@
     
     // Create browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    BHProject *project = (BHProject*)[(BHTabBarViewController*)self.tabBarController project];
+    Project *project = (Project*)[(BHTabBarViewController*)self.tabBarController project];
     if (project.demo) browser.displayTrashButton = NO;
     // Set options
     browser.displayActionButton = YES;

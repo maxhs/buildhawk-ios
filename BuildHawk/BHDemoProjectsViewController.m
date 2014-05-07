@@ -7,7 +7,7 @@
 //
 
 #import "BHDemoProjectsViewController.h"
-#import "BHProject.h"
+#import "Project.h"
 #import "BHDashboardProjectCell.h"
 #import "BHTabBarViewController.h"
 #import "BHDashboardDetailViewController.h"
@@ -77,7 +77,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    BHProject *project = [demoProjects objectAtIndex:indexPath.row];
+    Project *project = [demoProjects objectAtIndex:indexPath.row];
     static NSString *CellIdentifier = @"ProjectCell";
     BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -103,7 +103,7 @@
 }
 
 - (void)loadDetailView {
-    for (BHProject *proj in demoProjects){
+    for (Project *proj in demoProjects){
         [categories removeAllObjects];
         [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success getting dashboard detail view for demo projects: %@",[responseObject objectForKey:@"project"]);
@@ -146,7 +146,7 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    BHProject *selectedProject = [demoProjects objectAtIndex:button.tag];
+    Project *selectedProject = [demoProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
 
@@ -156,7 +156,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if (indexPath.section == 0) {
-        BHProject *selectedProject = [demoProjects objectAtIndex:indexPath.row];
+        Project *selectedProject = [demoProjects objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -164,11 +164,11 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Project"]) {
-        BHProject *project = (BHProject*)sender;
+        Project *project = (Project*)sender;
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
     } else if ([segue.identifier isEqualToString:@"DashboardDetail"]) {
-        BHProject *project = (BHProject*)sender;
+        Project *project = (Project*)sender;
         BHDashboardDetailViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     }

@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "BHCompany.h"
-#import "BHProject.h"
+#import "Project.h"
 #import "BHPhoto.h"
 
 @interface BHUser : NSObject
@@ -26,7 +26,7 @@
 @property (nonatomic, strong) NSArray *timestamps;
 @property (nonatomic, strong) BHPhoto *photo;
 @property (nonatomic, strong) BHCompany *company;
-@property (nonatomic, strong) BHProject *projects;
+@property (nonatomic, strong) Project *projects;
 @property (nonatomic, strong) NSArray *coworkers;
 @property (nonatomic, strong) NSArray *subcontractors;
 @property BOOL admin;

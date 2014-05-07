@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHProject.h"
+#import "Project.h"
 #import "User.h"
 
 @interface BHTabBarViewController : UITabBarController <UITabBarDelegate, UITabBarControllerDelegate>
-@property (strong, nonatomic) BHProject *project;
+@property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) User *user;
 @property (strong, nonatomic) NSIndexPath *checklistIndexPath;
 @end

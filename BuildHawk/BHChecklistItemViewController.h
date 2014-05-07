@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHChecklistItem.h"
+#import "ChecklistItem.h"
 #import "BHComment.h"
 #import "BHPhoto.h"
 #import "Project.h"
@@ -15,9 +15,8 @@
 @interface BHChecklistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (strong, nonatomic) BHChecklistItem *item;
-@property (strong, nonatomic) BHProject *project;
-@property (strong, nonatomic) Project *savedProject;
+@property (strong, nonatomic) ChecklistItem *item;
+@property (strong, nonatomic) Project *project;
 @property int row;
 
 @end

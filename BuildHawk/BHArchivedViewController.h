@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHProject.h"
+#import "Project.h"
 
 @interface BHArchivedViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;

@@ -14,6 +14,7 @@
 @implementation Company
 
 @dynamic name;
+@dynamic identifier;
 @dynamic users;
 @dynamic projects;
 

@@ -10,10 +10,10 @@
 #import "Constants.h"
 #import "BHTabBarViewController.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
-#import "BHChecklistItem.h"
+#import "ChecklistItem.h"
 #import "BHPhoto.h"
 #import "BHUser.h"
-#import "BHPunchlistItem.h"
+#import "PunchlistItem+helper.h"
 #import "BHRecentDocumentCell.h"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
@@ -22,7 +22,10 @@
 #import "BHChecklistItemViewController.h"
 #import "BHPunchlistItemViewController.h"
 #import "BHProgressCell.h"
+#import "BHOverlayView.h"
 #import <LDProgressView/LDProgressView.h>
+#import "BHAppDelegate.h"
+#import "User.h"
 
 @interface BHDashboardDetailViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     AFHTTPRequestOperationManager *manager;
@@ -30,6 +33,9 @@
     BOOL iPad;
     CGRect screen;
     NSMutableArray *browserPhotos;
+    UIView *overlayBackground;
+    UIImageView *screenshotView;
+    NSDateFormatter *formatter;
 }
 
 @end
@@ -69,6 +75,16 @@
     self.tableView.tableFooterView = footerView;
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
+    formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateStyle:NSDateFormatterShortStyle];
+}
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    //if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail]){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
+        [self slide1];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboardDetail];
+    //}
 }
 
 - (void)goToProject:(UIButton*)button {
@@ -84,12 +100,12 @@
         [vc setProject:_project];
     } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
         BHChecklistItemViewController *vc = [segue destinationViewController];
-        if ([sender isKindOfClass:[BHChecklistItem class]])
-            [vc setItem:(BHChecklistItem*)sender];
+        if ([sender isKindOfClass:[ChecklistItem class]])
+            [vc setItem:(ChecklistItem*)sender];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = [segue destinationViewController];
-        if ([sender isKindOfClass:[BHPunchlistItem class]])
-            [vc setPunchlistItem:(BHPunchlistItem*)sender];
+        if ([sender isKindOfClass:[PunchlistItem class]])
+            [vc setPunchlistItem:(PunchlistItem*)sender];
     }
 }
 
@@ -107,18 +123,18 @@
             return 1;
             break;
         case 1:
-            return _project.checklistCategories.count;
+            return [(NSArray*)_project.checklistCategories count];
             break;
         case 2:
-            if (_project.recentDocuments.count > 0) return 1;
+            if ([(NSArray*)_project.recentDocuments count] > 0) return 1;
             else return 0;
             break;
         case 3:
-            return _project.upcomingItems.count;
+            return [(NSArray*)_project.upcomingItems count];
             break;
         case 4:
         {
-            return _project.recentItems.count;
+            return [(NSArray*)_project.recentItems count];
         }
             break;
         default:
@@ -148,7 +164,7 @@
             [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
             progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
     
-            BHCategory *category = [_project.checklistCategories objectAtIndex:indexPath.row];
+            Cat *category = [_project.checklistCategories objectAtIndex:indexPath.row];
             [progressCell.itemLabel setText:category.name];
             CGFloat progress_count = [category.progressCount floatValue];
             CGFloat all = [category.itemCount floatValue];
@@ -197,10 +213,10 @@
         case 3: {
             static NSString *CellIdentifier = @"UpcomingItemCell";
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            BHChecklistItem *checklistItem = [_project.upcomingItems objectAtIndex:indexPath.row];
+            ChecklistItem *checklistItem = [_project.upcomingItems objectAtIndex:indexPath.row];
             [cell.textLabel setText:checklistItem.body];
-            if (checklistItem.dueDateString.length) {
-                [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",checklistItem.dueDateString]];
+            if (checklistItem.criticalDate) {
+                [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",[formatter stringFromDate:checklistItem.criticalDate]]];
                 [cell.detailTextLabel setTextColor:[UIColor darkGrayColor]];
             } else {
                 [cell.detailTextLabel setText:@"No critical date listed"];
@@ -221,7 +237,7 @@
         case 4: {
             static NSString *CellIdentifier = @"RecentItemCell";
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            BHChecklistItem *checklistItem = [_project.recentItems objectAtIndex:indexPath.row];
+            ChecklistItem *checklistItem = [_project.recentItems.array objectAtIndex:indexPath.row];
             [cell.textLabel setText:checklistItem.body];
             if ([[checklistItem type] isEqualToString:@"Com"]) {
                 [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
@@ -247,21 +263,21 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 2:
-            if (_project.recentDocuments.count){
+            if ([(NSArray*)_project.recentDocuments count]){
                 return 30;
             } else {
                 return 0;
             }
             break;
         case 3:
-            if (_project.upcomingItems.count){
+            if ([(NSArray*)_project.upcomingItems count]){
                 return 30;
             } else {
                 return 0;
             }
             break;
         case 4:
-            if (_project.recentItems.count){
+            if ([(NSArray*)_project.recentItems count]){
                 return 30;
             } else {
                 return 0;
@@ -276,11 +292,11 @@
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
     UIView* headerView;
-    if (section == 2 && _project.recentDocuments.count == 0) {
+    if (section == 2 && [(NSArray*)_project.recentDocuments count] == 0) {
         return nil;
-    } else if (section == 4 && _project.recentItems.count == 0) {
+    } else if (section == 4 && [(NSArray*)_project.recentItems count] == 0) {
         return nil;
-    } else if (section == 3 && _project.upcomingItems.count == 0) {
+    } else if (section == 3 && [(NSArray*)_project.upcomingItems count] == 0) {
         return nil;
     } else {
         headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 54.0)];
@@ -331,8 +347,6 @@
     int index = 0;
     int width = 105;
     CGRect photoRect = CGRectMake(5,5,100,100);
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateStyle:NSDateFormatterShortStyle];
     for (BHPhoto *photo in _project.recentDocuments) {
         if (index > 0) photoRect.origin.x += width;
         __weak UIButton *eventButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -347,7 +361,7 @@
         [eventButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         index++;
     }
-    [documentsScrollView setContentSize:CGSizeMake((_project.recentDocuments.count*105) + 5,documentsScrollView.frame.size.height)];
+    [documentsScrollView setContentSize:CGSizeMake(([(NSArray*)_project.recentDocuments count]*105) + 5,documentsScrollView.frame.size.height)];
     documentsScrollView.layer.shouldRasterize = YES;
     documentsScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
@@ -396,10 +410,10 @@
     if (indexPath.section == 1){
         [self performSegueWithIdentifier:@"Project" sender:indexPath];
     } else if (indexPath.section == 3){
-        BHChecklistItem *item = [_project.upcomingItems objectAtIndex:indexPath.row];
+        ChecklistItem *item = [_project.upcomingItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
     } else if (indexPath.section == 4){
-        BHChecklistItem *item = [_project.recentItems objectAtIndex:indexPath.row];
+        ChecklistItem *item = [_project.recentItems.array objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
     }
 }
@@ -408,6 +422,89 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+#pragma mark Intro Stuff
+- (void)slide1 {
+    BHOverlayView *phases = [[BHOverlayView alloc] initWithFrame:screen];
+    if (iPad){
+        screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"synopsisiPad"]];
+        [screenshotView setFrame:CGRectMake(screenWidth()/2-355, 30, 710, 700)];
+    } else {
+        screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"detailScreenshot"]];
+        [screenshotView setFrame:CGRectMake(10, 30, 300, 347)];
+    }
+    [screenshotView setAlpha:0.0];
+    
+    [phases configureText:@"The synopsis view shows a high-level breakdown for the project." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 20, screenWidth()-20, 100)];
+    [phases.tapGesture addTarget:self action:@selector(slide2:)];
+    [overlayBackground addSubview:phases];
+    
+    [overlayBackground addSubview:screenshotView];
+    [UIView animateWithDuration:.25 animations:^{
+        [phases setAlpha:1.0];
+    }completion:^(BOOL finished) {
+        [UIView animateWithDuration:.25 animations:^{
+            [screenshotView setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)slide2:(UITapGestureRecognizer*)sender {
+    BHOverlayView *percentages = [[BHOverlayView alloc] initWithFrame:screen];
+    [percentages configureText:@"Progress percentages are based on the number of completed items in each checklist phase." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 20, screenWidth()-20, 100)];
+    [percentages.tapGesture addTarget:self action:@selector(slide3:)];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:percentages];
+        [UIView animateWithDuration:.25 animations:^{
+            [percentages setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)slide3:(UITapGestureRecognizer*)sender {
+    BHOverlayView *scroll = [[BHOverlayView alloc] initWithFrame:screen];
+    [scroll configureText:@"Scrolling down shows you recent documents as well as upcoming critical items." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 20, screenWidth()-20, 100)];
+
+    [scroll.tapGesture addTarget:self action:@selector(scroll:)];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:scroll];
+        [UIView animateWithDuration:.25 animations:^{
+            [scroll setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)scroll:(UITapGestureRecognizer*)sender {
+    [UIView animateWithDuration:.25 animations:^{
+        [screenshotView setAlpha:0.0];
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [UIView animateWithDuration:.25 animations:^{
+            [overlayBackground setAlpha:0.0];
+            [sender.view removeFromSuperview];
+            [screenshotView removeFromSuperview];
+        }completion:^(BOOL finished) {
+            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+            [overlayBackground removeFromSuperview];
+        }];
+    }];
+}
+
+- (void)endIntro:(UITapGestureRecognizer*)sender {
+    [UIView animateWithDuration:.25 animations:^{
+        [overlayBackground setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [overlayBackground removeFromSuperview];
+    }];
 }
 
 @end

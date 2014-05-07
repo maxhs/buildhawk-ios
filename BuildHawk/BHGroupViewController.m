@@ -16,7 +16,7 @@
     NSMutableArray *_projects;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
-    BHProject *archivedProject;
+    Project *archivedProject;
 }
 
 @end
@@ -68,7 +68,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    BHProject *project = [_group.projects objectAtIndex:indexPath.row];
+    Project *project = [_group.projects objectAtIndex:indexPath.row];
     
     static NSString *CellIdentifier = @"ProjectCell";
     BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -81,7 +81,7 @@
     if (project.address.formattedAddress.length){
         [cell.subtitleLabel setText:project.address.formattedAddress];
     } else {
-        [cell.subtitleLabel setText:project.company.name];
+        //[cell.subtitleLabel setText:project.company.name];
     }
     
     [cell.progressLabel setText:project.progressPercentage];
@@ -126,12 +126,12 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    BHProject *selectedProject = [_group.projects objectAtIndex:indexPath.row];
+    Project *selectedProject = [_group.projects objectAtIndex:indexPath.row];
     [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(BHProject*)project {
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(Project*)project {
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
@@ -142,7 +142,7 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    BHProject *selectedProject = [_group.projects objectAtIndex:button.tag];
+    Project *selectedProject = [_group.projects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
 

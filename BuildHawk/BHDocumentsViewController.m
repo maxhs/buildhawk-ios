@@ -39,7 +39,7 @@
     CGRect screen;
     UIRefreshControl *refreshControl;
     AFHTTPRequestOperationManager *manager;
-    BHProject *_project;
+    Project *_project;
 }
 
 @end
@@ -92,10 +92,18 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [UIView animateWithDuration:.25 animations:^{
-        [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height-113, screen.size.width, 49)];
-        self.tabBarController.tabBar.alpha = 1.0;
-    }];
+    if (IDIOM == IPAD){
+        [UIView animateWithDuration:.25 animations:^{
+            self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+            self.tabBarController.tabBar.alpha = 1.0;
+        }];
+    } else {
+        [UIView animateWithDuration:.25 animations:^{
+            self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+            self.tabBarController.tabBar.alpha = 1.0;
+        }];
+    }
+    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -487,7 +495,7 @@
     }
     
     [UIView animateWithDuration:.25 animations:^{
-        [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height-64, screen.size.width, 49)];
+        self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, self.tabBarController.tabBar.frame.size.height);
         self.tabBarController.tabBar.alpha = 0.0;
     }];
 }

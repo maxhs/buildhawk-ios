@@ -8,7 +8,7 @@
 
 #import "BHPeoplePickerViewController.h"
 #import "BHUser.h"
-#import "BHSub.h"
+#import "Sub+helper.h"
 #import "BHPersonnel.h"
 #import "BHPunchlistItemViewController.h"
 #import "BHChecklistItemViewController.h"
@@ -17,6 +17,7 @@
     NSMutableArray *filteredUsers;
     NSMutableArray *filteredSubs;
     UIAlertView *subAlertView;
+    UIAlertView *userAlertView;
     NSIndexPath *selectedIndexPath;
 }
 
@@ -64,8 +65,8 @@
 {
     static NSString *CellIdentifier = @"UserCell";
     UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-    BHUser *user;
-    BHSub *sub;
+    User *user;
+    Sub *sub;
     if (tableView == self.searchDisplayController.searchResultsTableView){
         if (self.subArray.count){
             sub = [filteredSubs objectAtIndex:indexPath.row];
@@ -88,14 +89,18 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if (self.userArray.count) {
-        [self selectUser:indexPath andCount:@"1"];
+        selectedIndexPath = indexPath;
+        userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+        userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
+        [userAlertView show];
     } else if (countNotNeeded){
         [self selectUser:indexPath andCount:nil];
     } else if (self.subArray.count) {
         selectedIndexPath = indexPath;
-        subAlertView = [[UIAlertView alloc] initWithTitle:@"# of Subcontractor Personnel" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+        subAlertView = [[UIAlertView alloc] initWithTitle:@"# of Subcontractor Personnel Onsite" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
         subAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
-        [[subAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeNumberPad];
+        [[subAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
         [subAlertView show];
     }
     
@@ -103,16 +108,27 @@
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
-        [self selectUser:nil andCount:[[subAlertView textFieldAtIndex:0] text]];
+    if (alertView == userAlertView){
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
+            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
+            [f setNumberStyle:NSNumberFormatterDecimalStyle];
+            [self selectUser:nil andCount:[f numberFromString:[[userAlertView textFieldAtIndex:0] text]]];
+        }
+    } else if (alertView == subAlertView){
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
+            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
+            [f setNumberStyle:NSNumberFormatterDecimalStyle];
+            [self selectUser:nil andCount:[f numberFromString:[[subAlertView textFieldAtIndex:0] text]]];
+        }
     }
 }
 
-- (void)selectUser:(NSIndexPath*)indexPath andCount:(NSString*)count {
-    BHUser *user;
-    BHSub *sub;
+- (void)selectUser:(NSIndexPath*)indexPath andCount:(NSNumber*)count {
+    User *user;
+    Sub *sub;
     if (self.userArray.count){
-        user = [self.userArray objectAtIndex:indexPath.row];
+        user = [self.userArray objectAtIndex:selectedIndexPath.row];
+        user.hours = count;
         [self addPersonnel:user];
     } else if (countNotNeeded) {
         sub = [self.subArray objectAtIndex:indexPath.row];
@@ -165,7 +181,7 @@
     [filteredUsers removeAllObjects];
     [filteredSubs removeAllObjects];
     if (self.subArray.count){
-        for (BHSub *sub in self.subArray){
+        for (Sub *sub in self.subArray){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
             if([predicate evaluateWithObject:sub.name]) {
                 [filteredSubs addObject:sub];

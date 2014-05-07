@@ -2,7 +2,7 @@
 //  Sub.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/22/14.
+//  Created by Max Haines-Stiles on 4/30/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -18,6 +18,7 @@
 @dynamic identifier;
 @dynamic name;
 @dynamic phone;
+@dynamic formattedPhone;
 @dynamic projects;
 @dynamic reports;
 

@@ -14,6 +14,7 @@
 @interface Company : NSManagedObject
 
 @property (nonatomic, retain) NSString * name;
+@property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSOrderedSet *users;
 @property (nonatomic, retain) NSOrderedSet *projects;
 @end

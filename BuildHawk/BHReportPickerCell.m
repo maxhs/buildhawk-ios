@@ -46,4 +46,5 @@
     button.layer.shadowOffset = CGSizeMake(0, 0);
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
 }
+
 @end

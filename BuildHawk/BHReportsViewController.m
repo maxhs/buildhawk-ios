@@ -17,12 +17,12 @@
     NSMutableArray *_reports;
     NSMutableArray *_possibleTopics;
     AFHTTPRequestOperationManager *manager;
-    Project *savedProject;
-    BHProject *project;
+    Project *project;
     UIRefreshControl *refreshControl;
     BOOL daily;
     BOOL safety;
     BOOL weekly;
+    BOOL loading;
     NSMutableArray *_filteredReports;
     UIBarButtonItem *addButton;
     UIBarButtonItem *datePickerButton;
@@ -33,11 +33,18 @@
 @implementation BHReportsViewController
 
 - (void)viewDidLoad {
+    
     manager = [AFHTTPRequestOperationManager manager];
     project = [(BHTabBarViewController*)self.tabBarController project];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
-    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+    //NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
+    //project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
     [super viewDidLoad];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    
+    /*NSPredicate *aPredicate = [NSPredicate predicateWithFormat:@"project.identifier == %@", project.identifier];
+    [Report MR_deleteAllMatchingPredicate:aPredicate];*/
+    
+    
     [self loadReports];
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
@@ -59,18 +66,17 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
+    if (_reports.count == 0){
+        NSLog(@"couldn't find any local reports");
+        [ProgressHUD show:@"Fetching reports..."];
+    }
 }
 
 - (void)loadReports {
+    loading = YES;
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@", project.identifier];
     _reports = [[Report MR_findAllSortedBy:@"createdDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]] mutableCopy];
-    for (Report *report in _reports){
-        NSLog(@"saved reports: %@, %i",report.identifier, [(NSArray*)report.photos count]);
-    }
-    //if (_reports.count == 0){
- 
-        [ProgressHUD show:@"Fetching reports..."];
-    //}
+    
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting reports: %@",responseObject);
         [self loadOptions];
@@ -153,7 +159,7 @@
 }
 
 - (void)updateLocalReports:(NSArray*)array {
-    NSLog(@"local project: %@",savedProject.name);
+    NSLog(@"local project: %@",project.name);
     for (id obj in array) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@",[obj objectForKey:@"id"]];
         Report *savedReport = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -163,9 +169,10 @@
             Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [newReport populateWithDict:obj];
             NSLog(@"had to create a new report");
-            newReport.project = savedProject;
+            newReport.project = project;
             [_reports addObject:newReport];
         }
+        loading = NO;
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
     }
 }
@@ -180,9 +187,21 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (daily || weekly || safety){
-        return _filteredReports.count;
+        if (_filteredReports.count){
+            return _filteredReports.count;
+        } else if (loading) {
+            return 0;
+        } else {
+            return 1;
+        }
     } else {
-        return _reports.count;
+        if (_reports.count){
+            return _reports.count;
+        } else if (loading) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }
 
@@ -193,14 +212,43 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportCell" owner:self options:nil] lastObject];
     }
-    Report *report;
+  
     if (weekly || safety || daily){
-        report = [_filteredReports objectAtIndex:indexPath.row];
+        if (_filteredReports.count){
+            Report *report = [_filteredReports objectAtIndex:indexPath.row];
+            [cell configureReport:report];
+        } else if (!loading) {
+            return [self generateNothingCellForIndexPath:indexPath];
+        }
     } else {
-        report = [_reports objectAtIndex:indexPath.row];
+        if (_reports.count){
+            Report *report = [_reports objectAtIndex:indexPath.row];
+            [cell configureReport:report];
+        } else if (!loading) {
+            return [self generateNothingCellForIndexPath:indexPath];
+        }
     }
     
-    [cell configureReport:report];
+    
+    return cell;
+}
+
+- (UITableViewCell*)generateNothingCellForIndexPath:(NSIndexPath*)indexPath {
+    static NSString *CellIdentifier = @"NothingCell";
+    UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+    UIButton *nothingButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [nothingButton setTitle:@"No reports..." forState:UIControlStateNormal];
+    [nothingButton.titleLabel setNumberOfLines:0];
+    [nothingButton addTarget:self action:@selector(startWriting) forControlEvents:UIControlEventTouchUpInside];
+    [nothingButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
+    nothingButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+    [nothingButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [nothingButton setBackgroundColor:[UIColor clearColor]];
+    [cell addSubview:nothingButton];
+    [nothingButton setFrame:CGRectMake(0, 0, self.tableView.frame.size.width, self.tableView.frame.size.height-100)];
+    cell.backgroundView = [[UIView alloc] initWithFrame:cell.frame];
+    [cell.backgroundView setBackgroundColor:[UIColor clearColor]];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     return cell;
 }
 
@@ -222,8 +270,12 @@
 {
     if(indexPath.section == tableView.numberOfSections-1 && indexPath.row == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
-        [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        //[SVProgressHUD dismiss];
+        [ProgressHUD dismiss];
+        if (_filteredReports.count){
+            [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+        } else if (_reports.count && !daily && !weekly && !safety){
+            [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+        }
     }
 }
 
@@ -254,7 +306,7 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([[segue identifier] isEqualToString:@"Report"]){
         BHReportViewController *vc = [segue destinationViewController];
-        [vc setSavedProject:savedProject];
+        [vc setProject:project];
         if ([sender isKindOfClass:[Report class]]){
             [vc setReport:(Report*)sender];
             [vc setReports:_reports];
@@ -266,7 +318,7 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    self.tabBarController.navigationItem.rightBarButtonItems = nil;
+    //self.tabBarController.navigationItem.rightBarButtonItems = nil;
 }
 
 - (void)didReceiveMemoryWarning

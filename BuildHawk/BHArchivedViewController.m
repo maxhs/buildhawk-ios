@@ -11,7 +11,7 @@
 #import "BHTabBarViewController.h"
 
 @interface BHArchivedViewController (){
-    BHProject *archivedProject;
+    Project *archivedProject;
     AFHTTPRequestOperationManager *manager;
 }
 @end
@@ -50,7 +50,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     static NSString *CellIdentifier = @"ArchivedCell";
-    BHProject *project = [_archivedProjects objectAtIndex:indexPath.row];
+    Project *project = [_archivedProjects objectAtIndex:indexPath.row];
     BHArchivedProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     if (cell == nil) {
@@ -115,13 +115,13 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    BHProject *selectedProject = [_archivedProjects objectAtIndex:button.tag];
+    Project *selectedProject = [_archivedProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"ArchivedProject" sender:selectedProject];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"Project"]) {
-        BHProject *project = (BHProject*)sender;
+        Project *project = (Project*)sender;
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
         //[vc setUser:savedUser];

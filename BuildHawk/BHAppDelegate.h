@@ -12,8 +12,8 @@
 @interface BHAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+@property (strong, nonatomic) AFHTTPRequestOperationManager *manager;
 
-- (void)logout;
 - (UIView*)addOverlay;
 - (void)offlineNotification;
 @end
