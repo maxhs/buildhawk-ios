@@ -9,5 +9,5 @@
 #import "Photo.h"
 
 @interface Photo (helper)
-
+- (void)populateFromDictionary:(NSDictionary*)dictionary;
 @end

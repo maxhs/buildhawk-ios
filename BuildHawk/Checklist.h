@@ -2,25 +2,38 @@
 //  Checklist.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/28/14.
+//  Created by Max Haines-Stiles on 5/8/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Checklist, ChecklistCategory, ChecklistItem;
+@class ChecklistItem, Phase, Project;
 
 @interface Checklist : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSOrderedSet *phases;
 @property (nonatomic, retain) NSOrderedSet *items;
 @property (nonatomic, retain) Project *project;
-@property (nonatomic, retain) NSOrderedSet *categories;
+@property (strong, nonatomic) NSMutableArray *completedPhases;
+@property (strong, nonatomic) NSMutableArray *activePhases;
+@property (strong, nonatomic) NSMutableArray *inProgressPhases;
 @end
 
 @interface Checklist (CoreDataGeneratedAccessors)
 
+- (void)insertObject:(Phase *)value inPhasesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromPhasesAtIndex:(NSUInteger)idx;
+- (void)insertPhases:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removePhasesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInPhasesAtIndex:(NSUInteger)idx withObject:(Phase *)value;
+- (void)replacePhasesAtIndexes:(NSIndexSet *)indexes withPhases:(NSArray *)values;
+- (void)addPhasesObject:(Phase *)value;
+- (void)removePhasesObject:(Phase *)value;
+- (void)addPhases:(NSOrderedSet *)values;
+- (void)removePhases:(NSOrderedSet *)values;
 - (void)insertObject:(ChecklistItem *)value inItemsAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromItemsAtIndex:(NSUInteger)idx;
 - (void)insertItems:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
@@ -31,9 +44,4 @@
 - (void)removeItemsObject:(ChecklistItem *)value;
 - (void)addItems:(NSOrderedSet *)values;
 - (void)removeItems:(NSOrderedSet *)values;
-- (void)addCatgoriesObject:(ChecklistCategory *)value;
-- (void)removeCatgoriesObject:(ChecklistCategory *)value;
-- (void)addCatgories:(NSSet *)values;
-- (void)removeCatgories:(NSSet *)values;
-
 @end

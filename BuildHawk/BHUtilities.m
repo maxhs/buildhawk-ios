@@ -14,15 +14,6 @@
 
 @implementation BHUtilities
 
-+ (NSMutableArray *)coworkersFromJSONArray:(NSArray *) array {
-    NSMutableArray *coworkers = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *userDictionary in array) {
-        BHUser *user = [[BHUser alloc] initWithDictionary:userDictionary];
-        [coworkers addObject:user];
-    }
-    return coworkers;
-}
-
 + (NSMutableArray *)checklistItemsFromJSONArray:(NSArray *) array {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDictionary in array) {
@@ -43,33 +34,6 @@
     return categories;
 }
 
-+ (NSMutableArray *)photosFromJSONArray:(NSArray *) array {
-    NSMutableArray *photos = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *photoDictionary in array) {
-        BHPhoto *photo = [[BHPhoto alloc] initWithDictionary:photoDictionary];
-        [photos addObject:photo];
-    }
-    return photos;
-}
-
-+ (NSMutableArray *)reportsFromJSONArray:(NSArray *) array {
-    NSMutableArray *reports = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *reportDictionary in array) {
-        //Report *report = [[Report alloc] initWithDictionary:reportDictionary];
-        //[reports addObject:report];
-    }
-    return reports;
-}
-
-+ (NSMutableArray *)usersFromJSONArray:(NSArray *) array {
-    NSMutableArray *users = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *userDictionary in array) {
-        BHUser *user = [[BHUser alloc] initWithDictionary:userDictionary];
-        [users addObject:user];
-    }
-    return users;
-}
-
 + (NSMutableArray *)projectsFromJSONArray:(NSArray *) array {
     NSMutableArray *projects = [NSMutableArray arrayWithCapacity:array.count];
     /*for (NSDictionary *projectDictionary in array) {
@@ -79,28 +43,28 @@
     return projects;
 }
 
-+ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
+/*+ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
     NSMutableArray *personnel = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *dict in array) {
         if ([dict objectForKey:@"user"]){
-            BHUser *user = [[BHUser alloc] initWithDictionary:[dict objectForKey:@"user"]];
+            User *user = [[User alloc] initWithDictionary:[dict objectForKey:@"user"]];
             [personnel addObject:user];
         } else if ([dict objectForKey:@"full_name"]) {
-            BHUser *user = [[BHUser alloc] initWithDictionary:dict];
+            User *user = [[User alloc] initWithDictionary:dict];
             [personnel addObject:user];
         } else if ([dict objectForKey:@"sub"]) {
-            /*Sub *sub = [[Sub alloc] :[dict objectForKey:@"sub"]];
+            Sub *sub = [[Sub alloc] :[dict objectForKey:@"sub"]];
             if ([dict objectForKey:@"hours"] && [dict objectForKey:@"hours"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
             if ([dict objectForKey:@"id"]) [sub setReportSubId:[dict objectForKey:@"id"]];
-            [personnel addObject:sub];*/
+            [personnel addObject:sub];
         } else if ([dict objectForKey:@"count"]) {
-            /*Sub *sub = [[Sub alloc] initWithDictionary:dict];
+            Sub *sub = [[Sub alloc] initWithDictionary:dict];
             if ([dict objectForKey:@"count"] && [dict objectForKey:@"count"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
-            [personnel addObject:sub];*/
+            [personnel addObject:sub];
         }
     }
     return personnel;
-}
+}*/
 
 + (NSOrderedSet *)commentsFromJSONArray:(NSArray *) array {
     NSMutableOrderedSet *comments = [NSMutableOrderedSet orderedSetWithCapacity:array.count];

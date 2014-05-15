@@ -10,9 +10,9 @@
 
 @implementation Checklist (helper)
 
-- (void)removeCategory:(Cat *)category{
-    NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.categories];
-    [set removeObject:category];
-    self.categories = set;
+- (void)removePhase:(Phase *)phase{
+    NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.phases];
+    [set removeObject:phase];
+    self.phases = set;
 }
 @end

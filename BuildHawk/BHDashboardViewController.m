@@ -15,7 +15,6 @@
 #import "Project.h"
 #import "Project+helper.h"
 #import "Address.h"
-#import "BHCompany.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHTabBarViewController.h"
 #import "Constants.h"
@@ -30,12 +29,10 @@
     NSMutableArray *groups;
     UIRefreshControl *refreshControl;
     BOOL iPhone5;
-    BOOL iPad;
     BOOL loading;
     NSMutableArray *filteredProjects;
     User *savedUser;
     NSMutableArray *recentChecklistItems;
-    NSMutableArray *recentDocuments;
     NSMutableArray *recentlyCompletedWorklistItems;
     NSMutableArray *notifications;
     NSMutableArray *upcomingChecklistItems;
@@ -46,48 +43,46 @@
     Project *archivedProject;
     NSMutableArray *archivedProjects;
     UIBarButtonItem *archiveButtonItem;
+    UIBarButtonItem *searchButton;
     UIView *overlayBackground;
     UIImageView *dashboardScreenshot;
     NSManagedObjectContext *defaultContext;
 }
 
-@property (weak, nonatomic) IBOutlet UIView *searchContainerBackgroundView;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem *leftMenuButton;
+
 @end
 
 @implementation BHDashboardViewController
 
-- (void)viewDidLoad
-{
-    loading = YES;
-    [super viewDidLoad];
-    manager = manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    
+- (void)viewDidLoad {
+    self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     if ([self.navigationController respondsToSelector:@selector(interactivePopGestureRecognizer)]) {
         self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     }
-    [self.view setBackgroundColor:[UIColor blackColor]];
+    [super viewDidLoad];
+    [self.view setBackgroundColor:kDarkerGrayColor];
+   
+    manager = manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    loading = YES;
     screen = [UIScreen mainScreen].bounds;
     if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = NO;
-        self.searchContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
-    } else {
-        iPad = YES;
     }
+    
     projects = [NSMutableArray array];
     groups = [NSMutableArray array];
     filteredProjects = [NSMutableArray array];
     
     SWRevealViewController *revealController = [self revealViewController];
     revealController.delegate = self;
-    if (iPad){
+    if (IDIOM == IPAD){
         revealController.rearViewRevealWidth = screen.size.width - 62;
     } else {
         revealController.rearViewRevealWidth = screen.size.width - 52;
     }
-    
-    searchContainerRect = self.searchContainerView.frame;
     
     NSDate *now = [NSDate date];
     NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
@@ -99,13 +94,15 @@
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    [self.searchContainerBackgroundView setBackgroundColor:kDarkGrayColor];
     
     if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
     if (!categories) categories = [NSMutableArray array];
     [self loadProjects];
 
+    searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(activateSearch)];
+    self.navigationItem.rightBarButtonItems = @[searchButton];
     archiveButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Archived" style:UIBarButtonItemStylePlain target:self action:@selector(getArchived)];
+    [self.searchDisplayController.searchBar setBackgroundColor:kDarkerGrayColor];
 }
 
 - (void)getArchived {
@@ -133,12 +130,45 @@
     }
 }
 
+- (void)activateSearch {
+    [self.searchDisplayController.searchBar becomeFirstResponder];
+    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:.5 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+        searchFrame.origin.x = 0;
+        [self.searchDisplayController.searchBar setFrame:searchFrame];
+        [self.searchDisplayController.searchBar setAlpha:1.0];
+        CGRect tableFrame = self.tableView.frame;
+        tableFrame.origin.y += 44;
+        tableFrame.size.height += 44;
+        [self.tableView setFrame:tableFrame];
+    } completion:^(BOOL finished) {
+
+    }];
+}
+
+- (void)endSearch {
+    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:.5 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+        searchFrame.origin.x = screenWidth();
+        [self.searchDisplayController.searchBar setFrame:searchFrame];
+        [self.searchDisplayController.searchBar setAlpha:0.0];
+        CGRect tableFrame = self.tableView.frame;
+        tableFrame.origin.y -= 44;
+        tableFrame.size.height -= 44;
+        [self.tableView setFrame:tableFrame];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+
 - (void)handleRefresh:(id)sender {
     [self loadProjects];
 }
 
 - (void)loadProjects {
-    projects = [[Project MR_findAllSortedBy:@"name" ascending:YES] mutableCopy];
+    NSPredicate *activePredicate = [NSPredicate predicateWithFormat:@"demo == %@",[NSNumber numberWithBool:NO]];
+    projects = [[Project MR_findAllSortedBy:@"name" ascending:YES withPredicate:activePredicate] mutableCopy];
     //NSLog(@"projects count fetched from MR: %i",projects.count);
     if (projects.count == 0)[ProgressHUD show:@"Fetching projects..."];
     else [self.tableView reloadData];
@@ -168,15 +198,11 @@
         for (id obj in projectsArray) {
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [obj objectForKey:@"id"]];
             Project *project = [Project MR_findFirstWithPredicate:predicate inContext:defaultContext];
-            if (project){
-                NSLog(@"Found saved project %@",project.name);
-                [project populateFromDictionary:obj];
-            } else {
+            if (!project){
                 project = [Project MR_createInContext:defaultContext];
-                NSLog(@"Creating a new project for local storage: %@",project.name);
-                [project populateFromDictionary:obj];
                 [projects addObject:project];
             }
+            [project populateFromDictionary:obj];
         }
 
         [defaultContext MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
@@ -204,8 +230,7 @@
     [manager GET:[NSString stringWithFormat:@"%@/projects/archived",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success getting archived projects: %@",responseObject);
         archivedProjects = [BHUtilities projectsFromJSONArray:[responseObject objectForKey:@"projects"]];
-        if (archivedProjects.count) self.navigationItem.rightBarButtonItem = archiveButtonItem;
-        else self.navigationItem.rightBarButtonItem = nil;
+        if (archivedProjects.count) self.navigationItem.rightBarButtonItems = @[searchButton,archiveButtonItem];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to get archived projects: %@",error.description);
     }];
@@ -367,23 +392,16 @@
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    [self.navigationController setNavigationBarHidden:YES animated:YES];
-    [UIView animateWithDuration:.2 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
-        [self.searchContainerView setFrame:CGRectMake(0, 0, 320, self.view.frame.size.height)];
-        [self.searchContainerBackgroundView setBackgroundColor:[UIColor whiteColor]];
-    } completion:^(BOOL finished) {
-        
-    }];
+    //[self.navigationController setNavigationBarHidden:YES animated:YES];
+
 }
 
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
-    [self.navigationController setNavigationBarHidden:NO animated:YES];
-    [UIView animateWithDuration:.2 delay:0 options:UIViewAnimationOptionCurveLinear animations:^{
-        [self.searchContainerView setFrame:searchContainerRect];
-        [self.searchContainerBackgroundView setBackgroundColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    } completion:^(BOOL finished) {
-        
-    }];
+    //[self.navigationController setNavigationBarHidden:NO animated:YES];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [self endSearch];
 }
 
 #pragma mark - Table view delegate
@@ -494,12 +512,12 @@
 - (void)slide2:(UITapGestureRecognizer*)sender {
     BHOverlayView *dashboard = [[BHOverlayView alloc] initWithFrame:screen];
     
-    if (iPad){
+    if (IDIOM == IPAD){
         dashboardScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"dashboardiPad"]];
         [dashboardScreenshot setFrame:CGRectMake(29, 30, 710, 462)];
     } else {
         dashboardScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"dashboardScreenshot"]];
-        [dashboardScreenshot setFrame:CGRectMake(10, 30, 300, 290)];
+        [dashboardScreenshot setFrame:CGRectMake(20, 30, 280, 290)];
     }
     [dashboardScreenshot setAlpha:0.0];
     [overlayBackground addSubview:dashboardScreenshot];

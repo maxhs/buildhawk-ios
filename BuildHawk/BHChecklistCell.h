@@ -14,6 +14,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *mainLabel;
 @property (weak, nonatomic) IBOutlet UILabel *detailLabel;
 @property (weak, nonatomic) IBOutlet UILabel *itemBody;
+@property (weak, nonatomic) IBOutlet UILabel *progressPercentage;
 @property (strong, nonatomic) NSNumber *level;
 @property (strong, nonatomic) ChecklistItem *item;
 @property (weak, nonatomic) IBOutlet UIImageView *photoImageView;

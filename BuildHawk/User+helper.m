@@ -21,12 +21,20 @@
     if ([dictionary objectForKey:@"first_name"] && [dictionary objectForKey:@"first_name"] != [NSNull null]) {
         self.firstName = [dictionary objectForKey:@"first_name"];
     }
-    
     if ([dictionary objectForKey:@"last_name"] && [dictionary objectForKey:@"last_name"] != [NSNull null]) {
         self.lastName = [dictionary objectForKey:@"last_name"];
     }
+    if ([dictionary objectForKey:@"url_thumb"] && [dictionary objectForKey:@"url_thumb"] != [NSNull null]) {
+        self.photoUrlThumb = [dictionary objectForKey:@"url_thumb"];
+    }
+    if ([dictionary objectForKey:@"url_small"] && [dictionary objectForKey:@"url_small"] != [NSNull null]) {
+        self.photoUrlSmall = [dictionary objectForKey:@"url_small"];
+    }
     if ([dictionary objectForKey:@"phone_number"] && [dictionary objectForKey:@"phone_number"] != [NSNull null]) {
         self.phone = [dictionary objectForKey:@"phone_number"];
+    }
+    if ([dictionary objectForKey:@"formatted_phone"] && [dictionary objectForKey:@"formatted_phone"] != [NSNull null]) {
+        self.formattedPhone = [dictionary objectForKey:@"formatted_phone"];
     }
     if ([dictionary objectForKey:@"email"] && [dictionary objectForKey:@"email"] != [NSNull null]) {
         self.email = [dictionary objectForKey:@"email"];
@@ -35,7 +43,6 @@
         self.demo = [dictionary objectForKey:@"demo"];
     }
     if ([dictionary objectForKey:@"admin"] && [dictionary objectForKey:@"admin"] != [NSNull null]) {
-        NSLog(@"is user admin? %@ %@",[dictionary objectForKey:@"admin"], [[dictionary objectForKey:@"admin"] class]);
         self.admin = [dictionary objectForKey:@"admin"];
     }
     if ([dictionary objectForKey:@"company_admin"] && [dictionary objectForKey:@"company_admin"] != [NSNull null]) {
@@ -50,7 +57,6 @@
         Company *company = [Company MR_findFirstWithPredicate:predicate];
         if (company){
             self.company = company;
-            NSLog(@"MR_found company: %@",self.company.identifier);
         } else {
             self.company = [Company MR_createEntity];
             if ([companyDict objectForKey:@"name"] != [NSNull null]){
@@ -59,11 +65,12 @@
             if ([companyDict objectForKey:@"id"] != [NSNull null]){
                 self.company.identifier = [companyDict objectForKey:@"id"];
             }
-            NSLog(@"Couldn't find the company. Creating a new one: %@",self.company.identifier);
+            //NSLog(@"Couldn't find the company. Creating a new one: %@",self.company.identifier);
         }
     }
 }
 /*
+ - (void)setValue:(id)value forKey:(NSString *)key {
  if ([key isEqualToString:@"id"]) {
  self.identifier = value;
  } else if ([key isEqualToString:@"email"]) {
@@ -84,18 +91,18 @@
  self.company = [[BHCompany alloc] initWithDictionary:value];
  } else if ([key isEqualToString:@"coworkers"]) {
  self.coworkers = [BHUtilities coworkersFromJSONArray:value];
- } else if ([key isEqualToString:@"subcontractors"]) {
- self.subcontractors = [BHUtilities subcontractorsFromJSONArray:value];
  } else if ([key isEqualToString:@"admin"]) {
  self.admin = [value boolValue];
  } else if ([key isEqualToString:@"copmany_admin"]) {
  self.companyAdmin = [value boolValue];
  } else if ([key isEqualToString:@"uber_admin"]) {
  self.uberAdmin = [value boolValue];
- } else if ([key isEqualToString:@"url100"]) {
+ } else if ([key isEqualToString:@"urlThumb"]) {
  if (value != [NSNull null]) {
- self.photo = [[BHPhoto alloc] init];
+ self.photo = [[Photo alloc] init];
  [self.photo setUrl100:value];
+ }
+ }
  }
  }*/
 @end

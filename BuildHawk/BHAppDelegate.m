@@ -7,8 +7,7 @@
 //
 
 #import "BHAppDelegate.h"
-#import "BHUser.h"
-#import "BHCompany.h"
+#import "User+helper.h"
 #import "Project.h"
 #import "BHProjectCollection.h"
 #import "Constants.h"
@@ -60,18 +59,19 @@
         }
     }];
     _manager = [AFHTTPRequestOperationManager manager];
+    _manager.requestSerializer = [AFJSONRequestSerializer serializer];
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [self.window makeKeyAndVisible];
     return YES;
 }
 
 - (void)customizeAppearance {
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0f) {
+    /*if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0f) {
         [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"] forBarMetrics:UIBarMetricsDefault];
-    } else {
+    } else {*/
         [self.window setTintColor:[UIColor whiteColor]];
         [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
-    }
+    //}
     
     UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{

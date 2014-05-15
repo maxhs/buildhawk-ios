@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 BuildHawk. All rights reserved.
 //
 
-#import "BHPhoto.h"
+#import "Photo.h"
 #import "Project.h"
 
 @interface BHPhotosViewController : UICollectionViewController

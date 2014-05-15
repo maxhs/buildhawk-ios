@@ -8,7 +8,6 @@
 
 #import "Report.h"
 #import "Project.h"
-#import "Sub.h"
 #import "User.h"
 
 
@@ -18,7 +17,6 @@
 @dynamic createdDate;
 @dynamic humidity;
 @dynamic identifier;
-@dynamic personnel;
 @dynamic photos;
 @dynamic precip;
 @dynamic temp;
@@ -30,8 +28,7 @@
 @dynamic updatedAt;
 @dynamic possibleTopics;
 @dynamic project;
-@dynamic subs;
-@dynamic users;
+@dynamic reportUsers;
 @dynamic safetyTopics;
 
 @end

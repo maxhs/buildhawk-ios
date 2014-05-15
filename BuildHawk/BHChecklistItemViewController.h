@@ -8,8 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import "ChecklistItem.h"
-#import "BHComment.h"
-#import "BHPhoto.h"
+#import "Comment.h"
+#import "Photo.h"
 #import "Project.h"
 
 @interface BHChecklistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>

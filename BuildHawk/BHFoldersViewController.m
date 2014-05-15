@@ -15,7 +15,7 @@
 
 @interface BHFoldersViewController () <MWPhotoBrowserDelegate, UITableViewDataSource, UITableViewDelegate> {
     NSMutableArray *compositePhotos;
-    NSMutableArray *browserArray; // for BHPhoto objects
+    NSMutableArray *browserArray; // for Photo objects
     NSMutableArray *browserPhotos; //for MWPhoto objects
     NSIndexPath *tapped;
     BOOL iPad;
@@ -92,12 +92,12 @@
     NSDictionary *dict = [_photoSet.allObjects objectAtIndex:indexPath.section];
     NSString *key = [[dict allKeys] firstObject];
     
-    BHPhoto *photo = [[dict objectForKey:key] objectAtIndex:indexPath.row];
+    Photo *photo = [[dict objectForKey:key] objectAtIndex:indexPath.row];
     NSURL *imageUrl;
     if (iPad) {
         imageUrl = [NSURL URLWithString:photo.urlLarge];
     } else {
-        imageUrl = [NSURL URLWithString:photo.url200];
+        imageUrl = [NSURL URLWithString:photo.urlSmall];
     }
     [cell.photoButton setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
         cell.photoButton.userInteractionEnabled = NO;
@@ -128,7 +128,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     /*NSDictionary *dict = [_photoSet.allObjects objectAtIndex:indexPath.section];
     NSString *key = [[dict allKeys] firstObject];
-    BHPhoto *photo = [[dict objectForKey:key] objectAtIndex:indexPath.row];
+    Photo *photo = [[dict objectForKey:key] objectAtIndex:indexPath.row];
     [self showBrowser:[_photosArray indexOfObject:photo]];
     tapped = indexPath;*/
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -141,7 +141,7 @@
         NSString *folder = [[dict allKeys] firstObject];
         NSPredicate *test = [NSPredicate predicateWithFormat:@"folder contains[cd] %@",folder];
         browserArray = [NSMutableArray array];
-        for (BHPhoto *photo in _photosArray){
+        for (Photo *photo in _photosArray){
             if([test evaluateWithObject:photo]) {
                 [browserArray addObject:photo];
             }
@@ -153,7 +153,7 @@
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove){
         [_photosArray removeObject:photoToRemove];
         [[[_photoSet.allObjects objectAtIndex:tapped.section] objectForKey:[_sectionTitles objectAtIndex:tapped.section]] removeObject:photoToRemove];
@@ -163,10 +163,10 @@
 
 - (void)showBrowser {
     browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in browserArray) {
+    for (Photo *photo in browserArray) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setBhphoto:photo];
+        [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     

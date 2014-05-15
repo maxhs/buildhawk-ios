@@ -28,7 +28,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:_photo.orig]]];
+	[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:_photo.original]]];
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {

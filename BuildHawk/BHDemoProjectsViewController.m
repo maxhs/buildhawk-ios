@@ -32,8 +32,9 @@
 {
     demoProjects = [NSMutableArray array];
     manager = [AFHTTPRequestOperationManager manager];
-    if (!dashboardDetailDict) dashboardDetailDict = [NSMutableDictionary dictionary];
-    if (!categories) categories = [NSMutableArray array];
+    dashboardDetailDict = [NSMutableDictionary dictionary];
+    categories = [NSMutableArray array];
+    demoProjects = [Project MR_findByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]].mutableCopy;
     [self loadDemos];
     self.title = @"Demo Projects";
     [super viewDidLoad];
@@ -64,14 +65,33 @@
 - (void)loadDemos {
     [ProgressHUD show:@"Loading Demo Projects..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"demo projects reponse object: %@",responseObject);
-        demoProjects = [BHUtilities projectsFromJSONArray:[responseObject objectForKey:@"projects"]];
+        NSLog(@"demo projects response object: %@",responseObject);
+        [self updateProjects:[responseObject objectForKey:@"projects"]];
         [self loadDetailView];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error while loading demos: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading the demo projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         //if (refreshControl.isRefreshing) [refreshControl endRefreshing];
     }];
+}
+
+- (void)updateProjects:(NSArray*)projectsArray {
+    for (id obj in projectsArray) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [obj objectForKey:@"id"]];
+        Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!project) {
+            project = [Project MR_createEntity];
+            NSLog(@"Creating a new project for local storage: %@",project.name);
+            [demoProjects addObject:project];
+        }
+        [project populateFromDictionary:obj];
+    }
+    
+    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"What happened during demo project save? %hhd %@",success, error);
+        [self.tableView reloadData];
+    }];
+
 }
 
 

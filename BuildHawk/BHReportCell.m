@@ -7,6 +7,7 @@
 //
 
 #import "BHReportCell.h"
+#import "Photo+helper.h"
 #import "UIButton+WebCache.h"
 
 @implementation BHReportCell
@@ -34,14 +35,14 @@
 
 - (void)configureReport:(Report *)report {
     [_reportLabel setText:[NSString stringWithFormat:@"%@ Report - %@",report.type,report.createdDate]];
-    [_personnelLabel setText:[NSString stringWithFormat:@"Personnel onsite: %i",(report.subs.count + report.users.count)]];
+    [_personnelLabel setText:[NSString stringWithFormat:@"Personnel onsite: %i",report.reportUsers.count]];
     if (report.body){
         [_notesLabel setText:[NSString stringWithFormat:@"Notes: %@",report.body]];
     } else {
         [_notesLabel setText:@"Notes: N/A"];
     }
-    if ([(NSArray*)report.photos count]){
-        [_photoButton setImageWithURL:[NSURL URLWithString:[[(NSArray*)report.photos firstObject] url200]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+    if (report.photos.count > 0){
+        [_photoButton setImageWithURL:[NSURL URLWithString:[(Photo*)report.photos.firstObject urlSmall]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             
         }];
         [_photoCountBubble setBackgroundColor:[UIColor whiteColor]];

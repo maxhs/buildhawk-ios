@@ -177,7 +177,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="7vC-tQ-QbH">
-                                <rect key="frame" x="0.0" y="73" width="320" height="431"/>
+                                <rect key="frame" x="0.0" y="36" width="320" height="468"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
@@ -187,17 +187,17 @@
                                     <outlet property="delegate" destination="2" id="AWm-gT-Ofv"/>
                                 </connections>
                             </tableView>
-                            <searchBar contentMode="redraw" translucent="NO" id="b7E-dN-LAd" customClass="BHSearchBar">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            <searchBar contentMode="redraw" barStyle="blackTranslucent" searchBarStyle="minimal" id="b7E-dN-LAd" customClass="BHSearchBar">
+                                <rect key="frame" x="320" y="0.0" width="320" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <textInputTraits key="textInputTraits"/>
                                 <connections>
                                     <outlet property="delegate" destination="2" id="3eZ-YR-hv3"/>
                                 </connections>
                             </searchBar>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="s5c-1f-kMS">
-                                <rect key="frame" x="6" y="44" width="308" height="29"/>
+                                <rect key="frame" x="6" y="8" width="308" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
                                     <segment title="All"/>
@@ -493,12 +493,75 @@
                                     <outlet property="delegate" destination="PYU-kZ-OjC" id="oFo-EX-U9G"/>
                                 </connections>
                             </tableView>
+                            <view contentMode="scaleToFill" id="xYv-KN-aiE">
+                                <rect key="frame" x="0.0" y="504" width="320" height="210"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
+                                <subviews>
+                                    <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" minuteInterval="1" id="HUc-Qx-jRB">
+                                        <rect key="frame" x="0.0" y="45" width="320" height="162"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                        <date key="date" timeIntervalSinceReferenceDate="409704731.44025999">
+                                            <!--2013-12-25 22:52:11 +0000-->
+                                        </date>
+                                        <timeZone key="timeZone" name="America/Los_Angeles">
+                                            <data key="data">
+VFppZgAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAC5AAAABAAAABCepkign7sVkKCGKqChmveQ
+y4kaoNIj9HDSYSYQ1v50INiArZDa/tGg28CQENzes6DdqayQ3r6VoN+JjpDgnneg4WlwkOJ+WaDjSVKQ
+5F47oOUpNJDmR1gg5xJREOgnOiDo8jMQ6gccIOrSFRDr5v4g7LH3EO3G4CDukdkQ76/8oPBxuxDxj96g
+8n/BkPNvwKD0X6OQ9U+ioPY/hZD3L4Sg+CiiEPkPZqD6CIQQ+viDIPvoZhD82GUg/chIEP64RyD/qCoQ
+AJgpIAGIDBACeAsgA3EokARhJ6AFUQqQBkEJoAcw7JAHjUOgCRDOkAmtvyAK8LCQC+CvoAzZzRANwJGg
+DrmvEA+priAQmZEQEYmQIBJ5cxATaXIgFFlVEBVJVCAWOTcQFyk2IBgiU5AZCRggGgI1kBryNKAb4heQ
+HNIWoB3B+ZAesfigH6HbkCB2KyAhgb2QIlYNICNq2hAkNe8gJUq8ECYV0SAnKp4QJ/7toCkKgBAp3s+g
+KupiECu+saAs036QLZ6ToC6zYJAvfnWgMJNCkDFnkiAycySQM0d0IDRTBpA1J1YgNjLokDcHOCA4HAUQ
+OOcaIDn75xA6xvwgO9vJEDywGKA9u6sQPo/6oD+bjRBAb9ygQYSpkEJPvqBDZIuQRC+goEVEbZBF89Mg
+Ry2KEEfTtSBJDWwQSbOXIErtThBLnLOgTNZqkE18laBOtkyQT1x3oFCWLpBRPFmgUnYQkFMcO6BUVfKQ
+VPwdoFY11JBW5TogWB7xEFjFHCBZ/tMQWqT+IFvetRBchOAgXb6XEF5kwiBfnnkQYE3eoGGHlZBiLcCg
+Y2d3kGQNoqBlR1mQZe2EoGcnO5BnzWagaQcdkGmtSKBq5v+Qa5ZlIGzQHBBtdkcgbq/+EG9WKSBwj+AQ
+cTYLIHJvwhBzFe0gdE+kEHT/CaB2OMCQdt7roHgYopB4vs2gefiEkHqer6B72GaQfH6RoH24SJB+XnOg
+f5gqkAABAAECAwEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
+AQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
+AQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
+AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
+</data>
+                                        </timeZone>
+                                    </datePicker>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="4p6-Ts-TtX">
+                                        <rect key="frame" x="0.0" y="1" width="160" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <state key="normal" title="Cancel">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="cancelDatePicker" destination="3" eventType="touchUpInside" id="uuv-0h-guh"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="TPb-MC-wNV">
+                                        <rect key="frame" x="160" y="1" width="160" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <state key="normal" title="Select">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="selectDate" destination="3" eventType="touchUpInside" id="aWq-tm-Nkv"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="GpF-2H-fqz"/>
                     <connections>
+                        <outlet property="cancelButton" destination="4p6-Ts-TtX" id="bwr-os-UVY"/>
+                        <outlet property="datePicker" destination="HUc-Qx-jRB" id="IqO-NQ-dl5"/>
+                        <outlet property="datePickerContainer" destination="xYv-KN-aiE" id="EfY-fq-dNM"/>
                         <outlet property="segmentedControl" destination="PFD-Cw-6rY" id="sj0-UY-evu"/>
+                        <outlet property="selectButton" destination="TPb-MC-wNV" id="idc-vW-BtS"/>
                         <outlet property="tableView" destination="VS0-1K-JbD" id="zG2-xV-ePg"/>
                         <segue destination="3" kind="push" identifier="Report" id="7to-sF-Hdh"/>
                     </connections>
@@ -529,15 +592,6 @@
                                             <outlet property="delegate" destination="3" id="cIb-ob-1F7"/>
                                         </connections>
                                     </tableView>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="DMb-mX-aFr">
-                                        <rect key="frame" x="320" y="0.0" width="320" height="504"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <connections>
-                                            <outlet property="dataSource" destination="3" id="MYB-y4-WVO"/>
-                                            <outlet property="delegate" destination="3" id="JSz-cH-bRR"/>
-                                        </connections>
-                                    </tableView>
                                     <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="LAP-kd-1sg">
                                         <rect key="frame" x="640" y="0.0" width="320" height="504"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -547,75 +601,20 @@
                                             <outlet property="delegate" destination="3" id="YXF-Hb-3Tm"/>
                                         </connections>
                                     </tableView>
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="DMb-mX-aFr">
+                                        <rect key="frame" x="320" y="0.0" width="320" height="504"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <connections>
+                                            <outlet property="dataSource" destination="3" id="MYB-y4-WVO"/>
+                                            <outlet property="delegate" destination="3" id="JSz-cH-bRR"/>
+                                        </connections>
+                                    </tableView>
                                 </subviews>
                                 <connections>
                                     <outlet property="delegate" destination="3" id="82b-4g-Yv5"/>
                                 </connections>
                             </scrollView>
-                            <view alpha="0.0" contentMode="scaleToFill" id="n6y-5E-s2q">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="pXd-NO-LcI">
-                                <rect key="frame" x="0.0" y="294" width="320" height="210"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMinY="YES"/>
-                                <subviews>
-                                    <datePicker contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="date" minuteInterval="1" id="fEQ-Hl-ZEa">
-                                        <rect key="frame" x="0.0" y="45" width="320" height="162"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                        <date key="date" timeIntervalSinceReferenceDate="409704731.44025999">
-                                            <!--2013-12-25 22:52:11 +0000-->
-                                        </date>
-                                        <timeZone key="timeZone" name="America/Los_Angeles">
-                                            <data key="data">
-VFppZgAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAC5AAAABAAAABCepkign7sVkKCGKqChmveQ
-y4kaoNIj9HDSYSYQ1v50INiArZDa/tGg28CQENzes6DdqayQ3r6VoN+JjpDgnneg4WlwkOJ+WaDjSVKQ
-5F47oOUpNJDmR1gg5xJREOgnOiDo8jMQ6gccIOrSFRDr5v4g7LH3EO3G4CDukdkQ76/8oPBxuxDxj96g
-8n/BkPNvwKD0X6OQ9U+ioPY/hZD3L4Sg+CiiEPkPZqD6CIQQ+viDIPvoZhD82GUg/chIEP64RyD/qCoQ
-AJgpIAGIDBACeAsgA3EokARhJ6AFUQqQBkEJoAcw7JAHjUOgCRDOkAmtvyAK8LCQC+CvoAzZzRANwJGg
-DrmvEA+priAQmZEQEYmQIBJ5cxATaXIgFFlVEBVJVCAWOTcQFyk2IBgiU5AZCRggGgI1kBryNKAb4heQ
-HNIWoB3B+ZAesfigH6HbkCB2KyAhgb2QIlYNICNq2hAkNe8gJUq8ECYV0SAnKp4QJ/7toCkKgBAp3s+g
-KupiECu+saAs036QLZ6ToC6zYJAvfnWgMJNCkDFnkiAycySQM0d0IDRTBpA1J1YgNjLokDcHOCA4HAUQ
-OOcaIDn75xA6xvwgO9vJEDywGKA9u6sQPo/6oD+bjRBAb9ygQYSpkEJPvqBDZIuQRC+goEVEbZBF89Mg
-Ry2KEEfTtSBJDWwQSbOXIErtThBLnLOgTNZqkE18laBOtkyQT1x3oFCWLpBRPFmgUnYQkFMcO6BUVfKQ
-VPwdoFY11JBW5TogWB7xEFjFHCBZ/tMQWqT+IFvetRBchOAgXb6XEF5kwiBfnnkQYE3eoGGHlZBiLcCg
-Y2d3kGQNoqBlR1mQZe2EoGcnO5BnzWagaQcdkGmtSKBq5v+Qa5ZlIGzQHBBtdkcgbq/+EG9WKSBwj+AQ
-cTYLIHJvwhBzFe0gdE+kEHT/CaB2OMCQdt7roHgYopB4vs2gefiEkHqer6B72GaQfH6RoH24SJB+XnOg
-f5gqkAABAAECAwEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
-AQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
-AQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEA
-AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
-</data>
-                                        </timeZone>
-                                    </datePicker>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Wil-Vk-K3c">
-                                        <rect key="frame" x="0.0" y="1" width="160" height="44"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
-                                        <state key="normal" title="Cancel">
-                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="cancelDatePicker" destination="3" eventType="touchUpInside" id="TW1-tb-o3w"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Pkt-2R-58v">
-                                        <rect key="frame" x="160" y="1" width="160" height="44"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
-                                        <state key="normal" title="Select">
-                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                        </state>
-                                        <connections>
-                                            <action selector="selectDate" destination="3" eventType="touchUpInside" id="cf2-Gv-r4H"/>
-                                        </connections>
-                                    </button>
-                                </subviews>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -625,12 +624,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <outlet property="activeTableView" destination="DMb-mX-aFr" id="RrQ-8Y-tLr"/>
                         <outlet property="afterTableView" destination="LAP-kd-1sg" id="hMz-VB-J0r"/>
                         <outlet property="beforeTableView" destination="LzY-6V-uE2" id="k03-pU-rTh"/>
-                        <outlet property="cancelButton" destination="Wil-Vk-K3c" id="wey-dD-pdn"/>
-                        <outlet property="datePicker" destination="fEQ-Hl-ZEa" id="64l-GY-xOC"/>
-                        <outlet property="datePickerContainer" destination="pXd-NO-LcI" id="Dqg-aN-VXY"/>
-                        <outlet property="overlayView" destination="n6y-5E-s2q" id="AQM-rq-TX4"/>
                         <outlet property="scrollView" destination="DvU-aj-8ES" id="Z3E-wZ-l6b"/>
-                        <outlet property="selectButton" destination="Pkt-2R-58v" id="5T0-cm-UcD"/>
                         <segue destination="xov-V5-hTJ" kind="push" identifier="PeoplePicker" id="bOL-sd-mqt"/>
                         <segue destination="xov-V5-hTJ" kind="push" identifier="SubPicker" id="0zm-Ej-2IJ"/>
                     </connections>
@@ -901,7 +895,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MSS-Fp-KsI">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="430"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -910,35 +904,14 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                     <outlet property="delegate" destination="hei-1C-lSF" id="3re-WI-Ezf"/>
                                 </connections>
                             </tableView>
-                            <view contentMode="scaleToFill" id="uEu-Nc-nja">
-                                <rect key="frame" x="0.0" y="430" width="320" height="74"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Ixi-wr-nyq">
-                                        <rect key="frame" x="0.0" y="0.0" width="320" height="460"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                        <connections>
-                                            <outlet property="dataSource" destination="hei-1C-lSF" id="I5p-Rn-IGl"/>
-                                            <outlet property="delegate" destination="hei-1C-lSF" id="ijp-Ng-D1v"/>
-                                        </connections>
-                                    </tableView>
-                                    <view contentMode="scaleToFill" id="lj1-5G-TsP">
-                                        <rect key="frame" x="0.0" y="0.0" width="320" height="74"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" white="0.20000000000000001" alpha="1" colorSpace="calibratedWhite"/>
-                                    </view>
-                                    <searchBar contentMode="redraw" text="" placeholder="Search for projects..." id="smN-Wa-QX7">
-                                        <rect key="frame" x="0.0" y="15" width="320" height="44"/>
-                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                        <textInputTraits key="textInputTraits"/>
-                                        <connections>
-                                            <outlet property="delegate" destination="hei-1C-lSF" id="XPe-WM-2yS"/>
-                                        </connections>
-                                    </searchBar>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            </view>
+                            <searchBar alpha="0.0" contentMode="redraw" barStyle="blackTranslucent" searchBarStyle="minimal" id="Jhe-do-oVk">
+                                <rect key="frame" x="320" y="0.0" width="320" height="44"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="hei-1C-lSF" id="8QZ-39-KsG"/>
+                                </connections>
+                            </searchBar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -953,9 +926,8 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </navigationItem>
                     <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>
                     <connections>
-                        <outlet property="searchContainerBackgroundView" destination="lj1-5G-TsP" id="gts-e6-Wr8"/>
-                        <outlet property="searchContainerView" destination="uEu-Nc-nja" id="hyN-WP-vC0"/>
-                        <outlet property="searchDisplayController" destination="cXD-0W-g83" id="mfr-yT-hcs"/>
+                        <outlet property="leftMenuButton" destination="4Df-GJ-DQf" id="J51-EU-cWL"/>
+                        <outlet property="searchDisplayController" destination="WYw-ox-IfO" id="gYu-fy-NLk"/>
                         <outlet property="tableView" destination="MSS-Fp-KsI" id="ohO-eF-Fm9"/>
                         <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardDetail" id="vI7-Ml-H9J"/>
                         <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
@@ -965,13 +937,13 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <searchDisplayController id="cXD-0W-g83">
+                <searchDisplayController id="WYw-ox-IfO">
                     <connections>
-                        <outlet property="delegate" destination="hei-1C-lSF" id="6Zj-6q-IoK"/>
-                        <outlet property="searchBar" destination="smN-Wa-QX7" id="aPg-Np-N6L"/>
-                        <outlet property="searchContentsController" destination="hei-1C-lSF" id="brL-Xj-1JN"/>
-                        <outlet property="searchResultsDataSource" destination="hei-1C-lSF" id="KH4-Hd-5Rp"/>
-                        <outlet property="searchResultsDelegate" destination="hei-1C-lSF" id="qid-Eh-vvq"/>
+                        <outlet property="delegate" destination="hei-1C-lSF" id="jxd-dJ-fA6"/>
+                        <outlet property="searchBar" destination="Jhe-do-oVk" id="XeS-L9-xEF"/>
+                        <outlet property="searchContentsController" destination="hei-1C-lSF" id="DJt-3P-ryN"/>
+                        <outlet property="searchResultsDataSource" destination="hei-1C-lSF" id="KSG-aa-qnj"/>
+                        <outlet property="searchResultsDelegate" destination="hei-1C-lSF" id="Loj-kY-HO4"/>
                     </connections>
                 </searchDisplayController>
             </objects>
@@ -1363,12 +1335,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="yE4-EA-SnA"/>
+        <segue reference="Vim-B7-ekZ"/>
         <segue reference="NH7-r7-qB8"/>
-        <segue reference="IwH-Rw-ke6"/>
+        <segue reference="vI7-Ml-H9J"/>
         <segue reference="bOL-sd-mqt"/>
+        <segue reference="eZr-X3-mJS"/>
         <segue reference="BC4-fv-9Fr"/>
         <segue reference="JhG-cE-lNU"/>
-        <segue reference="eZr-X3-mJS"/>
     </inferredMetricsTieBreakers>
 </document>

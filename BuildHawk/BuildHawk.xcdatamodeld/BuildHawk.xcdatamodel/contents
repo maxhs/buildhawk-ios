@@ -14,25 +14,17 @@
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="address" inverseEntity="Project" syncable="YES"/>
     </entity>
     <entity name="Cat" representedClassName="Cat" syncable="YES">
-        <attribute name="completed" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
-        <attribute name="completedDate" optional="YES" attributeType="Date" syncable="YES"/>
-        <attribute name="expanded" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
-        <attribute name="itemCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
-        <attribute name="milestoneDate" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
-        <attribute name="progressCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="checklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="categories" inverseEntity="Checklist" syncable="YES"/>
-        <relationship name="checklistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="category" inverseEntity="ChecklistItem" syncable="YES"/>
-        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="checklistCategories" inverseEntity="Project" syncable="YES"/>
-        <relationship name="subcategories" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Subcat" inverseName="cat" inverseEntity="Subcat" syncable="YES"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="category" inverseEntity="ChecklistItem" syncable="YES"/>
+        <relationship name="phase" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Phase" inverseName="categories" inverseEntity="Phase" syncable="YES"/>
     </entity>
     <entity name="Checklist" representedClassName="Checklist" syncable="YES">
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
-        <relationship name="categories" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Cat" inverseName="checklist" inverseEntity="Cat" syncable="YES"/>
         <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="checklist" inverseEntity="ChecklistItem" syncable="YES"/>
+        <relationship name="phases" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Phase" inverseName="checklist" inverseEntity="Phase" syncable="YES"/>
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="checklist" inverseEntity="Project" syncable="YES"/>
     </entity>
     <entity name="ChecklistItem" representedClassName="ChecklistItem" syncable="YES">
@@ -43,15 +35,15 @@
         <attribute name="criticalDate" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
-        <attribute name="photos" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="photosCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="status" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="type" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Cat" inverseName="checklistItems" inverseEntity="Cat" syncable="YES"/>
+        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Cat" inverseName="items" inverseEntity="Cat" syncable="YES"/>
         <relationship name="checklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="items" inverseEntity="Checklist" syncable="YES"/>
         <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Comment" inverseName="checklistItem" inverseEntity="Comment" syncable="YES"/>
+        <relationship name="phase" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Phase" inverseName="checklistItems" inverseEntity="Phase" syncable="YES"/>
+        <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="checklistItem" inverseEntity="Photo" syncable="YES"/>
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="recentItems" inverseEntity="Project" syncable="YES"/>
-        <relationship name="subcategory" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Subcat" inverseName="items" inverseEntity="Subcat" syncable="YES"/>
         <relationship name="upcomingItems" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="upcomingItems" inverseEntity="Project" syncable="YES"/>
     </entity>
     <entity name="Comment" representedClassName="Comment" syncable="YES">
@@ -69,20 +61,43 @@
         <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Project" inverseName="company" inverseEntity="Project" syncable="YES"/>
         <relationship name="users" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="company" inverseEntity="User" syncable="YES"/>
     </entity>
+    <entity name="Phase" representedClassName="Phase" syncable="YES">
+        <attribute name="completed" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="completedDate" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="itemCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="milestoneDate" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="progressCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="categories" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Cat" inverseName="phase" inverseEntity="Cat" syncable="YES"/>
+        <relationship name="checklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="phases" inverseEntity="Checklist" syncable="YES"/>
+        <relationship name="checklistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="phase" inverseEntity="ChecklistItem" syncable="YES"/>
+        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="phases" inverseEntity="Project" syncable="YES"/>
+    </entity>
     <entity name="Photo" representedClassName="Photo" syncable="YES">
+        <attribute name="assignee" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="createdDate" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="folder" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="folderId" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="image" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="original" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="phase" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photoPhase" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="source" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="urlLarge" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="urlSmall" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="urlThumb" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="userName" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="checklistItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChecklistItem" inverseName="photos" inverseEntity="ChecklistItem" syncable="YES"/>
+        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="documents" inverseEntity="Project" syncable="YES"/>
         <relationship name="punchlistItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PunchlistItem" inverseName="photos" inverseEntity="PunchlistItem" syncable="YES"/>
+        <relationship name="recentDocuments" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="recentDocuments" inverseEntity="Project" syncable="YES"/>
+        <relationship name="report" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Report" inverseName="photos" inverseEntity="Report" syncable="YES"/>
     </entity>
     <entity name="Project" representedClassName="Project" syncable="YES">
         <attribute name="active" optional="YES" attributeType="Boolean" syncable="YES"/>
@@ -91,18 +106,23 @@
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="notifications" optional="YES" attributeType="Transformable" syncable="YES"/>
-        <attribute name="photos" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="recentDocuments" optional="YES" attributeType="Transformable" syncable="YES"/>
         <relationship name="address" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Address" inverseName="project" inverseEntity="Address" syncable="YES"/>
         <relationship name="checklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="project" inverseEntity="Checklist" syncable="YES"/>
-        <relationship name="checklistCategories" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Cat" inverseName="project" inverseEntity="Cat" syncable="YES"/>
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="projects" inverseEntity="Company" syncable="YES"/>
+        <relationship name="documents" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="project" inverseEntity="Photo" syncable="YES"/>
+        <relationship name="phases" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Phase" inverseName="project" inverseEntity="Phase" syncable="YES"/>
+        <relationship name="punchlist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Punchlist" inverseName="project" inverseEntity="Punchlist" syncable="YES"/>
+        <relationship name="recentDocuments" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="recentDocuments" inverseEntity="Photo" syncable="YES"/>
         <relationship name="recentItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="project" inverseEntity="ChecklistItem" syncable="YES"/>
         <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="project" inverseEntity="Report" syncable="YES"/>
-        <relationship name="subs" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Sub" inverseName="projects" inverseEntity="Sub" syncable="YES"/>
         <relationship name="upcomingItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="upcomingItems" inverseEntity="ChecklistItem" syncable="YES"/>
         <relationship name="users" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="projects" inverseEntity="User" syncable="YES"/>
+    </entity>
+    <entity name="Punchlist" representedClassName="Punchlist" syncable="YES">
+        <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="punchlist" inverseEntity="Project" syncable="YES"/>
+        <relationship name="punchlistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="PunchlistItem" inverseName="punchlist" inverseEntity="PunchlistItem" syncable="YES"/>
     </entity>
     <entity name="PunchlistItem" representedClassName="PunchlistItem" syncable="YES">
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
@@ -111,10 +131,10 @@
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="location" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="assignees" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="punchlistItems" inverseEntity="User" syncable="YES"/>
         <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Comment" inverseName="punchlistItem" inverseEntity="Comment" syncable="YES"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="punchlistItem" inverseEntity="Photo" syncable="YES"/>
-        <relationship name="subAssignees" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Sub" inverseName="punchlistItems" inverseEntity="Sub" syncable="YES"/>
-        <relationship name="userAssignees" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="punchlistItems" inverseEntity="User" syncable="YES"/>
+        <relationship name="punchlist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Punchlist" inverseName="punchlistItems" inverseEntity="Punchlist" syncable="YES"/>
     </entity>
     <entity name="Report" representedClassName="Report" syncable="YES">
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
@@ -123,7 +143,6 @@
         <attribute name="humidity" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="personnel" optional="YES" attributeType="Transformable" syncable="YES"/>
-        <attribute name="photos" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="possibleTopics" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="precip" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="temp" optional="YES" attributeType="String" syncable="YES"/>
@@ -132,30 +151,10 @@
         <attribute name="weather" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="weatherIcon" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="wind" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="report" inverseEntity="Photo" syncable="YES"/>
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="reports" inverseEntity="Project" syncable="YES"/>
+        <relationship name="reportUsers" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="reports" inverseEntity="User" syncable="YES"/>
         <relationship name="safetyTopics" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Topic" inverseName="reports" inverseEntity="Topic" syncable="YES"/>
-        <relationship name="subs" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Sub" inverseName="reports" inverseEntity="Sub" syncable="YES"/>
-        <relationship name="users" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="reports" inverseEntity="User" syncable="YES"/>
-    </entity>
-    <entity name="Sub" representedClassName="Sub" syncable="YES">
-        <attribute name="count" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
-        <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="formattedPhone" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
-        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="phone" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Project" inverseName="subs" inverseEntity="Project" syncable="YES"/>
-        <relationship name="punchlistItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="PunchlistItem" inverseName="subAssignees" inverseEntity="PunchlistItem" syncable="YES"/>
-        <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="subs" inverseEntity="Report" syncable="YES"/>
-    </entity>
-    <entity name="Subcat" representedClassName="Subcat" syncable="YES">
-        <attribute name="expanded" optional="YES" attributeType="Boolean" syncable="YES"/>
-        <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
-        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
-        <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="cat" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Cat" inverseName="subcategories" inverseEntity="Cat" syncable="YES"/>
-        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="subcategory" inverseEntity="ChecklistItem" syncable="YES"/>
     </entity>
     <entity name="Topic" syncable="YES">
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
@@ -167,37 +166,40 @@
         <attribute name="admin" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="authToken" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="companyAdmin" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="count" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="coworkers" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="demo" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="email" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="firstName" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="formattedPhone" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="fullname" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="hours" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="lastName" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="phone" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="photoUrl100" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photoUrlSmall" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photoUrlThumb" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="uberAdmin" optional="YES" attributeType="Boolean" syncable="YES"/>
         <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Comment" inverseName="user" inverseEntity="Comment" syncable="YES"/>
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="users" inverseEntity="Company" syncable="YES"/>
         <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Project" inverseName="users" inverseEntity="Project" syncable="YES"/>
-        <relationship name="punchlistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="PunchlistItem" inverseName="userAssignees" inverseEntity="PunchlistItem" syncable="YES"/>
-        <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="users" inverseEntity="Report" syncable="YES"/>
+        <relationship name="punchlistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="PunchlistItem" inverseName="assignees" inverseEntity="PunchlistItem" syncable="YES"/>
+        <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="reportUsers" inverseEntity="Report" syncable="YES"/>
     </entity>
     <elements>
         <element name="Address" positionX="18" positionY="162" width="128" height="208"/>
+        <element name="Phase" positionX="45" positionY="180" width="128" height="238"/>
         <element name="Checklist" positionX="18" positionY="162" width="128" height="103"/>
-        <element name="Cat" positionX="45" positionY="180" width="128" height="253"/>
         <element name="ChecklistItem" positionX="9" positionY="153" width="128" height="298"/>
-        <element name="Company" positionX="0" positionY="0" width="128" height="103"/>
-        <element name="Photo" positionX="36" positionY="171" width="128" height="238"/>
-        <element name="Project" positionX="0" positionY="0" width="128" height="313"/>
-        <element name="Report" positionX="0" positionY="0" width="128" height="328"/>
-        <element name="Sub" positionX="9" positionY="108" width="128" height="178"/>
-        <element name="Subcat" positionX="54" positionY="189" width="128" height="148"/>
-        <element name="Topic" positionX="9" positionY="117" width="128" height="103"/>
-        <element name="User" positionX="0" positionY="0" width="128" height="328"/>
         <element name="Comment" positionX="27" positionY="153" width="128" height="148"/>
+        <element name="Company" positionX="0" positionY="0" width="128" height="103"/>
+        <element name="Photo" positionX="36" positionY="171" width="128" height="358"/>
+        <element name="Project" positionX="0" positionY="0" width="128" height="313"/>
         <element name="PunchlistItem" positionX="36" positionY="162" width="128" height="193"/>
+        <element name="Report" positionX="0" positionY="0" width="128" height="313"/>
+        <element name="Cat" positionX="54" positionY="189" width="128" height="133"/>
+        <element name="Topic" positionX="9" positionY="117" width="128" height="103"/>
+        <element name="User" positionX="0" positionY="0" width="128" height="373"/>
+        <element name="Punchlist" positionX="27" positionY="153" width="128" height="88"/>
     </elements>
 </model>

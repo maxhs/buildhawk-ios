@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHUser.h"
 
 @interface BHSettingsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 

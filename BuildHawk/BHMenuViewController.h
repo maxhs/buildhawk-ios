@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHUser.h"
 
 @interface BHMenuViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 

@@ -2,32 +2,26 @@
 //  Cat.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/28/14.
+//  Created by Max Haines-Stiles on 5/8/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Cat.h"
-#import "Checklist.h"
 #import "ChecklistItem.h"
-#import "Project.h"
-#import "Subcat.h"
+#import "Phase.h"
 
 
 @implementation Cat
 
-@dynamic completed;
-@dynamic completedDate;
+@synthesize expanded;
 @dynamic identifier;
-@dynamic itemCount;
-@dynamic milestoneDate;
 @dynamic name;
-@dynamic progressCount;
-@dynamic project;
-@dynamic subcategories;
-@dynamic checklistItems;
-@dynamic checklist;
-@dynamic progressPercentage;
 @dynamic orderIndex;
-@dynamic expanded;
+@dynamic progressPercentage;
+@dynamic phase;
+@dynamic items;
+@synthesize completedItems;
+@synthesize activeItems;
+@synthesize inProgressItems;
 
 @end

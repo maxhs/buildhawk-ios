@@ -9,5 +9,5 @@
 #import "Checklist.h"
 
 @interface Checklist (helper)
-- (void)removeCategory:(Cat *)category;
+- (void)removePhase:(Phase *)phase;
 @end

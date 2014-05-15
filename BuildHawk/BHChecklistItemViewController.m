@@ -26,10 +26,11 @@
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "BHPeoplePickerViewController.h"
 #import "Project.h"
+#import "BHAppDelegate.h"
+#import "Comment+helper.h"
 
 @interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, CTAssetsPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
-    BOOL complete;
     BOOL emailBool;
     BOOL phoneBool;
     BOOL saveToLibrary;
@@ -65,9 +66,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    if (!photosArray) photosArray = [NSMutableArray array];
-    if (_item.completed) complete = YES;
-    else complete = NO;
+    photosArray = [NSMutableArray array];
     tableViewInset = self.tableView.contentInset;
     tableViewInset.top += 64;
     self.tableView.backgroundColor = kLightestGrayColor;
@@ -78,14 +77,15 @@
         iPad = NO;
     }
     library = [[ALAssetsLibrary alloc]init];
-    if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem:)];
-    [[self navigationItem] setRightBarButtonItem:saveButton];
+    self.navigationItem.rightBarButtonItem = saveButton;
     [Flurry logEvent:@"Viewing checklist item"];
     [self loadItem];
+
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
@@ -93,10 +93,6 @@
     self.navigationItem.hidesBackButton = YES;
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
-    /*NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", _projectId];
-    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];*/
-    NSLog(@"do we have a proejct? %@",_project.name);
 }
 
 - (void)didReceiveMemoryWarning
@@ -108,9 +104,7 @@
 - (void)loadItem{
     [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
-        [_item setComments:[BHUtilities commentsFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"comments"]]];
-        [_item setPhotos:[BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]]];
-        //[_item setCategory:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"category_name"]];
+        [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failure getting checklist item: %@",error.description);
@@ -222,12 +216,12 @@
         if (commentCell == nil) {
             commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
         }
-        BHComment *comment = [_item.comments objectAtIndex:indexPath.row];
+        Comment *comment = [_item.comments objectAtIndex:indexPath.row];
         [commentCell.messageTextView setText:comment.body];
         if (comment.createdOnString.length){
             [commentCell.timeLabel setText:comment.createdOnString];
         } else {
-            [commentCell.timeLabel setText:[commentFormatter stringFromDate:comment.createdOn]];
+            [commentCell.timeLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
         }
         [commentCell.nameLabel setText:comment.user.fullname];
         return commentCell;
@@ -296,7 +290,7 @@
 }
 
 - (void)submitComment {
-    if (_project.demo){
+    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to add comments to a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
@@ -310,7 +304,23 @@
             [self.tableView reloadData];
             NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [self updateChecklistItem:NO];
+        
+                //CLEAN UP COMMENTS//
+                NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
+                //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);
+                for (id commentDict in [responseObject objectForKey:@"comments"]){
+                    NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
+                    Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
+                    if (!comment){
+                        comment = [Comment MR_createEntity];
+                    }
+                    [comment populateFromDictionary:commentDict];
+                    [orderedComments addObject:comment];
+                }
+                _item.comments = orderedComments;
+                // *** //
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+                addCommentTextView.text = @"";
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"failure creating a comment: %@",error.description);
             }];
@@ -356,10 +366,7 @@
     } else if (emailBool) {
         [vc setEmail:YES];
     }
-    if ([segue.identifier isEqualToString:@"SubPicker"]) {
-        [vc setCountNotNeeded:YES];
-        [vc setSubArray:_project.subs.array];
-    } else if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
+    if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
         [vc setUserArray:_project.users.array];
     }
 }
@@ -431,30 +438,6 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-
-- (void)photoButtonTapped;
-{
-    UIActionSheet *actionSheet = nil;
-
-    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
-        actionSheet = [[UIActionSheet alloc] initWithTitle:nil
-                                                  delegate:self
-                                         cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:nil
-                                         otherButtonTitles:@"Choose Existing Photo", @"Take Photo", nil];
-        [actionSheet showInView:self.view];
-    } else if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary]) {
-        
-        actionSheet = [[UIActionSheet alloc] initWithTitle:nil
-                                                  delegate:self
-                                         cancelButtonTitle:@"Cancel"
-                                    destructiveButtonTitle:nil
-                                         otherButtonTitles:@"Choose Existing Photo", nil];
-        [actionSheet showInView:self.view];
-    }
-    
-}
-
 - (void)existingPhotoButtonTapped:(UIButton*)button;
 {
     [self showPhotoDetail:button.tag];
@@ -473,13 +456,13 @@
         } else if ([buttonTitle isEqualToString:kSubcontractors]) {
             [self performSegueWithIdentifier:@"SubPicker" sender:nil];
         }
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
+    }/* else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
             [self choosePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Take Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
             [self takePhoto];
-    }
+    }*/
 }
 
 - (void)choosePhoto {
@@ -491,18 +474,23 @@
 
 - (void)takePhoto {
     saveToLibrary = YES;
-    UIImagePickerController *vc = [[UIImagePickerController alloc] init];
-    [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
-    [vc setDelegate:self];
-    [self presentViewController:vc animated:YES completion:nil];
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+        UIImagePickerController *vc = [[UIImagePickerController alloc] init];
+        [vc setModalPresentationStyle:UIModalPresentationCurrentContext];
+        [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
+        [vc setDelegate:self];
+        [self presentViewController:vc animated:YES completion:nil];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We're unable to access a camera on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [picker dismissViewControllerAnimated:YES completion:nil];
-    BHPhoto *newPhoto = [[BHPhoto alloc] init];
+    Photo *newPhoto = [Photo MR_createEntity];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [self saveImage:[self fixOrientation:newPhoto.image]];
-    [_item.photos addObject:newPhoto];
+    [_item addPhoto:newPhoto];
     [self.tableView reloadData];
 }
 
@@ -522,9 +510,9 @@
                 CGFloat scale  = 1;
                 UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                      scale:scale orientation:orientation];
-                BHPhoto *newPhoto = [[BHPhoto alloc] init];
+                Photo *newPhoto = [Photo MR_createEntity];
                 [newPhoto setImage:[self fixOrientation:image]];
-                [_item.photos addObject:newPhoto];
+                [_item addPhoto:newPhoto];
                 [self saveImage:newPhoto.image];
             }
         }
@@ -646,34 +634,34 @@
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove.identifier){
-        for (BHPhoto *photo in _item.photos){
+        for (Photo *photo in _item.photos){
             if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
-                [_item.photos removeObject:photo];
+                [_item removePhoto:photo];
                 [self redrawScrollView];
                 break;
             }
         }
     } else {
-        [_item.photos removeObjectAtIndex:removePhotoIdx];
+        [_item removePhoto:photoToRemove];
         [self redrawScrollView];
     }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+    [self saveContext];
 }
 
 - (void)saveImage:(UIImage*)image {
-    if (!_project.demo){
+    if (![_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [self savePostToLibrary:image];
         NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_project.identifier, @"photo[source]":@"Checklist",@"photo[phase]":_item.category, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier,@"photo":@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kChecklist,@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            // NSLog(@"save image response object: %@",responseObject);
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":_item.category}];
-            _item.photos = [BHUtilities photosFromJSONArray:[[responseObject objectForKey:@"checklist_item"] objectForKey:@"photos"]];
-            //[self.tableView reloadData];
+            NSLog(@"save image response object: %@",responseObject);
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"failure posting image to filepicker: %@",error.description);
+            NSLog(@"Failure posting image to API: %@",error.description);
         }];
     }
 }
@@ -687,11 +675,11 @@
     float space = 5.0;
     int index = 0;
     
-    for (BHPhoto *photo in _item.photos) {
+    for (Photo *photo in _item.photos) {
         __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        if (photo.url200.length){
+        if (photo.urlSmall.length){
             [imageButton setAlpha:0.0];
-            [imageButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [imageButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
                 [UIView animateWithDuration:.25 animations:^{
                     [imageButton setAlpha:1.0];
                 }];
@@ -730,37 +718,38 @@
     }];
 }
 
-- (void)updateChecklistItem:(BOOL)dismiss {
-    if (_project.demo){
+- (void)updateChecklistItem:(BOOL)stayHere {
+    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        manager.requestSerializer = [AFJSONRequestSerializer serializer];
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         [parameters setObject:_item.identifier forKey:@"id"];
         if (_item.status) [parameters setObject:_item.status forKey:@"status"];
         if (_item.completed) [parameters setObject:@"true" forKey:@"completed"];
-        if (dismiss){
-            NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:_item.comments.count];
-            for (BHComment *comment in _item.comments) {
-                NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
-                if (comment.identifier) [commentDict setObject:comment.identifier forKey:@"_id"];
-                if (comment.body) [commentDict setObject:comment.body forKey:@"body"];
-                [commentArray addObject:commentDict];
-            }
-            [parameters setObject:commentArray forKey:@"comments"];
+        
+        NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:_item.comments.count];
+        for (Comment *comment in _item.comments) {
+            NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
+            if (comment.identifier) [commentDict setObject:comment.identifier forKey:@"_id"];
+            if (comment.body) [commentDict setObject:comment.body forKey:@"body"];
+            [commentArray addObject:commentDict];
         }
-        if (dismiss)[ProgressHUD show:@"Updating item..."];
-        [manager PUT:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success updating checklist item %@",responseObject);
-            ChecklistItem *updatedItem = [ChecklistItem MR_createEntity];
-            [updatedItem populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklist" object:nil userInfo:@{@"category":updatedItem.category}];
-            if (dismiss){
-                [self.navigationController popViewControllerAnimated:YES];
-                [ProgressHUD dismiss];
-            } else {
-                shouldSave = NO;
+        if (commentArray.count)[parameters setObject:commentArray forKey:@"comments"];
+        
+        [ProgressHUD show:@"Updating item..."];
+        [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success updating checklist item %@",responseObject);
+            [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
+            //clean photos//
+            for (Photo *photo in _item.photos){
+                if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+                    [photo MR_deleteEntity];
+                }
             }
+            // ** //
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+            [self.navigationController popViewControllerAnimated:YES];
+            [ProgressHUD dismiss];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure updating checklist item: %@",error.description);
             [ProgressHUD dismiss];
@@ -771,19 +760,17 @@
 
 - (void)showPhotoDetail:(NSInteger)idx {
     browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in _item.photos) {
+    for (Photo *photo in _item.photos) {
         MWPhoto *mwPhoto;
         if (mwPhoto.image){
             mwPhoto = [MWPhoto photoWithImage:mwPhoto.image];
         } else {
             mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         }
-        
-        [mwPhoto setBhphoto:photo];
+        [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
-    // Create browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
     if (_project.demo == [NSNumber numberWithBool:YES]) {
         browser.displayTrashButton = NO;
@@ -810,10 +797,6 @@
     if (index < browserPhotos.count)
         return [browserPhotos objectAtIndex:index];
     return nil;
-}
-
--(void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -867,7 +850,7 @@
 }
 
 - (void)deleteComment {
-    if (_project.demo){
+    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         Comment *comment = [_item.comments objectAtIndex:indexPathForDeletion.row];
@@ -888,7 +871,7 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
-        [self updateChecklistItem:YES];
+        [self updateChecklistItem:NO];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self.navigationController popViewControllerAnimated:YES];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Delete"]) {
@@ -897,11 +880,23 @@
 }
 
 - (void)back {
-    if (shouldSave && !_project.demo) {
+    if (shouldSave && [_project.demo isEqualToNumber:[NSNumber numberWithBool:NO]]) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self.navigationController popViewControllerAnimated:YES];
     }
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [ProgressHUD dismiss];
+    if (shouldSave)[self saveContext];
+    [super viewWillDisappear:animated];
+}
+
+- (void)saveContext {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"What happened during checklist item save? %hhd %@",success, error);
+    }];
 }
 
 @end

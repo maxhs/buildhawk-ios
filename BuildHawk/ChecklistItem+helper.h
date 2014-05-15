@@ -13,4 +13,6 @@
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)addComment:(Comment *)comment;
 - (void)removeComment:(Comment *)comment;
+- (void)addPhoto:(Photo *)photo;
+- (void)removePhoto:(Photo *)photo;
 @end

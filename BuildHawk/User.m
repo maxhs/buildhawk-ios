@@ -23,7 +23,9 @@
 @dynamic identifier;
 @dynamic lastName;
 @dynamic phone;
-@dynamic photoUrl100;
+@dynamic formattedPhone;
+@dynamic photoUrlThumb;
+@dynamic photoUrlSmall;
 @dynamic company;
 @dynamic projects;
 @dynamic reports;
@@ -33,5 +35,6 @@
 @dynamic uberAdmin;
 @dynamic demo;
 @dynamic hours;
+@dynamic count;
 
 @end

@@ -19,7 +19,7 @@
     CGRect screen;
     NSMutableArray *sectionArray;
     NSMutableArray *compositePhotos;
-    NSMutableArray *browserArray; // for BHPhoto objects
+    NSMutableArray *browserArray; // for Photo objects
     NSMutableArray *browserPhotos; //for MWPhoto objects
     UIActionSheet *sortSheet;
     BOOL sortByUser;
@@ -31,7 +31,6 @@
 @implementation BHPhotosViewController
 
 @synthesize photosArray = _photosArray;
-@synthesize phasePhotosArray = _phasePhotosArray;
 @synthesize userNames = _userNames;
 @synthesize dates = _dates;
 @synthesize numberOfSections = _numberOfSections;
@@ -63,6 +62,8 @@
         iPad = YES;
     } else
         iPad = NO;
+    
+    NSLog(@"photos array: %d",_photosArray.count);
 }
 - (void)viewWillAppear:(BOOL)animated {
     [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height, screen.size.width, 49)];
@@ -110,12 +111,11 @@
 #pragma mark - UICollectionView Datasource
 
 - (NSInteger)collectionView:(UICollectionView *)view numberOfItemsInSection:(NSInteger)section {
-
     if (sortByUser) {
         NSString *sectionTitle = [_userNames objectAtIndex:section];
         NSPredicate *testForuser = [NSPredicate predicateWithFormat:@"userName contains[cd] %@",sectionTitle];
         NSMutableArray *sortedByUser = [NSMutableArray array];
-        for (BHPhoto *photo in _photosArray){
+        for (Photo *photo in _photosArray){
             if([testForuser evaluateWithObject:photo]) {
                 [sortedByUser addObject:photo];
                 [browserArray addObject:photo];
@@ -127,7 +127,7 @@
         NSString *sectionTitle = [_dates objectAtIndex:section];
         NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
         NSMutableArray *tempArray = [NSMutableArray array];
-        for (BHPhoto *photo in _photosArray){
+        for (Photo *photo in _photosArray){
             if([testPredicate evaluateWithObject:photo]) {
                 [tempArray addObject:photo];
                 [browserArray addObject:photo];
@@ -141,15 +141,15 @@
         if (self.documentsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"folder like %@",sectionTitle];
         } else if (self.worklistsBool) {
-            testPredicate = [NSPredicate predicateWithFormat:@"assignee like %@",sectionTitle];
+            testPredicate = [NSPredicate predicateWithFormat:@"userName like %@",sectionTitle];
         } else if (self.reportsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
         } else {
-            testPredicate = [NSPredicate predicateWithFormat:@"phase like %@",sectionTitle];
+            testPredicate = [NSPredicate predicateWithFormat:@"photoPhase like %@",sectionTitle];
         }
         NSMutableArray *tempArray = [NSMutableArray array];
-        for (BHPhoto *photo in _photosArray){
-            if([photo isKindOfClass:[BHPhoto class]] && [testPredicate evaluateWithObject:photo]) {
+        for (Photo *photo in _photosArray){
+            if([photo isKindOfClass:[Photo class]] && [testPredicate evaluateWithObject:photo]) {
                 [browserArray addObject:photo];
                 [tempArray addObject:photo];
             }
@@ -170,7 +170,7 @@
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)cv cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     BHCollectionPhotoCell *cell = [cv dequeueReusableCellWithReuseIdentifier:@"PhotoCell" forIndexPath:indexPath];
-    BHPhoto *photo;
+    Photo *photo;
     if (_sectionTitles.count || sortByUser || sortByDate) {
         NSMutableArray *tempArray = [sectionArray objectAtIndex:indexPath.section];
         photo = [tempArray objectAtIndex:indexPath.row];
@@ -186,7 +186,7 @@
 
 -(void)removePhoto:(NSNotification*)notification {
     NSNumber *photoIdentifier = [notification.userInfo objectForKey:@"photo"];
-    for (BHPhoto *photo in _photosArray) {
+    for (Photo *photo in _photosArray) {
         if ([photo.identifier isEqualToNumber:photoIdentifier]) {
             [_photosArray removeObject:photo];
             [browserArray removeAllObjects];
@@ -202,10 +202,10 @@
 
 - (void)showBrowser:(UIButton*)button {
     [browserPhotos removeAllObjects];
-    for (BHPhoto *photo in browserArray) {
+    for (Photo *photo in browserArray) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setBhphoto:photo];
+        [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     

@@ -17,8 +17,7 @@
 @property (nonatomic, retain) NSString * createdDate;
 @property (nonatomic, retain) NSString * humidity;
 @property (nonatomic, retain) NSNumber * identifier;
-@property (nonatomic, retain) id personnel;
-@property (nonatomic, retain) id photos;
+@property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) NSString * precip;
 @property (nonatomic, retain) NSString * temp;
 @property (nonatomic, retain) NSString * type;
@@ -29,8 +28,7 @@
 @property (nonatomic, retain) NSDate * updatedAt;
 @property (nonatomic, retain) id possibleTopics;
 @property (nonatomic, retain) Project *project;
-@property (nonatomic, retain) NSOrderedSet *subs;
-@property (nonatomic, retain) NSOrderedSet *users;
+@property (nonatomic, retain) NSOrderedSet *reportUsers;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;
 @end
 

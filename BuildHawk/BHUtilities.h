@@ -7,30 +7,18 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "BHUser.h"
 #import "ChecklistItem.h"
 #import "PunchlistItem.h"
-#import "BHPhoto.h"
-#import "BHComment.h"
 #import "Report.h"
 #import "Report+helper.h"
-#import "Sub.h"
-#import "BHPersonnel.h"
 #import "BHProjectGroup.h"
 #import "BHSafetyTopic.h"
 #import "Cat.h"
 
 @interface BHUtilities : NSObject
 
-+ (NSMutableArray *)coworkersFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)checklistItemsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)photosFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)reportsFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)usersFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array;
-+ (NSOrderedSet *)commentsFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)projectsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)groupsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)safetyTopicsFromJSONArray:(NSArray *) array;

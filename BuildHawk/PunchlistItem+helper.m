@@ -9,63 +9,45 @@
 #import "PunchlistItem+helper.h"
 #import "User+helper.h"
 #import "Comment+helper.h"
+#import "Photo+helper.h"
 
 @implementation PunchlistItem (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"project helper dictionary: %@",dictionary);
+    //NSLog(@"punchlist item helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"body"]) {
         self.body = [dictionary objectForKey:@"body"];
     }
-    if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSetWithOrderedSet:self.userAssignees];
-        NSLog(@"punchlist item asignee %@", [dictionary objectForKey:@"assignee"]);
-        for (id userDict in [dictionary objectForKey:@"users"]){
-            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            User *user = [User MR_findFirstWithPredicate:userPredicate];
-            if (user){
-                NSLog(@"found user for punchlist item: %@",user.fullname);
-            } else {
-                user = [User MR_createEntity];
-                NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
-            }
-            [user populateFromDictionary:userDict];
-            [orderedUsers addObject:user];
-        }
-        self.userAssignees = orderedUsers;
+    if ([dictionary objectForKey:@"location"] && [dictionary objectForKey:@"location"] != [NSNull null]) {
+        self.location = [dictionary objectForKey:@"location"];
     }
-    if ([dictionary objectForKey:@"sub_assignee"] && [dictionary objectForKey:@"sub_assignee"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSetWithOrderedSet:self.subAssignees];
-        NSLog(@"punchlist item sub assignees %@",[dictionary objectForKey:@"sub_assignee"]);
-        for (id subDict in [dictionary objectForKey:@"subs"]){
-            NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
-            Sub *sub = [Sub MR_findFirstWithPredicate:subPredicate];
-            if (sub){
-                NSLog(@"found saved sub: %@",sub.name);
-            } else {
-                sub = [Sub MR_createEntity];
-                NSLog(@"couldn't find saved sub, created a new one: %@",sub.name);
-            }
-            [sub populateFromDictionary:subDict];
-            [orderedSubs addObject:sub];
+    if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSetWithOrderedSet:self.assignees];
+        NSDictionary *userDict = [dictionary objectForKey:@"assignee"];
+        //NSLog(@"punchlist item asignee userDict %@", [dictionary objectForKey:@"assignee"]);
+        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+        User *user = [User MR_findFirstWithPredicate:userPredicate];
+        if (!user){
+            user = [User MR_createEntity];
+            //NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
         }
-        self.subAssignees = orderedSubs;
+        [user populateFromDictionary:userDict];
+        [orderedUsers addObject:user];
+        
+        self.assignees = orderedUsers;
     }
     
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
         NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSetWithOrderedSet:self.comments];
-        NSLog(@"punchlist item comments %@",[dictionary objectForKey:@"comments"]);
+        //NSLog(@"punchlist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
             Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
-            if (comment){
-                NSLog(@"found saved sub: %@",comment.body);
-            } else {
+            if (!comment){
                 comment = [Comment MR_createEntity];
-                NSLog(@"couldn't find saved comment, created a new one: %@",comment.body);
             }
             [comment populateFromDictionary:commentDict];
             [orderedComments addObject:comment];
@@ -76,13 +58,27 @@
     if ([dictionary objectForKey:@"completed"]) {
         self.completed = [dictionary objectForKey:@"completed"];
     }
-    if ([dictionary objectForKey:@"critical_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"critical_date"] doubleValue];
+    if ([dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"completed_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
         self.completedAt = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+    if ([dictionary objectForKey:@"photos"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSetWithOrderedSet:self.photos];
+        for (id photoDict in [dictionary objectForKey:@"photos"]){
+            NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            if (!photo){
+                photo = [Photo MR_createEntity];
+                NSLog(@"couldn't find saved punchlist item photo, created a new one: %@",photo.createdDate);
+            }
+            [photo populateFromDictionary:photoDict];
+            [orderedPhotos addObject:photo];
+        }
+        self.photos = orderedPhotos;
     }
 }
 

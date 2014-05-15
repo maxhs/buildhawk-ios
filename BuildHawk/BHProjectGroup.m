@@ -22,15 +22,6 @@
     }
 }
 
-- (NSMutableArray *)coworkersFromJSONArray:(NSArray *) array {
-    NSMutableArray *coworkers = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *userDictionary in array) {
-        BHUser *user = [[BHUser alloc] initWithDictionary:userDictionary];
-        [coworkers addObject:user];
-    }
-    return coworkers;
-}
-
 - (id)initWithDictionary:(NSDictionary *)dictionary {
     if (self = [super init]) {
         [self setValuesForKeysWithDictionary:dictionary];

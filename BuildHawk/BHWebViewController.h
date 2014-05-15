@@ -7,9 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHPhoto.h"
+#import "Photo.h"
 
 @interface BHWebViewController : UIViewController <UIWebViewDelegate>
 @property (weak, nonatomic) IBOutlet UIWebView *webView;
-@property (strong, nonatomic) BHPhoto *photo;
+@property (strong, nonatomic) Photo *photo;
 @end

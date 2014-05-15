@@ -123,8 +123,8 @@
         [hud setBarStyle:UIBarStyleDefault];
 		hud.translucent = YES;
 		hud.layer.cornerRadius = 7;
-        hud.layer.borderColor = kDarkerGrayColor.CGColor;
-        hud.layer.borderWidth = 1.f;
+        //hud.layer.borderColor = kDarkerGrayColor.CGColor;
+        //hud.layer.borderWidth = 1.f;
 		hud.layer.masksToBounds = YES;
 		//-----------------------------------------------------------------------------------------------------------------------------------------
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rotate:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -149,6 +149,7 @@
 	{
 		label = [[UILabel alloc] initWithFrame:CGRectZero];
         label.font = [UIFont fontWithName:kHelveticaNeueLight size:17];
+        label.shadowColor = [UIColor clearColor];
 		label.textColor = [UIColor blackColor];
 		label.backgroundColor = [UIColor clearColor];
 		label.textAlignment = NSTextAlignmentCenter;

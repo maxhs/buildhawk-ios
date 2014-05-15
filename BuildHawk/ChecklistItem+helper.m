@@ -7,6 +7,10 @@
 //
 
 #import "ChecklistItem+helper.h"
+#import "Comment+helper.h"
+#import "Photo+helper.h"
+#import "Phase+helper.h"
+#import "Checklist+helper.h"
 
 @implementation ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -25,9 +29,6 @@
     if ([dictionary objectForKey:@"item_type"] && [dictionary objectForKey:@"item_type"] != [NSNull null]) {
         self.type = [dictionary objectForKey:@"item_type"];
     }
-    if ([dictionary objectForKey:@"subcategory_name"]) {
-        //self. = [dictionary objectForKey:@"subcategory_name"];
-    }
     if ([dictionary objectForKey:@"status"] && [dictionary objectForKey:@"status"] != [NSNull null]) {
         self.status = [dictionary objectForKey:@"status"];
     }
@@ -42,6 +43,34 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
+    if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSetWithOrderedSet:self.comments];
+        //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);
+        for (id commentDict in [dictionary objectForKey:@"comments"]){
+            NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
+            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
+            if (!comment){
+                comment = [Comment MR_createEntity];
+            }
+            [comment populateFromDictionary:commentDict];
+            [orderedComments addObject:comment];
+        }
+        self.comments = orderedComments;
+    }
+    if ([dictionary objectForKey:@"photos"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSetWithOrderedSet:self.photos];
+        for (id photoDict in [dictionary objectForKey:@"photos"]){
+            NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            if (!photo){
+                photo = [Photo MR_createEntity];
+                NSLog(@"couldn't find saved checklist item photo, created a new one: %@",photo.createdDate);
+            }
+            [photo populateFromDictionary:photoDict];
+            [orderedPhotos addObject:photo];
+        }
+        self.photos = orderedPhotos;
+    }
 }
 
 -(void)addComment:(Comment *)comment {
@@ -53,6 +82,16 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.comments];
     [set removeObject:comment];
     self.comments = set;
+}
+-(void)addPhoto:(Photo *)photo {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
+    [set addObject:photo];
+    self.photos = set;
+}
+-(void)removePhoto:(Photo *)photo {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
+    [set removeObject:photo];
+    self.photos = set;
 }
 
 /*- (void)setValue:(id)value forKey:(NSString *)key {

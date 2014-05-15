@@ -8,12 +8,9 @@
 
 #import "BHCollectionPhotoCell.h"
 #import "UIButton+WebCache.h"
-#import "UIImageView+WebCache.h"
-#import <AFNetworking/UIImageView+AFNetworking.h>
+#import "Photo+helper.h"
 
 @implementation BHCollectionPhotoCell
-
-
 
 - (id)initWithFrame:(CGRect)frame
 {
@@ -33,9 +30,9 @@
 }
 */
 
--(void)configureForPhoto:(BHPhoto*)photo{
+-(void)configureForPhoto:(Photo*)photo{
     [self.photoButton setBackgroundColor:[UIColor clearColor]];
-    [self.photoButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal];
+    [self.photoButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
 }

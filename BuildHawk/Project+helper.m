@@ -7,11 +7,11 @@
 //
 
 #import "Project+helper.h"
-#import "Cat+helper.h"
+#import "Phase+helper.h"
 #import "ChecklistItem+helper.h"
 #import "Address.h"
-#import "Sub+helper.h"
 #import "Company+helper.h"
+#import "Photo+helper.h"
 
 @implementation Project (helper)
 
@@ -50,9 +50,7 @@
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate];
-            if (user){
-                NSLog(@"found saved user: %@",user.fullname);
-            } else {
+            if (!user){
                 user = [User MR_createEntity];
                 NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
             }
@@ -60,22 +58,6 @@
             [orderedUsers addObject:user];
         }
         self.users = orderedUsers;
-    }
-    if ([dictionary objectForKey:@"subs"] && [dictionary objectForKey:@"subs"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSetWithOrderedSet:self.subs];
-        for (id subDict in [dictionary objectForKey:@"subs"]){
-            NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
-            Sub *sub = [Sub MR_findFirstWithPredicate:subPredicate];
-            if (sub){
-                NSLog(@"found saved sub: %@",sub.name);
-            } else {
-                sub = [Sub MR_createEntity];
-                NSLog(@"couldn't find saved sub, created a new one: %@",sub.name);
-            }
-            [sub populateFromDictionary:subDict];
-            [orderedSubs addObject:sub];
-        }
-        self.subs = orderedSubs;
     }
     
     if ([dictionary objectForKey:@"address"]) {
@@ -89,27 +71,60 @@
         self.progressPercentage = [dictionary objectForKey:@"progress"];
     }
     
-    if ([dictionary objectForKey:@"recent_documents"]) {
-        self.recentDocuments = [BHUtilities photosFromJSONArray:[dictionary objectForKey:@"recent_documents"]];
-    }
-    if ([dictionary objectForKey:@"categories"]) {
-        NSMutableOrderedSet *tmpCategories = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.checklistCategories];
-        for (id category in [dictionary objectForKey:@"categories"]){
-            if ([category objectForKey:@"id"]){
-                NSPredicate *categoryPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [category objectForKey:@"id"]];
-                //on the api, we're actually callign a category a "phase"
-                Cat *phase = [Cat MR_findFirstWithPredicate:categoryPredicate];
-                if (phase){
-                    [phase populateFromDictionary:category];
-                } else {
-                    phase = [Cat MR_createEntity];
-                    phase.name = [category objectForKey:@"name"];
+    if ([dictionary objectForKey:@"recent_documents"] && [dictionary objectForKey:@"recent_documents"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedPhotos = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.recentDocuments];
+        //NSLog(@"project recent documents %@",[dictionary objectForKey:@"recent_documents"]);
+        for (id photoDict in [dictionary objectForKey:@"recent_documents"]){
+            if ([photoDict objectForKey:@"id"]){
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+                if (!photo){
+                    photo = [Photo MR_createEntity];
+                    NSLog(@"couldn't find saved recent document, created a new one: %@",photo.createdDate);
                 }
-                [phase populateFromDictionary:category];
-                [tmpCategories addObject:phase];
+                [photo populateFromDictionary:photoDict];
+                [orderedPhotos addObject:photo];
             }
         }
-        self.checklistCategories = tmpCategories;
+        if (orderedPhotos.count > 0) self.recentDocuments = orderedPhotos;
+    }
+    
+    if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedPhotos = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
+        //NSLog(@"project photos %@",[dictionary objectForKey:@"photos"]);
+        for (id photoDict in [dictionary objectForKey:@"photos"]){
+            if ([photoDict objectForKey:@"id"]){
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+                if (!photo){
+                    photo = [Photo MR_createEntity];
+                    NSLog(@"couldn't find saved punchlist item photo, created a new one: %@",photo.createdDate);
+                }
+                [photo populateFromDictionary:photoDict];
+                [orderedPhotos addObject:photo];
+            }
+        }
+        self.documents = orderedPhotos;
+    }
+    
+    if ([dictionary objectForKey:@"categories"]) {
+        NSMutableOrderedSet *tmpPhases = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.phases];
+        for (id phaseDict in [dictionary objectForKey:@"phases"]){
+            if ([phaseDict objectForKey:@"id"]){
+                NSPredicate *phasePredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [phaseDict objectForKey:@"id"]];
+                //on the api, we're actually callign a category a "phase"
+                Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate];
+                if (phase){
+                    [phase populateFromDictionary:phaseDict];
+                } else {
+                    phase = [Phase MR_createEntity];
+                    phase.name = [phaseDict objectForKey:@"name"];
+                }
+                [phase populateFromDictionary:phaseDict];
+                [tmpPhases addObject:phase];
+            }
+        }
+        self.phases = tmpPhases;
     }
     if ([dictionary objectForKey:@"upcoming_items"]) {
         NSMutableOrderedSet *tmpUpcoming = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.upcomingItems];
@@ -148,14 +163,31 @@
         }
         self.recentItems = tmpRecent;
     }
-    
-    /*else if ([key isEqualToString:@"users"]) {
-        self.users = [BHUtilities usersFromJSONArray:value];
-    } else if ([key isEqualToString:@"subs"]) {
-        self.subs = [BHUtilities subcontractorsFromJSONArray:value];
-    } else if ([key isEqualToString:@"project_group"]) {
-        self.group = [[BHProjectGroup alloc] initWithDictionary:value];
-    }*/
+
+}
+
+- (void)parseDocuments:(NSArray *)array {
+    NSMutableOrderedSet *photos = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
+    for (NSDictionary *photoDict in array){
+        Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"]];
+        if (!photo){
+            photo = [Photo MR_createEntity];
+        }
+        [photo populateFromDictionary:photoDict];
+        [photos addObject:photo];
+    }
+    self.documents = photos;
+}
+
+-(void)addPhoto:(Photo *)photo {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
+    [set addObject:photo];
+    self.documents = set;
+}
+-(void)removePhoto:(Photo *)photo {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
+    [set removeObject:photo];
+    self.documents = set;
 }
 
 /*- (void)setValue:(id)value forKey:(NSString *)key {

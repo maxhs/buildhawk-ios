@@ -7,7 +7,6 @@
 //
 
 #import "BHLoginViewController.h"
-#import "BHUser.h"
 #import "User.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHAppDelegate.h"
@@ -158,7 +157,7 @@
         [[NSUserDefaults standardUserDefaults] setObject:user.lastName forKey:kUserDefaultsLastName];
         [[NSUserDefaults standardUserDefaults] setObject:user.fullname forKey:kUserDefaultsFullName];
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
-        //[[NSUserDefaults standardUserDefaults] setObject:user.photo.url100 forKey:kUserDefaultsPhotoUrl100];
+        //[[NSUserDefaults standardUserDefaults] setObject:user.photo.urlThumb forKey:kUserDefaultsPhotoUrl100];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
         //[[NSUserDefaults standardUserDefaults] setBool:user.admin forKey:kUserDefaultsAdmin];
         //[[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin forKey:kUserDefaultsCompanyAdmin];

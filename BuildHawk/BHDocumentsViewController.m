@@ -10,7 +10,8 @@
 #import "BHPhotoPickerCell.h"
 #import "BHTabBarViewController.h"
 #import "Constants.h"
-#import "BHPhoto.h"
+#import "Photo+helper.h"
+#import "Project+helper.h"
 #import "BHFoldersViewController.h"
 #import "UIButton+WebCache.h"
 #import "BHPhotosViewController.h"
@@ -20,7 +21,7 @@
     BOOL iPhone5;
     BOOL iPad;
     BOOL loading;
-    NSMutableArray *photosArray;
+    NSArray *photosArray;
     NSArray *sortedByDate;
     NSMutableArray *sortedByUser;
     BOOL sortByDate;
@@ -63,15 +64,15 @@
     }
     if (!manager) manager = [AFHTTPRequestOperationManager manager];
     screen = [UIScreen mainScreen].bounds;
-    if (!photosArray) photosArray = [NSMutableArray array];
-    if (!userArray) userArray = [NSMutableArray array];
-    if (!dateArray) dateArray = [NSMutableArray array];
-    if (!sortedByUser) sortedByUser = [NSMutableArray array];
-    if (!sourceArray) sourceArray = [NSMutableArray array];
-    if (!checklistArray) checklistArray = [NSMutableArray array];
-    if (!reportsArray) reportsArray = [NSMutableArray array];
-    if (!worklistArray) worklistArray = [NSMutableArray array];
-    if (!documentsArray) documentsArray = [NSMutableArray array];
+    photosArray = [NSMutableArray array];
+    userArray = [NSMutableArray array];
+    dateArray = [NSMutableArray array];
+    sortedByUser = [NSMutableArray array];
+    sourceArray = [NSMutableArray array];
+    checklistArray = [NSMutableArray array];
+    reportsArray = [NSMutableArray array];
+    worklistArray = [NSMutableArray array];
+    documentsArray = [NSMutableArray array];
     sortByDate = NO;
     sortByUser = NO;
     [Flurry logEvent:@"Viewing documents"];
@@ -116,7 +117,8 @@
     loading = YES;
     
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        photosArray = [self photosFromJSONArray:[responseObject objectForKey:@"photos"]];
+        [_project parseDocuments:[responseObject objectForKey:@"photos"]];
+        [self drawDocuments:_project.documents];
         //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         loading = NO;
@@ -130,15 +132,15 @@
     }];
 }
 
-- (NSMutableArray *)photosFromJSONArray:(NSArray *) array {
-    NSMutableArray *photos = [NSMutableArray arrayWithCapacity:array.count];
+- (void)drawDocuments:(NSOrderedSet*)set {
+    photosArray = set.array;
     if (checklistArray.count) [checklistArray removeAllObjects];
     if (worklistArray.count) [worklistArray removeAllObjects];
     if (reportsArray.count) [reportsArray removeAllObjects];
     if (documentsArray.count) [documentsArray removeAllObjects];
     
-    for (NSDictionary *photoDictionary in array) {
-        BHPhoto *photo = [[BHPhoto alloc] initWithDictionary:photoDictionary];
+    for (Photo *photo in set.array) {
+
         if ([photo.source isEqualToString:kChecklist]) {
             [checklistArray addObject:photo];
         } else if ([photo.source isEqualToString:kWorklist]) {
@@ -148,16 +150,13 @@
         } else if ([photo.source isEqualToString:kDocuments]){
             [documentsArray addObject:photo];
         }
-        if (![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
-        if (photo.userName && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
-
-        [photos addObject:photo];
+        if (photo.source.length && ![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
+        if (photo.userName.length && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
     }
-    return photos;
 }
 
 - (void)removePhoto:(NSNotification*)notification {
-    [photosArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    [_project removePhoto:[notification.userInfo objectForKey:@"photo"]];
     if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kReports]){
         if (reportsArray.count) [reportsArray removeObject:[notification.userInfo objectForKey:@"photo"]];
     } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kWorklist]){
@@ -210,9 +209,9 @@
             }
             else [cell.label setText:[NSString stringWithFormat:@"All - %i Items",photosArray.count]];
             if (iPad){
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)photosArray.lastObject urlLarge]];
+                imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlLarge]];
             } else if (photosArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)photosArray.lastObject url200]];
+                imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlSmall]];
             } else {
                 imageUrl = nil;
             }
@@ -227,9 +226,9 @@
                 [cell.label setText:[NSString stringWithFormat:@"Project Docs - %i Items",documentsArray.count]];
             }
             if (iPad){
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)documentsArray.lastObject urlLarge]];
+                imageUrl = [NSURL URLWithString:[(Photo*)documentsArray.lastObject urlLarge]];
             } else if (documentsArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)documentsArray.lastObject url200]];
+                imageUrl = [NSURL URLWithString:[(Photo*)documentsArray.lastObject urlSmall]];
             } else {
                 imageUrl = nil;
             }
@@ -243,9 +242,9 @@
             }
             else [cell.label setText:[NSString stringWithFormat:@"Checklist - %i Items",checklistArray.count]];
             if (iPad){
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)checklistArray.lastObject urlLarge]];
+                imageUrl = [NSURL URLWithString:[(Photo*)checklistArray.lastObject urlLarge]];
             } else if (checklistArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)checklistArray.lastObject url200]];
+                imageUrl = [NSURL URLWithString:[(Photo*)checklistArray.lastObject urlSmall]];
             } else {
                 imageUrl = nil;
             }
@@ -259,9 +258,9 @@
             }
             else [cell.label setText:[NSString stringWithFormat:@"Worklist - %i Items",worklistArray.count]];
             if (iPad){
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)worklistArray.lastObject urlLarge]];
+                imageUrl = [NSURL URLWithString:[(Photo*)worklistArray.lastObject urlLarge]];
             } else if (worklistArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)worklistArray.lastObject url200]];
+                imageUrl = [NSURL URLWithString:[(Photo*)worklistArray.lastObject urlSmall]];
             } else {
                 imageUrl = nil;
             }
@@ -275,9 +274,9 @@
             } else [cell.label setText:[NSString stringWithFormat:@"Reports - %i Items",reportsArray.count]];
             
             if (iPad){
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)reportsArray.lastObject urlLarge]];
+                imageUrl = [NSURL URLWithString:[(Photo*)reportsArray.lastObject urlLarge]];
             } else if (reportsArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(BHPhoto*)reportsArray.lastObject url200]];
+                imageUrl = [NSURL URLWithString:[(Photo*)reportsArray.lastObject urlSmall]];
             } else {
                 imageUrl = nil;
             }
@@ -356,7 +355,7 @@
             sortUser = [actionSheet buttonTitleAtIndex:buttonIndex];
             NSPredicate *testForuser = [NSPredicate predicateWithFormat:@"userName contains[cd] %@",sortUser];
             [sortedByUser removeAllObjects];
-            for (BHPhoto *photo in photosArray){
+            for (Photo *photo in photosArray){
                 if([testForuser evaluateWithObject:photo]) {
                     [sortedByUser addObject:photo];
                 }
@@ -390,11 +389,11 @@
         case 0:
         {
             BHPhotosViewController *vc = [segue destinationViewController];
-            for (BHPhoto *photo in photosArray){
+            for (Photo *photo in photosArray){
                 if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
             }
             [vc setProject:_project];
-            [vc setPhotosArray:photosArray];
+            [vc setPhotosArray:photosArray.mutableCopy];
             [vc setNumberOfSections:1];
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
@@ -406,8 +405,8 @@
             BHFoldersViewController *vc = [segue destinationViewController];
             [vc setTitle:@"Project Docs"];
             NSMutableSet *titleSet = [NSMutableSet set];
-            for (BHPhoto *photo in documentsArray){
-                if (photo.folder)[titleSet addObject:photo.folder];
+            for (Photo *photo in _project.documents){
+                if (photo.folder.length > 0)[titleSet addObject:photo.folder];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *sortedArray = [titleSet sortedArrayUsingDescriptors:@[valueDescriptor]];
@@ -415,14 +414,14 @@
             for (NSString *folder in sortedArray){
                 NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"folder like %@",folder];
                 NSMutableArray *tempArray = [NSMutableArray array];
-                for (BHPhoto *photo in documentsArray){
-                    if([photo isKindOfClass:[BHPhoto class]] && [testPredicate evaluateWithObject:photo]) {
+                for (Photo *photo in _project.documents){
+                    if([photo isKindOfClass:[Photo class]] && [testPredicate evaluateWithObject:photo]) {
                         [tempArray addObject:photo];
                     }
                 }
                 [photoSet addObject:@{folder:tempArray}];
             }
-            [vc setPhotosArray:documentsArray];
+            [vc setPhotosArray:_project.documents.array.mutableCopy];
             [vc setSectionTitles:sortedArray];
             [vc setPhotoSet:photoSet];
         }
@@ -431,8 +430,8 @@
         {
             BHPhotosViewController *vc = [segue destinationViewController];
             NSMutableSet *titleSet = [NSMutableSet set];
-            for (BHPhoto *photo in checklistArray){
-                if (photo.phase)[titleSet addObject:photo.phase];
+            for (Photo *photo in checklistArray){
+                if (photo.photoPhase)[titleSet addObject:photo.photoPhase];
                 if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
@@ -452,9 +451,9 @@
         {
             BHPhotosViewController *vc = [segue destinationViewController];
             NSMutableSet *titleSet = [NSMutableSet set];
-            for (BHPhoto *photo in worklistArray){
-                if (photo.assignee)[titleSet addObject:photo.assignee];
-                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
+            for (Photo *photo in worklistArray){
+                if (photo.userName.length)[titleSet addObject:photo.userName];
+                if (photo.createdDate.length && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
@@ -473,8 +472,8 @@
         {
             BHPhotosViewController *vc = [segue destinationViewController];
             NSMutableSet *titleSet = [NSMutableSet set];
-            for (BHPhoto *photo in reportsArray){
-                if (photo.createdDate)[titleSet addObject:photo.createdDate];
+            for (Photo *photo in reportsArray){
+                if (photo.createdDate.length)[titleSet addObject:photo.createdDate];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];

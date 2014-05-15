@@ -28,7 +28,7 @@
 @implementation MWPhoto
 
 @synthesize underlyingImage = _underlyingImage; // synth property from protocol
-@synthesize bhphoto = _bhphoto;
+@synthesize photo = _photo;
 
 #pragma mark - Class Methods
 
@@ -45,8 +45,8 @@
 	return [[MWPhoto alloc] initWithURL:url];
 }
 
-- (void)setBhphoto:(BHPhoto*)photo {
-    _bhphoto = photo;
+- (void)setPhoto:(Photo*)photo {
+    _photo = photo;
 }
 
 #pragma mark - Init

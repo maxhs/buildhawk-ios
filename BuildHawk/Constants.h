@@ -66,7 +66,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kHasSeenDashboard @"hasSeenDashboard"
 #define kHasSeenDashboardDetail @"hasSeenDashboardDetail"
 #define kHasSeenWorklist @"hasSeenWorklist"
-#define kHasSeenReport @"hasSeenReport"
+#define kHasSeenReports @"hasSeenReports"
 #define kHasSeenChecklist @"hasSeenChecklist"
 
 //Reports

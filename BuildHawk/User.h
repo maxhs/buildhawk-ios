@@ -21,7 +21,9 @@
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * lastName;
 @property (nonatomic, retain) NSString * phone;
-@property (nonatomic, retain) NSString * photoUrl100;
+@property (nonatomic, retain) NSString * formattedPhone;
+@property (nonatomic, retain) NSString * photoUrlThumb;
+@property (nonatomic, retain) NSString * photoUrlSmall;
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) NSOrderedSet *projects;
 @property (nonatomic, retain) NSOrderedSet *reports;
@@ -31,6 +33,7 @@
 @property (nonatomic, retain) NSNumber * uberAdmin;
 @property (nonatomic, retain) NSNumber * demo;
 @property (nonatomic, retain) NSNumber * hours;
+@property (nonatomic, retain) NSNumber * count;
 @end
 
 @interface User (CoreDataGeneratedAccessors)

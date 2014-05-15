@@ -13,7 +13,7 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) NSArray *userArray;
 @property (strong, nonatomic) NSArray *subArray;
-@property (strong, nonatomic) NSMutableArray *personnelArray;
+@property (strong, nonatomic) NSMutableOrderedSet *users;
 @property BOOL countNotNeeded;
 @property BOOL phone;
 @property BOOL email;

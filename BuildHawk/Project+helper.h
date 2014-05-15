@@ -12,6 +12,8 @@
 #import "Cat.h"
 
 @interface Project (helper)
-
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)parseDocuments:(NSArray*)array;
+- (void)addPhoto:(Photo *)photo;
+- (void)removePhoto:(Photo *)photo;
 @end

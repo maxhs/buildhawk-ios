@@ -1,7 +1,6 @@
 platform :ios, '6.0'
 pod 'AFNetworking'
 pod 'SWRevealViewController', '1.1.1'
-pod 'RATreeView', '0.0.4'
 pod 'MagicalRecord'
 pod 'LDProgressView'
 pod 'CTAssetsPickerController',  '~> 1.5.0'

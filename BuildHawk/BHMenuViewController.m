@@ -12,8 +12,7 @@
 #import "UIImageView+WebCache.h"
 #import <QuartzCore/QuartzCore.h>
 #import "BHAppDelegate.h"
-#import "BHUser.h"
-#import "User.h"
+#import "User+helper.h"
 #import <CoreData+MagicalRecord.h>
 #import <MessageUI/MessageUI.h>
 
@@ -22,7 +21,7 @@ static NSString *emailPlaceholder = @"Email";
 static NSString *textPlaceholder = @"Text Message";
 
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
-    BHUser *selectedCoworker;
+    User *selectedCoworker;
     User *user;
     CGRect screen;
     BOOL iPhone5;
@@ -102,10 +101,10 @@ static NSString *textPlaceholder = @"Text Message";
     } else {
         static NSString *CellIdentifier = @"PermissionsCell";
         cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-        BHUser *coworker = [user.coworkers objectAtIndex:indexPath.row];
+        User *coworker = [user.coworkers objectAtIndex:indexPath.row];
         [cell.textLabel setText:coworker.fullname];
-        if (coworker.formatted_phone) {
-            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.formatted_phone, coworker.email]];
+        if (coworker.formattedPhone) {
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.formattedPhone, coworker.email]];
         } else if (coworker.phone) {
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"%@ \n%@",coworker.phone, coworker.email]];
         } else {

@@ -24,6 +24,10 @@
 @property (nonatomic, retain) NSString * urlSmall;
 @property (nonatomic, retain) NSString * urlThumb;
 @property (nonatomic, retain) NSString * userName;
+@property (nonatomic, retain) NSString * photoPhase;
+@property (nonatomic, retain) NSString * assignee;
+@property (nonatomic, retain) NSString * folder;
+@property (nonatomic, retain) NSNumber * folderId;
 @property (nonatomic, retain) id image;
 @property (nonatomic, retain) PunchlistItem *punchlistItem;
 

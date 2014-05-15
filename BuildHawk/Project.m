@@ -2,18 +2,17 @@
 //  Project.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/29/14.
+//  Created by Max Haines-Stiles on 5/8/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Project.h"
 #import "Address.h"
-#import "Cat.h"
 #import "Checklist.h"
 #import "ChecklistItem.h"
 #import "Company.h"
+#import "Phase.h"
 #import "Report.h"
-#import "Sub.h"
 #import "User.h"
 
 
@@ -25,17 +24,17 @@
 @dynamic identifier;
 @dynamic name;
 @dynamic notifications;
-@dynamic photos;
+@dynamic documents;
 @dynamic progressPercentage;
 @dynamic recentDocuments;
 @dynamic address;
 @dynamic checklist;
-@dynamic checklistCategories;
+@dynamic phases;
 @dynamic company;
-@dynamic reports;
-@dynamic subs;
-@dynamic users;
-@dynamic upcomingItems;
 @dynamic recentItems;
+@dynamic reports;
+@dynamic upcomingItems;
+@dynamic users;
+@dynamic punchlist;
 
 @end

@@ -11,8 +11,7 @@
 #import "BHTabBarViewController.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "ChecklistItem.h"
-#import "BHPhoto.h"
-#import "BHUser.h"
+#import "Photo.h"
 #import "PunchlistItem+helper.h"
 #import "BHRecentDocumentCell.h"
 #import "UIButton+WebCache.h"
@@ -25,7 +24,8 @@
 #import "BHOverlayView.h"
 #import <LDProgressView/LDProgressView.h>
 #import "BHAppDelegate.h"
-#import "User.h"
+#import "User+helper.h"
+#import "Phase+helper.h"
 
 @interface BHDashboardDetailViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     AFHTTPRequestOperationManager *manager;
@@ -123,10 +123,10 @@
             return 1;
             break;
         case 1:
-            return [(NSArray*)_project.checklistCategories count];
+            return [(NSArray*)_project.phases count];
             break;
         case 2:
-            if ([(NSArray*)_project.recentDocuments count] > 0) return 1;
+            if (_project.recentDocuments.count > 0) return 1;
             else return 0;
             break;
         case 3:
@@ -155,7 +155,7 @@
             } else if (_project.address){
                 [cell.textLabel setText:[NSString stringWithFormat:@"%@, %@, %@ %@",_project.address.street1,_project.address.city,_project.address.state,_project.address.zip]];
             }
-            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",(_project.users.count + _project.subs.count)]];
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",_project.users.count]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
         }
             break;
@@ -164,10 +164,10 @@
             [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
             progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
     
-            Cat *category = [_project.checklistCategories objectAtIndex:indexPath.row];
-            [progressCell.itemLabel setText:category.name];
-            CGFloat progress_count = [category.progressCount floatValue];
-            CGFloat all = [category.itemCount floatValue];
+            Phase *phase = [_project.phases objectAtIndex:indexPath.row];
+            [progressCell.itemLabel setText:phase.name];
+            CGFloat progress_count = [phase.progressCount floatValue];
+            CGFloat all = [phase.itemCount floatValue];
             [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
             LDProgressView *progressView;
             if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
@@ -263,7 +263,7 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 2:
-            if ([(NSArray*)_project.recentDocuments count]){
+            if (_project.recentDocuments.count){
                 return 30;
             } else {
                 return 0;
@@ -292,7 +292,7 @@
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
     UIView* headerView;
-    if (section == 2 && [(NSArray*)_project.recentDocuments count] == 0) {
+    if (section == 2 && _project.recentDocuments.count == 0) {
         return nil;
     } else if (section == 4 && [(NSArray*)_project.recentItems count] == 0) {
         return nil;
@@ -316,7 +316,7 @@
     
     switch (section) {
         case 0:
-            [headerLabel setText:@"Project Synopsis"];
+            [headerLabel setText:@"Project Summary"];
             break;
         case 1:
             [headerLabel setText:@"Progress"];
@@ -347,31 +347,31 @@
     int index = 0;
     int width = 105;
     CGRect photoRect = CGRectMake(5,5,100,100);
-    for (BHPhoto *photo in _project.recentDocuments) {
+    for (Photo *photo in _project.recentDocuments) {
         if (index > 0) photoRect.origin.x += width;
         __weak UIButton *eventButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [documentsScrollView addSubview:eventButton];
         [eventButton setFrame:photoRect];
         [eventButton setTag:index];
-        if (photo.url200) [eventButton setImageWithURL:[NSURL URLWithString:photo.url200] forState:UIControlStateNormal];
-        else if (photo.url100) [eventButton setImageWithURL:[NSURL URLWithString:photo.url100] forState:UIControlStateNormal];
+        if (photo.urlSmall) [eventButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+        else if (photo.urlThumb) [eventButton setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
         [eventButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
         eventButton.imageView.clipsToBounds = YES;
         [eventButton addTarget:self action:@selector(showPhotoDetail:) forControlEvents:UIControlEventTouchUpInside];
         [eventButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
         index++;
     }
-    [documentsScrollView setContentSize:CGSizeMake(([(NSArray*)_project.recentDocuments count]*105) + 5,documentsScrollView.frame.size.height)];
+    [documentsScrollView setContentSize:CGSizeMake((_project.recentDocuments.count*105) + 5,documentsScrollView.frame.size.height)];
     documentsScrollView.layer.shouldRasterize = YES;
     documentsScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)showPhotoDetail:(UIButton*)button {
     browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in _project.recentDocuments) {
+    for (Photo *photo in _project.recentDocuments) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setBhphoto:photo];
+        [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
@@ -432,11 +432,11 @@
         [screenshotView setFrame:CGRectMake(screenWidth()/2-355, 30, 710, 700)];
     } else {
         screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"detailScreenshot"]];
-        [screenshotView setFrame:CGRectMake(10, 30, 300, 347)];
+        [screenshotView setFrame:CGRectMake(20, 30, 280, 330)];
     }
     [screenshotView setAlpha:0.0];
     
-    [phases configureText:@"The synopsis view shows a high-level breakdown for the project." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 20, screenWidth()-20, 100)];
+    [phases configureText:@"The summary view shows a high-level breakdown for the project." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-20, 100)];
     [phases.tapGesture addTarget:self action:@selector(slide2:)];
     [overlayBackground addSubview:phases];
     
@@ -452,7 +452,7 @@
 
 - (void)slide2:(UITapGestureRecognizer*)sender {
     BHOverlayView *percentages = [[BHOverlayView alloc] initWithFrame:screen];
-    [percentages configureText:@"Progress percentages are based on the number of completed items in each checklist phase." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 20, screenWidth()-20, 100)];
+    [percentages configureText:@"Progress percentages are based on the number of completed items in each checklist phase." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-20, 100)];
     [percentages.tapGesture addTarget:self action:@selector(slide3:)];
     
     [UIView animateWithDuration:.25 animations:^{
@@ -468,7 +468,7 @@
 
 - (void)slide3:(UITapGestureRecognizer*)sender {
     BHOverlayView *scroll = [[BHOverlayView alloc] initWithFrame:screen];
-    [scroll configureText:@"Scrolling down shows you recent documents as well as upcoming critical items." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 20, screenWidth()-20, 100)];
+    [scroll configureText:@"Scrolling down will show you recent documents as well as upcoming critical items." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-20, 100)];
 
     [scroll.tapGesture addTarget:self action:@selector(scroll:)];
     
@@ -493,7 +493,7 @@
             [sender.view removeFromSuperview];
             [screenshotView removeFromSuperview];
         }completion:^(BOOL finished) {
-            [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+            if (_project.recentDocuments.count > 0)[self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:YES];
             [overlayBackground removeFromSuperview];
         }];
     }];

@@ -25,5 +25,9 @@
 @dynamic userName;
 @dynamic punchlistItem;
 @dynamic image;
+@dynamic folder;
+@dynamic folderId;
+@dynamic photoPhase;
+@dynamic assignee;
 
 @end

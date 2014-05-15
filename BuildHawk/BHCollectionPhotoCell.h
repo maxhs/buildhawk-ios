@@ -7,10 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHPhoto.h"
+#import "Photo.h"
 
 @interface BHCollectionPhotoCell : UICollectionViewCell
 
 @property (strong,nonatomic) IBOutlet UIButton *photoButton;
--(void)configureForPhoto:(BHPhoto*)photo;
+-(void)configureForPhoto:(Photo*)photo;
 @end

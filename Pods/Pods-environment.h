@@ -78,12 +78,6 @@
 #define COCOAPODS_VERSION_MINOR_Mixpanel 3
 #define COCOAPODS_VERSION_PATCH_Mixpanel 4
 
-// RATreeView
-#define COCOAPODS_POD_AVAILABLE_RATreeView
-#define COCOAPODS_VERSION_MAJOR_RATreeView 0
-#define COCOAPODS_VERSION_MINOR_RATreeView 0
-#define COCOAPODS_VERSION_PATCH_RATreeView 4
-
 // SWRevealViewController
 #define COCOAPODS_POD_AVAILABLE_SWRevealViewController
 #define COCOAPODS_VERSION_MAJOR_SWRevealViewController 1

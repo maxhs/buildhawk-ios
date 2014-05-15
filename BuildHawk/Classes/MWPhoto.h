@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "MWPhotoProtocol.h"
-#import "BHPhoto.h"
+#import "Photo.h"
 
 // This class models a photo/image and it's caption
 // If you want to handle photos, caching, decompression
@@ -20,13 +20,13 @@
 @property (nonatomic, readonly) UIImage *image;
 @property (nonatomic, readonly) NSURL *photoURL;
 @property (nonatomic, readonly) NSString *filePath  __attribute__((deprecated("Use photoURL"))); // Depreciated
-@property (nonatomic, strong) BHPhoto *bhphoto;
+@property (nonatomic, strong) Photo *photo;
 
 + (MWPhoto *)photoWithImage:(UIImage *)image;
 + (MWPhoto *)photoWithFilePath:(NSString *)path  __attribute__((deprecated("Use photoWithURL: with a file URL"))); // Depreciated
 + (MWPhoto *)photoWithURL:(NSURL *)url;
 
-- (void)setBhphoto:(BHPhoto*)photo;
+- (void)setPhoto:(Photo*)photo;
 
 - (id)initWithImage:(UIImage *)image;
 - (id)initWithURL:(NSURL *)url;

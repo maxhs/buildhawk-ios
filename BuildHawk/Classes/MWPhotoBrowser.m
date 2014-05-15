@@ -211,7 +211,7 @@
 }
 
 - (void)removePhoto {
-    BHPhoto *photo = [[_photos objectAtIndex:_currentPageIndex] bhphoto];
+    Photo *photo = [[_photos objectAtIndex:_currentPageIndex] photo];
     NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
     if (photo){
         [userInfo setObject:photo forKey:@"photo"];
@@ -222,9 +222,9 @@
     if (photo.source && photo.source.length){
         [userInfo setObject:photo.source forKey:@"type"];
     }
-    
+    [photo MR_deleteEntity];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
-    if (photo.identifier){
+    if (![photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         [ProgressHUD show:@"Deleting photo..."];
         [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             [ProgressHUD dismiss];
@@ -1444,7 +1444,7 @@
         webView = [[UIWebView alloc] initWithFrame:frame];
         webView.scalesPageToFit = YES;
         MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
-        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:photo.bhphoto.orig]]];
+        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:photo.photo.original]]];
         [self.view addSubview:webView];
     }
     /*if (_actionsSheet) {

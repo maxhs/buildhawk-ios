@@ -11,6 +11,7 @@
 #import "UIButton+WebCache.h"
 #import "BHWebViewController.h"
 #import "BHTabBarViewController.h"
+#import "Photo+helper.h"
 
 @interface BHProjectDocsViewController () {
     BOOL iPad;
@@ -40,7 +41,7 @@
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    BHPhoto *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove) {
         [_photosArray removeObject:photoToRemove];
         [self.tableView reloadData];
@@ -73,9 +74,12 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
-    BHPhoto *photo = [_photosArray objectAtIndex:indexPath.row];
+    Photo *photo = [_photosArray objectAtIndex:indexPath.row];
     [cell.label setText:photo.name];
     
+    [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
+    cell.photoButton.imageView.clipsToBounds = YES;
+    NSLog(@"photo button width:%f and height %f",cell.photoButton.frame.size.width,cell.photoButton.frame.size.height);
     cell.backgroundColor = kDarkerGrayColor;
     cell.textLabel.numberOfLines = 0;
     cell.userInteractionEnabled = YES;
@@ -85,7 +89,7 @@
     if (iPad){
         imageUrl = [NSURL URLWithString:photo.urlLarge];
     } else if (_photosArray.count > 0) {
-        imageUrl = [NSURL URLWithString:photo.url200];
+        imageUrl = [NSURL URLWithString:photo.urlSmall];
     } else {
         imageUrl = nil;
     }
@@ -124,7 +128,7 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(NSIndexPath*)indexPath {
     if ([segue.identifier isEqualToString:@"WebView"]){
         BHWebViewController *vc = [segue destinationViewController];
-        BHPhoto *photo = [_photosArray objectAtIndex:indexPath.row];
+        Photo *photo = [_photosArray objectAtIndex:indexPath.row];
         [vc setPhoto:photo];
         if (photo.name) [vc setTitle:photo.name];
     }
@@ -132,10 +136,10 @@
 
 - (void)showBrowser:(int)idx {
     browserPhotos = [NSMutableArray new];
-    for (BHPhoto *photo in _photosArray) {
+    for (Photo *photo in _photosArray) {
         MWPhoto *mwPhoto;
         mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
-        [mwPhoto setBhphoto:photo];
+        [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }
     
