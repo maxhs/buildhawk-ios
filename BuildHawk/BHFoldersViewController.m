@@ -18,7 +18,6 @@
     NSMutableArray *browserArray; // for Photo objects
     NSMutableArray *browserPhotos; //for MWPhoto objects
     NSIndexPath *tapped;
-    BOOL iPad;
     CGRect screen;
 }
 
@@ -36,11 +35,9 @@
     [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
     [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
-    if ([BHUtilities isIpad]) {
-        iPad = YES;
+    if (IDIOM == IPAD) {
         self.tableView.rowHeight = 88.f;
     } else {
-        iPad = NO;
         self.tableView.rowHeight = 60.f;
     }
     screen = [UIScreen mainScreen].bounds;
@@ -79,7 +76,7 @@
         titleString = [NSString stringWithFormat:@"%@ - %i items",key,array.count];
     }
     [cell.textLabel setText:titleString];
-    if(iPad) [cell.textLabel setFont:[UIFont systemFontOfSize:19]];
+    if(IDIOM == IPAD) [cell.textLabel setFont:[UIFont systemFontOfSize:19]];
     else [cell.textLabel setFont:[UIFont systemFontOfSize:18]];
     return cell;
     /*static NSString *CellIdentifier = @"PhotoPickerCell";
@@ -136,6 +133,7 @@
 }
 
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(NSIndexPath*)indexPath {
+    [super prepareForSegue:segue sender:indexPath];
     if ([segue.identifier isEqualToString:@"ProjectDocs"]){
         NSDictionary *dict = [_photoSet.allObjects objectAtIndex:indexPath.row];
         NSString *folder = [[dict allKeys] firstObject];
@@ -164,8 +162,7 @@
 - (void)showBrowser {
     browserPhotos = [NSMutableArray new];
     for (Photo *photo in browserArray) {
-        MWPhoto *mwPhoto;
-        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }

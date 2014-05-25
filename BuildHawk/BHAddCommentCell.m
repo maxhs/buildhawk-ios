@@ -25,5 +25,15 @@
 
     // Configure the view for the selected state
 }
+- (void)configure{
+    _messageTextView.layer.cornerRadius = 2.f;
+    _messageTextView.layer.borderColor = [UIColor colorWithWhite:.83 alpha:1].CGColor;
+    _messageTextView.layer.borderWidth = 1.f;
+    _messageTextView.clipsToBounds = YES;
+    [_messageTextView setText:kAddCommentPlaceholder];
+    [_doneButton setBackgroundColor:kSelectBlueColor];
+    _doneButton.layer.cornerRadius = 3.f;
+    _doneButton.clipsToBounds = YES;
+}
 
 @end

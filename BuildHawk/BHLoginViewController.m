@@ -63,14 +63,14 @@
     [self.loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:.8]];
     [self.loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [self.loginButton setEnabled:NO];
-    self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.15].CGColor;
+    self.loginButton.layer.borderColor = [UIColor colorWithWhite:.8 alpha:1].CGColor;
     self.loginButton.layer.borderWidth = .5f;
     self.loginButton.layer.cornerRadius = 5.f;
     [self adjustLoginContainer];
 }
 
 - (void)textFieldTreatment:(UITextField*)textField {
-    textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.1].CGColor;
+    textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
     textField.layer.borderWidth = .5f;
     textField.layer.cornerRadius = 5.f;
     UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 7, 20)];
@@ -100,14 +100,14 @@
         }
         AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
         [manager POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success with forgot password: %@",responseObject);
+            //NSLog(@"success with forgot password: %@",responseObject);
             if ([responseObject objectForKey:@"failure"]){
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find an account for that email address." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             } else {
-                [[[UIAlertView alloc] initWithTitle:@"Password Reset" message:@"You should receive password reset instruction within the next few minutes." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                [[[UIAlertView alloc] initWithTitle:@"BuildHawk Password" message:@"You'll receive password reset instructions within the next few minutes." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failed to reach forgot password endpoing: %@",error.description);
+            //NSLog(@"Error reaching forgot password endpoint: %@",error.description);
         }];
     } else {
         UIAlertView *forgotPasswordAlert = [[UIAlertView alloc] initWithTitle:@"Forgot Password?" message:@"Please enter your email address:" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
@@ -141,10 +141,7 @@
         
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:localContext];
-        if (user) {
-            NSLog(@"Found existing user through Magical Record");
-
-        } else {
+        if (!user) {
             user = [User MR_createInContext:localContext];
             NSLog(@"Created a new MR user");
         }
@@ -159,9 +156,9 @@
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
         //[[NSUserDefaults standardUserDefaults] setObject:user.photo.urlThumb forKey:kUserDefaultsPhotoUrl100];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
-        //[[NSUserDefaults standardUserDefaults] setBool:user.admin forKey:kUserDefaultsAdmin];
-        //[[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin forKey:kUserDefaultsCompanyAdmin];
-        //[[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin forKey:kUserDefaultsUberAdmin];
+        [[NSUserDefaults standardUserDefaults] setBool:user.admin.boolValue forKey:kUserDefaultsAdmin];
+        [[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin.boolValue forKey:kUserDefaultsCompanyAdmin];
+        [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {

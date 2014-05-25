@@ -79,7 +79,7 @@
     
     _checklist = [Checklist MR_findFirstByAttribute:@"project.identifier" withValue:project.identifier];
     if (!_checklist){
-        _checklist = [Checklist MR_createEntity];
+        _checklist = [Checklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         _checklist.project = project;
         [self loadChecklist];
     } else {
@@ -100,49 +100,63 @@
     
     searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(activateSearch)];
     self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadChecklistItem:) name:@"ReloadChecklistItem" object:nil];
     if ([(BHTabBarViewController*)self.tabBarController checklistIndexPath]){
         indexPathToExpand = [(BHTabBarViewController*)self.tabBarController checklistIndexPath];
     }
     [self.searchDisplayController.searchBar setBackgroundColor:kDarkerGrayColor];
+
 }
 
 - (void)activateSearch {
     [self.searchDisplayController.searchBar becomeFirstResponder];
-    [UIView animateWithDuration:.75 delay:0 usingSpringWithDamping:.5 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-        searchFrame.origin.x = 0;
-        [self.searchDisplayController.searchBar setFrame:searchFrame];
-        
-        CGRect segmentedControlFrame = self.segmentedControl.frame;
-        segmentedControlFrame.origin.x = -screenWidth();
-        [self.segmentedControl setFrame:segmentedControlFrame];
-        
-        /*CGRect tableFrame = self.tableView.frame;
-        tableFrame.origin.y += 64;
-        tableFrame.size.height += 64;
-        [self.tableView setFrame:tableFrame];*/
+    if (IDIOM == IPAD){
+        [self.navigationController setNavigationBarHidden:YES animated:YES];
+        [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
+    }
+    [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        if (IDIOM == IPAD){
+            CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+            searchFrame.origin.y = -0;
+            [self.searchDisplayController.searchBar setFrame:searchFrame];
+            [self.searchDisplayController.searchBar setAlpha:1.0];
+            [self.segmentedControl setAlpha:0.0];
+        } else {
+            CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+            searchFrame.origin.x = 0;
+            [self.searchDisplayController.searchBar setFrame:searchFrame];
+            CGRect segmentedControlFrame = self.segmentedControl.frame;
+            segmentedControlFrame.origin.x = -screenWidth();
+            [self.segmentedControl setFrame:segmentedControlFrame];
+        }
+    
         self.tabBarController.navigationItem.rightBarButtonItem = nil;
     } completion:^(BOOL finished) {
-        NSLog(@"search bar? %@",self.searchDisplayController.searchBar);
     }];
 }
 
 - (void)endSearch {
-    [UIView animateWithDuration:.75 delay:0 usingSpringWithDamping:.5 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    if (IDIOM == IPAD){
+        [self.navigationController setNavigationBarHidden:NO animated:YES];
+        [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationSlide];
         CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-        searchFrame.origin.x = screenWidth();
+        searchFrame.origin.y =  -108;
         [self.searchDisplayController.searchBar setFrame:searchFrame];
-
-        CGRect segmentedControlFrame = self.segmentedControl.frame;
-        segmentedControlFrame.origin.x = (screenWidth()-segmentedControlFrame.size.width)/2;
-        [self.segmentedControl setFrame:segmentedControlFrame];
-        
+    }
+    [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        if (IDIOM == IPAD){
+            [self.searchDisplayController.searchBar setAlpha:0.0];
+            [self.segmentedControl setAlpha:1.0];
+        } else {
+            CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+            searchFrame.origin.x = screenWidth();
+            [self.searchDisplayController.searchBar setFrame:searchFrame];
+            CGRect segmentedControlFrame = self.segmentedControl.frame;
+            segmentedControlFrame.origin.x = (screenWidth()-segmentedControlFrame.size.width)/2;
+            [self.segmentedControl setFrame:segmentedControlFrame];
+        }
         self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
-        /*CGRect tableFrame = self.tableView.frame;
-        tableFrame.origin.y -= 64;
-        tableFrame.size.height -= 64;
-        [self.tableView setFrame:tableFrame];*/
     } completion:^(BOOL finished) {
         
     }];
@@ -288,17 +302,16 @@
 
 
 - (void)handleRefresh {
+    [ProgressHUD show:@"Refreshing checklist..."];
     [self loadChecklist];
 }
 
 - (void)loadChecklist {
     loading = YES;
-    [ProgressHUD show:@"Refreshing checklist..."];
     [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,project.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"checklist response: %@",[responseObject objectForKey:@"checklist"]);
-    
         _checklist.identifier = [[responseObject objectForKey:@"checklist"] objectForKey:@"id"];
-        [self drawChecklist:[[responseObject objectForKey:@"checklist"] objectForKey:@"categories"]];
+        [self drawChecklist:_checklist withPhases:[[responseObject objectForKey:@"checklist"] objectForKey:@"categories"]];
         
         loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -311,38 +324,40 @@
     }];
 }
 
-- (void)drawChecklist:(id)array {
+- (void)drawChecklist:(Checklist*)checklistParam withPhases:(id)array {
     NSMutableOrderedSet *phases = [NSMutableOrderedSet orderedSet];
     for (id phaseDict in array) {
         Phase *phase = [Phase MR_findFirstByAttribute:@"identifier" withValue:[phaseDict objectForKey:@"id"]];
         if (!phase){
-            phase = [Phase MR_createEntity];
+            NSLog(@"had to create new phase");
+            phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [phase populateFromDictionary:phaseDict];
-        phase.checklist = _checklist;
+        phase.checklist = checklistParam;
         [phases addObject:phase];
     }
-    //NSLog(@"drawing new categories: %@",categories);
-    for (Phase *phase in _checklist.phases){
+    
+    for (Phase *phase in checklistParam.phases){
         for (Cat *category in phase.categories){
             for (ChecklistItem *item in category.items){
-                item.checklist = _checklist;
+                item.checklist = checklistParam;
             }
         }
     }
-    [self saveContext];
-    _checklist.phases = phases;
+    
+    checklistParam.phases = phases;
     [self.tableView reloadData];
 }
 
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.1]];
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:0]];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
         ChecklistItem *item = (ChecklistItem*)sender;
         BHChecklistItemViewController *vc = segue.destinationViewController;
@@ -495,8 +510,7 @@
             
         } else if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
             NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
-            id item;
-            item = [openRows objectAtIndex:indexPath.row-1];
+            id item = [openRows objectAtIndex:indexPath.row-1];
             
             if ([item isKindOfClass:[Cat class]]){
                 Cat *category = (Cat*)item;
@@ -575,12 +589,6 @@
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
     [self endSearch];
 }
-
-- (void)dismissTableView {
-    [self.searchDisplayController setActive:NO animated:YES];
-    self.navigationItem.rightBarButtonItem = nil;
-}
-
 - (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
     [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
         [self.segmentedControl setAlpha:1.0];
@@ -625,12 +633,16 @@
             }
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
         } else {
-            
+            NSLog(@"did select section: %d, row: %d",indexPath.section, indexPath.row);
             NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
             id item = [openRows objectAtIndex:indexPath.row-1];
             if ([item isKindOfClass:[Cat class]]){
+                
+                NSLog(@"trying to find category");
                 Cat *category = [openRows objectAtIndex:indexPath.row-1];
+                
                 if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                    NSLog(@"category already expanded");
                     NSMutableArray *deleteIndexPaths = [NSMutableArray array];
                     int subIdx = [openRows indexOfObject:category];
                     
@@ -654,12 +666,12 @@
                     category.expanded = [NSNumber numberWithBool:NO];
                     [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                 } else {
-
+                    NSLog(@"expanding categroy");
                     category.expanded = [NSNumber numberWithBool:YES];
                     NSMutableArray *newIndexPaths = [NSMutableArray array];
-                    int subIdx = [openRows indexOfObject:category];
+                    int catIdx = [openRows indexOfObject:category];
                     int itemIdx = 0;
-                    NSMutableArray *insertionArray;
+                    NSArray *insertionArray;
                     if (completed) {
                         insertionArray = category.completedItems;
                     } else if (active){
@@ -667,10 +679,10 @@
                     } else if (inProgress){
                         insertionArray = category.inProgressItems;
                     } else {
-                        insertionArray = category.items.mutableCopy;
+                        insertionArray = category.items.array;
                     }
                     
-                    for (int idx = subIdx; idx < (insertionArray.count+subIdx); idx ++){
+                    for (int idx = catIdx; idx < (insertionArray.count+catIdx); idx ++){
                         NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
                         [newIndexPaths addObject:newIndexPath];
                         [openRows insertObject:[insertionArray objectAtIndex:itemIdx] atIndex:idx+1];
@@ -719,7 +731,7 @@
 - (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
 {
     [self filterContentForSearchText:searchString scope:nil];
-    if (searchString.length > 1) return YES;
+    if (searchString.length) return YES;
     else return NO;
 }
 
@@ -765,22 +777,21 @@
 
 - (void)slide2:(UITapGestureRecognizer*)sender {
     BHOverlayView *checklist = [[BHOverlayView alloc] initWithFrame:screen];
+    NSString *text = @"The first section is the checklist.\n\nSearch for specific items or use the filters to quickly prioritize.";
     if (IDIOM == IPAD){
         checklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"checklistiPad"]];
         [checklistScreenshot setFrame:CGRectMake(screenWidth()/2-355, 26, 710, 505)];
+        [checklist configureText:text atFrame:CGRectMake(screenWidth()/4, checklistScreenshot.frame.size.height + checklistScreenshot.frame.origin.y, screenWidth()/2, 120)];
     } else {
         checklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"checklistScreenshot"]];
-        [checklistScreenshot setFrame:CGRectMake(screenWidth()/2-140, 26, 280, 350)];
+        [checklistScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
+        [checklist configureText:text atFrame:CGRectMake(20, checklistScreenshot.frame.size.height + checklistScreenshot.frame.origin.y, screenWidth()-40, 120)];
     }
     [checklistScreenshot setAlpha:0.0];
-    
-    [checklist configureText:@"The first section is the checklist.\n\n Search for specific items or use the filters to quickly prioritize." atFrame:CGRectMake(10, screenHeight()/2+100, screenWidth()-20, 120)];
     [checklist.tapGesture addTarget:self action:@selector(slide3:)];
-    [checklist.label setTextAlignment:NSTextAlignmentCenter];
     
     [UIView animateWithDuration:.35 animations:^{
-        
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
         [overlayBackground addSubview:checklistScreenshot];
         [overlayBackground addSubview:checklist];
         [sender.view setAlpha:0.0];
@@ -799,9 +810,14 @@
 
 - (void)slide3:(UITapGestureRecognizer*)sender {
     BHOverlayView *tapToExpand = [[BHOverlayView alloc] initWithFrame:screen];
-    [tapToExpand configureText:@"Tap any section to hide or expand the checklist items within." atFrame:CGRectMake(10, screenHeight()/2+100, screenWidth()-20, 100)];
+    NSString *text = @"Tap any section to hide or expand the checklist items within.";
+    if (IDIOM == IPAD){
+        [tapToExpand configureText:text atFrame:CGRectMake(screenWidth()/4, checklistScreenshot.frame.size.height + checklistScreenshot.frame.origin.y, screenWidth()/2, 100)];
+    } else {
+        [tapToExpand configureText:text atFrame:CGRectMake(20, checklistScreenshot.frame.size.height + checklistScreenshot.frame.origin.y, screenWidth()-40, 100)];
+    }
+    
     [tapToExpand.tapGesture addTarget:self action:@selector(endIntro:)];
-    [tapToExpand.label setTextAlignment:NSTextAlignmentCenter];
     
     [UIView animateWithDuration:.25 animations:^{
         [sender.view setAlpha:0.0];
@@ -834,9 +850,18 @@
     [super viewWillDisappear:animated];
 }
 
+- (void)dealloc {
+    NSLog(@"dealloc");
+    for (Phase *phase in _checklist.phases){
+        for (Cat *category in phase.categories){
+            category.expanded = [NSNumber numberWithBool:NO];
+        }
+    }
+}
+
 - (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"What happened during checklist save? %hhd %@",success, error);
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"Saving checklist to persistent store: %hhd %@",success, error);
     }];
 }
 

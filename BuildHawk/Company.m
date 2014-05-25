@@ -17,5 +17,7 @@
 @dynamic identifier;
 @dynamic users;
 @dynamic projects;
+@dynamic subcontractors;
+@dynamic safetyTopics;
 
 @end

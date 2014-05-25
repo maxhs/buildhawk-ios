@@ -24,7 +24,7 @@
 #import "MWPhotoBrowser.h"
 #import "Flurry.h"
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
-#import "BHPeoplePickerViewController.h"
+#import "BHPersonnelPickerViewController.h"
 #import "Project.h"
 #import "BHAppDelegate.h"
 #import "Comment+helper.h"
@@ -78,14 +78,15 @@
     }
     library = [[ALAssetsLibrary alloc]init];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    commentFormatter = [[NSDateFormatter alloc] init];
-    [commentFormatter setDateStyle:NSDateFormatterShortStyle];
-    [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
+
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem:)];
     self.navigationItem.rightBarButtonItem = saveButton;
     [Flurry logEvent:@"Viewing checklist item"];
     [self loadItem];
 
+    commentFormatter = [[NSDateFormatter alloc] init];
+    [commentFormatter setDateStyle:NSDateFormatterShortStyle];
+    [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
@@ -294,7 +295,7 @@
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to add comments to a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            Comment *comment = [Comment MR_createEntity];
+            Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             comment.body = addCommentTextView.text;
             comment.createdOnString = @"Just now";
             User *user = [(BHTabBarViewController*) self.tabBarController user];
@@ -312,7 +313,7 @@
                     NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
                     Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
                     if (!comment){
-                        comment = [Comment MR_createEntity];
+                        comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     }
                     [comment populateFromDictionary:commentDict];
                     [orderedComments addObject:comment];
@@ -360,14 +361,15 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    BHPeoplePickerViewController *vc = [segue destinationViewController];
+    [super prepareForSegue:segue sender:sender];
+    BHPersonnelPickerViewController *vc = [segue destinationViewController];
     if (phoneBool) {
         [vc setPhone:YES];
     } else if (emailBool) {
         [vc setEmail:YES];
     }
-    if ([segue.identifier isEqualToString:@"PeoplePicker"]) {
-        [vc setUserArray:_project.users.array];
+    if ([segue.identifier isEqualToString:@"PersonnelPicker"]) {
+        [vc setUsers:_project.users.mutableCopy];
     }
 }
 
@@ -452,7 +454,7 @@
             [callActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
             return;
         } else if ([buttonTitle isEqualToString:kUsers]) {
-            [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
+            [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
         } else if ([buttonTitle isEqualToString:kSubcontractors]) {
             [self performSegueWithIdentifier:@"SubPicker" sender:nil];
         }
@@ -476,7 +478,7 @@
     saveToLibrary = YES;
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         UIImagePickerController *vc = [[UIImagePickerController alloc] init];
-        [vc setModalPresentationStyle:UIModalPresentationCurrentContext];
+        [vc setModalPresentationStyle:UIModalPresentationFullScreen];
         [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
         [vc setDelegate:self];
         [self presentViewController:vc animated:YES completion:nil];
@@ -487,7 +489,7 @@
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [picker dismissViewControllerAnimated:YES completion:nil];
-    Photo *newPhoto = [Photo MR_createEntity];
+    Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [self saveImage:[self fixOrientation:newPhoto.image]];
     [_item addPhoto:newPhoto];
@@ -510,7 +512,7 @@
                 CGFloat scale  = 1;
                 UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                      scale:scale orientation:orientation];
-                Photo *newPhoto = [Photo MR_createEntity];
+                Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [newPhoto setImage:[self fixOrientation:image]];
                 [_item addPhoto:newPhoto];
                 [self saveImage:newPhoto.image];
@@ -655,7 +657,7 @@
     if (![_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [self savePostToLibrary:image];
         NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"id":_item.identifier,@"photo":@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kChecklist,@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":@{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kChecklist,@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"save image response object: %@",responseObject);
@@ -725,28 +727,15 @@
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         [parameters setObject:_item.identifier forKey:@"id"];
         if (_item.status) [parameters setObject:_item.status forKey:@"status"];
-        if (_item.completed) [parameters setObject:@"true" forKey:@"completed"];
-        
-        NSMutableArray *commentArray = [NSMutableArray arrayWithCapacity:_item.comments.count];
-        for (Comment *comment in _item.comments) {
-            NSMutableDictionary *commentDict = [NSMutableDictionary dictionary];
-            if (comment.identifier) [commentDict setObject:comment.identifier forKey:@"_id"];
-            if (comment.body) [commentDict setObject:comment.body forKey:@"body"];
-            [commentArray addObject:commentDict];
+        if ([_item.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+            [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"completed"];
         }
-        if (commentArray.count)[parameters setObject:commentArray forKey:@"comments"];
-        
+    
         [ProgressHUD show:@"Updating item..."];
-        [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:@{@"checklist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success updating checklist item %@",responseObject);
             [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-            //clean photos//
-            for (Photo *photo in _item.photos){
-                if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-                    [photo MR_deleteEntity];
-                }
-            }
-            // ** //
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
             [self.navigationController popViewControllerAnimated:YES];
             [ProgressHUD dismiss];
@@ -762,8 +751,8 @@
     browserPhotos = [NSMutableArray new];
     for (Photo *photo in _item.photos) {
         MWPhoto *mwPhoto;
-        if (mwPhoto.image){
-            mwPhoto = [MWPhoto photoWithImage:mwPhoto.image];
+        if (photo.image){
+            mwPhoto = [MWPhoto photoWithImage:photo.image];
         } else {
             mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         }
@@ -836,7 +825,12 @@
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 4) {
-        return YES;
+        Comment *comment = [_item.comments objectAtIndex:indexPath.row];
+        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+            return YES;
+        } else {
+            return NO;
+        }
     } else {
         return NO;
     }

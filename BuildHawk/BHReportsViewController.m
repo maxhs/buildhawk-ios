@@ -8,15 +8,15 @@
 
 #import "BHReportsViewController.h"
 #import "BHReportCell.h"
-#import "Project.h"
 #import "BHReportViewController.h"
 #import "BHTabBarViewController.h"
 #import "ProgressHUD.h"
 #import "BHOverlayView.h"
 #import "BHAppDelegate.h"
+#import "Project+helper.h"
+#import "SafetyTopic+helper.h"
 
 @interface BHReportsViewController () {
-    NSMutableArray *_reports;
     NSMutableArray *_possibleTopics;
     AFHTTPRequestOperationManager *manager;
     Project *project;
@@ -58,26 +58,41 @@
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
     datePickerButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"calendar"] style:UIBarButtonItemStylePlain target:self action:@selector(showDatePicker)];
     
+    [_cancelButton.layer setBorderColor:[UIColor colorWithWhite:0 alpha:.9].CGColor];
+    [_cancelButton.layer setBorderWidth:.5f];
+    _cancelButton.layer.cornerRadius = 2.f;
+    _cancelButton.clipsToBounds = YES;
+    
+    [_selectButton.layer setBorderColor:[UIColor colorWithWhite:0 alpha:.9].CGColor];
+    [_selectButton.layer setBorderWidth:.5f];
+    _selectButton.layer.cornerRadius = 2.f;
+    _selectButton.clipsToBounds = YES;
+    
+    _possibleTopics = [NSMutableArray array];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
+        [self slide1];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
+    } else if (project.reports.count == 0){
+        [ProgressHUD show:@"Fetching reports..."];
+    }
     [self loadReports];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
-        [self slide1];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
-    } else if (_reports.count == 0){
-        [ProgressHUD show:@"Fetching reports..."];
-    }
+    [UIView animateWithDuration:.25 animations:^{
+        self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
+    }];
 }
 
 - (void)loadReports {
     loading = YES;
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@", project.identifier];
-    _reports = [[Report MR_findAllSortedBy:@"createdAt" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]] mutableCopy];
-    
+    //NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@", project.identifier];
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting reports: %@",responseObject);
         [self loadOptions];
@@ -142,7 +157,7 @@
 
 - (void)filter:(NSString*)type {
     [_filteredReports removeAllObjects];
-    for (Report *report in _reports){
+    for (Report *report in project.reports){
         if ([report.type isEqualToString:type]){
             [_filteredReports addObject:report];
         }
@@ -153,34 +168,48 @@
 - (void)loadOptions {
     [manager GET:[NSString stringWithFormat:@"%@/reports/options",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success getting possible topics: %@",responseObject);
-        _possibleTopics = [BHUtilities safetyTopicsFromJSONArray:[responseObject objectForKey:@"possible_topics"]];
+        NSArray *topicResponseArray = [responseObject objectForKey:@"possible_topics"];
+        for (id dict in topicResponseArray){
+            SafetyTopic *topic = [SafetyTopic MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"]];
+            if (!topic){
+                NSLog(@"had to create new topic");
+                topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [topic populateWithDict:dict];
+            [_possibleTopics addObject:topic];
+        }
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failed to get possible topics: %@",error.description);
     }];
 }
 
 - (void)updateLocalReports:(NSArray*)array {
-    if (array.count){
-        for (id obj in array) {
-            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@",[obj objectForKey:@"id"]];
-            Report *savedReport = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (savedReport){
-                [savedReport populateWithDict:obj];
-            } else {
-                Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [newReport populateWithDict:obj];
-                NSLog(@"had to create a new report");
-                newReport.project = project;
-                [_reports addObject:newReport];
-            }
-            loading = NO;
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+    for (id obj in array) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@",[obj objectForKey:@"id"]];
+        Report *report = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (report){
+            [report populateWithDict:obj];
+        } else {
+            NSLog(@"had to create report");
+            report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [report populateWithDict:obj];
+            [project addReport:report];
         }
+    }
+    
+    loading = NO;
+    [ProgressHUD dismiss];
+    if (safety) {
+        [self filter:kSafety];
+    } else if (weekly) {
+        [self filter:kWeekly];
+    } else if (daily) {
+        [self filter:kDaily];
     } else {
-        loading = NO;
-        [ProgressHUD dismiss];
         [self.tableView reloadData];
     }
+    //[self saveContext];
 }
 
 #pragma mark - Table view data source
@@ -201,8 +230,8 @@
             return 1;
         }
     } else {
-        if (_reports.count){
-            return _reports.count;
+        if (project.reports.count){
+            return project.reports.count;
         } else if (loading) {
             return 0;
         } else {
@@ -227,8 +256,8 @@
             return [self generateNothingCellForIndexPath:indexPath];
         }
     } else {
-        if (_reports.count){
-            Report *report = [_reports objectAtIndex:indexPath.row];
+        if (project.reports.count){
+            Report *report = [project.reports objectAtIndex:indexPath.row];
             [cell configureReport:report];
         } else if (!loading) {
             return [self generateNothingCellForIndexPath:indexPath];
@@ -244,7 +273,6 @@
     UIButton *nothingButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [nothingButton setTitle:@"No reports..." forState:UIControlStateNormal];
     [nothingButton.titleLabel setNumberOfLines:0];
-    [nothingButton addTarget:self action:@selector(startWriting) forControlEvents:UIControlEventTouchUpInside];
     [nothingButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
     nothingButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
     [nothingButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -258,7 +286,12 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    Report *selectedReport = [_reports objectAtIndex:indexPath.row];
+    Report *selectedReport;
+    if (daily || weekly || safety){
+        selectedReport = [_filteredReports objectAtIndex:indexPath.row];
+    } else {
+        selectedReport = [project.reports objectAtIndex:indexPath.row];
+    }
     [self performSegueWithIdentifier:@"Report" sender:selectedReport];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
@@ -278,7 +311,7 @@
         [ProgressHUD dismiss];
         if (_filteredReports.count){
             [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        } else if (_reports.count && !daily && !weekly && !safety){
+        } else if (project.reports.count && !daily && !weekly && !safety){
             [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         }
     }
@@ -292,7 +325,7 @@
     } else if (safety){
         [self performSegueWithIdentifier:@"Report" sender:kSafety];
     } else {
-        [[[UIActionSheet alloc] initWithTitle:@"Report Type:" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kDaily,kSafety,kWeekly, nil] showInView:self.view];
+        [[[UIActionSheet alloc] initWithTitle:@"Report Type:" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kDaily,kSafety,kWeekly, nil] showFromTabBar:self.tabBarController.tabBar];
     }
 }
 
@@ -309,127 +342,111 @@
 #pragma mark - Navigation
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
+    
     if ([[segue identifier] isEqualToString:@"Report"]){
         BHReportViewController *vc = [segue destinationViewController];
         [vc setProject:project];
+        [vc setPossibleTopics:_possibleTopics];
+        if (daily || safety || weekly){
+            NSLog(@"how many filtered reports? %d",_filteredReports.count);
+            [vc setReports:_filteredReports];
+        } else {
+            [vc setReports:project.reports.array.mutableCopy];
+        }
+        
         if ([sender isKindOfClass:[Report class]]){
             [vc setReport:(Report*)sender];
-            [vc setReports:_reports];
         } else if ([sender isKindOfClass:[NSString class]]) {
-            [vc setReportType:(NSString*)sender];
+            Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newReport.type = (NSString*)sender;
+            NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+            [formatter setDateFormat:@"MM/dd/yyyy"];
+            newReport.createdDate = [formatter stringFromDate:[NSDate date]];
+            [vc setReport:newReport];
         }
     }
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-    //self.tabBarController.navigationItem.rightBarButtonItems = nil;
-}
-
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
 - (IBAction)cancelDatePicker{
     [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, 220);
+        _datePickerContainer.transform = CGAffineTransformIdentity;
         self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
         [overlayBackground setAlpha:0];
     } completion:^(BOOL finished) {
+        overlayBackground = nil;
         [overlayBackground removeFromSuperview];
     }];
 }
 
 - (void)showDatePicker{
-    overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
-    [self.view insertSubview:overlayBackground belowSubview:_datePickerContainer];
-    [self.view bringSubviewToFront:_datePickerContainer];
-    [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:.6 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -_datePickerContainer.frame.size.height);
-        [overlayBackground setAlpha:0.70];
-        if (IDIOM == IPAD)
-            self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 56);
-        else
-            self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
-        
-    } completion:^(BOOL finished) {
-        
-    }];
+    if (overlayBackground == nil){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:YES];
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
+        tapGesture.numberOfTapsRequired = 1;
+        [overlayBackground addGestureRecognizer:tapGesture];
+        [self.view insertSubview:overlayBackground belowSubview:_datePickerContainer];
+        [self.view bringSubviewToFront:_datePickerContainer];
+        [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -_datePickerContainer.frame.size.height);
+            
+            if (IDIOM == IPAD)
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 56);
+            else
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+    } else {
+        [self cancelDatePicker];
+    }
 }
 
-- (IBAction)selectDate{
+- (IBAction)selectDate {
     [self cancelDatePicker];
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"MM/dd/yyyy"];
-    NSString *dateString = [formatter stringFromDate:self.datePicker.date];
-    NSLog(@"selected date string: %@",dateString);
-    /*_report.createdDate = dateString;
-    self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-    [self.activeTableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];*/
+    NSString *selectedDateString = [formatter stringFromDate:self.datePicker.date];
+    [project.reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
+        if ([report.createdDate isEqualToString:selectedDateString]){
+            [self performSegueWithIdentifier:@"Report" sender:report];
+            *stop = YES;
+        }
+        if (idx == project.reports.count-1){
+            Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newReport.createdDate = selectedDateString;
+            newReport.type = kDaily;
+            [self performSegueWithIdentifier:@"Report" sender:newReport];
+            *stop = YES;
+        };
+    }];
 }
 
 - (void)slide1 {
     BHOverlayView *navigation = [[BHOverlayView alloc] initWithFrame:screen];
+    NSString *text = @"Filter by report type: Daily, Weekly, or Safety. Tap the calendar icon to jump to a specific date, or the plus to add a new report.";
     if (IDIOM == IPAD){
         reportsScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"reportiPad"]];
-        [reportsScreenshot setFrame:CGRectMake(screenWidth()/2-355, 40, 710, 505)];
-        [navigation configureText:@"Filter by reporttype: Daily, Weekly, or Safety. Tap the calendar icon to jump to a specific date, or the plus to add a new report." atFrame:CGRectMake(screenWidth()/2-150, screenHeight()-310, 300, 100)];
+        [reportsScreenshot setFrame:CGRectMake(screenWidth()/2-350, 40, 710, 700)];
+        [navigation configureText:text atFrame:CGRectMake(screenWidth()/4, reportsScreenshot.frame.origin.y+reportsScreenshot.frame.size.height, screenWidth()/2, 100)];
     } else {
         reportsScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"reportScreenshot"]];
-        [reportsScreenshot setFrame:CGRectMake(screenWidth()/2-140, 40, 280, 330)];
-        [navigation configureText:@"Filter by report type: Daily, Weekly, or Safety. Tap the calendar to see a specific date, or the plus to add a new report." atFrame:CGRectMake(20, 390, screenWidth()-40, 100)];
+        [reportsScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
+        [navigation configureText:text atFrame:CGRectMake(20, reportsScreenshot.frame.origin.y+reportsScreenshot.frame.size.height, screenWidth()-40, 100)];
     }
     [reportsScreenshot setAlpha:0.0];
-    //[navigation configureArrow:[UIImage imageNamed:@"downWhiteArrow"] atFrame:CGRectMake(screenWidth()/2-25, screenHeight()-200, 50, 110)];
     [navigation.tapGesture addTarget:self action:@selector(endIntro:)];
     [overlayBackground addSubview:navigation];
     [overlayBackground addSubview:reportsScreenshot];
     [UIView animateWithDuration:.25 animations:^{
         [reportsScreenshot setAlpha:1.0];
         [navigation setAlpha:1.0];
-    }];
-}
-
-
-- (void)slide2:(UITapGestureRecognizer*)sender {
-    BHOverlayView *checklist = [[BHOverlayView alloc] initWithFrame:screen];
-    [checklist configureText:@"The first section is the checklist.\n\n Search for specific items or use the filters to quickly prioritize." atFrame:CGRectMake(10, screenHeight()/2+100, screenWidth()-20, 120)];
-    [checklist.tapGesture addTarget:self action:@selector(slide3:)];
-    [checklist.label setTextAlignment:NSTextAlignmentCenter];
-    
-    [UIView animateWithDuration:.35 animations:^{
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
-        [overlayBackground addSubview:checklist];
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [sender.view removeFromSuperview];
-        
-        [UIView animateWithDuration:.25 animations:^{
-            [overlayBackground setAlpha:0.0];
-            [checklist setAlpha:1.0];
-        } completion:^(BOOL finished) {
-            [overlayBackground removeFromSuperview];
-        }];
-    }];
-}
-
-- (void)slide3:(UITapGestureRecognizer*)sender {
-    BHOverlayView *tapToExpand = [[BHOverlayView alloc] initWithFrame:screen];
-    [tapToExpand configureText:@"Tap any section to hide or expand the checklist items within." atFrame:CGRectMake(10, screenHeight()/2+100, screenWidth()-20, 100)];
-    [tapToExpand.tapGesture addTarget:self action:@selector(endIntro:)];
-    [tapToExpand.label setTextAlignment:NSTextAlignmentCenter];
-    
-    [UIView animateWithDuration:.25 animations:^{
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [sender.view removeFromSuperview];
-        [overlayBackground addSubview:tapToExpand];
-        [UIView animateWithDuration:.25 animations:^{
-            [tapToExpand setAlpha:1.0];
-            [reportsScreenshot setAlpha:1.0];
-        }];
     }];
 }
 
@@ -447,5 +464,16 @@
     }];
 }
 
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    self.tabBarController.navigationItem.rightBarButtonItems = nil;
+    [self cancelDatePicker];
+    [self saveContext];
+}
+- (void)saveContext {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"What happened during reports save? %hhd %@",success, error);
+    }];
+}
 
 @end

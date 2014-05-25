@@ -14,7 +14,6 @@
 #import "Photo+helper.h"
 
 @interface BHProjectDocsViewController () {
-    BOOL iPad;
     NSMutableArray *browserPhotos;
 }
 
@@ -27,12 +26,10 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    if ([BHUtilities isIpad]){
-        iPad = YES;
+    if (IDIOM == IPAD){
         self.tableView.rowHeight = 180.f;
     } else {
         self.tableView.rowHeight = 88.f;
-        iPad = NO;
     }
     [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
     [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
@@ -79,14 +76,13 @@
     
     [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
     cell.photoButton.imageView.clipsToBounds = YES;
-    NSLog(@"photo button width:%f and height %f",cell.photoButton.frame.size.width,cell.photoButton.frame.size.height);
     cell.backgroundColor = kDarkerGrayColor;
     cell.textLabel.numberOfLines = 0;
     cell.userInteractionEnabled = YES;
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    if (iPad) [cell.label setFont:[UIFont systemFontOfSize:18]];
     NSURL *imageUrl;
-    if (iPad){
+    if (IDIOM == IPAD){
+        [cell.label setFont:[UIFont systemFontOfSize:18]];
         imageUrl = [NSURL URLWithString:photo.urlLarge];
     } else if (_photosArray.count > 0) {
         imageUrl = [NSURL URLWithString:photo.urlSmall];
@@ -126,6 +122,8 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(NSIndexPath*)indexPath {
+    [super prepareForSegue:segue sender:indexPath];
+    
     if ([segue.identifier isEqualToString:@"WebView"]){
         BHWebViewController *vc = [segue destinationViewController];
         Photo *photo = [_photosArray objectAtIndex:indexPath.row];
@@ -137,8 +135,7 @@
 - (void)showBrowser:(int)idx {
     browserPhotos = [NSMutableArray new];
     for (Photo *photo in _photosArray) {
-        MWPhoto *mwPhoto;
-        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }

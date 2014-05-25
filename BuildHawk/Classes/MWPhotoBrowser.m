@@ -211,31 +211,36 @@
 }
 
 - (void)removePhoto {
-    Photo *photo = [[_photos objectAtIndex:_currentPageIndex] photo];
-    NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
-    if (photo){
-        [userInfo setObject:photo forKey:@"photo"];
-    }
-    if (photo.identifier){
-        [userInfo setObject:photo.identifier forKey:@"photoId"];
-    }
-    if (photo.source && photo.source.length){
-        [userInfo setObject:photo.source forKey:@"type"];
-    }
-    [photo MR_deleteEntity];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
-    if (![photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        [ProgressHUD show:@"Deleting photo..."];
-        [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            [ProgressHUD dismiss];
-            [self.navigationController popViewControllerAnimated:YES];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            
-        }];
+    if (_currentPageIndex < _photos.count){
+        Photo *photo = [[_photos objectAtIndex:_currentPageIndex] photo];
+        NSMutableDictionary *userInfo = [NSMutableDictionary dictionary];
+        if (photo){
+            [userInfo setObject:photo forKey:@"photo"];
+        }
+
+        if (photo.source && photo.source.length){
+            [userInfo setObject:photo.source forKey:@"type"];
+        }
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
+        if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+             [self.navigationController popViewControllerAnimated:YES];
+            [photo MR_deleteEntity];
+        } else {
+            [ProgressHUD show:@"Deleting photo..."];
+            [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                [ProgressHUD dismiss];
+                [self.navigationController popViewControllerAnimated:YES];
+                [photo MR_deleteEntity];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                [ProgressHUD dismiss];
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to remove this photo." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                [self.navigationController popViewControllerAnimated:YES];
+            }];
+        }
     } else {
         [self.navigationController popViewControllerAnimated:YES];
     }
-    
 }
 
 - (void)performLayout {

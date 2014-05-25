@@ -12,7 +12,6 @@
 #import "Report.h"
 #import "Report+helper.h"
 #import "BHProjectGroup.h"
-#import "BHSafetyTopic.h"
 #import "Cat.h"
 
 @interface BHUtilities : NSObject
@@ -21,10 +20,9 @@
 + (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)projectsFromJSONArray:(NSArray *) array;
 + (NSMutableArray *)groupsFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)safetyTopicsFromJSONArray:(NSArray *) array;
 + (NSDate*)parseDate:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;
-+ (BOOL)isIpad;
 + (BOOL)isIPhone5;
++ (void)vacuumLocalPhotos:(id)object;
 @end

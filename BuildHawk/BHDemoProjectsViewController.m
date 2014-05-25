@@ -65,7 +65,7 @@
 - (void)loadDemos {
     [ProgressHUD show:@"Loading Demo Projects..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"demo projects response object: %@",responseObject);
+        //NSLog(@"demo projects response object: %@",responseObject);
         [self updateProjects:[responseObject objectForKey:@"projects"]];
         [self loadDetailView];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -80,7 +80,7 @@
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [obj objectForKey:@"id"]];
         Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!project) {
-            project = [Project MR_createEntity];
+            project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             NSLog(@"Creating a new project for local storage: %@",project.name);
             [demoProjects addObject:project];
         }
@@ -126,7 +126,7 @@
     for (Project *proj in demoProjects){
         [categories removeAllObjects];
         [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting dashboard detail view for demo projects: %@",[responseObject objectForKey:@"project"]);
+            //NSLog(@"Success getting dashboard detail view for demo projects: %@",[responseObject objectForKey:@"project"]);
             categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
             [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
             if (dashboardDetailDict.count == demoProjects.count) {
@@ -183,6 +183,7 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"Project"]) {
         Project *project = (Project*)sender;
         BHTabBarViewController *vc = [segue destinationViewController];

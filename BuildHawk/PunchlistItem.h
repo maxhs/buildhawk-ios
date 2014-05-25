@@ -22,6 +22,7 @@
 @property (nonatomic, retain) NSOrderedSet *comments;
 @property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) NSOrderedSet *assignees;
+@property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Punchlist *punchlist;
 @end
 

@@ -44,26 +44,27 @@
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSetWithOrderedSet:self.comments];
+        NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
         //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
             Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
             if (!comment){
-                comment = [Comment MR_createEntity];
+                comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [comment populateFromDictionary:commentDict];
             [orderedComments addObject:comment];
         }
         self.comments = orderedComments;
     }
-    if ([dictionary objectForKey:@"photos"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSetWithOrderedSet:self.photos];
+    if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
+        [BHUtilities vacuumLocalPhotos:self];
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
             Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
             if (!photo){
-                photo = [Photo MR_createEntity];
+                photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 NSLog(@"couldn't find saved checklist item photo, created a new one: %@",photo.createdDate);
             }
             [photo populateFromDictionary:photoDict];

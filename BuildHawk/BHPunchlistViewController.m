@@ -19,6 +19,7 @@
 #import "BHAppDelegate.h"
 #import "Flurry.h"
 #import "Project.h"
+#import "BHOverlayView.h"
 
 @interface BHPunchlistViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate> {
     Project *project;
@@ -37,9 +38,11 @@
     BOOL showActive;
     BOOL showByLocation;
     BOOL showByAssignee;
-    BOOL iOS7;
     BOOL firstLoad;
+    BOOL loading;
     UIBarButtonItem *addButton;
+    UIView *overlayBackground;
+    UIImageView *worklistScreenshot;
 }
 @end
 
@@ -54,13 +57,7 @@
     showCompleted = NO;
     showByAssignee = NO;
     showByLocation = NO;
-    
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0){
-        iOS7 = YES;
-    } else {
-        iOS7 = NO;
-    }
-    
+
     firstLoad = YES;
     [self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
@@ -82,6 +79,12 @@
     savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];*/
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createItem)];
     self.tabBarController.navigationItem.rightBarButtonItem = addButton;
+    if ([project.punchlist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        NSLog(@"found punchlist");
+        [self drawPunchlist];
+    } else {
+        [ProgressHUD show:@"Getting Worklist..."];
+    }
     [super viewDidLoad];
 }
 
@@ -91,8 +94,124 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (project.punchlist.punchlistItems.count == 0)[ProgressHUD show:@"Getting Worklist..."];
+    loading = YES;
     [self loadPunchlist];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenWorklist]){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
+        [self slide1];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenWorklist];
+    }
+}
+
+#pragma mark Intro Stuff
+
+- (void)slide1 {
+    BHOverlayView *worklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    NSString *worklistText = @"The worklist is designed to be flexible: use it for anything from Requests for Information, to personal to-do list, to punch list items at the end of a job.";
+    if (IDIOM == IPAD){
+        worklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"worklistiPad"]];
+        [worklistScreenshot setFrame:CGRectMake(29, 30, 710, 700)];
+        [worklist configureText:worklistText atFrame:CGRectMake(100, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
+    } else {
+        worklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"worklistScreenshot"]];
+        [worklistScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
+        [worklist configureText:worklistText atFrame:CGRectMake(20, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height, screenWidth()-40, 140)];
+    }
+    [worklistScreenshot setAlpha:0.0];
+    [overlayBackground addSubview:worklistScreenshot];
+    
+    [worklist.tapGesture addTarget:self action:@selector(slide2:)];
+    [overlayBackground addSubview:worklist];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [worklist setAlpha:1.0];
+        [worklistScreenshot setAlpha:1.0];
+    }];
+  
+}
+
+- (void)slide2:(UITapGestureRecognizer*)sender {
+    BHOverlayView *worklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    NSString *worklistText = @"Quickly filter items by status, location, or personnel assigned.";
+    if (IDIOM == IPAD){
+        [worklist configureText:worklistText atFrame:CGRectMake(100, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
+    } else {
+        [worklist configureText:worklistText atFrame:CGRectMake(20, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
+    }
+    [worklist.tapGesture addTarget:self action:@selector(slide3:)];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:worklist];
+        [UIView animateWithDuration:.25 animations:^{
+            [worklist setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)slide3:(UITapGestureRecognizer*)sender {
+    BHOverlayView *progress = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    NSString *worklistText = @"Click the \"+\" to add a new worklist item, or tap any row to view, edit or mark an item complete.";
+    if (IDIOM == IPAD){
+        [progress configureText:worklistText atFrame:CGRectMake(100, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
+    } else {
+        [progress configureText:worklistText atFrame:CGRectMake(20, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
+    }
+    [progress.tapGesture addTarget:self action:@selector(endIntro:)];
+    
+    [UIView animateWithDuration:.25 animations:^{
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [sender.view removeFromSuperview];
+        [overlayBackground addSubview:progress];
+        [UIView animateWithDuration:.25 animations:^{
+            [progress setAlpha:1.0];
+        }];
+    }];
+}
+
+- (void)endIntro:(UITapGestureRecognizer*)sender {
+    [UIView animateWithDuration:.35 animations:^{
+        [worklistScreenshot setAlpha:0.0];
+        [sender.view setAlpha:0.0];
+    }completion:^(BOOL finished) {
+        [UIView animateWithDuration:.35 animations:^{
+            [overlayBackground setAlpha:0.0];
+        }completion:^(BOOL finished) {
+            [overlayBackground removeFromSuperview];
+            [worklistScreenshot removeFromSuperview];
+        }];
+    }];
+}
+
+- (void)drawPunchlist {
+    if (project.punchlist.punchlistItems.count > 0){
+        [activeListItems removeAllObjects];
+        for (PunchlistItem *item in project.punchlist.punchlistItems.array){
+            if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
+                [activeListItems addObject:item];
+            }
+            if (item.location.length) {
+                [locationSet addObject:item.location];
+            }
+            if (item.assignees.count > 0) {
+                [assigneeSet addObject:item.assignees.firstObject];
+            }
+        }
+    }
+    if (firstLoad){
+        showActive = YES;
+        firstLoad = NO;
+        [self.segmentedControl setSelectedSegmentIndex:0];
+    }
+    [self.tableView reloadData];
+    if (refreshControl.isRefreshing) [refreshControl endRefreshing];
 }
 
 - (void)didReceiveMemoryWarning
@@ -218,7 +337,11 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (actionSheet == assigneeActionSheet) {
+    if (actionSheet.cancelButtonIndex == buttonIndex){
+        [self resetSegments];
+        [self.segmentedControl setSelectedSegmentIndex:UISegmentedControlNoSegment];
+        [self.tableView reloadData];
+    } else if (actionSheet == assigneeActionSheet) {
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] length]) {
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             if (buttonTitle.length){
@@ -229,7 +352,6 @@
                             [assigneeListItems addObject:item];
                         }
                     }
-                    
                 }
             }
             [self.tableView reloadData];
@@ -252,36 +374,18 @@
     [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading punchlist: %@",responseObject);
         //NSLog(@"punchlist items: %d",project.punchlist.punchlistItems.count);
-        
-        project.punchlist = [Punchlist MR_createEntity];
-        [project.punchlist populateFromDictionary:[responseObject objectForKey:@"punchlist"]];
-        
-        if (project.punchlist.punchlistItems.count > 0){
-            [activeListItems removeAllObjects];
-            for (PunchlistItem *item in project.punchlist.punchlistItems.array){
-                if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
-                    [activeListItems addObject:item];
-                }
-                if (item.location.length) {
-                    [locationSet addObject:item.location];
-                }
-                if (item.assignees.count > 0) {
-                    [assigneeSet addObject:item.assignees.firstObject];
-                }
-            }
+        if (project.punchlist && ![project.punchlist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [project.punchlist populateFromDictionary:[responseObject objectForKey:@"punchlist"]];
         } else {
-            [ProgressHUD dismiss];
+            project.punchlist = [Punchlist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [project.punchlist populateFromDictionary:[responseObject objectForKey:@"punchlist"]];
         }
-        if (firstLoad){
-            showActive = YES;
-            firstLoad = NO;
-            [self.segmentedControl setSelectedSegmentIndex:0];
-        }
-        [self.tableView reloadData];
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        loading = NO;
+        [self drawPunchlist];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error loading worklists: %@",error.description);
         [ProgressHUD dismiss];
+        loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
@@ -351,7 +455,27 @@
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        [ProgressHUD dismiss];
+        if (!loading)[ProgressHUD dismiss];
+    }
+}
+
+-(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    PunchlistItem *item;
+    if (showCompleted) {
+        item = [completedListItems objectAtIndex:indexPath.row];
+    } else if (showActive) {
+        item = [activeListItems objectAtIndex:indexPath.row];
+    } else if (showByLocation) {
+        item = [locationListItems objectAtIndex:indexPath.row];
+    } else if (showByAssignee) {
+        item = [assigneeListItems objectAtIndex:indexPath.row];
+    } else {
+        item = [project.punchlist.punchlistItems objectAtIndex:indexPath.row];
+    }
+    if ([item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+        return YES;
+    } else {
+        return NO;
     }
 }
 
@@ -364,6 +488,8 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
+    
     if ([segue.identifier isEqualToString:@"CreateItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setTitle:@"New Item"];

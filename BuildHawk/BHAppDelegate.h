@@ -13,7 +13,8 @@
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) AFHTTPRequestOperationManager *manager;
+@property BOOL connected;
 
-- (UIView*)addOverlay;
+- (UIView*)addOverlay:(BOOL)underNav;
 - (void)offlineNotification;
 @end

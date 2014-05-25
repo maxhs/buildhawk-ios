@@ -17,7 +17,7 @@
 + (NSMutableArray *)checklistItemsFromJSONArray:(NSArray *) array {
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *itemDictionary in array) {
-        ChecklistItem *item = [ChecklistItem MR_createEntity];
+        ChecklistItem *item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [item populateFromDictionary:itemDictionary];
         [items addObject:item];
     }
@@ -27,7 +27,7 @@
 + (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array {
     NSMutableArray *categories = [NSMutableArray arrayWithCapacity:array.count];
     for (NSDictionary *categoryDictionary in array) {
-        Cat *category = [Cat MR_createEntity];
+        Cat *category = [Cat MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [category populateFromDictionary:categoryDictionary];
         [categories addObject:category];
     }
@@ -69,7 +69,7 @@
 + (NSOrderedSet *)commentsFromJSONArray:(NSArray *) array {
     NSMutableOrderedSet *comments = [NSMutableOrderedSet orderedSetWithCapacity:array.count];
     for (NSDictionary *commentDictionary in array) {
-        Comment *comment = [Comment MR_createEntity];
+        Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [comment populateFromDictionary:commentDictionary];
         [comments addObject:comment];
     }
@@ -92,15 +92,6 @@
         [groups addObject:group];
     }
     return groups;
-}
-
-+ (NSMutableArray *)safetyTopicsFromJSONArray:(NSArray *) array {
-    NSMutableArray *topics = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *topicDictionary in array) {
-        BHSafetyTopic *topic = [[BHSafetyTopic alloc] initWithDictionary:topicDictionary];
-        [topics addObject:topic];
-    }
-    return topics;
 }
 
 + (NSDate*)parseDate:(id)value {
@@ -142,19 +133,21 @@
     return [stringFormatter stringFromDate:theDate];
 }
 
-+ (BOOL)isIpad {
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
++ (BOOL)isIPhone5{
+    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         return YES;
     } else {
         return NO;
     }
 }
 
-+ (BOOL)isIPhone5{
-    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return YES;
-    } else {
-        return NO;
++ (void)vacuumLocalPhotos:(id)object {
+    //clean existing photos//    
+    for (Photo *photo in [object photos]){
+        if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            NSLog(@"Vacuuming local photo");
+            [photo MR_deleteEntity];
+        }
     }
 }
 

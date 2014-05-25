@@ -120,6 +120,7 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"Project"]) {
         Project *project = (Project*)sender;
         BHTabBarViewController *vc = [segue destinationViewController];

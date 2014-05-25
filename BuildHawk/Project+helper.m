@@ -9,7 +9,7 @@
 #import "Project+helper.h"
 #import "Phase+helper.h"
 #import "ChecklistItem+helper.h"
-#import "Address.h"
+#import "Address+helper.h"
 #import "Company+helper.h"
 #import "Photo+helper.h"
 
@@ -27,11 +27,8 @@
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [companyDict objectForKey:@"id"]];
         Company *company = [Company MR_findFirstWithPredicate:predicate];
-        if (company){
-            //NSLog(@"MR_found company: %@",self.company.identifier);
-        } else {
-            company = [Company MR_createEntity];
-            //NSLog(@"Couldn't find the company. Creating a new one: %@",self.company.identifier);
+        if (!company){
+            company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [company populateWithDict:companyDict];
         self.company = company;
@@ -46,12 +43,13 @@
     }
     
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSetWithOrderedSet:self.users];
+        //NSLog(@"project users: %@",[dictionary objectForKey:@"users"]);
+        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate];
             if (!user){
-                user = [User MR_createEntity];
+                user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
             }
             [user populateFromDictionary:userDict];
@@ -61,9 +59,13 @@
     }
     
     if ([dictionary objectForKey:@"address"]) {
-        self.address = [Address MR_createEntity];
-        if ([dictionary objectForKey:@"address"] != [NSNull null]){
-            self.address.formattedAddress = [[dictionary objectForKey:@"address"] objectForKey:@"formatted_address"];
+        //NSLog(@"address: %@",[dictionary objectForKey:@"address"]);
+        if (!self.address) {
+            NSLog(@"no address, creating a new one");
+            self.address = [Address MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]){
+            [self.address populateWithDict:[dictionary objectForKey:@"address"]];
         }
     }
     
@@ -72,15 +74,14 @@
     }
     
     if ([dictionary objectForKey:@"recent_documents"] && [dictionary objectForKey:@"recent_documents"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedPhotos = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.recentDocuments];
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         //NSLog(@"project recent documents %@",[dictionary objectForKey:@"recent_documents"]);
         for (id photoDict in [dictionary objectForKey:@"recent_documents"]){
             if ([photoDict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
                 Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
                 if (!photo){
-                    photo = [Photo MR_createEntity];
-                    NSLog(@"couldn't find saved recent document, created a new one: %@",photo.createdDate);
+                    photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
                 [photo populateFromDictionary:photoDict];
                 [orderedPhotos addObject:photo];
@@ -90,15 +91,14 @@
     }
     
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedPhotos = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         //NSLog(@"project photos %@",[dictionary objectForKey:@"photos"]);
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             if ([photoDict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
                 Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
                 if (!photo){
-                    photo = [Photo MR_createEntity];
-                    NSLog(@"couldn't find saved punchlist item photo, created a new one: %@",photo.createdDate);
+                    photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
                 [photo populateFromDictionary:photoDict];
                 [orderedPhotos addObject:photo];
@@ -107,8 +107,8 @@
         self.documents = orderedPhotos;
     }
     
-    if ([dictionary objectForKey:@"categories"]) {
-        NSMutableOrderedSet *tmpPhases = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.phases];
+    if ([dictionary objectForKey:@"phases"]) {
+        NSMutableOrderedSet *tmpPhases = [NSMutableOrderedSet orderedSet];
         for (id phaseDict in [dictionary objectForKey:@"phases"]){
             if ([phaseDict objectForKey:@"id"]){
                 NSPredicate *phasePredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [phaseDict objectForKey:@"id"]];
@@ -117,7 +117,7 @@
                 if (phase){
                     [phase populateFromDictionary:phaseDict];
                 } else {
-                    phase = [Phase MR_createEntity];
+                    phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     phase.name = [phaseDict objectForKey:@"name"];
                 }
                 [phase populateFromDictionary:phaseDict];
@@ -136,7 +136,7 @@
                 if (item){
                     [item populateFromDictionary:itemDict];
                 } else {
-                    item = [ChecklistItem MR_createEntity];
+                    item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [item populateFromDictionary:itemDict];
                 }
                 [item populateFromDictionary:itemDict];
@@ -154,7 +154,7 @@
                 if (item){
                     [item populateFromDictionary:itemDict];
                 } else {
-                    item = [ChecklistItem MR_createEntity];
+                    item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [item populateFromDictionary:itemDict];
                 }
                 [item populateFromDictionary:itemDict];
@@ -163,7 +163,6 @@
         }
         self.recentItems = tmpRecent;
     }
-
 }
 
 - (void)parseDocuments:(NSArray *)array {
@@ -171,7 +170,7 @@
     for (NSDictionary *photoDict in array){
         Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"]];
         if (!photo){
-            photo = [Photo MR_createEntity];
+            photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [photo populateFromDictionary:photoDict];
         [photos addObject:photo];
@@ -188,6 +187,22 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
     [set removeObject:photo];
     self.documents = set;
+}
+-(void)addReport:(Report *)report {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reports];
+    [set addObject:report];
+    self.reports = set;
+}
+-(void)removeReport:(Report *)report {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reports];
+    [set removeObject:report];
+    self.reports = set;
+}
+
+- (void)clearReports {
+    for (Report *report in self.reports) {
+        [report MR_deleteEntity];
+    }
 }
 
 /*- (void)setValue:(id)value forKey:(NSString *)key {

@@ -44,16 +44,15 @@
     }
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
         //[[NSManagedObjectContext MR_contextForCurrentThread] performBlock:^{
-        NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSetWithOrderedSet:self.categories];
+        NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
             Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"]];
             if (!category){
-                category = [Cat MR_createEntity];
+                category = [Cat MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [category populateFromDictionary:categoryDict];
             [categories addObject:category];
             category.phase = self;
-            NSLog(@"category: %@ phase %@",category.identifier, self.identifier);
         }
         self.categories = categories;
         //}];

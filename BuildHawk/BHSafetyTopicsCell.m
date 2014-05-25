@@ -31,7 +31,7 @@
     // Configure the view for the selected state
 }
 
-- (void)configureTopic:(BHSafetyTopic*)topic{
+- (void)configureTopic:(SafetyTopic*)topic{
     [self.titleLabel setText:topic.title];
 }
 @end

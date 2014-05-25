@@ -53,12 +53,11 @@
     }
     if ([dictionary objectForKey:@"company"]) {
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
+        //NSLog(@"companyDict: %@",companyDict);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [companyDict objectForKey:@"id"]];
         Company *company = [Company MR_findFirstWithPredicate:predicate];
-        if (company){
-            self.company = company;
-        } else {
-            self.company = [Company MR_createEntity];
+        if (!company){
+            self.company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             if ([companyDict objectForKey:@"name"] != [NSNull null]){
                 self.company.name = [companyDict objectForKey:@"name"];
             }

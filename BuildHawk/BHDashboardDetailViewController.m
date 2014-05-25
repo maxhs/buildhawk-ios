@@ -62,7 +62,7 @@
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = _project.name;
     screen = [UIScreen mainScreen].bounds;
-    //setup goToProject button
+
     UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 66)];
     [footerView setBackgroundColor:kDarkGrayColor];
     UIButton *goToProjectButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -73,18 +73,19 @@
     [footerView addSubview:goToProjectButton];
     [goToProjectButton setFrame:footerView.frame];
     self.tableView.tableFooterView = footerView;
-    if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
     formatter = [[NSDateFormatter alloc] init];
     [formatter setDateStyle:NSDateFormatterShortStyle];
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    //if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail]){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboardDetail];
-    //}
+    }
 }
 
 - (void)goToProject:(UIButton*)button {
@@ -92,6 +93,7 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[NSIndexPath class]]){
@@ -427,16 +429,18 @@
 #pragma mark Intro Stuff
 - (void)slide1 {
     BHOverlayView *phases = [[BHOverlayView alloc] initWithFrame:screen];
+    NSString *text = @"The summary view shows a high-level breakdown for the project.";
     if (iPad){
         screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"synopsisiPad"]];
         [screenshotView setFrame:CGRectMake(screenWidth()/2-355, 30, 710, 700)];
+        [phases configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
     } else {
         screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"detailScreenshot"]];
         [screenshotView setFrame:CGRectMake(20, 30, 280, 330)];
+        [phases configureText:text atFrame:CGRectMake(20, screenshotView.frame.origin.y + screenshotView.frame.size.height + 10, screenWidth()-40, 100)];
     }
     [screenshotView setAlpha:0.0];
     
-    [phases configureText:@"The summary view shows a high-level breakdown for the project." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-20, 100)];
     [phases.tapGesture addTarget:self action:@selector(slide2:)];
     [overlayBackground addSubview:phases];
     
@@ -452,7 +456,13 @@
 
 - (void)slide2:(UITapGestureRecognizer*)sender {
     BHOverlayView *percentages = [[BHOverlayView alloc] initWithFrame:screen];
-    [percentages configureText:@"Progress percentages are based on the number of completed items in each checklist phase." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-20, 100)];
+    NSString *text = @"Progress percentages are based on the number of completed items in each checklist phase.";
+    if (IDIOM == IPAD){
+        [percentages configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
+    } else {
+        [percentages configureText:text atFrame:CGRectMake(20, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-40, 100)];
+    }
+    
     [percentages.tapGesture addTarget:self action:@selector(slide3:)];
     
     [UIView animateWithDuration:.25 animations:^{
@@ -468,8 +478,13 @@
 
 - (void)slide3:(UITapGestureRecognizer*)sender {
     BHOverlayView *scroll = [[BHOverlayView alloc] initWithFrame:screen];
-    [scroll configureText:@"Scrolling down will show you recent documents as well as upcoming critical items." atFrame:CGRectMake(10, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-20, 100)];
-
+    NSString *text = @"Scrolling down will show you recent documents as well as upcoming critical items.";
+    if (IDIOM == IPAD){
+        [scroll configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
+    } else {
+        [scroll configureText:text atFrame:CGRectMake(20, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-40, 100)];
+    }
+    
     [scroll.tapGesture addTarget:self action:@selector(scroll:)];
     
     [UIView animateWithDuration:.25 animations:^{

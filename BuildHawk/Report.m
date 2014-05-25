@@ -29,6 +29,7 @@
 @dynamic possibleTopics;
 @dynamic project;
 @dynamic reportUsers;
+@dynamic reportSubs;
 @dynamic safetyTopics;
 
 @end

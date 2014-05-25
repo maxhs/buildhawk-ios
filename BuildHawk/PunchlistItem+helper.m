@@ -25,13 +25,12 @@
         self.location = [dictionary objectForKey:@"location"];
     }
     if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSetWithOrderedSet:self.assignees];
+        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         NSDictionary *userDict = [dictionary objectForKey:@"assignee"];
-        //NSLog(@"punchlist item asignee userDict %@", [dictionary objectForKey:@"assignee"]);
         NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:userPredicate];
         if (!user){
-            user = [User MR_createEntity];
+            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             //NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
         }
         [user populateFromDictionary:userDict];
@@ -41,13 +40,13 @@
     }
     
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSetWithOrderedSet:self.comments];
+        NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
         //NSLog(@"punchlist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
             Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
             if (!comment){
-                comment = [Comment MR_createEntity];
+                comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [comment populateFromDictionary:commentDict];
             [orderedComments addObject:comment];
@@ -66,13 +65,14 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
         self.completedAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
-    if ([dictionary objectForKey:@"photos"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSetWithOrderedSet:self.photos];
+    if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
+        [BHUtilities vacuumLocalPhotos:self];
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
             Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
             if (!photo){
-                photo = [Photo MR_createEntity];
+                photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 NSLog(@"couldn't find saved punchlist item photo, created a new one: %@",photo.createdDate);
             }
             [photo populateFromDictionary:photoDict];
@@ -102,7 +102,6 @@
     [set removeObject:photo];
     self.photos = set;
 }
-
 
 /*   
  @property (nonatomic, strong) NSNumber *identifier;

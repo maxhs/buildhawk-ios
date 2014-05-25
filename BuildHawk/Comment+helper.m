@@ -28,7 +28,7 @@
         if (user){
             self.user = user;
         } else {
-            user = [User MR_createEntity];
+            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [user populateFromDictionary:[dictionary objectForKey:@"user"]];
             self.user = user;
         }

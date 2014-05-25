@@ -16,7 +16,7 @@
 #import "MWPhotoBrowser.h"
 #import "Flurry.h"
 #import "BHTabBarViewController.h"
-#import "BHPeoplePickerViewController.h"
+#import "BHPersonnelPickerViewController.h"
 #import "BHAddCommentCell.h"
 #import "BHCommentCell.h"
 #import "BHPunchlistViewController.h"
@@ -24,9 +24,10 @@
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "PunchlistItem+helper.h"
 #import "Comment+helper.h"
+#import "BHAppDelegate.h"
 
-static NSString *assigneePlaceholder = @"Assign";
-static NSString *locationPlaceholder = @"Location";
+static NSString *assigneePlaceholder = @"Assign item";
+static NSString *locationPlaceholder = @"Select location";
 static NSString *anotherLocationPlaceholder = @"Add Another Location...";
 static NSString *itemPlaceholder = @"Describe this item...";
 typedef void(^OperationSuccess)(AFHTTPRequestOperation *operation, id result);
@@ -36,8 +37,6 @@ typedef void(^RequestSuccess)(id result);
 
 @interface BHPunchlistItemViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate> {
     BOOL iPhone5;
-    BOOL iPad;
-    BOOL shouldUpdateCompletion;
     BOOL saveToLibrary;
     UIActionSheet *assigneeActionSheet;
     UIActionSheet *locationActionSheet;
@@ -73,11 +72,9 @@ typedef void(^RequestSuccess)(id result);
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        iPad = YES;
-    } else if ([UIScreen mainScreen].bounds.size.height == 568) {
+    if ([UIScreen mainScreen].bounds.size.height == 568) {
         iPhone5 = YES;
-    } else {
+    } else if (IDIOM != IPAD) {
         iPhone5 = NO;
         self.emailButton.transform = CGAffineTransformMakeTranslation(0, -88);
         self.callButton.transform = CGAffineTransformMakeTranslation(0, -88);
@@ -97,17 +94,16 @@ typedef void(^RequestSuccess)(id result);
         self.locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
         self.assigneeButton.transform = CGAffineTransformMakeTranslation(0, -70);
         self.scrollView.transform = CGAffineTransformMakeTranslation(0, -32);
-        
     }
+    
     if (_punchlistItem.identifier){
         [self redrawScrollView];
     } else {
-        _punchlistItem = [PunchlistItem MR_createEntity];
-        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+        _punchlistItem = [PunchlistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
     shouldSave = NO;
-    manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     
     library = [[ALAssetsLibrary alloc]init];
 	[self.completionButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
@@ -115,26 +111,23 @@ typedef void(^RequestSuccess)(id result);
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
-    [self addBorderTreatement:self.locationButton];
-    [self addBorderTreatement:self.assigneeButton];
-    
-    if (_punchlistItem.identifier){
-        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
-        [[self navigationItem] setRightBarButtonItem:saveButton];
-    } else {
+    if ([_punchlistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(createItem)];
-        [[self navigationItem] setRightBarButtonItem:createButton];
+        [self.navigationItem setRightBarButtonItem:createButton];
+    } else {
+        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
+        [self.navigationItem setRightBarButtonItem:saveButton];
     }
+    
     if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
     } else {
-        [self.completionButton setBackgroundColor:kLightestGrayColor];
+        [self.completionButton setBackgroundColor:[UIColor whiteColor]];
         [self.completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
     }
-    shouldUpdateCompletion = NO;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"PunchlistPersonnel" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
@@ -207,14 +200,11 @@ typedef void(^RequestSuccess)(id result);
         if (addCommentCell == nil) {
             addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
         }
-        [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
+        [addCommentCell configure];
+        
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
-        
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
-        [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
-        addCommentCell.doneButton.layer.cornerRadius = 4.f;
-        addCommentCell.doneButton.clipsToBounds = YES;
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
     } else {
@@ -296,7 +286,7 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project worklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            Comment *comment = [Comment MR_createEntity];
+            Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             comment.body = addCommentTextView.text;
             comment.createdOnString = @"Just now";
             User *currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
@@ -321,43 +311,40 @@ typedef void(^RequestSuccess)(id result);
 - (void)updatePersonnel:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
     NSLog(@"update personnel: %@",[info objectForKey:kpersonnel]);
-    //_punchlistItem.assignees = [info objectForKey:kpersonnel];
-}
-
-- (void)addBorderTreatement:(UIButton*)button {
-    button.layer.borderColor = [UIColor lightGrayColor].CGColor;
-    button.layer.borderWidth = 0.5f;
-    [button setBackgroundColor:kLightestGrayColor];
+    User *user = [info objectForKey:kpersonnel];
+    NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
+    _punchlistItem.assignees = assigneeSet;
+    [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
 }
 
 - (IBAction)completionTapped{
-    shouldSave = YES;
-    if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:NO]]){
-        [[[UIAlertView alloc] initWithTitle:@"Completion Photo" message:@"Can you take a photo of the completed worklist item?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
-    }
+
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:NO]]){
-            [self.completionButton setBackgroundColor:kDarkGrayColor];
-            [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-            [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
+            [_completionButton setBackgroundColor:kDarkGrayColor];
+            [_completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            [_completionButton setTitle:@"Completed" forState:UIControlStateNormal];
             _punchlistItem.completed = [NSNumber numberWithBool:YES];
         } else {
-            [self.completionButton setBackgroundColor:kLightestGrayColor];
-            [self.completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-            [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
+            [_completionButton setBackgroundColor:[UIColor whiteColor]];
+            [_completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+            [_completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
             _punchlistItem.completed = [NSNumber numberWithBool:NO];
         }
     } completion:^(BOOL finished) {
-        shouldUpdateCompletion = YES;
+        if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:NO]]){
+            [[[UIAlertView alloc] initWithTitle:@"Completion Photo" message:@"Can you take a photo of the completed worklist item?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
+        }
+        shouldSave = YES;
     }];
 }
 
 - (void)doneEditing {
     [self.view endEditing:YES];
-    if (_punchlistItem.identifier){
-        self.navigationItem.rightBarButtonItem = saveButton;
-    } else {
+    if ([_punchlistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         self.navigationItem.rightBarButtonItem = createButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = saveButton;
     }
     [UIView animateWithDuration:.25 animations:^{
         doneButton.alpha = 0.0;
@@ -395,7 +382,7 @@ typedef void(^RequestSuccess)(id result);
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self.scrollView setAlpha:0.0];
     [picker dismissViewControllerAnimated:YES completion:nil];
-    Photo *newPhoto = [Photo MR_createEntity];
+    Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [_punchlistItem addPhoto:newPhoto];
     [self redrawScrollView];
@@ -419,7 +406,7 @@ typedef void(^RequestSuccess)(id result);
                 CGFloat scale  = 1;
                 UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                      scale:scale orientation:orientation];
-                Photo *newPhoto = [Photo MR_createEntity];
+                Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [newPhoto setImage:[self fixOrientation:image]];
                 [_punchlistItem addPhoto:newPhoto];
                 [self saveImage:newPhoto.image];
@@ -558,9 +545,9 @@ typedef void(^RequestSuccess)(id result);
         
     } else {
         [self saveToLibrary:image];
-        if (_punchlistItem.identifier){
+        if (![_punchlistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-            [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:@{@"id":_punchlistItem.identifier, @"photo[user_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"photo[project_id]":_project.identifier, @"photo[source]":kWorklist, @"photo[company_id]":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:@{@"photo":@{@"punchlist_item_id":_punchlistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kWorklist, @"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
                 [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
             } success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 NSLog(@"save punchlist item photo response object: %@",responseObject);
@@ -595,7 +582,7 @@ typedef void(^RequestSuccess)(id result);
 
     float imageSize;
     float space;
-    if (iPad) {
+    if (IDIOM == IPAD) {
         imageSize = 80;
         space = 4;
     } else if (iPhone5){
@@ -642,7 +629,7 @@ typedef void(^RequestSuccess)(id result);
         [self.scrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
         if (self.scrollView.isHidden) [self.scrollView setHidden:NO];
         [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            if (iPad) {
+            if (IDIOM == IPAD) {
                 self.photoButton.transform = CGAffineTransformMakeTranslation(-302, 0);
                 self.libraryButton.transform = CGAffineTransformMakeTranslation(-302, 0);
             } else if (iPhone5) {
@@ -670,8 +657,8 @@ typedef void(^RequestSuccess)(id result);
     browserPhotos = [NSMutableArray new];
     for (Photo *photo in _punchlistItem.photos) {
         MWPhoto *mwPhoto;
-        if (mwPhoto.image){
-            mwPhoto = [MWPhoto photoWithImage:mwPhoto.image];
+        if (photo.image){
+            mwPhoto = [MWPhoto photoWithImage:photo.image];
         } else {
             mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         }
@@ -729,9 +716,11 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    BHPeoplePickerViewController *vc = [segue destinationViewController];
-    if ([segue.identifier isEqualToString:@"PeoplePicker"]){
-        [vc setUserArray:_project.users.array];
+    [super prepareForSegue:segue sender:sender];
+    BHPersonnelPickerViewController *vc = [segue destinationViewController];
+    if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
+        [vc setUsers:_project.users.mutableCopy];
+        [vc setCountNotNeeded:YES];
     }
 }
 
@@ -761,11 +750,10 @@ typedef void(^RequestSuccess)(id result);
             [parameters setObject:self.itemTextView.text forKey:@"body"];
         }
         if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
-            [parameters setObject:kCompleted forKey:@"status"];
+            [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"completed"];
             [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
-
         } else {
-            [parameters setObject:@"Not Completed" forKey:@"status"];
+            [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"completed"];
         }
         
         [manager PATCH:[NSString stringWithFormat:@"%@/punchlist_items/%@", kApiBaseUrl, _punchlistItem.identifier] parameters:@{@"punchlist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -773,7 +761,6 @@ typedef void(^RequestSuccess)(id result);
             [ProgressHUD dismiss];
             NSLog(@"Success updating punchlist item: %@",responseObject);
             [_punchlistItem populateFromDictionary:[responseObject objectForKey:@"punchlist_item"]];
-            
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             [ProgressHUD dismiss];
             NSLog(@"Failed to update punchlist item: %@",error.description);
@@ -814,20 +801,20 @@ typedef void(^RequestSuccess)(id result);
         [manager POST:[NSString stringWithFormat:@"%@/punchlist_items", kApiBaseUrl] parameters:@{@"punchlist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             
             [ProgressHUD dismiss];
-            PunchlistItem *newItem = [PunchlistItem MR_createEntity];
+            PunchlistItem *newItem = [PunchlistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [newItem populateFromDictionary:[responseObject objectForKey:@"punchlist_item"]];
             if (newItem.identifier){
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-                [parameters setObject:newItem.identifier forKey:@"id"];
-                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"photo[user_id]"];
-                if (_project.identifier) [parameters setObject:_project.identifier forKey:@"photo[project_id]"];
-                [parameters setObject:kWorklist forKey:@"photo[source]"];
-                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])[parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"photo[company_id]"];
+                [parameters setObject:newItem.identifier forKey:@"punchlist_item_id"];
+                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+                if (_project.identifier) [parameters setObject:_project.identifier forKey:@"project_id"];
+                [parameters setObject:kWorklist forKey:@"source"];
+                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])[parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
                 
                 for (Photo *photo in _punchlistItem.photos){
                     NSData *imageData = UIImageJPEGRepresentation(photo.image, 0.5);
                     //NSLog(@"New photo for new punchlist item parameters: %@",parameters);
-                    [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:parameters constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                    [manager POST:[NSString stringWithFormat:@"%@/punchlist_items/photo",kApiBaseUrl] parameters:@{@"photo":parameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
                         [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
                     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
                         //NSLog(@"save punchlist item photo response object: %@",responseObject);
@@ -885,7 +872,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)call:(NSString*)phone {
-    if (!iPad){
+    if (IDIOM != IPAD){
         NSString *phoneNumber = [@"tel://" stringByAppendingString:phone];
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:phoneNumber]];
     }
@@ -967,12 +954,10 @@ typedef void(^RequestSuccess)(id result);
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]]) {
-        [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
-        [self performSegueWithIdentifier:@"SubPicker" sender:nil];
+        [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         if (buttonIndex == assigneeActionSheet.destructiveButtonIndex){
-            //[_punchlistItem.userAssignees removeAllObjects];
+            _punchlistItem.assignees = nil;
             [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
         }
     } else if (actionSheet == locationActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
@@ -990,8 +975,13 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (_punchlistItem && _punchlistItem.identifier && indexPath.section == 1) {
-        return YES;
+    if (indexPath.section == 1){
+        Comment *comment = _punchlistItem.comments[indexPath.row];
+        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+            return YES;
+        } else {
+            return NO;
+        }
     } else {
         return NO;
     }
@@ -1011,8 +1001,10 @@ typedef void(^RequestSuccess)(id result);
         Comment *comment = [_punchlistItem.comments objectAtIndex:indexPathForDeletion.row];
         if (comment.identifier != [NSNumber numberWithInt:0]){
             [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                NSLog(@"successfully deleted comment: %@",responseObject);
+                //NSLog(@"successfully deleted comment: %@",responseObject);
                 [_punchlistItem removeComment:comment];
+                [comment MR_deleteEntity];
+                shouldSave = NO;
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"Failed to delete comment: %@",error.description);
@@ -1053,8 +1045,8 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
-    [self saveContext];
     [super viewDidDisappear:animated];
+    [self saveContext];
 }
 
 - (void)saveContext {

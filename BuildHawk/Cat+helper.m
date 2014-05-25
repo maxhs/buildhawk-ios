@@ -31,7 +31,7 @@
             for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
                 ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
                 if (!item){
-                    item = [ChecklistItem MR_createEntity];
+                    item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
                 [item populateFromDictionary:itemDict];
                 item.category = self;

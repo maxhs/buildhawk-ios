@@ -49,11 +49,12 @@
             case AFNetworkReachabilityStatusReachableViaWWAN:
             case AFNetworkReachabilityStatusReachableViaWiFi:
                 NSLog(@"Connected");
-
+                _connected = YES;
                 break;
             case AFNetworkReachabilityStatusNotReachable:
             default:
                 NSLog(@"Not online");
+                _connected = NO;
                 [self offlineNotification];
                 break;
         }
@@ -105,14 +106,17 @@
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
 }
 
-- (UIView*)addOverlay {
+- (UIView*)addOverlay:(BOOL)underNav {
     screen = [UIScreen mainScreen].bounds;
     if (!overlayView) {
-        NSLog(@"creating the overlay view");
         overlayView = [[UIView alloc] initWithFrame:screen];
     }
     
-    [overlayView setBackgroundColor:[UIColor colorWithPatternImage:[self blurredSnapshot]]];
+    if (underNav){
+        [overlayView setBackgroundColor:[UIColor colorWithPatternImage:[self blurredSnapshotNav]]];
+    } else {
+        [overlayView setBackgroundColor:[UIColor colorWithPatternImage:[self blurredSnapshot]]];
+    }
     /*UITapGestureRecognizer *overlayTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removeOverlay)];
     overlayTap.numberOfTapsRequired = 1;
     [overlayView addGestureRecognizer:overlayTap];*/
@@ -128,6 +132,15 @@
 -(UIImage *)blurredSnapshot {
     UIGraphicsBeginImageContextWithOptions([UIScreen mainScreen].bounds.size, NO, self.window.screen.scale);
     [self.window drawViewHierarchyInRect:self.window.frame afterScreenUpdates:NO];
+    UIImage *snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIImage *blurredSnapshotImage = [snapshotImage applyDarkEffect];
+    UIGraphicsEndImageContext();
+    return blurredSnapshotImage;
+}
+
+-(UIImage *)blurredSnapshotNav {
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(self.window.frame.size.width, self.window.frame.size.height-64), NO, self.window.screen.scale);
+    [self.window drawViewHierarchyInRect:CGRectMake(0, -64, self.window.frame.size.width, self.window.frame.size.height-64) afterScreenUpdates:NO];
     UIImage *snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
     UIImage *blurredSnapshotImage = [snapshotImage applyDarkEffect];
     UIGraphicsEndImageContext();

@@ -7,7 +7,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Report.h"
 #import "Report+helper.h"
 
 @interface BHReportsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>

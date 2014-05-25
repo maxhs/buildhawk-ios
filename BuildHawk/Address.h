@@ -21,7 +21,7 @@
 @property (nonatomic, retain) NSNumber * longitude;
 @property (nonatomic, retain) NSString * street1;
 @property (nonatomic, retain) NSString * street2;
-@property (nonatomic, retain) NSNumber * zip;
+@property (nonatomic, retain) NSString * zip;
 @property (nonatomic, retain) NSString * phoneNumber;
 @property (nonatomic, retain) Project *project;
 

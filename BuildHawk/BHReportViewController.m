@@ -15,30 +15,30 @@
 #import <CoreLocation/CoreLocation.h>
 #import "BHReportPersonnelCell.h"
 #import "BHPersonnelCell.h"
+#import "BHSubcontractorCell.h"
 #define kForecastAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
-#import "Project.h"
+#import "Project+helper.h"
 #import "Report.h"
 #import "Flurry.h"
 #import <AssetsLibrary/AssetsLibrary.h>
-#import "BHPeoplePickerViewController.h"
+#import "BHPersonnelPickerViewController.h"
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "BHChooseTopicsViewCell.h"
 #import "BHSafetyTopicsCell.h"
-#import "BHSafetyTopic.h"
+#import "SafetyTopic+helper.h"
 #import "Photo+helper.h"
 #import "BHAppDelegate.h"
+#import "Subcontractor.h"
 
 static NSString * const kReportPlaceholder = @"Report details...";
 static NSString * const kNewReportPlaceholder = @"Add new report";
-static NSString * const kPickFromList = @"Pick from company list";
-static NSString * const kWeatherPlaceholder = @"Weather notes...";
+static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
 @interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UITextFieldDelegate, UITextViewDelegate, UIScrollViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate> {
     CGFloat width;
     CGFloat height;
-    NSDateFormatter *dateFormatter;
     BOOL iPhone5;
     BOOL iPad;
     BOOL choosingDate;
@@ -52,6 +52,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     NSString *icon;
     NSString *precip;
     NSString *weatherString;
+    NSDateFormatter *formatter;
     UITextView *reportBodyTextView;
     UITextView *weatherTextView;
     UIActionSheet *typePickerActionSheet;
@@ -68,15 +69,13 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     CGFloat previousContentOffsetX;
     UITextField *countTextField;
     ALAssetsLibrary *library;
-    UITableView* currentTableView;
     UIActionSheet *topicsActionSheet;
-    NSMutableArray *_possibleTopics;
     NSInteger idx;
-    Report *_report;
-    Report *_previousReport;
-    Report *_nextReport;
     UIBarButtonItem *saveButton;
     UIBarButtonItem *createButton;
+    UIBarButtonItem *doneButton;
+    UIView *overlayBackground;
+    BHReportTableView *_reportTableView;
 }
 
 @end
@@ -86,7 +85,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 @synthesize report = _report;
 @synthesize reports = _reports;
 @synthesize project = _project;
-@synthesize reportType = _reportType;
+@synthesize possibleTopics = _possibleTopics;
 
 - (void)viewDidLoad {
     self.view.backgroundColor = kLighterGrayColor;
@@ -98,19 +97,20 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     } else {
         iPhone5 = NO;
     }
-    
+    [super viewDidLoad];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     library = [[ALAssetsLibrary alloc]init];
     
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     currentUser = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
     
-    dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
+    formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"MM/dd/yyyy"];
+    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     
+    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
-    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(createNewReport)];
-    self.navigationItem.rightBarButtonItem = saveButton;
+    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(create)];
     
     CGFloat scrollViewWidth;
     if (_reports.count == 1){
@@ -120,82 +120,117 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     } else {
         scrollViewWidth = screenWidth()*3;
     }
-    [self.scrollView setContentSize:CGSizeMake(screenWidth()*3, screenHeight()-self.navigationController.navigationBar.frame.size.height-[[UIApplication sharedApplication] statusBarFrame].size.height)];
+    [self.scrollView setContentSize:CGSizeMake(scrollViewWidth, screenHeight()-self.navigationController.navigationBar.frame.size.height-[[UIApplication sharedApplication] statusBarFrame].size.height)];
+    //set the previous content offset to a dummy value that is not 0.0
+    previousContentOffsetX = 1.f;
     
-    if (![_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        idx = [_reports indexOfObject:_report];
-        NSLog(@"report: %@, idx: %d and count: %d",_report.createdDate, idx, _reports.count);
-        if (idx > 0){
-            _previousReport = [_reports objectAtIndex:idx-1];
-            [self.scrollView setContentOffset:CGPointMake(screenWidth(), 0)];
-        }
-        
-        if (idx < _reports.count-1){
-            _nextReport = [_reports objectAtIndex:idx+1];
-        } else {
-            [self.scrollView setContentOffset:CGPointMake(screenWidth()*2, 0)];
-        }
-        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-
-    } else {
-        _report = [Report MR_createEntity];
-        _report.type = _reportType;
-        _report.reportUsers = [NSOrderedSet orderedSet];
-        _report.photos = [NSOrderedSet orderedSet];
-        self.title = _reportType;
-        
+    if ([_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         [self.scrollView setScrollEnabled:NO];
-        [self.beforeTableView removeFromSuperview];
+        [self.activeTableView removeFromSuperview];
         [self.afterTableView removeFromSuperview];
-        
-        [self.scrollView setContentOffset:CGPointMake(screenWidth(), 0)];
-        NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-        [formatter setDateFormat:@"MM/dd/yyyy"];
-        NSDate *titleDate = [NSDate date];
-        _report.createdAt = titleDate;
-        _report.createdDate = [formatter stringFromDate:titleDate];
-        [self loadWeather:titleDate forReport:_report];
+        _report.createdAt = [NSDate date];
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
+        [self.beforeTableView setReport:_report];
+        _reportTableView = self.beforeTableView;
+        [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
+    
+    } else {
+        idx = [_reports indexOfObject:_report];
+        if (idx > 0 && idx < _reports.count-1){
+            [self.scrollView setContentOffset:CGPointMake(screenWidth(), 0)];
+            if (_reports.count > 2){
+                [self.beforeTableView setReport:[_reports objectAtIndex:idx-1]];
+                [self.afterTableView setReport:[_reports objectAtIndex:idx+1]];
+            }
+            [self.activeTableView setReport:_report];
+            _reportTableView = self.activeTableView;
+            
+        } else if (idx == 0) {
+            NSLog(@"loading first report");
+            [self.beforeTableView setReport:_report];
+            _reportTableView = self.beforeTableView;
+            if (_reports.count > 2)[self.activeTableView setReport:[_reports objectAtIndex:1]];
+            else if (_reports.count == 2) {
+                [self.afterTableView removeFromSuperview];
+                [self.activeTableView setReport:[_reports objectAtIndex:1]];
+            } else {
+                [self.afterTableView removeFromSuperview];
+                [self.activeTableView removeFromSuperview];
+            }
+        } else {
+            NSLog(@"loading last report");
+
+            if (_reports.count > 2){
+                [self.afterTableView setReport:_report];
+                _reportTableView = self.afterTableView;
+                [self.activeTableView setReport:[_reports objectAtIndex:idx-1]];
+                [self.scrollView setContentOffset:CGPointMake(screenWidth()*2, 0)];
+                [self.afterTableView reloadData];
+                [self.activeTableView reloadData];
+            
+            } else if (_reports.count == 2){
+                [self.beforeTableView setReport:[_reports objectAtIndex:idx-1]];
+                [self.activeTableView setReport:_report];
+                _reportTableView = self.activeTableView;
+                [self.afterTableView removeFromSuperview];
+                [self.scrollView setContentOffset:CGPointMake(screenWidth(), 0)];
+                [self.beforeTableView reloadData];
+                [self.activeTableView reloadData];
+            } else {
+                [self.beforeTableView setReport:_report];
+                _reportTableView = self.beforeTableView;
+                [self.beforeTableView reloadData];
+                [self.afterTableView removeFromSuperview];
+                [self.activeTableView removeFromSuperview];
+            }
+        }
+        self.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.createdDate];
     }
-    [super viewDidLoad];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"ReportPersonnel" object:nil];
     [Flurry logEvent:@"Viewing reports"];
 }
 
-- (void)loadWeather:(NSDate*)reportDate forReport:(Report*)report {
-    int dateInt = [reportDate timeIntervalSince1970];
+- (void)loadWeather:(NSDate*)reportDate forTableView:(BHReportTableView*)tableView {
+    int unixTimestamp = [reportDate timeIntervalSince1970];
     if (_project.address.latitude && _project.address.longitude) {
-        [manager GET:[NSString stringWithFormat:@"https://api.forecast.io/forecast/%@/%@,%@,%i",kForecastAPIKey,_project.address.latitude, _project.address.longitude,dateInt] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"response object %i %@",dateInt,responseObject);
-            //NSDictionary *weatherDict = [NSDictionary dictionaryWithDictionary:[responseObject objectForKey:@"currently"]];
-            NSDictionary *dailyData = [[[responseObject objectForKey:@"daily"] objectForKey:@"data"] firstObject];
-            NSString *min = [[dailyData objectForKey:@"apparentTemperatureMin"] stringValue];
-            NSString *max = [[dailyData objectForKey:@"apparentTemperatureMax"] stringValue];
-            if (min.length > 4){
-                min = [min substringToIndex:4];
-            }
-            if (max.length > 4){
-                max = [max substringToIndex:4];
-            }
-            [report setHumidity:[NSString stringWithFormat:@"%.0f%%", [[dailyData objectForKey:@"humidity"] floatValue]*100]];
-            [report setPrecip:[NSString stringWithFormat:@"%.0f%%", [[dailyData objectForKey:@"precipProbability"] floatValue]*100]];
-            [report setTemp:[NSString stringWithFormat:@"%@° / %@°",min,max]];
-            [report setWeatherIcon:[dailyData objectForKey:@"icon"]];
-            [report setWeather:[dailyData objectForKey:@"summary"]];
-            if ([[[dailyData objectForKey:@"windSpeed"] stringValue] length]){
-                windSpeed = [[dailyData objectForKey:@"windSpeed"] stringValue];
-                if (windSpeed.length > 3){
-                    windSpeed = [windSpeed substringToIndex:3];
+        [manager GET:[NSString stringWithFormat:@"https://api.forecast.io/forecast/%@/%@,%@,%i",kForecastAPIKey,_project.address.latitude, _project.address.longitude,unixTimestamp] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"response object %i %@",unixTimestamp,responseObject);
+            if ([responseObject objectForKey:@"daily"]){
+                //NSDictionary *weatherDict = [NSDictionary dictionaryWithDictionary:[responseObject objectForKey:@"currently"]];
+                NSDictionary *dailyData = [[[responseObject objectForKey:@"daily"] objectForKey:@"data"] firstObject];
+                NSString *min = [[dailyData objectForKey:@"apparentTemperatureMin"] stringValue];
+                NSString *max = [[dailyData objectForKey:@"apparentTemperatureMax"] stringValue];
+                if (min.length > 4){
+                    min = [min substringToIndex:4];
                 }
+                if (max.length > 4){
+                    max = [max substringToIndex:4];
+                }
+                [tableView.report setHumidity:[NSString stringWithFormat:@"%.0f%%", [[dailyData objectForKey:@"humidity"] floatValue]*100]];
+                [tableView.report setPrecip:[NSString stringWithFormat:@"%.0f%%", [[dailyData objectForKey:@"precipProbability"] floatValue]*100]];
+                [tableView.report setTemp:[NSString stringWithFormat:@"%@° / %@°",min,max]];
+                [tableView.report setWeatherIcon:[dailyData objectForKey:@"icon"]];
+                [tableView.report setWeather:[dailyData objectForKey:@"summary"]];
+                if ([[[dailyData objectForKey:@"windSpeed"] stringValue] length]){
+                    windSpeed = [[dailyData objectForKey:@"windSpeed"] stringValue];
+                    if (windSpeed.length > 3){
+                        windSpeed = [windSpeed substringToIndex:3];
+                    }
+                }
+                windDirection = [self windDirection:[[responseObject objectForKey:@"windBearing"] intValue]];
+                [tableView.report setWind:[NSString stringWithFormat:@"%@mph %@",windSpeed, windDirection]];
+                weatherString = [NSString stringWithFormat:@"%@. Temp: %@. Wind: %@mph %@.",[dailyData objectForKey:@"summary"],temp,windSpeed, windDirection];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [tableView reloadData];
+                });
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find weather data for this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
-            windDirection = [self windDirection:[[responseObject objectForKey:@"windBearing"] intValue]];
-            [report setWind:[NSString stringWithFormat:@"%@mph %@",windSpeed, windDirection]];
-            weatherString = [NSString stringWithFormat:@"%@. Temp: %@. Wind: %@mph %@.",[dailyData objectForKey:@"summary"],temp,windSpeed, windDirection];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.activeTableView reloadData];
-            });
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failed to get the weather: %@",error.description);
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find weather data for this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }];
     }
 }
@@ -247,78 +282,82 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     CGFloat x = self.scrollView.contentOffset.x;
-    NSLog(@"x: %f, idx: %d",x, idx);
-    if (x == 0 && idx <= 1){
-        //NSLog(@"first report");
-        _report = _reports.firstObject;
-        self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-        idx = 0;
-        Report *newNext = [_reports objectAtIndex:idx+1];
-        _nextReport = newNext;
-        //NSLog(@"previous: %@, current: %@, and next: %@",_previousReport.createdDate,_report.createdDate,_nextReport.createdDate);
-        [self.beforeTableView reloadData];
-        [self.activeTableView reloadData];
-    } else if (x >= screenWidth()*2 && idx >= _reports.count-2){
-        //NSLog(@"last report");
-        _report = _reports.lastObject;
-        idx = [_reports indexOfObject:_report];
-        self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-        Report *newPrevious = [_reports objectAtIndex:idx-1];
-        _previousReport = newPrevious;
-        [self.afterTableView reloadData];
-        [self.activeTableView reloadData];
-    } else if (x >= screenWidth() && idx < _reports.count-2){
-        //NSLog(@"moved forward");
-        Report *reportCopy = _nextReport;
-        _report = reportCopy;
-        
-        idx ++;
-        Report *newNext = [_reports objectAtIndex:idx+1];
-        _nextReport = newNext;
-        Report *newPrevious = [_reports objectAtIndex:idx-1];
-        _previousReport = newPrevious;
-        //NSLog(@"previous: %@, current: %@, and next: %@",_previousReport.createdDate,_report.createdDate,_nextReport.createdDate);
-        self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-        [self.activeTableView reloadData];
-        
-    } else if (x <= screenWidth() && idx > 1){
-        //NSLog(@"moved backward");
-        Report *reportCopy = _previousReport;
-        _report = reportCopy;
-        idx --;
-        Report *newNext = [_reports objectAtIndex:idx+1];
-        _nextReport = newNext;
-        Report *newPrevious = [_reports objectAtIndex:idx-1];
-        _previousReport = newPrevious;
-        self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-        [self.activeTableView reloadData];
-    }
     
-    if (idx > 0 && idx < _reports.count-2) {
-        [_scrollView setContentOffset:CGPointMake(screenWidth(), 0)];
+    if (scrollView != self.activeTableView && scrollView.contentOffset.y == 0 && x != previousContentOffsetX){
+        NSLog(@"x: %f, previous x: %f, idx: %d", x, previousContentOffsetX, idx);
+        if (idx <= 1 && self.scrollView.contentOffset.x < screenWidth()){
+            NSLog(@"first report");
+            idx = 0;
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",[(Report*)_reports.firstObject type], [(Report*)_reports.firstObject createdDate]];
+            if (_reports.count > 2){
+                [self.afterTableView setReport:[_reports objectAtIndex:idx+1]];
+                [self.activeTableView setReport:_reports.firstObject];
+                [self.beforeTableView reloadData];
+                [self.activeTableView reloadData];
+                _reportTableView = self.activeTableView;
+            }
+        } else if (idx >= _reports.count-2 && x >= screenWidth()){
+            NSLog(@"last report");
+            idx = [_reports indexOfObject:_reports.lastObject];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",[(Report*)_reports.lastObject type], [(Report*)_reports.lastObject createdDate]];
+            
+            if (_reports.count > 2){
+                [self.beforeTableView setReport:[_reports objectAtIndex:idx-2]];
+            }
+            [self.afterTableView setReport:_reports.lastObject];
+            [self.afterTableView reloadData];
+            [self.activeTableView reloadData];
+            _reportTableView = self.afterTableView;
+        } else if (x >= screenWidth() && idx < _reports.count-2){
+            NSLog(@"moved forward");
+            idx ++;
+            [self.activeTableView setReport:[_reports objectAtIndex:idx]];
+            if (idx > 0) [self.beforeTableView setReport:[_reports objectAtIndex:idx-1]];
+            if (idx < _reports.count - 1) [self.afterTableView setReport:[_reports objectAtIndex:idx+1]];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",self.activeTableView.report.type, self.activeTableView.report.createdDate];
+            [self.activeTableView reloadData];
+            _reportTableView = self.activeTableView;
+            
+        } else if (x <= screenWidth() && idx > 1){
+            NSLog(@"moved backward: %d",idx);
+            idx --;
+            [self.activeTableView setReport:[_reports objectAtIndex:idx]];
+            [self.beforeTableView setReport:[_reports objectAtIndex:idx-1]];
+            [self.afterTableView setReport:[_reports objectAtIndex:idx+1]];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",self.activeTableView.report.type, self.activeTableView.report.createdDate];
+            [self.activeTableView reloadData];
+            _reportTableView = self.activeTableView;
+        }
+        
+        if (idx != 0 && idx != _reports.count-1){
+            NSLog(@"resetting scrollview");
+            [_scrollView setContentOffset:CGPointMake(screenWidth(), 0)];
+            previousContentOffsetX = screenWidth();
+        } else {
+            previousContentOffsetX = x;
+        }
     }
+    [self doneEditing];
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == tableView.numberOfSections-1 && indexPath.row == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
         if (tableView == self.beforeTableView){
-            NSLog(@"finished loading before tableview");
+            //NSLog(@"finished loading before tableview");
         } else if (tableView == self.activeTableView){
-            NSLog(@"finished loading active tableview");
             [self.beforeTableView reloadData];
             [self.afterTableView reloadData];
         } else {
-            NSLog(@"finished loading after tableview");
+            //NSLog(@"finished loading after tableview");
         }
-        
     }
 }
 
 - (void)loadReport {
-    if (_report.identifier){
+    if (_reportTableView.report.identifier){
         [ProgressHUD show:@"Fetching report..."];
-        NSString *slashSafeDate = [_report.createdDate stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
+        NSString *slashSafeDate = [_reportTableView.report.createdDate stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
         [manager GET:[NSString stringWithFormat:@"%@/reports/%@/review_report",kApiBaseUrl,_project.identifier] parameters:@{@"date_string":slashSafeDate} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting report: %@",responseObject);
             //_report = [[Report alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
@@ -340,41 +379,34 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+- (NSInteger)numberOfSectionsInTableView:(BHReportTableView *)tableView
 {
-    if (tableView == self.activeTableView) {
-        _report = _report;
-    } else if (tableView == self.beforeTableView){
-        _report = _previousReport;
-    } else {
-        _report = _nextReport;
-    }
-    return 8;
+    return 9;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0 && !_reportType.length){
-        return  0;
-    } else if (section == 3) {
-        return (_report.reportUsers.count);
-    } else if (section == 4){
-        if ([_report.type isEqualToString:kSafety]){
-            return 1;
-        } else {
-            return 0;
-        }
-    } else if (section == 5){
-        if ([_report.type isEqualToString:kSafety]){
-            return _report.safetyTopics.count;
-        } else {
-            return 0;
-        }
-    } else {
+- (NSInteger)tableView:(BHReportTableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    if (section == 0 && [tableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        return  1;
+    } else if (section == 1 && [tableView.report.type isEqualToString:kDaily]) {
         return 1;
+    } else if (section == 2) {
+        return 1;
+    } else if (section == 3) {
+        return tableView.report.reportUsers.count;
+    } else if (section == 4) {
+        return tableView.report.reportSubs.count;
+    } else if (section == 5 && [tableView.report.type isEqualToString:kSafety]){
+        return 1;
+    } else if (section == 6 && [tableView.report.type isEqualToString:kSafety]){
+        return tableView.report.safetyTopics.count;
+    } else if (section == 7 || section == 8){
+        return 1;
+    } else {
+        return 0;
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+- (UITableViewCell *)tableView:(BHReportTableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
         static NSString *CellIdentifier = @"ReportPickerCell";
         BHReportPickerCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -383,9 +415,9 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPickerCell" owner:self options:nil] lastObject];
         }
         [cell configure];
-        [cell.typePickerButton setTitle:_report.type forState:UIControlStateNormal];
-        if (_report.createdDate.length) {
-            [cell.datePickerButton setTitle:_report.createdDate forState:UIControlStateNormal];
+        [cell.typePickerButton setTitle:tableView.report.type forState:UIControlStateNormal];
+        if (tableView.report.createdDate.length) {
+            [cell.datePickerButton setTitle:tableView.report.createdDate forState:UIControlStateNormal];
             choosingDate = NO;
         } else {
             [cell.datePickerButton setTitle:@"" forState:UIControlStateNormal];
@@ -401,30 +433,20 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         BHReportWeatherCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         if (cell == nil) {
-            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportWeatherCell" owner:self options:nil] lastObject];
+            if (IDIOM == IPAD){
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportWeatherCell_iPad" owner:self options:nil] lastObject];
+            } else {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportWeatherCell" owner:self options:nil] lastObject];
+            }
         }
-
         [cell.windTextField setUserInteractionEnabled:NO];
         [cell.tempTextField setUserInteractionEnabled:NO];
         [cell.precipTextField setUserInteractionEnabled:NO];
         [cell.humidityTextField setUserInteractionEnabled:NO];
         
-        if (iPad) {
-            cell.windLabel.transform = CGAffineTransformMakeTranslation(218, 0);
-            cell.windTextField.transform = CGAffineTransformMakeTranslation(224, 0);
-            cell.tempLabel.transform = CGAffineTransformMakeTranslation(218, 0);
-            cell.tempTextField.transform = CGAffineTransformMakeTranslation(224, 0);
-            cell.precipLabel.transform = CGAffineTransformMakeTranslation(218, 0);
-            cell.precipTextField.transform = CGAffineTransformMakeTranslation(224, 0);
-            cell.humidityLabel.transform = CGAffineTransformMakeTranslation(218, 0);
-            cell.humidityTextField.transform = CGAffineTransformMakeTranslation(224, 0);
-            cell.dailySummaryTextView.transform = CGAffineTransformMakeTranslation(224, 0);
-            cell.weatherImageView.transform = CGAffineTransformMakeTranslation(224, 0);
-        }
-        
-        if (_report.weather.length) {
+        if (tableView.report.weather.length) {
             [cell.dailySummaryTextView setTextColor:[UIColor blackColor]];
-            [cell.dailySummaryTextView setText:_report.weather];
+            [cell.dailySummaryTextView setText:tableView.report.weather];
         } else {
             [cell.dailySummaryTextView setTextColor:[UIColor lightGrayColor]];
             [cell.dailySummaryTextView setText:kWeatherPlaceholder];
@@ -434,20 +456,21 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [cell.humidityLabel setText:@"Humidity:"];
         [cell.precipLabel setText:@"Precip:"];
         
+        cell.dailySummaryTextView.delegate = self;
+        cell.dailySummaryTextView.tag = indexPath.section;
         weatherTextView = cell.dailySummaryTextView;
-        weatherTextView.delegate = self;
         
-        [cell.tempTextField setText:_report.temp];
-        [cell.windTextField setText:_report.wind];
-        [cell.precipTextField setText:_report.precip];
-        [cell.humidityTextField setText:_report.humidity];
+        [cell.tempTextField setText:tableView.report.temp];
+        [cell.windTextField setText:tableView.report.wind];
+        [cell.precipTextField setText:tableView.report.precip];
+        [cell.humidityTextField setText:tableView.report.humidity];
         
-        if ([_report.weatherIcon isEqualToString:@"clear-day"] || [_report.weatherIcon isEqualToString:@"clear-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"sunny"]];
-        else if ([_report.weatherIcon isEqualToString:@"cloudy"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"cloudy"]];
-        else if ([_report.weatherIcon isEqualToString:@"partly-cloudy-day"] || [_report.weatherIcon isEqualToString:@"partly-cloudy-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"partly"]];
-        else if ([_report.weatherIcon isEqualToString:@"rain"] || [_report.weatherIcon isEqualToString:@"sleet"]) {
+        if ([tableView.report.weatherIcon isEqualToString:@"clear-day"] || [tableView.report.weatherIcon isEqualToString:@"clear-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"sunny"]];
+        else if ([tableView.report.weatherIcon isEqualToString:@"cloudy"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"cloudy"]];
+        else if ([tableView.report.weatherIcon isEqualToString:@"partly-cloudy-day"] || [tableView.report.weatherIcon isEqualToString:@"partly-cloudy-night"]) [cell.weatherImageView setImage:[UIImage imageNamed:@"partly"]];
+        else if ([tableView.report.weatherIcon isEqualToString:@"rain"] || [tableView.report.weatherIcon isEqualToString:@"sleet"]) {
             [cell.weatherImageView setImage:[UIImage imageNamed:@"rainy"]];
-        } else if ([_report.weatherIcon isEqualToString:@"fog"] || [_report.weatherIcon isEqualToString:@"wind"]) {
+        } else if ([tableView.report.weatherIcon isEqualToString:@"fog"] || [tableView.report.weatherIcon isEqualToString:@"wind"]) {
             [cell.weatherImageView setImage:[UIImage imageNamed:@"wind"]];
         } else [cell.weatherImageView setImage:nil];
         
@@ -460,14 +483,14 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         }
         [cell configureCell];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        [cell.pickFromListButton addTarget:self action:@selector(pickFromList:) forControlEvents:UIControlEventTouchUpInside];
-        /*if (reports.count > 1){
+        [cell.choosePersonnelButton addTarget:self action:@selector(showPersonnelActionSheet) forControlEvents:UIControlEventTouchUpInside];
+        if (idx > 0){
             [cell.prefillButton addTarget:self action:@selector(prefill) forControlEvents:UIControlEventTouchUpInside];
             [cell.prefillButton setAlpha:1];
         } else {
             [cell.prefillButton setUserInteractionEnabled:NO];
             [cell.prefillButton setAlpha:.5];
-        }*/
+        }
         return cell;
 
     } else if (indexPath.section == 3) {
@@ -476,20 +499,46 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPersonnelCell" owner:self options:nil] lastObject];;
         }
-        if (_report.reportUsers.count > indexPath.row){
-            User *reportUser = [_report.reportUsers objectAtIndex:indexPath.row];
-            //NSLog(@"repot user: %@",reportUser.description);
-            [cell.personLabel setText:reportUser.fullname];
-            [cell.countTextField setHidden:YES];
+        
+        User *reportUser = [tableView.report.reportUsers objectAtIndex:indexPath.row];
+        NSLog(@"report user: %@, %@, hours: %@",reportUser.fullname, tableView.report.createdDate, reportUser.hours);
+        [cell.personLabel setText:reportUser.fullname];
+        if (reportUser.hours){
+            [cell.countTextField setText:[NSString stringWithFormat:@"%@",reportUser.hours]];
+        } else {
+            [cell.countTextField setText:@"-"];
         }
+        [cell.countTextField setHidden:NO];
         
         countTextField = cell.countTextField;
         countTextField.delegate = self;
         [cell.removeButton setTag:indexPath.row];
-        [cell.removeButton addTarget:self action:@selector(removePersonnel:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.removeButton addTarget:self action:@selector(removeUser:) forControlEvents:UIControlEventTouchUpInside];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         return cell;
     } else if (indexPath.section == 4) {
+        static NSString *CellIdentifier = @"SubcontractorCell";
+        BHSubcontractorCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSubcontractorCell" owner:self options:nil] lastObject];;
+        }
+        Subcontractor *reportSub = [tableView.report.reportSubs objectAtIndex:indexPath.row];
+        NSLog(@"report sub: %@, %@, count: %@",reportSub.name, tableView.report.createdDate, reportSub.count);
+        [cell.personLabel setText:reportSub.name];
+        if (reportSub.count){
+            [cell.countTextField setText:[NSString stringWithFormat:@"%@",reportSub.count]];
+        } else {
+            [cell.countTextField setText:@"-"];
+        }
+        [cell.countTextField setHidden:NO];
+        
+        countTextField = cell.countTextField;
+        countTextField.delegate = self;
+        [cell.removeButton setTag:indexPath.row];
+        [cell.removeButton addTarget:self action:@selector(removeSubcontractor:) forControlEvents:UIControlEventTouchUpInside];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        return cell;
+    } else if (indexPath.section == 5) {
         static NSString *CellIdentifier = @"ChooseTopicsCell";
         BHChooseTopicsViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         if (cell == nil) {
@@ -497,31 +546,34 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         }
         [cell.chooseTopicsButton addTarget:self action:@selector(chooseTopics:) forControlEvents:UIControlEventTouchUpInside];
         [cell configureCell];
+        if ([tableView.report.type isEqualToString:kSafety]){
+            [cell.chooseTopicsButton setHidden:NO];
+        } else {
+            [cell.chooseTopicsButton setHidden:YES];
+        }
         return cell;
-    } else if (indexPath.section == 5) {
+    } else if (indexPath.section == 6) {
         static NSString *CellIdentifier = @"SafetyTopicCell";
         BHSafetyTopicsCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         if (cell == nil) {
-            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSafetyTopicsCell" owner:self options:nil] lastObject];;
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSafetyTopicsCell" owner:self options:nil] lastObject];
         }
-        BHSafetyTopic *topic = [_report.safetyTopics objectAtIndex:indexPath.row];
+        SafetyTopic *topic = [tableView.report.safetyTopics objectAtIndex:indexPath.row];
         [cell configureTopic:topic];
         [cell.removeButton setTag:indexPath.row];
         [cell.removeButton addTarget:self action:@selector(removeTopic:) forControlEvents:UIControlEventTouchUpInside];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         return cell;
-    } else if (indexPath.section == 6) {
+    } else if (indexPath.section == 7) {
         BHReportPhotoCell *cell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportPhotoCell" owner:self options:nil] lastObject];
         }
         reportScrollView = cell.photoScrollView;
         photoButtonContainer = cell.photoButtonContainerView;
-        //if (iPad && !_report.photos.count) photoButtonContainer.transform = CGAffineTransformMakeTranslation(224, 0);
         [cell.photoButton addTarget:self action:@selector(takePhoto) forControlEvents:UIControlEventTouchUpInside];
         [cell.libraryButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
-        [cell configureCell];
-        [self redrawScrollView];
+        [self redrawScrollView:tableView];
         return cell;
     } else {
         static NSString *CellIdentifier = @"ReportSectionCell";
@@ -534,15 +586,17 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell.reportSectionLabel setText:@"General Remarks"];
         
-        if (_report.body.length) {
-            [cell.reportBodyTextView setText:_report.body];
+        if (tableView.report.body.length) {
+            [cell.reportBodyTextView setText:tableView.report.body];
             [cell.reportBodyTextView setTextColor:[UIColor darkGrayColor]];
         } else {
             [cell.reportBodyTextView setText:kReportPlaceholder];
             [cell.reportBodyTextView setTextColor:[UIColor lightGrayColor]];
         }
+        cell.reportBodyTextView.delegate = self;
+        [cell.reportBodyTextView setTag:indexPath.section];
         reportBodyTextView = cell.reportBodyTextView;
-        reportBodyTextView.delegate = self;
+
         return cell;
     }
 }
@@ -554,17 +608,17 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     textView.clipsToBounds = YES;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+- (CGFloat)tableView:(BHReportTableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     switch (indexPath.section) {
         case 0:
-            if (_reportType.length){
+            if ([tableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
                 return 70;
             } else {
                 return 0;
             }
             break;
         case 1:
-            if ([_report.type isEqualToString:kDaily]) return 100;
+            if ([tableView.report.type isEqualToString:kDaily]) return 100;
             else return 0;
             break;
         case 2:
@@ -574,13 +628,19 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             return 66;
             break;
         case 4:
-            if ([_report.type isEqualToString:kSafety]) return 80;
-            else return 0;
+            return 66;
             break;
         case 5:
-            if ([_report.type isEqualToString:kSafety]) return 66;
-            else return 0;
+            if ([tableView.report.type isEqualToString:kSafety]) {
+                return 80;
+            } else {
+                return 0;
+            }
+            break;
         case 6:
+            if ([tableView.report.type isEqualToString:kSafety]) return 66;
+            else return 0;
+        case 7:
             return 100;
             break;
         default:
@@ -595,31 +655,34 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0 && !_reportType.length){
+- (CGFloat)tableView:(BHReportTableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    if (section == 0 && ![tableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
-    } else if (section == 3 || section == 5){
+    } else if (section == 3 && !tableView.report.reportUsers.count){
         return 0;
-    } else if (section == 1 && ![_report.type isEqualToString:kDaily]){
+    } else if (section == 4 && !tableView.report.reportSubs.count){
         return 0;
-    } else if (section == 4 && ![_report.type isEqualToString:kSafety]){
+    } else if (section == 1 && ![tableView.report.type isEqualToString:kDaily]){
+        return 0;
+    } else if (section == 5 && ![tableView.report.type isEqualToString:kSafety]){
+        return 0;
+    } else if (section == 6){
         return 0;
     } else {
         return 22;
     }
 }
 
-- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (![_report.type isEqualToString:kDaily] && section == 1){
+- (UIView*)tableView:(BHReportTableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    if (![tableView.report.type isEqualToString:kDaily] && section == 1){
         return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
-    } else if (section == 0 && !_reportType.length){
+    } else if (section == 0 && ![tableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
     } else {
         UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 22)];
-        [headerView setBackgroundColor:[UIColor clearColor]];
+        [headerView setBackgroundColor:kDarkerGrayColor];
         UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,screenWidth(),22)];
         [headerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
-        [headerView setBackgroundColor:kDarkerGrayColor];
         [headerLabel setTextAlignment:NSTextAlignmentCenter];
         [headerLabel setTextColor:[UIColor colorWithWhite:1 alpha:1]];
             switch (section) {
@@ -630,26 +693,53 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                     [headerLabel setText:@"Weather"];
                     break;
                 case 2:
-                    [headerLabel setText:@"Personnel on Site"];
+                    [headerLabel setText:@"Select Personnel"];
                     break;
                 case 3:
-                    [headerView setFrame:CGRectMake(0, 0, 0, 0)];
+                {
+                    [headerLabel setText:@"Personnel"];
+                    [headerLabel setFrame:CGRectMake(5, 0, screenWidth()/3, 22)];
+                    [headerLabel setTextAlignment:NSTextAlignmentLeft];
+                    [headerLabel setTextColor:[UIColor lightGrayColor]];
+                    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(screenWidth()*.6, 0, screenWidth()*.4, 22)];
+                    [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
+                    [countLabel setText:@"# hours"];
+                    [countLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+                    [countLabel setTextColor:[UIColor lightGrayColor]];
+                    [headerView addSubview:countLabel];
+                    [headerView setBackgroundColor:[UIColor clearColor]];
+                }
                     break;
                 case 4:
+                {
+                    [headerLabel setText:@"Subcontractors"];
+                    [headerLabel setFrame:CGRectMake(5, 0, screenWidth()/3, 22)];
+                    [headerLabel setTextAlignment:NSTextAlignmentLeft];
+                    [headerLabel setTextColor:[UIColor lightGrayColor]];
+                    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(screenWidth()*.6, 0, screenWidth()*.4, 22)];
+                    [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
+                    [countLabel setText:@"# on site"];
+                    [countLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+                    [countLabel setTextColor:[UIColor lightGrayColor]];
+                    [headerView addSubview:countLabel];
+                    [headerView setBackgroundColor:[UIColor clearColor]];
+                }
+                    break;
+                case 5:
                     [headerLabel setText:@"Safety Topics Covered"];
                     [headerView setFrame:CGRectMake(0, 0, 0, 0)];
                     break;
-                case 5:
+                case 6:
                     [headerView setFrame:CGRectMake(0, 0, 0, 0)];
                     break;
-                case 6:
-                    if ([_report.type isEqualToString:kSafety]){
+                case 7:
+                    if ([tableView.report.type isEqualToString:kSafety]){
                         [headerLabel setText:@"Photo of Sign In Card / Group"];
                     } else {
                         [headerLabel setText:@"Photos"];
                     }
                     break;
-                case 7:
+                case 8:
                     [headerLabel setText:@"Notes"];
                     break;
                 default:
@@ -661,34 +751,106 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }
 }
 
+- (IBAction)cancelDatePicker{
+    [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        _datePickerContainer.transform = CGAffineTransformIdentity;
+        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+        [overlayBackground setAlpha:0];
+    } completion:^(BOOL finished) {
+        overlayBackground = nil;
+        [overlayBackground removeFromSuperview];
+    }];
+}
+
+- (void)showDatePicker:(id)sender{
+    if (overlayBackground == nil){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:YES];
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
+        tapGesture.numberOfTapsRequired = 1;
+        [overlayBackground addGestureRecognizer:tapGesture];
+        [self.view insertSubview:overlayBackground belowSubview:_datePickerContainer];
+        [self.view bringSubviewToFront:_datePickerContainer];
+        [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -_datePickerContainer.frame.size.height);
+            
+            if (IDIOM == IPAD)
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 56);
+            else
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+    } else {
+        [self cancelDatePicker];
+    }
+}
+
+- (IBAction)selectDate {
+    [self cancelDatePicker];
+    NSString *dateString = [formatter stringFromDate:self.datePicker.date];
+    BOOL duplicate = NO;
+    for (Report *report in _project.reports){
+        if ([report.type isEqualToString:_report.type] && [report.createdDate isEqualToString:dateString]) duplicate = YES;
+    }
+    if (duplicate){
+        [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        _report.createdDate = dateString;
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
+        [self.beforeTableView reloadData];
+        if ([_report.type isEqualToString:kDaily]){
+            [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
+        }
+    }
+}
+
 -(void)textViewDidBeginEditing:(UITextView *)textView {
     shouldSave = YES;
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"Done" object:nil];
+    self.navigationItem.rightBarButtonItem = doneButton;
     if ([textView.text isEqualToString:kReportPlaceholder] || [textView.text isEqualToString:kWeatherPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor blackColor]];
     }
-    if (textView == reportBodyTextView){
-        [self.activeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:7] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-    } else if (textView == weatherTextView){
-        [self.activeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    
+    if (textView.tag == 8){
+        if (idx == 0){
+            NSLog(@"previous table view");
+            [self.beforeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:8] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        } else if (idx == _reports.count - 1){
+            NSLog(@"after table view");
+            [self.afterTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:8] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        } else {
+            NSLog(@"active table view");
+            [self.activeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:8] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        }
+        
+    } else if (textView.tag == 1){
+        if (idx == 0){
+            [self.beforeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+        } else if (idx == _reports.count - 1){
+            [self.afterTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+        } else {
+            [self.activeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+        }
+        
     }
 }
 
 -(void)textViewDidEndEditing:(UITextView *)textView {
-    if (textView == reportBodyTextView){
+    if (textView.tag == 8){
         if ([textView.text isEqualToString:@""]) {
             [textView setText:kReportPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
-            _report.body = @"";
+            _reportTableView.report.body = @"";
         } else if (textView.text.length){
-            _report.body = textView.text;
+            _reportTableView.report.body = textView.text;
         }
-    } else if (textView == weatherTextView) {
+    } else if (textView.tag == 1) {
         if (textView.text.length) {
-            _report.weather = textView.text;
+            _reportTableView.report.weather = textView.text;
         } else {
-            _report.weather = @"";
+            _reportTableView.report.weather = @"";
             [textView setText:kWeatherPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
@@ -700,32 +862,37 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     shouldSave = YES;
     if (textField == countTextField) {
-        [self.activeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:(countTextField.tag+1) inSection:2] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        if (idx == 0){
+            [self.beforeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:textField.tag inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        } else if (idx == _reports.count - 1){
+            [self.afterTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:textField.tag inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        } else {
+            [self.activeTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:textField.tag inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        }
+        
     }
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"Done" object:nil];
+    self.navigationItem.rightBarButtonItem = doneButton;
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
 
-    if (textField.tag < _report.reportUsers.count) {
-        User *reportUser = [_report.reportUsers objectAtIndex:textField.tag];
+    if (textField.tag < _reportTableView.report.reportUsers.count) {
+        User *reportUser = [_reportTableView.report.reportUsers objectAtIndex:textField.tag];
         NSNumberFormatter *f = [[NSNumberFormatter alloc] init];
         [f setNumberStyle:NSNumberFormatterDecimalStyle];
-        reportUser.count = [f numberFromString:textField.text];
-        
+        reportUser.hours = [f numberFromString:textField.text];
     }
     [self doneEditing];
 }
 
 -(void)doneEditing {
-    if (_report.identifier){
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
+    if ([_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        self.navigationItem.rightBarButtonItem = createButton;
     } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"Create" object:nil];
+        self.navigationItem.rightBarButtonItem = saveButton;
     }
     
     [self.view endEditing:YES];
-    [self.activeTableView reloadData];
 }
 
 -(void)tapTypePicker {
@@ -735,26 +902,37 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 -(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     shouldSave = YES;
+    NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
     if (actionSheet == typePickerActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]){
-        
-        NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
-        _report.type = buttonTitle;
-        //[self loadWeather:nil forReport:_report];
-        [self.activeTableView reloadData];
-        
+        BOOL duplicate = NO;
+        for (Report *report in _project.reports){
+            if ([report.type isEqualToString:buttonTitle] && [report.createdDate isEqualToString:_report.createdDate]) duplicate = YES;
+        }
+        if (!duplicate){
+            _report.type = buttonTitle;
+            self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
+            [self.beforeTableView reloadData];
+            if ([_report.type isEqualToString:kDaily]){
+                [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
+            }
+        } else {
+            [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
     } else if (actionSheet == personnelActionSheet) {
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
             
-        } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kAddOther]) {
-            addOtherAlertView = [[UIAlertView alloc] initWithTitle:@"Add other personnel" message:@"Enter personnel name(s):" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
-            addOtherAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
-            [addOtherAlertView show];
-        } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"%@ Personnel",currentUser.company.name]]) {
-            [self performSegueWithIdentifier:@"PeoplePicker" sender:nil];
-        } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
-            [self performSegueWithIdentifier:@"SubPicker" sender:nil];
+        } else if ([buttonTitle isEqualToString:kIndividual]) {
+            [self performSegueWithIdentifier:@"PersonnelPicker" sender:kIndividual];
+        } else if ([buttonTitle isEqualToString:kCompany]){
+            [self performSegueWithIdentifier:@"PersonnelPicker" sender:kCompany];
         }
-        [self.activeTableView reloadData];
+        if (idx == 0){
+            [self.beforeTableView reloadData];
+        } else if (idx == _reports.count - 1){
+            [self.afterTableView reloadData];
+        } else {
+            [self.activeTableView reloadData];
+        }
         
     } else if (actionSheet == topicsActionSheet) {
         NSString *title = [actionSheet buttonTitleAtIndex:buttonIndex];
@@ -765,20 +943,26 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             newTopicAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
             [newTopicAlertView show];
         } else {
-            BHSafetyTopic *newTopic = [[BHSafetyTopic alloc] initWithDictionary:@{@"title":title}];
-            if (!_report.safetyTopics){
-                _report.safetyTopics = [NSMutableOrderedSet orderedSetWithObject:newTopic];
-            } else {
-                [_report addSafetyTopic:newTopic];
-            }
-            [self.activeTableView reloadData];
+            SafetyTopic *newTopic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newTopic.title = title;
+            [_reportTableView.report addSafetyTopic:newTopic];
+            [_reportTableView reloadData];
         }
     }
 }
 
 - (void)updatePersonnel:(NSNotification*)notification {
-    //NSDictionary *info = [notification userInfo];
-    [self.activeTableView performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
+    NSDictionary *info = [notification userInfo];
+    id object = [info objectForKey:kpersonnel];
+    NSLog(@"update personnel: %@",object);
+    if ([object isKindOfClass:[Subcontractor class]]) {
+        [_reportTableView.report addReportSubcontractor:object];
+        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+    } else if ([object isKindOfClass:[User class]]) {
+        [_reportTableView.report addReportUser:object];
+        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
+    }
+    
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -787,8 +971,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             User *user = [[User alloc] init];
             [user setFullname:[[alertView textFieldAtIndex:0] text]];
             user.count = [NSNumber numberWithFloat:0.f];
-            if (![_report.reportUsers containsObject:user]) {
-                [_report addReportUser:user];
+            if (![_reportTableView.report.reportUsers containsObject:user]) {
+                [_reportTableView.report addReportUser:user];
                 //[self addUserToProject:user];
                 [self.activeTableView reloadData];
             } else {
@@ -800,9 +984,9 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self.navigationController popViewControllerAnimated:YES];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Add"]) {
-        BHSafetyTopic *topic = [[BHSafetyTopic alloc] init];
+        SafetyTopic *topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [topic setTitle:[[alertView textFieldAtIndex:0] text]];
-        if (![_report.safetyTopics containsObject:topic]) {
+        if (![_reportTableView.report.safetyTopics containsObject:topic]) {
             [_report addSafetyTopic:topic];
             [self.activeTableView reloadData];
         } else {
@@ -825,21 +1009,6 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     removePhotoIdx = button.tag;
 }
 
-- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
-{
-    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove"]) {
-        [self removeConfirm];
-    }/* else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
-        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
-            [self choosePhoto];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Take Photo"]) {
-        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
-            [self takePhoto];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Photo Gallery"]) {
-        [self showPhotoDetail:nil];
-    }*/
-}
-
 - (void)choosePhoto {
     saveToLibrary = NO;
     CTAssetsPickerController *controller = [[CTAssetsPickerController alloc] init];
@@ -853,7 +1022,7 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
         [vc setDelegate:self];
-        [vc setModalPresentationStyle:UIModalPresentationCurrentContext];
+        [vc setModalPresentationStyle:UIModalPresentationFullScreen];
         [self presentViewController:vc animated:YES completion:nil];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We're unable to access a camera on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -863,15 +1032,14 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [reportScrollView setAlpha:0.0];
     [picker dismissViewControllerAnimated:YES completion:nil];
-    Photo *newPhoto = [Photo MR_createEntity];
+    Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     [newPhoto setImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
     [_report addPhoto:newPhoto];
     [self saveImage:newPhoto];
-    [self.activeTableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
+    [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationFade];
 }
 
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
-    
     [self dismissViewControllerAnimated:YES completion:^{
         for (id asset in assets) {
             if (asset != nil) {
@@ -885,23 +1053,19 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 CGFloat scale  = 1;
                 UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                      scale:scale orientation:orientation];
-                Photo *newPhoto = [Photo MR_createEntity];
+                Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [newPhoto setImage:[self fixOrientation:image]];
-                [_report addPhoto:newPhoto];
-                if (_report.identifier)[self saveImage:newPhoto];
+                [_reportTableView.report addPhoto:newPhoto];
+                if (![_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]])[self saveImage:newPhoto];
             }
         }
-        [self redrawScrollView];
+        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationFade];
     }];
 }
 
 - (UIImage *)fixOrientation:(UIImage*)image {
     
-    // No-op if the orientation is already correct
     if (image.imageOrientation == UIImageOrientationUp) return image;
-    
-    // We need to calculate the proper transformation to make the image upright.
-    // We do it in 2 steps: Rotate if Left/Right/Down, and then flip if Mirrored.
     CGAffineTransform transform = CGAffineTransformIdentity;
     
     switch (image.imageOrientation) {
@@ -1002,10 +1166,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         
         [library writeImageToSavedPhotosAlbum:imageToSave.CGImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
             if (error.code == 0) {
-                // try to get the asset
                 [library assetForURL:assetURL
                          resultBlock:^(ALAsset *asset) {
-                             // assign the photo to the album
                              [groupToAddTo addAsset:asset];
                          }
                         failureBlock:^(NSError* error) {
@@ -1019,61 +1181,33 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }
 }
 
--(void)removeConfirm {
-    [[[UIAlertView alloc] initWithTitle:@"Please Confirm" message:@"Are you sure you want to delete this photo?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Delete", nil] show];
-}
-
 -(void)removePhoto:(NSNotification*)notification {
     Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
-    if (photoToRemove.identifier){
-        for (Photo *photo in _report.photos){
-            if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
-                [_report removePhoto:photo];
-                [self redrawScrollView];
-                break;
-            }
-        }
-    } else {
-        Photo *photo = [_report.photos objectAtIndex:removePhotoIdx];
-        [_report removePhoto:photo];
-        [self redrawScrollView];
-    }
+    [_reportTableView.report removePhoto:photoToRemove];
+    [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationFade];
 }
 
-- (void)redrawScrollView {
+- (void)redrawScrollView:(BHReportTableView*)tableView {
     reportScrollView.delegate = self;
     [reportScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    reportScrollView.showsHorizontalScrollIndicator=NO;
+    reportScrollView.showsHorizontalScrollIndicator = NO;
     
     float imageSize = 70.0;
     float space = 4.0;
     int index = 0;
-    for (Photo *photo in _report.photos) {
-        __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        //[imageButton setAlpha:0.0];
-    
+    for (Photo *photo in tableView.report.photos) {
+        UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
         if (photo.urlSmall.length){
-            [imageButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                /*[UIView animateWithDuration:.25 animations:^{
-                    [imageButton setAlpha:1.0];
-                }];*/
-            }];
+            [imageButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
         } if (photo.urlThumb.length){
-            [imageButton setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-                /*[UIView animateWithDuration:.25 animations:^{
-                    [imageButton setAlpha:1.0];
-                }];*/
-            }];
+            [imageButton setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
         } else if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
-            /*[UIView animateWithDuration:.25 animations:^{
-                [imageButton setAlpha:1.0];
-            }];*/
         }
+        [imageButton setTag:[tableView.report.photos indexOfObject:photo]];
+        [imageButton setFrame:CGRectMake(((space+imageSize)*index),reportScrollView.frame.size.height/2-imageSize/2,imageSize, imageSize)];
         imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
-        imageButton.imageView.clipsToBounds = YES;
-        [imageButton setTag:[_report.photos indexOfObject:photo]];
-        [imageButton setFrame:CGRectMake(((space+imageSize)*index),6,imageSize, imageSize)];
+        //imageButton.imageView.clipsToBounds = YES;
         imageButton.imageView.layer.cornerRadius = 2.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
@@ -1086,31 +1220,11 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     
     [reportScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
     if (reportScrollView.isHidden) [reportScrollView setHidden:NO];
-    if ([(NSArray*)_report.photos count]) {
-        [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            
-            photoButtonContainer.transform = CGAffineTransformMakeTranslation(-90, 0);
-            [reportScrollView setAlpha:1.0];
-        } completion:^(BOOL finished) {
-            reportScrollView.layer.shouldRasterize = YES;
-            reportScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        }];
-    } else {
-        if (iPad) {
-            photoButtonContainer.transform = CGAffineTransformMakeTranslation(224, 0);
-        } else {
-            [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-                photoButtonContainer.transform = CGAffineTransformIdentity;
-                [reportScrollView setAlpha:0.0];
-            } completion:^(BOOL finished) {
-            }];
-        }
-    }
 }
 
 - (void)showPhotoDetail:(UIButton*)button {
     browserPhotos = [NSMutableArray new];
-    for (Photo *photo in _report.photos) {
+    for (Photo *photo in _reportTableView.report.photos) {
         MWPhoto *mwPhoto;
         if (photo.image){
             mwPhoto = [MWPhoto photoWithImage:photo.image];
@@ -1154,68 +1268,96 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     NSUInteger currentIdx = [_reports indexOfObject:_report];
     if (currentIdx != NSNotFound) {
         Report *previousReport = [_reports objectAtIndex:currentIdx-1];
-        _report.reportUsers = [NSOrderedSet orderedSetWithOrderedSet:previousReport.reportUsers];
-        for (User *reportUser in _report.reportUsers){
+        _reportTableView.report.reportUsers = [NSOrderedSet orderedSetWithOrderedSet:previousReport.reportUsers];
+        for (User *reportUser in _reportTableView.report.reportUsers){
             [reportUser setCount:[NSNumber numberWithFloat:0.f]];
         }
         [self.activeTableView reloadData];
     }
 }
 
-- (void)pickFromList:(id)sender {
-    
-    personnelActionSheet = [[UIActionSheet alloc] initWithTitle:@"Project Personnel" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles: [NSString stringWithFormat:@"%@ Personnel",currentUser.company.name], kAddOther, nil];
+- (void)showPersonnelActionSheet {
+    personnelActionSheet = [[UIActionSheet alloc] initWithTitle:@"Project Personnel" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles: kIndividual, kCompany, nil];
     [personnelActionSheet showInView:self.view];
 }
 
 - (void)chooseTopics:(id)sender {
     topicsActionSheet = [[UIActionSheet alloc] initWithTitle:@"Safety Topics" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (BHSafetyTopic *topic in _possibleTopics){
+    for (SafetyTopic *topic in _possibleTopics){
         [topicsActionSheet addButtonWithTitle:topic.title];
     }
     [topicsActionSheet addButtonWithTitle:kAddNew];
     topicsActionSheet.cancelButtonIndex = [topicsActionSheet addButtonWithTitle:@"Cancel"];
-    [topicsActionSheet showFromTabBar:self.tabBarController.tabBar];
+    [topicsActionSheet showInView:self.view];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    if ([segue.identifier isEqualToString:@"PeoplePicker"]){
-        BHPeoplePickerViewController *vc = [segue destinationViewController];
-        if (_project)[vc setUserArray:_project.users.array];
-        [vc setUsers:_report.reportUsers.mutableCopy];
+    [super prepareForSegue:segue sender:sender];
+    
+    if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
+        if ([sender isEqualToString:kIndividual]) {
+            BHPersonnelPickerViewController *vc = [segue destinationViewController];
+            [vc setUsers:_project.users.mutableCopy];
+        } else if ([sender isEqualToString:kCompany]){
+            BHPersonnelPickerViewController *vc = [segue destinationViewController];
+            [vc setCompany:_project.company];
+        }
     }
 }
 
-- (void)removePersonnel:(UIButton*)button {
-    User *reportUser = [_report.reportUsers objectAtIndex:button.tag];
-    if (_report.identifier && ![_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        [parameters setObject:_report.identifier forKey:@"report_id"];
-        
-        User *user = (User*)reportUser;
-        if (user.identifier){
-            [parameters setObject:user.identifier forKey:@"user_id"];
-            [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"success removing personnel: %@",responseObject);
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                NSLog(@"Failure removing personnel: %@",error.description);
-            }];
+- (void)removeUser:(UIButton*)button {
+    NSLog(@"remove user button tag: %d",button.tag);
+    if (_reportTableView.report.reportUsers.count > button.tag){
+        User *reportUser = [_reportTableView.report.reportUsers objectAtIndex:button.tag];
+        if (![_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
+            
+            if (![reportUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+                NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+                [parameters setObject:_reportTableView.report.identifier forKey:@"report_id"];
+                [parameters setObject:reportUser.identifier forKey:@"user_id"];
+                [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    NSLog(@"success removing user: %@",responseObject);
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"Failure removing user: %@",error.description);
+                }];
+            }
         }
+        
+        [_reportTableView.report removeReportUser:reportUser];
+        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
     }
-    
-    NSIndexPath *forDeletion = [NSIndexPath indexPathForRow:button.tag inSection:3];
-    [_report removeReportUser:reportUser];
-    [currentTableView deleteRowsAtIndexPaths:@[forDeletion] withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (void)removeSubcontractor:(UIButton*)button {
+    NSLog(@"remove subcontractor button tag: %d",button.tag);
+    if (_reportTableView.report.reportSubs.count > button.tag){
+        Subcontractor *reportSub = [_reportTableView.report.reportSubs objectAtIndex:button.tag];
+        if (![_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
+
+            if (reportSub && ![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+                NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+                [parameters setObject:_reportTableView.report.identifier forKey:@"report_id"];
+                [parameters setObject:reportSub.identifier forKey:@"report_sub_id"];
+                [manager DELETE:[NSString stringWithFormat:@"%@/reports/remove_personnel",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    NSLog(@"success removing report subcontractor: %@",responseObject);
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"Failure removing report subcontractor: %@",error.description);
+                }];
+            }
+        }
+        
+        [_reportTableView.report removeReportSubcontractor:reportSub];
+        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+    }
 }
 
 - (void)removeTopic:(UIButton*)button {
-    if (button.tag < _report.safetyTopics.count){
-        BHSafetyTopic *topic = [_report.safetyTopics objectAtIndex:button.tag];
-        if (_report.identifier && topic != nil) {
-
-            if (topic.identifier){
+    if (button.tag < _reportTableView.report.safetyTopics.count){
+        SafetyTopic *topic = [_reportTableView.report.safetyTopics objectAtIndex:button.tag];
+        if (![_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
+            if (![topic.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-                [parameters setObject:_report.identifier forKey:@"report_id"];
+                [parameters setObject:_reportTableView.report.identifier forKey:@"report_id"];
                 [parameters setObject:topic.identifier forKey:@"safety_topic_id"];
                 [manager DELETE:[NSString stringWithFormat:@"%@/safety_topics/%@",kApiBaseUrl,topic.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
                     NSLog(@"success removing safety topic: %@",responseObject);
@@ -1224,9 +1366,9 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
                 }];
             }
         }
-        NSIndexPath *forDeletion = [NSIndexPath indexPathForRow:button.tag inSection:5];
-        [[_report.safetyTopics mutableCopy] removeObject:topic];
-    [self.activeTableView deleteRowsAtIndexPaths:@[forDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        NSIndexPath *forDeletion = [NSIndexPath indexPathForRow:button.tag inSection:6];
+        [_reportTableView.report removeSafetyTopic:topic];
+        [_reportTableView deleteRowsAtIndexPaths:@[forDeletion] withRowAnimation:UITableViewRowAnimationFade];
     }
 }
 
@@ -1238,19 +1380,19 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
         [parameters setObject:_project.identifier forKey:@"project_id"];
-        if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
-        if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
-        if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
-        if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
-        if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
-        if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
+        if (_reportTableView.report.weather.length) [parameters setObject:_reportTableView.report.weather forKey:@"weather"];
+        if (_reportTableView.report.createdDate.length) [parameters setObject:_reportTableView.report.createdDate forKey:@"created_date"];
+        if (_reportTableView.report.type.length) [parameters setObject:_reportTableView.report.type forKey:@"report_type"];
+        if (_reportTableView.report.precip.length) [parameters setObject:_reportTableView.report.precip forKey:@"precip"];
+        if (_reportTableView.report.humidity.length) [parameters setObject:_reportTableView.report.humidity forKey:@"humidity"];
+        if (_reportTableView.report.weatherIcon.length) [parameters setObject:_reportTableView.report.weatherIcon forKey:@"weather_icon"];
         if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
-        if (_report.reportUsers.count) {
+        if (_reportTableView.report.reportUsers.count) {
             NSMutableArray *userArray = [NSMutableArray array];
-            for (User *reportUser in _report.reportUsers) {
+            for (User *reportUser in _reportTableView.report.reportUsers) {
                 NSMutableDictionary *dict = [NSMutableDictionary dictionary];
             
-                if (reportUser.identifier && ![reportUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportUser.identifier forKey:@"id"];
+                if (![reportUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportUser.identifier forKey:@"id"];
                 if (reportUser.fullname.length) [dict setObject:reportUser.fullname forKey:@"full_name"];
                 if (reportUser.hours) [dict setObject:reportUser.hours forKey:@"hours"];
                 [userArray addObject:dict];
@@ -1258,9 +1400,22 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             }
             if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
         }
-        if (_report.safetyTopics.count) {
+        if (_reportTableView.report.reportSubs.count) {
+            NSMutableArray *subArray = [NSMutableArray array];
+            for (Subcontractor *reportSub in _reportTableView.report.reportSubs) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                
+                if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
+                if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
+                if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
+                [subArray addObject:dict];
+                
+            }
+            if (subArray.count)[parameters setObject:subArray forKey:@"report_companies"];
+        }
+        if (_reportTableView.report.safetyTopics.count) {
             NSMutableArray *topicsArray = [NSMutableArray array];
-            for (BHSafetyTopic *topic in _report.safetyTopics) {
+            for (SafetyTopic *topic in _reportTableView.report.safetyTopics) {
                 NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                 if (topic.identifier) [dict setObject:topic.identifier forKey:@"id"];
                 if (topic.title) [dict setObject:topic.title forKey:@"title"];
@@ -1269,15 +1424,16 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
         }
 
-        [manager PUT:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_report.identifier] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success updating report: %@",responseObject);
+        [manager PUT:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_reportTableView.report.identifier] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success updating report: %@",responseObject);
+            [_report clearReportUsers];
             [_report populateWithDict:[responseObject objectForKey:@"report"]];
-        
             [ProgressHUD dismiss];
             [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report saved" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             NSLog(@"Failure updating report: %@",error.description);
+            
             [ProgressHUD dismiss];
         }];
     }
@@ -1285,10 +1441,10 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
 - (void)saveImage:(Photo*)photo {
     [self saveImageToLibrary:photo.image];
-    if (![_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        [self uploadPhoto:photo.image withReportId:_report.identifier];
+    if ([_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        [self redrawScrollView:_reportTableView];
     } else {
-        [self redrawScrollView];
+        [self uploadPhoto:photo.image withReportId:_reportTableView.report.identifier];
     }
 }
 
@@ -1301,16 +1457,16 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success posting image to API: %@",responseObject);
-            Report *newReport = [Report MR_createEntity];
-            [newReport populateWithDict:[responseObject objectForKey:@"report"]];
-            
+            Report *existingReport = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId];
+            [existingReport populateWithDict:[responseObject objectForKey:@"report"]];
+            //[_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationFade];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"failure posting image to API: %@",error.description);
         }];
     }
 }
 
-- (void)createNewReport {
+- (void)create {
     if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new reports for demo projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
@@ -1318,31 +1474,45 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         [parameters setObject:_project.identifier forKey:@"project_id"];
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
-        if (_report.weather.length) [parameters setObject:_report.weather forKey:@"weather"];
-        if (_report.wind) [parameters setObject:_report.wind forKey:@"wind"];
-        if (_report.temp.length) [parameters setObject:_report.temp forKey:@"temp"];
-        if (_report.precip.length) [parameters setObject:_report.precip forKey:@"precip"];
-        if (_report.humidity.length) [parameters setObject:_report.humidity forKey:@"humidity"];
-        if (_report.weatherIcon.length) [parameters setObject:_report.weatherIcon forKey:@"weather_icon"];
-        if (_report.createdDate.length) [parameters setObject:_report.createdDate forKey:@"created_date"];
-        if (_report.type.length) [parameters setObject:_report.type forKey:@"report_type"];
+        if (_reportTableView.report.weather.length) [parameters setObject:_reportTableView.report.weather forKey:@"weather"];
+        if (_reportTableView.report.wind) [parameters setObject:_reportTableView.report.wind forKey:@"wind"];
+        if (_reportTableView.report.temp.length) [parameters setObject:_reportTableView.report.temp forKey:@"temp"];
+        if (_reportTableView.report.precip.length) [parameters setObject:_reportTableView.report.precip forKey:@"precip"];
+        if (_reportTableView.report.humidity.length) [parameters setObject:_reportTableView.report.humidity forKey:@"humidity"];
+        if (_reportTableView.report.weatherIcon.length) [parameters setObject:_reportTableView.report.weatherIcon forKey:@"weather_icon"];
+        if (_reportTableView.report.createdDate.length) [parameters setObject:_reportTableView.report.createdDate forKey:@"created_date"];
+        if (_reportTableView.report.type.length) [parameters setObject:_reportTableView.report.type forKey:@"report_type"];
         if (reportBodyTextView.text.length && ![reportBodyTextView.text isEqualToString:kReportPlaceholder]) [parameters setObject:reportBodyTextView.text forKey:@"body"];
 
-        if (_report.reportUsers.count > 0) {
+        if (_reportTableView.report.reportUsers.count) {
             NSMutableArray *userArray = [NSMutableArray array];
-            for (User *reportUser in _report.reportUsers) {
+            for (User *reportUser in _reportTableView.report.reportUsers) {
                 NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (reportUser.identifier && ![reportUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportUser.identifier forKey:@"id"];
+                
+                if (![reportUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportUser.identifier forKey:@"id"];
                 if (reportUser.fullname.length) [dict setObject:reportUser.fullname forKey:@"full_name"];
                 if (reportUser.hours) [dict setObject:reportUser.hours forKey:@"hours"];
                 [userArray addObject:dict];
+                
             }
-            
             if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
         }
-        if (_report.safetyTopics.count) {
+        if (_reportTableView.report.reportSubs.count) {
+            NSMutableArray *subArray = [NSMutableArray array];
+            for (Subcontractor *reportSub in _reportTableView.report.reportSubs) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                
+                if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
+                if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
+                if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
+                [subArray addObject:dict];
+                
+            }
+            if (subArray.count)[parameters setObject:subArray forKey:@"report_companies"];
+        }
+        if (_reportTableView.report.safetyTopics.count) {
             NSMutableArray *topicsArray = [NSMutableArray array];
-            for (BHSafetyTopic *topic in _report.safetyTopics) {
+            for (SafetyTopic *topic in _reportTableView.report.safetyTopics) {
                 NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                 if (topic.identifier) [dict setObject:topic.identifier forKey:@"id"];
                 if (topic.title) [dict setObject:topic.title forKey:@"title"];
@@ -1353,20 +1523,18 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
 
         [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success creating report: %@",responseObject);
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"Save" object:nil];
-            NSOrderedSet *storedPhotos = [NSOrderedSet orderedSetWithOrderedSet:_report.photos];
             [_report populateWithDict:[responseObject objectForKey:@"report"]];
-            _report.photos = storedPhotos;
-            if (_report.identifier){
-                for (Photo *photo in _report.photos) {
-                    if (photo.image){
-                        [self uploadPhoto:photo.image withReportId:_report.identifier];
-                    }
+            [_project addReport:_report];
+            for (Photo *photo in _reportTableView.report.photos) {
+                if (photo.image){
+                    [self uploadPhoto:photo.image withReportId:_reportTableView.report.identifier];
                 }
             }
+            
             [self.activeTableView reloadData];
             [ProgressHUD dismiss];
-            [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [self.navigationController popViewControllerAnimated:YES];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             NSLog(@"Failure updating report: %@",error.description);
@@ -1375,10 +1543,8 @@ static NSString * const kWeatherPlaceholder = @"Weather notes...";
     }
 }
 
-- (void)viewWillDisappear:(BOOL)animated {
+- (void)dealloc {
     [self saveContext];
-    [super viewWillDisappear:animated];
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"Remove" object:nil];
 }
 
 - (void)saveContext {

@@ -16,6 +16,7 @@
 #import "UIButton+WebCache.h"
 #import "BHPhotosViewController.h"
 #import "Flurry.h"
+#import "BHAppDelegate.h"
 
 @interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
     BOOL iPhone5;
@@ -57,12 +58,7 @@
     } else {
         iPhone5 = NO;
     }
-    if ([BHUtilities isIpad]) {
-        iPad = YES;
-    } else {
-        iPad = NO;
-    }
-    if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     screen = [UIScreen mainScreen].bounds;
     photosArray = [NSMutableArray array];
     userArray = [NSMutableArray array];
@@ -104,7 +100,6 @@
             self.tabBarController.tabBar.alpha = 1.0;
         }];
     }
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -382,6 +377,8 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
+    
     if (dateArray.count) [dateArray removeAllObjects];
     
     NSIndexPath *indexPath = (NSIndexPath*)sender;

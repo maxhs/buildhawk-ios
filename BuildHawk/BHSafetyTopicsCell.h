@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "BHSafetyTopic.h"
+#import "SafetyTopic+helper.h"
 
 @interface BHSafetyTopicsCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
 @property (weak, nonatomic) IBOutlet UIButton *removeButton;
 
-- (void)configureTopic:(BHSafetyTopic*)topic;
+- (void)configureTopic:(SafetyTopic*)topic;
 @end

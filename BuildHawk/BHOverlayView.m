@@ -26,7 +26,7 @@
 -(void)configureText:(NSString*)text atFrame:(CGRect)frame{
     _label = [[UILabel alloc] initWithFrame:frame];
     [_label setText:text];
-    [_label setTextAlignment:NSTextAlignmentCenter];
+    [_label setTextAlignment:NSTextAlignmentLeft];
     [_label setFont:[UIFont fontWithName:kHelveticaNeueMedium size:18]];
     _label.layer.shadowColor = [UIColor blackColor].CGColor;
     _label.layer.shadowOpacity = .15f;

@@ -9,6 +9,8 @@
 #import "Report+helper.h"
 #import "Photo+helper.h"
 #import "User+helper.h"
+#import "Subcontractor.h"
+#import "SafetyTopic+helper.h"
 
 @implementation Report (helper)
 
@@ -42,22 +44,36 @@
         self.weatherIcon = [dictionary objectForKey:@"weather_icon"];
     }
     if ([dictionary objectForKey:@"report_users"] && [dictionary objectForKey:@"report_users"] != [NSNull null]) {
-        if ([dictionary objectForKey:@"report_users"] != [NSNull null]) {
-            NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSetWithOrderedSet:self.reportUsers];
-            //NSLog(@"report photos %@",[dictionary objectForKey:@"report_users"]);
-            for (id userDict in [dictionary objectForKey:@"report_users"]){
-                NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
+        for (id userDict in [dictionary objectForKey:@"report_users"]){
+            if ([userDict objectForKey:@"user"] != [NSNull null]) {
+                //NSLog(@"user dict from report users: %@",userDict);
+                NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[userDict objectForKey:@"user"] objectForKey:@"id"]];
                 User *user = [User MR_findFirstWithPredicate:userPredicate];
                 if (!user){
-                    user = [User MR_createEntity];
-                    NSLog(@"couldn't find saved report user, created a new one: %@",user.fullname);
+                    user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
-                [user populateFromDictionary:userDict];
+                [user populateFromDictionary:[userDict objectForKey:@"user"]];
                 [orderedUsers addObject:user];
             }
-            self.reportUsers = orderedUsers;
-            //if (self.reportUsers.count > 0) NSLog(@"report users: %@",self.reportUsers);
         }
+        self.reportUsers = orderedUsers;
+        
+    }
+    if ([dictionary objectForKey:@"report_subs"] && [dictionary objectForKey:@"report_subs"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSet];
+        for (id subDict in [dictionary objectForKey:@"report_subs"]){
+            //NSLog(@"sub dict from report subs: %@",subDict);
+            NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
+            Subcontractor *sub = [Subcontractor MR_findFirstWithPredicate:subPredicate];
+            if (!sub){
+                sub = [Subcontractor MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                sub.name = [[subDict objectForKey:@"sub"] objectForKey:@"name"];
+                NSLog(@"couldn't find saved report sub, created a new one: %@",sub.name);
+            }
+            [orderedSubs addObject:sub];
+        }
+        self.reportSubs = orderedSubs;
     }
     if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
         self.createdDate = [dictionary objectForKey:@"created_date"];
@@ -70,28 +86,42 @@
         self.updatedAt = [BHUtilities parseDate:[dictionary objectForKey:@"updated_at"]];
     }
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
-        if ([dictionary objectForKey:@"photos"] != [NSNull null]) {
-            NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSetWithOrderedSet:self.photos];
-            for (id photoDict in [dictionary objectForKey:@"photos"]){
-                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
-                if (!photo){
-                    photo = [Photo MR_createEntity];
-                }
-                [photo populateFromDictionary:photoDict];
-                [orderedPhotos addObject:photo];
+        [BHUtilities vacuumLocalPhotos:self];
+        NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
+        for (id photoDict in [dictionary objectForKey:@"photos"]){
+            NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            if (!photo){
+                photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-            self.photos = orderedPhotos;
+            [photo populateFromDictionary:photoDict];
+            [orderedPhotos addObject:photo];
         }
+        self.photos = orderedPhotos;
     }
-    if ([dictionary objectForKey:@"possible_topics"]) {
-        self.possibleTopics = [BHUtilities safetyTopicsFromJSONArray:[dictionary objectForKey:@"possible_topics"]];
+    if ([dictionary objectForKey:@"safety_topics"]) {
+        NSMutableOrderedSet *orderedTopic = [NSMutableOrderedSet orderedSet];
+        for (id topicDict in [dictionary objectForKey:@"safety_topics"]){
+            NSPredicate *topicPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [topicDict objectForKey:@"id"]];
+            SafetyTopic *topic = [SafetyTopic MR_findFirstWithPredicate:topicPredicate];
+            if (!topic){
+                topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [topic populateWithDict:topicDict];
+            [orderedTopic addObject:topic];
+        }
+        self.safetyTopics = orderedTopic;
     }
 }
 
--(void)addSafetyTopic:(BHSafetyTopic *)topic {
+-(void)addSafetyTopic:(SafetyTopic *)topic {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.safetyTopics];
     [set addObject:topic];
+    self.safetyTopics = set;
+}
+-(void)removeSafetyTopic:(SafetyTopic *)topic {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.safetyTopics];
+    [set removeObject:topic];
     self.safetyTopics = set;
 }
 
@@ -105,7 +135,9 @@
     [set removeObject:reportUser];
     self.reportUsers = set;
 }
-
+-(void)clearReportUsers {
+    self.reportUsers = nil;
+}
 -(void)addPhoto:(Photo *)photo {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set addObject:photo];
@@ -115,5 +147,19 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set removeObject:photo];
     self.photos = set;
+}
+
+- (void)addReportSubcontractor:(Subcontractor *)reportSubcontractor {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportSubs];
+    [set addObject:reportSubcontractor];
+    self.reportSubs = set;
+}
+-(void)removeReportSubcontractor:(Subcontractor *)reportSubcontractor {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportSubs];
+    [set removeObject:reportSubcontractor];
+    self.reportSubs = set;
+}
+-(void)clearReportSubcontractors {
+    self.reportSubs = nil;
 }
 @end

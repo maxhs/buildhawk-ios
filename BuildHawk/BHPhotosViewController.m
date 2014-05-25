@@ -185,9 +185,9 @@
 }
 
 -(void)removePhoto:(NSNotification*)notification {
-    NSNumber *photoIdentifier = [notification.userInfo objectForKey:@"photo"];
+    Photo *photoToRemove = (Photo*)[notification.userInfo objectForKey:@"photo"];
     for (Photo *photo in _photosArray) {
-        if ([photo.identifier isEqualToNumber:photoIdentifier]) {
+        if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
             [_photosArray removeObject:photo];
             [browserArray removeAllObjects];
             [sectionArray removeAllObjects];
@@ -203,8 +203,7 @@
 - (void)showBrowser:(UIButton*)button {
     [browserPhotos removeAllObjects];
     for (Photo *photo in browserArray) {
-        MWPhoto *mwPhoto;
-        mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }

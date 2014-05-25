@@ -27,17 +27,17 @@
 }
 
 - (void)configureCell {
-    [self buttonTreatment:self.pickFromListButton];
-    self.prefillButton.layer.cornerRadius = 8.f;
-    [self.prefillButton setTitleColor:kDarkerGrayColor forState:UIControlStateNormal];
-    self.prefillButton.layer.borderColor = kDarkerGrayColor.CGColor;
-    self.prefillButton.layer.borderWidth = .5f;
-    self.prefillButton.layer.shouldRasterize = YES;
-    self.prefillButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    [self buttonTreatment:_choosePersonnelButton];
+    _prefillButton.layer.cornerRadius = 7.f;
+    [_prefillButton setTitleColor:kDarkerGrayColor forState:UIControlStateNormal];
+    _prefillButton.layer.borderColor = kDarkerGrayColor.CGColor;
+    _prefillButton.layer.borderWidth = .5f;
+    _prefillButton.layer.shouldRasterize = YES;
+    _prefillButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
 
 - (void)buttonTreatment:(UIButton*)button {
-    button.layer.cornerRadius = 8.f;
+    button.layer.cornerRadius = 7.f;
     [button setBackgroundColor:kDarkerGrayColor];
     //button.layer.borderColor = kLighterGrayColor.CGColor;
     //button.layer.borderWidth = .5f;

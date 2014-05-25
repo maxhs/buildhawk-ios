@@ -12,5 +12,5 @@
 
 @property (weak, nonatomic) IBOutlet UITextView *messageTextView;
 @property (weak, nonatomic) IBOutlet UIButton *doneButton;
-
+- (void)configure;
 @end

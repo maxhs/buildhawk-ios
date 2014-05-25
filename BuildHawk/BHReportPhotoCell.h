@@ -13,5 +13,4 @@
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UIView *photoButtonContainerView;
 @property (weak, nonatomic) IBOutlet UIScrollView *photoScrollView;
-- (void)configureCell;
 @end

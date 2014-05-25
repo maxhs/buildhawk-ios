@@ -25,5 +25,6 @@
 @dynamic photos;
 @dynamic assignees;
 @dynamic punchlist;
+@dynamic user;
 
 @end

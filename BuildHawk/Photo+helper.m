@@ -67,7 +67,7 @@
             if (comment){
                 NSLog(@"found saved sub: %@",comment.body);
             } else {
-                comment = [Comment MR_createEntity];
+                comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 NSLog(@"couldn't find saved comment, created a new one: %@",comment.body);
             }
             [comment populateFromDictionary:commentDict];

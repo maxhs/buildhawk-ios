@@ -29,6 +29,7 @@
 @property (nonatomic, retain) id possibleTopics;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) NSOrderedSet *reportUsers;
+@property (nonatomic, retain) NSOrderedSet *reportSubs;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;
 @end
 
