@@ -363,6 +363,8 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     BHPersonnelPickerViewController *vc = [segue destinationViewController];
+    [vc setCountNotNeeded:YES];
+    
     if (phoneBool) {
         [vc setPhone:YES];
     } else if (emailBool) {
@@ -494,6 +496,15 @@
     [self saveImage:[self fixOrientation:newPhoto.image]];
     [_item addPhoto:newPhoto];
     [self.tableView reloadData];
+}
+
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
+{
+    if (picker.selectedAssets.count >= 10){
+        [[[UIAlertView alloc] initWithTitle:nil message:@"We're unable to select more than 10 photos per batch." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
+    // Allow 10 assets to be picked
+    return (picker.selectedAssets.count < 10);
 }
 
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {

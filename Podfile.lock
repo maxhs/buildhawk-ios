@@ -1,45 +1,45 @@
 PODS:
-  - AFNetworking (2.2.1):
+  - AFNetworking (2.2.4):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
     - AFNetworking/UIKit
-  - AFNetworking/NSURLConnection (2.2.1):
+  - AFNetworking/NSURLConnection (2.2.4):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/NSURLSession (2.2.1):
+  - AFNetworking/NSURLSession (2.2.4):
     - AFNetworking/NSURLConnection
-  - AFNetworking/Reachability (2.2.1)
-  - AFNetworking/Security (2.2.1)
-  - AFNetworking/Serialization (2.2.1)
-  - AFNetworking/UIKit (2.2.1):
+  - AFNetworking/Reachability (2.2.4)
+  - AFNetworking/Security (2.2.4)
+  - AFNetworking/Serialization (2.2.4)
+  - AFNetworking/UIKit (2.2.4):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
-  - CTAssetsPickerController (1.5.2)
+  - CTAssetsPickerController (2.2.2)
   - LDProgressView (1.2.1)
   - MagicalRecord (2.2):
     - MagicalRecord/Core
   - MagicalRecord/Core (2.2)
-  - Mixpanel (2.3.4)
+  - Mixpanel (2.3.6)
   - SWRevealViewController (1.1.1)
 
 DEPENDENCIES:
   - AFNetworking
-  - CTAssetsPickerController (~> 1.5.0)
+  - CTAssetsPickerController (~> 2.2.0)
   - LDProgressView
   - MagicalRecord
   - Mixpanel
   - SWRevealViewController (= 1.1.1)
 
 SPEC CHECKSUMS:
-  AFNetworking: 0121f4b69be3fa58d1ab317866e036e12ac9651d
-  CTAssetsPickerController: bb78e88095a9a56eae2e0b3e66c61c0401d031d5
-  LDProgressView: 36c92a4872d803448c38111504514135a3a76a3e
-  MagicalRecord: 95d49d74ef752cd52f6ad87bcb474817fc3978cf
-  Mixpanel: 16e6f1d5f8aeb9282ee864e169557de0bd9549df
-  SWRevealViewController: de412df00a42c2f90fde7f300de05c29e0cb7bf3
+  AFNetworking: ab63e259fe91eef4519b371ef0a4955af0e73e64
+  CTAssetsPickerController: e1247f76d97a129b75c4050990e75fd2eff7430f
+  LDProgressView: e0ee70a7cd858ac8c04b319ef87854e7250fb357
+  MagicalRecord: 2b471584fc9e3137f3d0a56967917baa4979e224
+  Mixpanel: 9aba38257fc4d2777ab5db1afc55e22bdfd57a4a
+  SWRevealViewController: 41cef03ba091c3e3db8bd1e7865b81a4586715fb
 
-COCOAPODS: 0.32.1
+COCOAPODS: 0.33.1

@@ -40,6 +40,13 @@
 		F2094FE5192AC09E00329A54 /* BHReportTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = F2094FE4192AC09E00329A54 /* BHReportTableView.m */; };
 		F2094FE8192AE2C500329A54 /* User.m in Sources */ = {isa = PBXBuildFile; fileRef = F2094FE7192AE2C500329A54 /* User.m */; };
 		F2094FEC192BB53900329A54 /* BHReportWeatherCell_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = F2094FEB192BB53900329A54 /* BHReportWeatherCell_iPad.xib */; };
+		F2139D2919380C5000EE5C96 /* ReportUser.m in Sources */ = {isa = PBXBuildFile; fileRef = F2139D2819380C5000EE5C96 /* ReportUser.m */; };
+		F2139D2C19380C5100EE5C96 /* ReportSub.m in Sources */ = {isa = PBXBuildFile; fileRef = F2139D2B19380C5100EE5C96 /* ReportSub.m */; };
+		F2139D2F1938101500EE5C96 /* ReportUser+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F2139D2E1938101500EE5C96 /* ReportUser+helper.m */; };
+		F2139D321938107900EE5C96 /* ReportSub+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F2139D311938107900EE5C96 /* ReportSub+helper.m */; };
+		F2139D351938169100EE5C96 /* BHChoosePersonnelCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F2139D341938169100EE5C96 /* BHChoosePersonnelCell.m */; };
+		F2139D37193816A800EE5C96 /* BHChoosePersonnelCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F2139D36193816A800EE5C96 /* BHChoosePersonnelCell.xib */; };
+		F218FF0819370CED00AD4AF5 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F218FF0719370CED00AD4AF5 /* Default-568h@2x.png */; };
 		F21F6EA4192EAF79003BC323 /* Address+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F21F6EA3192EAF79003BC323 /* Address+helper.m */; };
 		F21F6EA7192FF612003BC323 /* SafetyTopic.m in Sources */ = {isa = PBXBuildFile; fileRef = F21F6EA6192FF612003BC323 /* SafetyTopic.m */; };
 		F21F6EAA192FF62B003BC323 /* SafetyTopic+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F21F6EA9192FF62B003BC323 /* SafetyTopic+helper.m */; };
@@ -198,7 +205,6 @@
 		F2A594F417FBCD1C00B818B5 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2A594F317FBCD1C00B818B5 /* CoreImage.framework */; };
 		F2B1F0E617D7BE820007A4E3 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E317D7BE810007A4E3 /* Default.png */; };
 		F2B1F0E717D7BE820007A4E3 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E417D7BE810007A4E3 /* Default@2x.png */; };
-		F2B1F0E817D7BE820007A4E3 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */; };
 		F2B1F0EA17D7C0770007A4E3 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2B1F0E917D7C0770007A4E3 /* QuartzCore.framework */; };
 		F2B1F0ED17D7D3760007A4E3 /* BHSearchBar.m in Sources */ = {isa = PBXBuildFile; fileRef = F2B1F0EC17D7D3760007A4E3 /* BHSearchBar.m */; };
 		F2B29FBD17D0F31B00F09C6F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2B29FBC17D0F31B00F09C6F /* UIKit.framework */; };
@@ -352,6 +358,18 @@
 		F2094FE6192AE2C500329A54 /* User.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = User.h; sourceTree = "<group>"; };
 		F2094FE7192AE2C500329A54 /* User.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = User.m; sourceTree = "<group>"; };
 		F2094FEB192BB53900329A54 /* BHReportWeatherCell_iPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHReportWeatherCell_iPad.xib; sourceTree = "<group>"; };
+		F2139D2719380C5000EE5C96 /* ReportUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReportUser.h; sourceTree = "<group>"; };
+		F2139D2819380C5000EE5C96 /* ReportUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReportUser.m; sourceTree = "<group>"; };
+		F2139D2A19380C5100EE5C96 /* ReportSub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReportSub.h; sourceTree = "<group>"; };
+		F2139D2B19380C5100EE5C96 /* ReportSub.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReportSub.m; sourceTree = "<group>"; };
+		F2139D2D1938101500EE5C96 /* ReportUser+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ReportUser+helper.h"; sourceTree = "<group>"; };
+		F2139D2E1938101500EE5C96 /* ReportUser+helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ReportUser+helper.m"; sourceTree = "<group>"; };
+		F2139D301938107900EE5C96 /* ReportSub+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "ReportSub+helper.h"; path = "../ReportSub+helper.h"; sourceTree = "<group>"; };
+		F2139D311938107900EE5C96 /* ReportSub+helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "ReportSub+helper.m"; path = "../ReportSub+helper.m"; sourceTree = "<group>"; };
+		F2139D331938169100EE5C96 /* BHChoosePersonnelCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChoosePersonnelCell.h; sourceTree = "<group>"; };
+		F2139D341938169100EE5C96 /* BHChoosePersonnelCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChoosePersonnelCell.m; sourceTree = "<group>"; };
+		F2139D36193816A800EE5C96 /* BHChoosePersonnelCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHChoosePersonnelCell.xib; sourceTree = "<group>"; };
+		F218FF0719370CED00AD4AF5 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F21F6EA2192EAF79003BC323 /* Address+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Address+helper.h"; sourceTree = "<group>"; };
 		F21F6EA3192EAF79003BC323 /* Address+helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Address+helper.m"; sourceTree = "<group>"; };
 		F21F6EA5192FF612003BC323 /* SafetyTopic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SafetyTopic.h; sourceTree = "<group>"; };
@@ -555,7 +573,6 @@
 		F2A594F317FBCD1C00B818B5 /* CoreImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreImage.framework; path = System/Library/Frameworks/CoreImage.framework; sourceTree = SDKROOT; };
 		F2B1F0E317D7BE810007A4E3 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		F2B1F0E417D7BE810007A4E3 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
-		F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		F2B1F0E917D7C0770007A4E3 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		F2B1F0EB17D7D3760007A4E3 /* BHSearchBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSearchBar.h; sourceTree = "<group>"; };
 		F2B1F0EC17D7D3760007A4E3 /* BHSearchBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSearchBar.m; sourceTree = "<group>"; };
@@ -866,6 +883,9 @@
 				F2EA269E190F1F8200EEF2CC /* BHChecklistCell.h */,
 				F2EA269F190F1F8200EEF2CC /* BHChecklistCell.m */,
 				F2EA26A1190F1FB600EEF2CC /* BHChecklistCell.xib */,
+				F2139D331938169100EE5C96 /* BHChoosePersonnelCell.h */,
+				F2139D341938169100EE5C96 /* BHChoosePersonnelCell.m */,
+				F2139D36193816A800EE5C96 /* BHChoosePersonnelCell.xib */,
 			);
 			name = Cells;
 			sourceTree = "<group>";
@@ -919,6 +939,14 @@
 				F25699C1190747EA00ED9032 /* Report.m */,
 				F203965717D3DCE9001CFF61 /* Report+helper.h */,
 				F203965817D3DCEA001CFF61 /* Report+helper.m */,
+				F2139D301938107900EE5C96 /* ReportSub+helper.h */,
+				F2139D311938107900EE5C96 /* ReportSub+helper.m */,
+				F2139D2A19380C5100EE5C96 /* ReportSub.h */,
+				F2139D2B19380C5100EE5C96 /* ReportSub.m */,
+				F2139D2719380C5000EE5C96 /* ReportUser.h */,
+				F2139D2819380C5000EE5C96 /* ReportUser.m */,
+				F2139D2D1938101500EE5C96 /* ReportUser+helper.h */,
+				F2139D2E1938101500EE5C96 /* ReportUser+helper.m */,
 				F21F6EA8192FF62B003BC323 /* SafetyTopic+helper.h */,
 				F21F6EA9192FF62B003BC323 /* SafetyTopic+helper.m */,
 				F21F6EA5192FF612003BC323 /* SafetyTopic.h */,
@@ -1160,7 +1188,7 @@
 				F28F9A2C18A34CF2000A46D4 /* BuildHawk_app_icon_144.png */,
 				F2B1F0E317D7BE810007A4E3 /* Default.png */,
 				F2B1F0E417D7BE810007A4E3 /* Default@2x.png */,
-				F2B1F0E517D7BE810007A4E3 /* Default-568h@2x.png */,
+				F218FF0719370CED00AD4AF5 /* Default-568h@2x.png */,
 				F203967B17D3E648001CFF61 /* whiteTabBackground.png */,
 				F203967C17D3E648001CFF61 /* whiteTabBackground@2x.png */,
 				F203967717D3E4F6001CFF61 /* reportsSelected.png */,
@@ -1471,7 +1499,6 @@
 				F292ABFF17F9E8F10020DE13 /* BHListItemPhotoCell.xib in Resources */,
 				F22681AA187FB0ED00D78BDD /* sunny.png in Resources */,
 				F203966817D3E052001CFF61 /* checklists.png in Resources */,
-				F2B1F0E817D7BE820007A4E3 /* Default-568h@2x.png in Resources */,
 				F21F6EBE193100C2003BC323 /* worklistiPad@2x.png in Resources */,
 				F291F4BF17F0B80900A27B46 /* stopAndCheckOutline.png in Resources */,
 				F2D8402F191C8B8C00592F3D /* dashboardScreenshot@2x.png in Resources */,
@@ -1508,6 +1535,7 @@
 				F2FAE45018F5B01D005E582B /* BHArchivedProjectCell.xib in Resources */,
 				F226815D186B699A00D78BDD /* backArrow@2x.png in Resources */,
 				F2D84039191D8FB000592F3D /* detailScreenshot@2x.png in Resources */,
+				F218FF0819370CED00AD4AF5 /* Default-568h@2x.png in Resources */,
 				F292ABFA17F9E6130020DE13 /* BHCommentCell.xib in Resources */,
 				F2D84038191D8FB000592F3D /* detailScreenshot.png in Resources */,
 				F203966E17D3E052001CFF61 /* reports.png in Resources */,
@@ -1535,6 +1563,7 @@
 				F28F9A3518A34D43000A46D4 /* BuildHawk_app_icon_80.png in Resources */,
 				F28F9A2918A33F5E000A46D4 /* BuildHawk_app_icon_120.png in Resources */,
 				F2094FEC192BB53900329A54 /* BHReportWeatherCell_iPad.xib in Resources */,
+				F2139D37193816A800EE5C96 /* BHChoosePersonnelCell.xib in Resources */,
 				F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */,
 				F2C2009418FCE637003C401A /* BHSafetyTopicsCell.xib in Resources */,
 				F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */,
@@ -1622,6 +1651,7 @@
 				F2FAE3FB18F4DCA2005E582B /* MBProgressHUD.m in Sources */,
 				F226817A18732C3900D78BDD /* BHPhotosHeaderView.m in Sources */,
 				F2EA2679190EFD7000EEF2CC /* Comment.m in Sources */,
+				F2139D2919380C5000EE5C96 /* ReportUser.m in Sources */,
 				F2EA266D190EF97600EEF2CC /* ChecklistItem+helper.m in Sources */,
 				F2FAE40418F4DCA2005E582B /* PSTCollectionViewItemKey.m in Sources */,
 				F2B29FC917D0F31B00F09C6F /* main.m in Sources */,
@@ -1633,6 +1663,7 @@
 				F2B29FDC17D0F31B00F09C6F /* BHChecklistViewController.m in Sources */,
 				F2FAE40A18F4DCA2005E582B /* PSTGridLayoutSection.m in Sources */,
 				F2B29FE317D0F31B00F09C6F /* BHDocumentsViewController.m in Sources */,
+				F2139D351938169100EE5C96 /* BHChoosePersonnelCell.m in Sources */,
 				F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */,
 				F2FAE44118F4DDB4005E582B /* MWCaptionView.m in Sources */,
 				F2EA26B719103E1600EEF2CC /* User+helper.m in Sources */,
@@ -1683,6 +1714,7 @@
 				F2FAE44B18F5AFAE005E582B /* BHArchivedViewController.m in Sources */,
 				F28F9A04189C4140000A46D4 /* BHReportWeatherCell.m in Sources */,
 				F2FAE3F718F4DCA2005E582B /* UIImage+GIF.m in Sources */,
+				F2139D321938107900EE5C96 /* ReportSub+helper.m in Sources */,
 				F2EA2685190F04BF00EEF2CC /* Cat+helper.m in Sources */,
 				F292ABFD17F9E8E40020DE13 /* BHListItemPhotoCell.m in Sources */,
 				F2B8178A18FA31E2002168FD /* BHDemoProjectsViewController.m in Sources */,
@@ -1719,7 +1751,9 @@
 				F228707A17DFC89300A88475 /* BHPunchlistItemViewController.m in Sources */,
 				F2FAE44818F4DDB4005E582B /* MWZoomingScrollView.m in Sources */,
 				F29EF2EF1815D30F00F737B7 /* BHPersonnelCell.m in Sources */,
+				F2139D2C19380C5100EE5C96 /* ReportSub.m in Sources */,
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
+				F2139D2F1938101500EE5C96 /* ReportUser+helper.m in Sources */,
 				F2EA26BD1910BFE000EEF2CC /* Checklist+helper.m in Sources */,
 				F203965F17D3DD7C001CFF61 /* BHReportViewController.m in Sources */,
 				F2FAE40018F4DCA2005E582B /* PSTCollectionViewCell.m in Sources */,

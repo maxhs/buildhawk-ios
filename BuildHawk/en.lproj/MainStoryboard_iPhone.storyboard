@@ -413,11 +413,6 @@
                                                 <action selector="sendEmail:" destination="qOL-i6-UJU" eventType="touchUpInside" id="Mzk-Gq-Fjj"/>
                                             </connections>
                                         </button>
-                                        <view contentMode="scaleToFill" id="M23-2O-8an">
-                                            <rect key="frame" x="0.0" y="419" width="320" height="1"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                            <color key="backgroundColor" white="0.84999999999999998" alpha="1" colorSpace="calibratedWhite"/>
-                                        </view>
                                     </subviews>
                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 </view>
@@ -675,7 +670,9 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="hXH-Mx-Tmg"/>
-                    <navigationItem key="navigationItem" id="fzG-Ma-MW3"/>
+                    <navigationItem key="navigationItem" id="fzG-Ma-MW3">
+                        <barButtonItem key="backBarButtonItem" title="Cancel" id="pMU-QJ-K4q"/>
+                    </navigationItem>
                     <connections>
                         <outlet property="activeTableView" destination="DMb-mX-aFr" id="RrQ-8Y-tLr"/>
                         <outlet property="afterTableView" destination="LAP-kd-1sg" id="hMz-VB-J0r"/>
@@ -713,32 +710,6 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         <outlet property="delegate" destination="xov-V5-hTJ" id="xKx-Me-omx"/>
                                     </connections>
                                 </searchBar>
-                                <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="UserCell" textLabel="JLq-5H-PdP" detailTextLabel="VNo-Qz-IN3" style="IBUITableViewCellStyleSubtitle" id="tED-ly-9bU">
-                                        <rect key="frame" x="0.0" y="66" width="320" height="44"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="tED-ly-9bU" id="4pY-k6-jXt">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="JLq-5H-PdP">
-                                                    <rect key="frame" x="15" y="3" width="34" height="22"/>
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="18"/>
-                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                                <label opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="left" text="Subtitle" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="VNo-Qz-IN3">
-                                                    <rect key="frame" x="15" y="25" width="43" height="15"/>
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                            </subviews>
-                                        </tableViewCellContentView>
-                                    </tableViewCell>
-                                </prototypes>
                                 <connections>
                                     <outlet property="dataSource" destination="xov-V5-hTJ" id="43j-RG-SbY"/>
                                     <outlet property="delegate" destination="xov-V5-hTJ" id="IKm-J5-KPl"/>
@@ -1405,12 +1376,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Vim-B7-ekZ"/>
         <segue reference="NH7-r7-qB8"/>
+        <segue reference="Vim-B7-ekZ"/>
         <segue reference="vI7-Ml-H9J"/>
-        <segue reference="eZr-X3-mJS"/>
-        <segue reference="QKi-s7-jOi"/>
-        <segue reference="BC4-fv-9Fr"/>
+        <segue reference="bOL-sd-mqt"/>
         <segue reference="JhG-cE-lNU"/>
+        <segue reference="eZr-X3-mJS"/>
+        <segue reference="BC4-fv-9Fr"/>
     </inferredMetricsTieBreakers>
 </document>

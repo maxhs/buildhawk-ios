@@ -13,6 +13,8 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) NSMutableOrderedSet *users;
+@property (strong, nonatomic) NSMutableOrderedSet *orderedUsers;
+@property (strong, nonatomic) NSMutableOrderedSet *orderedSubs;
 @property BOOL companyMode;
 @property BOOL countNotNeeded;
 @property BOOL phone;

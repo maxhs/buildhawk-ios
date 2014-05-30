@@ -162,7 +162,6 @@
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"user's company: %@",user.company);
             [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
             [UIView animateWithDuration:.3 animations:^{
                 self.loginContainerView.transform = CGAffineTransformIdentity;

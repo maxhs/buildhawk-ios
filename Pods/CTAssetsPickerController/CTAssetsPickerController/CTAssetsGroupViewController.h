@@ -1,6 +1,5 @@
-
 /*
- NSDate+TimeInterval.h
+ CTAssetsGroupViewController.h
  
  The MIT License (MIT)
  
@@ -26,12 +25,10 @@
  
  */
 
+#import <UIKit/UIKit.h>
 
-#import <Foundation/Foundation.h>
 
-@interface NSDate (TimeInterval)
 
-+ (NSDateComponents *)componetsWithTimeInterval:(NSTimeInterval)timeInterval;
-+ (NSString *)timeDescriptionOfTimeInterval:(NSTimeInterval)timeInterval;
+@interface CTAssetsGroupViewController : UITableViewController
 
 @end

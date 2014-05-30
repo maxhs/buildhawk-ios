@@ -99,7 +99,6 @@
     [self.tableView addSubview:refreshControl];
     
     searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(activateSearch)];
-    self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadChecklistItem:) name:@"ReloadChecklistItem" object:nil];
     if ([(BHTabBarViewController*)self.tabBarController checklistIndexPath]){
@@ -229,6 +228,7 @@
     NSPredicate *testForActive = [NSPredicate predicateWithFormat:@"status != %@ and status != %@",kNotApplicable,kCompleted];
     for (Phase *phase in _checklist.phases){
         phase.activeCategories = [NSMutableArray array];
+        
         for (Cat *category in phase.categories){
             category.activeItems = [NSMutableArray array];
             for (ChecklistItem *item in category.items){
@@ -236,7 +236,12 @@
                     [category.activeItems addObject:item];
                 }
             }
-            if (category.activeItems.count) [phase.activeCategories addObject:category];
+            if (category.activeItems.count) {
+                [phase.activeCategories addObject:category];
+            } else {
+                //condense the phase
+                phase.expanded = [NSNumber numberWithBool:NO];
+            }
         }
         if (phase.activeCategories.count > 0) {
             [_checklist.activePhases addObject:phase];
@@ -264,7 +269,13 @@
                     [category.inProgressItems addObject:item];
                 }
             }
-            if (category.inProgressItems.count) [phase.inProgressCategories addObject:category];
+            if (category.inProgressItems.count) {
+                [phase.inProgressCategories addObject:category];
+            } else {
+                //condense the phase
+                phase.expanded = [NSNumber numberWithBool:NO];
+            }
+            
         }
         if (phase.inProgressCategories.count > 0) {
             [_checklist.inProgressPhases addObject:phase];
@@ -291,7 +302,12 @@
                     [category.completedItems addObject:item];
                 }
             }
-            if (category.completedItems.count) [phase.completedCategories addObject:category];
+            if (category.completedItems.count) {
+                [phase.completedCategories addObject:category];
+            } else {
+                //condense the phase
+                phase.expanded = [NSNumber numberWithBool:NO];
+            }
         }
         if (phase.completedCategories.count > 0) {
             [_checklist.completedPhases addObject:phase];
@@ -354,6 +370,7 @@
     [super viewWillAppear:animated];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:0]];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -633,16 +650,13 @@
             }
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
         } else {
-            NSLog(@"did select section: %d, row: %d",indexPath.section, indexPath.row);
             NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
             id item = [openRows objectAtIndex:indexPath.row-1];
             if ([item isKindOfClass:[Cat class]]){
                 
-                NSLog(@"trying to find category");
                 Cat *category = [openRows objectAtIndex:indexPath.row-1];
                 
                 if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
-                    NSLog(@"category already expanded");
                     NSMutableArray *deleteIndexPaths = [NSMutableArray array];
                     int subIdx = [openRows indexOfObject:category];
                     
@@ -666,7 +680,6 @@
                     category.expanded = [NSNumber numberWithBool:NO];
                     [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                 } else {
-                    NSLog(@"expanding categroy");
                     category.expanded = [NSNumber numberWithBool:YES];
                     NSMutableArray *newIndexPaths = [NSMutableArray array];
                     int catIdx = [openRows indexOfObject:category];
@@ -850,13 +863,17 @@
     [super viewWillDisappear:animated];
 }
 
-- (void)dealloc {
-    NSLog(@"dealloc");
+- (void)condenseTableView {
     for (Phase *phase in _checklist.phases){
         for (Cat *category in phase.categories){
             category.expanded = [NSNumber numberWithBool:NO];
         }
     }
+}
+
+- (void)dealloc {
+    NSLog(@"dealloc");
+    [self condenseTableView];
 }
 
 - (void)saveContext {

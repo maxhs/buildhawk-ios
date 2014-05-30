@@ -122,7 +122,7 @@
         <relationship name="users" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="projects" inverseEntity="User" syncable="YES"/>
     </entity>
     <entity name="Punchlist" representedClassName="Punchlist" syncable="YES">
-        <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="identifier" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="punchlist" inverseEntity="Project" syncable="YES"/>
         <relationship name="punchlistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="PunchlistItem" inverseName="punchlist" inverseEntity="PunchlistItem" syncable="YES"/>
     </entity>
@@ -156,9 +156,21 @@
         <attribute name="wind" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="report" inverseEntity="Photo" syncable="YES"/>
         <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="reports" inverseEntity="Project" syncable="YES"/>
-        <relationship name="reportSubs" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Subcontractor" inverseName="report" inverseEntity="Subcontractor" syncable="YES"/>
-        <relationship name="reportUsers" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="User" inverseName="reports" inverseEntity="User" syncable="YES"/>
+        <relationship name="reportSubs" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ReportSub" inverseName="report" inverseEntity="ReportSub" syncable="YES"/>
+        <relationship name="reportUsers" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ReportUser" inverseName="report" inverseEntity="ReportUser" syncable="YES"/>
         <relationship name="safetyTopics" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="SafetyTopic" inverseName="report" inverseEntity="SafetyTopic" syncable="YES"/>
+    </entity>
+    <entity name="ReportSub" representedClassName="ReportSub" syncable="YES">
+        <attribute name="count" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="report" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Report" inverseName="reportSubs" inverseEntity="Report" syncable="YES"/>
+    </entity>
+    <entity name="ReportUser" representedClassName="ReportUser" syncable="YES">
+        <attribute name="fullname" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="hours" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
+        <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <relationship name="report" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Report" inverseName="reportUsers" inverseEntity="Report" syncable="YES"/>
     </entity>
     <entity name="SafetyTopic" representedClassName="SafetyTopic" syncable="YES">
         <attribute name="identifier" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
@@ -173,7 +185,6 @@
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="usersCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="subcontractors" inverseEntity="Company" syncable="YES"/>
-        <relationship name="report" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Report" inverseName="reportSubs" inverseEntity="Report" syncable="YES"/>
     </entity>
     <entity name="User" representedClassName="User" syncable="YES">
         <attribute name="admin" optional="YES" attributeType="Boolean" syncable="YES"/>
@@ -198,7 +209,6 @@
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="users" inverseEntity="Company" syncable="YES"/>
         <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Project" inverseName="users" inverseEntity="Project" syncable="YES"/>
         <relationship name="punchlistItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="PunchlistItem" inverseName="user" inverseEntity="PunchlistItem" syncable="YES"/>
-        <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="reportUsers" inverseEntity="Report" syncable="YES"/>
     </entity>
     <elements>
         <element name="Address" positionX="18" positionY="162" width="128" height="210"/>
@@ -210,11 +220,13 @@
         <element name="Phase" positionX="45" positionY="180" width="128" height="238"/>
         <element name="Photo" positionX="36" positionY="171" width="128" height="358"/>
         <element name="Project" positionX="0" positionY="0" width="128" height="313"/>
-        <element name="Punchlist" positionX="27" positionY="153" width="128" height="88"/>
+        <element name="Punchlist" positionX="27" positionY="153" width="128" height="90"/>
         <element name="PunchlistItem" positionX="36" positionY="162" width="128" height="208"/>
         <element name="Report" positionX="0" positionY="0" width="128" height="328"/>
-        <element name="Subcontractor" positionX="27" positionY="153" width="128" height="133"/>
-        <element name="User" positionX="0" positionY="0" width="128" height="390"/>
         <element name="SafetyTopic" positionX="27" positionY="153" width="128" height="118"/>
+        <element name="Subcontractor" positionX="27" positionY="153" width="128" height="118"/>
+        <element name="User" positionX="0" positionY="0" width="128" height="375"/>
+        <element name="ReportUser" positionX="27" positionY="153" width="128" height="103"/>
+        <element name="ReportSub" positionX="36" positionY="162" width="128" height="103"/>
     </elements>
 </model>

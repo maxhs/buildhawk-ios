@@ -72,19 +72,25 @@
     sortByDate = NO;
     sortByUser = NO;
     [Flurry logEvent:@"Viewing documents"];
-    [self loadPhotos];
     [super viewDidLoad];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor whiteColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    
+    if (_project.documents.count > 0) [self drawDocuments:_project.documents];
+    [self loadPhotos];
 }
 
 - (void)handleRefresh:(id)sender {
     [self loadPhotos];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.tabBarController.navigationItem.rightBarButtonItem = nil;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -112,9 +118,9 @@
     loading = YES;
     
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         [_project parseDocuments:[responseObject objectForKey:@"photos"]];
         [self drawDocuments:_project.documents];
-        //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         loading = NO;
         [self.tableView reloadData];
@@ -485,7 +491,6 @@
             [vc setTitle:@"Reports"];
         }
             break;
-
         default:
             break;
     }
@@ -498,8 +503,14 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    [manager.operationQueue cancelAllOperations];
     [ProgressHUD dismiss];
+    [self saveContext];
+}
+
+- (void)saveContext {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"Saving documents to persistent store: %hhd %@",success, error);
+    }];
 }
 
 @end

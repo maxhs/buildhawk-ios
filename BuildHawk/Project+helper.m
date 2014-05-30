@@ -166,7 +166,7 @@
 }
 
 - (void)parseDocuments:(NSArray *)array {
-    NSMutableOrderedSet *photos = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.documents];
+    NSMutableOrderedSet *photos = [NSMutableOrderedSet orderedSet];
     for (NSDictionary *photoDict in array){
         Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"]];
         if (!photo){
@@ -174,6 +174,12 @@
         }
         [photo populateFromDictionary:photoDict];
         [photos addObject:photo];
+    }
+    for (Photo *photo in self.documents){
+        if (![photos containsObject:photo]){
+            NSLog(@"deleting photo that no longer exists: %@",photo.createdDate);
+            [photo MR_deleteEntity];
+        }
     }
     self.documents = photos;
 }

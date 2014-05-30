@@ -1,35 +1,42 @@
 # CTAssetsPickerController
 
-CTAssetsPickerController is an iOS controller that allows picking multiple photos and videos from user's photo library. The usage and look-and-feel just similar to UIImagePickerController. It uses **ARC** and requires **AssetsLibrary** framework.
+CTAssetsPickerController v2 released! It has newly re-design delegate methods, fixed serveral issues and improved usability. Please see [What's new](#whats-new) for the details.
 
-![Screenshot](https://raw.github.com/chiunam/CTAssetsPickerController/master/Screenshot.png "Screenshot")
+## Introduction
+
+CTAssetsPickerController is an iOS controller that allows picking multiple photos and videos from user's photo library. The usage and look-and-feel are just similar to UIImagePickerController. It uses **ARC** and requires **AssetsLibrary** framework.
+
+![Screenshot](Screenshot.png "Screenshot")
 
 ## Features
-1. Picking multiple photos and videos from user's library.
-2. Filtering assets to pick only photos or videos.
-3. Limiting maximum number of assets to be picked.
-4. Average 5x fps.
-5. Conforming UIAccessibility Protocol.
+1. Picks multiple photos and videos across albums from user's library.
+2. Filters assets for picking only photos or videos.
+3. Provides delegate methods for customization.
+4. Achieves average 5x fps.
+5. Conforms UIAccessibility Protocol.
+
+
+## What's new
+* [Release Notes](RELEASE-NOTES.md)
+
+#### Note
+CTAssetsPickerController has dropped support for iOS 6. To use this control with iOS 6, you might consider to checkout the obsolete branch [1.x.x](https://github.com/chiunam/CTAssetsPickerController/tree/1.x.x), which developement has been ceased.
+
 
 ## Minimum Requirement
-Xcode 5 and iOS 6.
+Xcode 5 and iOS 7.
 
 ## Installation
 
-### via CocoaPods
-Install CocoaPods if you do not have it:-
-````bash
-$ [sudo] gem install cocoapods
-$ pod setup
-````
-Create Podfile:-
+### via [CocoaPods](http://cocoapods.org)
+
 ````bash
 $ edit Podfile
-platform :ios, '6.0'
-pod 'CTAssetsPickerController',  '~> 1.5.0'
+platform :ios, '7.0'
+pod 'CTAssetsPickerController',  '~> 2.2.0'
 $ pod install
 ````
-Use the Xcode workspace instead of the project from now on.
+* Use the Xcode workspace instead of the project.
 
 ### via Git Submodules
 
@@ -39,19 +46,14 @@ $ git submodule add http://github.com/chiunam/CTAssetsPickerController
 1. Drag `CTAssetsPickerController` folder in your project and add to your targets.
 2. Add `AssetsLibrary.framework`.
 
-## Usage
+## Simple Uses
 
-See the Demo Xcode project for details.
+See the demo project and [documentation](#documentation) for the details.
 
 ### Import header
 
-If using CocoaPods:-
 ```` objective-c
 #import <CTAssetsPickerController.h>
-````
-If using Submodules:-
-```` objective-c
-#import "CTAssetsPickerController.h"
 ````
 
 ### Create and present CTAssetsPickerController
@@ -62,84 +64,126 @@ picker.delegate = self;
 [self presentViewController:picker animated:YES completion:nil];
 ````
 
-### Customization
-You can set max number of selection to limit the assets to be picked.
+### Implement didFinishPickingAssets delegate
 
-```` objective-c
-picker.maximumNumberOfSelections = 10;
-````
+The delegate methods are responsible for dismissing the picker when the operation completes. To dismiss the picker, call the [dismissViewControllerAnimated:completion:](https://developer.apple.com/library/ios/documentation/uikit/reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instm/UIViewController/dismissViewControllerAnimated:completion:) method of the presenting controller responsible for displaying `CTAssetsPickerController` object. Please refer to the demo app.
 
-If you only want to pick photos or videos, create an `ALAssetsFilter` and assign to `assetsFilter`.
-```` objective-c
-picker.assetsFilter = [ALAssetsFilter allPhotos]; // Only pick photos.
-````    
-
-If you only want to pick assets that meet certain criteria, create an `NSPredicate` and assign to `selectionFilter`.
-Assets that does not match the predicate will not be selectable.
-```` objective-c
-// only allow video clips if they are at least 5s
-picker.selectionFilter = [NSPredicate predicateWithBlock:^BOOL(ALAsset* asset, NSDictionary *bindings) {
-    if ([[asset valueForProperty:ALAssetPropertyType] isEqual:ALAssetTypeVideo]) {
-        NSTimeInterval duration = [[asset valueForProperty:ALAssetPropertyDuration] doubleValue];
-        return duration >= 5;
-    } else {
-        return YES;
-    }
-}];
-````    
-
-Hide the cancel button if you present the picker in `UIPopoverController`.
-```` objective-c
-picker.showsCancelButton = NO;
-````
-
-Show empty photo albums in the picker.
-```` objective-c
-picker.showsEmptyGroups = YES;
-````
-
-
-### Implement CTAssetsPickerControllerDelegate
-
-The delegate methods are responsible for dismissing the picker when the operation completes. To dismiss the picker, call the [dismissViewControllerAnimated:completion:](https://developer.apple.com/library/ios/documentation/uikit/reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instm/UIViewController/dismissViewControllerAnimated:completion:) method of the presenting controller responsible for displaying CTAssetsPickerController object. Please refer to the demo app.
-
-#### didFinishPickingAssets
-Tells the delegate that the user finish picking photos or videos.
 ```` objective-c
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets;
 // assets contains ALAsset objects.
 ````
 
-#### didCancel (Optional)
-Tells the delegate that the user cancelled the pick operation.
+## Advanced Uses
+
+Customization can be done by setting properties or implementating delegate methods. This section describes common customizations. Please refer to the [documentation](#documentation) for the complete list of properties and delegate methods.
+
+### Properties
+
+**Filter picker contents**
+
+Pick only photos or videos by creating an `ALAssetsFilter` and assigning it to `assetsFilter`.
 ```` objective-c
-- (void)assetsPickerControllerDidCancel:(CTAssetsPickerController *)picker;
+picker.assetsFilter = [ALAssetsFilter allPhotos]; // Only pick photos.
 ````
 
-#### didSelectItemAtIndexPath (Optional)
-Tells the delegate that the item at the specified index path was selected.
+**Hide cancel button**
+
+Hide cancel button if you present the picker in `UIPopoverController`.
 ```` objective-c
-- (void)assetsPickerController:(CTAssetsPickerController *)picker didSelectItemAtIndexPath:(NSIndexPath *)indexPath;
-// picker.indexPathsForSelectedItems contains indexPaths for selected items
+picker.showsCancelButton = NO;
 ````
 
-#### didDeselectItemAtIndexPath (Optional)
-Tells the delegate that the item at the specified path was deselected.
+**Override picker's title**
+
+Override title of the albums selection screen.
 ```` objective-c
-- (void)assetsPickerController:(CTAssetsPickerController *)picker didDeselectItemAtIndexPath:(NSIndexPath *)indexPath;
+picker.title = @"Pick photos";
 ````
 
-#### didHighlightItemAtIndexPath (Optional)
-Tells the delegate that the item at the specified index path was highlighted.
+**Set initially selected assets**
+
+Set selected assets by assigning an `NSMutableArray` to `selectedAssets`.
 ```` objective-c
-- (void)assetsPickerController:(CTAssetsPickerController *)picker didHighlightItemAtIndexPath:(NSIndexPath *)indexPath;
+picker.selectedAssets = [NSMutableArray arrayWithArray:@[asset1, asset2, asset3, ...]];
 ````
 
-#### didUnhighlightItemAtIndexPath (Optional)
-Tells the delegate that the highlight was removed from the item at the specified index path.
+### Delegate Methods
+
+**Set maximum number of selections**
+
+Limit the number of assets to be picked.
 ```` objective-c
-- (void)assetsPickerController:(CTAssetsPickerController *)picker didUnhighlightItemAtIndexPath:(NSIndexPath *)indexPath;
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
+{
+    // Allow 10 assets to be picked
+    return (picker.selectedAssets.count < 10);
+}
 ````
+
+**Disable assets**
+
+Enable only certain assets to be selected.
+```` objective-c
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldEnableAsset:(ALAsset *)asset
+{
+    // Enable video clips if they are at least 5s
+    if ([[asset valueForProperty:ALAssetPropertyType] isEqual:ALAssetTypeVideo])
+    {
+        NSTimeInterval duration = [[asset valueForProperty:ALAssetPropertyDuration] doubleValue];
+        return lround(duration) >= 5;
+    }
+    // Photos are always enabled
+    else
+    {
+        return YES;
+    }
+}
+````
+
+**Hide albums**
+
+Assets stored on iCloud (photo stream) may not be displayed and picked properly if they have not downloaded to the device. You may hide iCloud albums by implementing the following delegate.
+```` objective-c
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldShowAssetsGroup:(ALAssetsGroup *)group
+{
+    // Do not show photo stream
+    NSInteger type = [[group valueForProperty:ALAssetsGroupPropertyType] integerValue];
+    return (type != ALAssetsGroupPhotoStream);
+}
+````
+
+**Show alert on selection**
+
+Or show an alert when user try to select empty assets
+
+```` objective-c
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
+{
+    // Show alert when user try to select assets that have not been downloaded
+    if (!asset.defaultRepresentation)
+    {
+        UIAlertView *alertView =
+        [[UIAlertView alloc] initWithTitle:@"Attention"
+                                   message:@"Your asset has not yet been downloaded to your device"
+                                  delegate:nil
+                         cancelButtonTitle:nil
+                         otherButtonTitles:@"OK", nil];
+
+        [alertView show];
+    }
+
+    return (asset.defaultRepresentation != nil);
+}
+````
+
+### Notifications
+
+An `NSNotification` object named `CTAssetsPickerSelectedAssetsChangedNotification` will be sent when user select or deselect assets. You may add your observer to monitor the change of selection.
+
+
+## Documentation
+* [Online documentation](http://chiunam.github.io/CTAssetsPickerController)
+* If you have [Appledoc](https://github.com/tomaz/appledoc) installed, you can also install the documentation to Xcode by running the `Documentation` target of the demo project.
 
 
 ## Note
@@ -149,7 +193,7 @@ For example, you can create `UIImage` from picked assets like this:-
 
 ```` objective-c
     ALAssetRepresentation *representation = alAsset.defaultRepresentation;
-    
+
     UIImage *fullResolutionImage =
     [UIImage imageWithCGImage:representation.fullResolutionImage
                         scale:1.0f
@@ -160,44 +204,45 @@ and create `NSData` of picked vidoes:-
 
 ```` objective-c
     ALAssetRepresentation *representation = alAsset.defaultRepresentation;
-    
+
     NSURL *url          = representation.url;
     AVAsset *asset      = [AVURLAsset URLAssetWithURL:url options:nil];
-    
+
     AVAssetExportSession *session =
     [AVAssetExportSession exportSessionWithAsset:asset presetName:AVAssetExportPresetLowQuality];
-    
+
     session.outputFileType  = AVFileTypeQuickTimeMovie;
     session.outputURL       = VIDEO_EXPORTING_URL;
-    
+
     [session exportAsynchronouslyWithCompletionHandler:^{
-        
+
         if (session.status == AVAssetExportSessionStatusCompleted)
         {
             NSData *data    = [NSData dataWithContentsOfURL:session.outputURL];
         }
-        
+
     }];
 
 ````
 Please refer the documentation of `ALAssetRepresentation` and `AVAssetExportSession`.
 
+
 ## License
 
  The MIT License (MIT)
- 
+
  Copyright (c) 2013 Clement CN Tsang
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included in
  all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE

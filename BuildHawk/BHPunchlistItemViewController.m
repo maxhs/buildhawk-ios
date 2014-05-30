@@ -183,8 +183,10 @@ typedef void(^RequestSuccess)(id result);
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    if (_punchlistItem && _punchlistItem.identifier) return 2;
-    else return 0;
+    if ([_punchlistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        return 0;
+    }
+    else return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -310,8 +312,8 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)updatePersonnel:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
-    NSLog(@"update personnel: %@",[info objectForKey:kpersonnel]);
     User *user = [info objectForKey:kpersonnel];
+    NSLog(@"update personnel: %@",user.fullname);
     NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
     _punchlistItem.assignees = assigneeSet;
     [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
@@ -356,6 +358,16 @@ typedef void(^RequestSuccess)(id result);
     photoIdx = button.tag;
     [self showPhotoDetail];
 }
+
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
+{
+    if (picker.selectedAssets.count >= 10){
+        [[[UIAlertView alloc] initWithTitle:nil message:@"We're unable to select more than 10 photos per batch." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
+    // Allow 10 assets to be picked
+    return (picker.selectedAssets.count < 10);
+}
+
 
 - (IBAction)choosePhoto {
     saveToLibrary = NO;
@@ -953,6 +965,7 @@ typedef void(^RequestSuccess)(id result);
             [self takePhoto];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
+        _punchlistItem.location = nil;
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]]) {
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
@@ -968,7 +981,8 @@ typedef void(^RequestSuccess)(id result);
                 addOtherAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
                 [addOtherAlertView show];
             } else {
-                [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",[actionSheet buttonTitleAtIndex:buttonIndex]] forState:UIControlStateNormal];
+                [_punchlistItem setLocation:buttonTitle];
+                [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",buttonTitle] forState:UIControlStateNormal];
             }
         }
     }

@@ -42,10 +42,10 @@
     if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
         self.assignee = [dictionary objectForKey:@"assignee"];
     }
-    if ([dictionary objectForKey:@"folder_name"]) {
+    if ([dictionary objectForKey:@"folder_name"] && [dictionary objectForKey:@"folder_name"] != [NSNull null]) {
         self.folder = [dictionary objectForKey:@"folder_name"];
     }
-    if ([dictionary objectForKey:@"folder_id"]) {
+    if ([dictionary objectForKey:@"folder_id"] && [dictionary objectForKey:@"folder_id"] != [NSNull null]) {
         self.folderId = [dictionary objectForKey:@"folder_id"];
     }
     if ([dictionary objectForKey:@"user_name"] && [dictionary objectForKey:@"user_name"]!=[NSNull null]) {

@@ -185,31 +185,25 @@
 }
 
 - (void)updateLocalReports:(NSArray*)array {
+    NSMutableOrderedSet *reportSet = [NSMutableOrderedSet orderedSet];
+    
     for (id obj in array) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@",[obj objectForKey:@"id"]];
         Report *report = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (report){
-            [report populateWithDict:obj];
-        } else {
-            NSLog(@"had to create report");
+        if (!report){
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [report populateWithDict:obj];
-            [project addReport:report];
+        }
+        [report populateWithDict:obj];
+        [reportSet addObject:report];
+    }
+    for (Report *report in project.reports) {
+        if (![reportSet containsObject:report]) {
+            NSLog(@"deleting a report that no longer exists: %@",report.createdDate);
+            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
-    
-    loading = NO;
-    [ProgressHUD dismiss];
-    if (safety) {
-        [self filter:kSafety];
-    } else if (weekly) {
-        [self filter:kWeekly];
-    } else if (daily) {
-        [self filter:kDaily];
-    } else {
-        [self.tableView reloadData];
-    }
-    //[self saveContext];
+    project.reports = reportSet;
+    [self saveContext];
 }
 
 #pragma mark - Table view data source
@@ -468,10 +462,21 @@
     [super viewDidDisappear:animated];
     self.tabBarController.navigationItem.rightBarButtonItems = nil;
     [self cancelDatePicker];
-    [self saveContext];
+    //[self saveContext];
 }
 - (void)saveContext {
     [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+        loading = NO;
+        [ProgressHUD dismiss];
+        if (safety) {
+            [self filter:kSafety];
+        } else if (weekly) {
+            [self filter:kWeekly];
+        } else if (daily) {
+            [self filter:kDaily];
+        } else {
+            [self.tableView reloadData];
+        }
         NSLog(@"What happened during reports save? %hhd %@",success, error);
     }];
 }

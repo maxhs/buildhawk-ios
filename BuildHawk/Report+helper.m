@@ -10,6 +10,7 @@
 #import "Photo+helper.h"
 #import "User+helper.h"
 #import "Subcontractor.h"
+#import "ReportSub.h"
 #import "SafetyTopic+helper.h"
 
 @implementation Report (helper)
@@ -43,24 +44,47 @@
     if ([dictionary objectForKey:@"weather_icon"] && [dictionary objectForKey:@"weather_icon"] != [NSNull null]) {
         self.weatherIcon = [dictionary objectForKey:@"weather_icon"];
     }
+    if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
+        self.createdDate = [dictionary objectForKey:@"created_date"];
+    }
     if ([dictionary objectForKey:@"report_users"] && [dictionary objectForKey:@"report_users"] != [NSNull null]) {
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"report_users"]){
             if ([userDict objectForKey:@"user"] != [NSNull null]) {
                 //NSLog(@"user dict from report users: %@",userDict);
-                NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[userDict objectForKey:@"user"] objectForKey:@"id"]];
-                User *user = [User MR_findFirstWithPredicate:userPredicate];
-                if (!user){
-                    user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+                ReportUser *reportUser = [ReportUser MR_findFirstWithPredicate:userPredicate];
+                if (!reportUser){
+                    reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
-                [user populateFromDictionary:[userDict objectForKey:@"user"]];
-                [orderedUsers addObject:user];
+                if ([userDict objectForKey:@"hours"] && [userDict objectForKey:@"hours"] != [NSNull null]){
+                    reportUser.hours = [userDict objectForKey:@"hours"];
+                }
+                [reportUser populateFromDictionary:[userDict objectForKey:@"user"]];
+                [orderedUsers addObject:reportUser];
             }
         }
         self.reportUsers = orderedUsers;
-        
+        NSLog(@"report user count %d for report: %@",self.reportUsers.count, self.createdDate);
     }
-    if ([dictionary objectForKey:@"report_subs"] && [dictionary objectForKey:@"report_subs"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"report_companies"] && [dictionary objectForKey:@"report_companies"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSet];
+        for (id subDict in [dictionary objectForKey:@"report_companies"]){
+            //NSLog(@"sub dict from report subs: %@",subDict);
+            if ([subDict objectForKey:@"company"] != [NSNull null]) {
+                NSPredicate *companyPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
+                ReportSub *subcontractor = [ReportSub MR_findFirstWithPredicate:companyPredicate];
+                if (!subcontractor){
+                    subcontractor = [ReportSub MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                }
+                subcontractor.name = [[subDict objectForKey:@"company"] objectForKey:@"name"];
+                if ([subDict objectForKey:@"count"] != [NSNull null]) subcontractor.count = [subDict objectForKey:@"count"];
+                [orderedSubs addObject:subcontractor];
+            }
+        }
+        self.reportSubs = orderedSubs;
+    }
+    /*if ([dictionary objectForKey:@"report_subs"] && [dictionary objectForKey:@"report_subs"] != [NSNull null]) {
         NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSet];
         for (id subDict in [dictionary objectForKey:@"report_subs"]){
             //NSLog(@"sub dict from report subs: %@",subDict);
@@ -74,10 +98,7 @@
             [orderedSubs addObject:sub];
         }
         self.reportSubs = orderedSubs;
-    }
-    if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
-        self.createdDate = [dictionary objectForKey:@"created_date"];
-    }
+    }*/
     if ([dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
@@ -125,12 +146,12 @@
     self.safetyTopics = set;
 }
 
-- (void)addReportUser:(User*)reportUser {
+- (void)addReportUser:(ReportUser*)reportUser {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportUsers];
     [set addObject:reportUser];
     self.reportUsers = set;
 }
--(void)removeReportUser:(User*)reportUser {
+-(void)removeReportUser:(ReportUser*)reportUser {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportUsers];
     [set removeObject:reportUser];
     self.reportUsers = set;
@@ -149,12 +170,12 @@
     self.photos = set;
 }
 
-- (void)addReportSubcontractor:(Subcontractor *)reportSubcontractor {
+- (void)addReportSubcontractor:(ReportSub *)reportSubcontractor {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportSubs];
     [set addObject:reportSubcontractor];
     self.reportSubs = set;
 }
--(void)removeReportSubcontractor:(Subcontractor *)reportSubcontractor {
+-(void)removeReportSubcontractor:(ReportSub *)reportSubcontractor {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportSubs];
     [set removeObject:reportSubcontractor];
     self.reportSubs = set;

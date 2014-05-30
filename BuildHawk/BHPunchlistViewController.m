@@ -49,6 +49,7 @@
 @implementation BHPunchlistViewController
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
     project =[(BHTabBarViewController*)self.tabBarController project];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Worklists",project.name];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
@@ -78,14 +79,12 @@
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
     savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];*/
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createItem)];
-    self.tabBarController.navigationItem.rightBarButtonItem = addButton;
+    
     if ([project.punchlist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        NSLog(@"found punchlist");
-        [self drawPunchlist];
-    } else {
         [ProgressHUD show:@"Getting Worklist..."];
+    } else {
+        [self drawPunchlist];
     }
-    [super viewDidLoad];
 }
 
 - (void)createItem {
@@ -105,6 +104,7 @@
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenWorklist];
     }
+    self.tabBarController.navigationItem.rightBarButtonItem = addButton;
 }
 
 #pragma mark Intro Stuff
@@ -371,15 +371,9 @@
 }
 
 - (void)loadPunchlist {
-    [manager GET:[NSString stringWithFormat:@"%@/punchlists/%@", kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/punchlists", kApiBaseUrl] parameters:@{@"project_id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading punchlist: %@",responseObject);
-        //NSLog(@"punchlist items: %d",project.punchlist.punchlistItems.count);
-        if (project.punchlist && ![project.punchlist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [project.punchlist populateFromDictionary:[responseObject objectForKey:@"punchlist"]];
-        } else {
-            project.punchlist = [Punchlist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [project.punchlist populateFromDictionary:[responseObject objectForKey:@"punchlist"]];
-        }
+        [self updatePunchlist:[responseObject objectForKey:@"punchlist"]];
         loading = NO;
         [self drawPunchlist];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -387,8 +381,26 @@
         [ProgressHUD dismiss];
         loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
+}
+
+- (void)updatePunchlist:(NSDictionary*)dictionary {
+    Punchlist *punchlist = [Punchlist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"id"]];
+    if (!punchlist){
+        NSLog(@"creating punchlist");
+        punchlist = [Punchlist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    }
+    [punchlist populateFromDictionary:dictionary];
+    if (project.punchlist.punchlistItems.count > 0){
+        for (PunchlistItem *item in project.punchlist.punchlistItems) {
+            if (![punchlist.punchlistItems containsObject:item]) {
+                NSLog(@"deleting a punchlist item that no longer exists: %@",item.body);
+                [item MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+    }
+    project.punchlist = punchlist;
 }
 
 #pragma mark - Table view data source

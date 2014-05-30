@@ -195,43 +195,28 @@
 }
 
 - (void)updateProjects:(NSArray*)projectsArray {
-    /*NSArray *sampleProjects = [Project MR_findAll];
-    NSLog(@"how many sample projects: %d",sampleProjects.count);
-    
-    NSArray *sampleReports = [Report MR_findAll];
-    NSLog(@"how many sample reports: %d",sampleReports.count);
-    
-    NSArray *sampleChecklists = [Checklist MR_findAll];
-    NSLog(@"how many sample checklists: %d",sampleChecklists.count);
-    
-    NSArray *sampleChecklistItems = [ChecklistItem MR_findAll];
-    NSLog(@"how many sample checklist items: %d",sampleChecklistItems.count);
-    
-    NSArray *sampleUsers = [User MR_findAll];
-    NSLog(@"how many sample users: %d",sampleUsers.count);
-    
-    NSArray *sampleSubcontractors = [Subcontractor MR_findAll];
-    NSLog(@"how many sample subcontractors: %d",sampleSubcontractors.count);*/
-
     if (projectsArray.count == 0){
-        NSLog(@"no projects");
         self.tableView.allowsSelection = YES;
         [ProgressHUD dismiss];
     } else {
+        NSMutableOrderedSet *projectSet = [NSMutableOrderedSet orderedSet];
         for (id obj in projectsArray) {
             //NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [obj objectForKey:@"id"]];
             Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[obj objectForKey:@"id"]];
-            if (project){
-                [project populateFromDictionary:obj];
-                project.company = currentUser.company;
-            } else {
-                NSLog(@"had to create new project");
+            if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                project.company = currentUser.company;
-                [project populateFromDictionary:obj];
+            }
+            [project populateFromDictionary:obj];
+            [projectSet addObject:project];
+        }
+        
+        for (Project *p in currentUser.company.projects){
+            if (![projectSet containsObject:p]){
+                NSLog(@"deleting project %@ because it no longer exists",p.name);
+                [p MR_deleteEntity];
             }
         }
-
+        currentUser.company.projects = projectSet;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             NSLog(@"What happened during dashboard save? %hhd %@",success, error);
             [self.tableView reloadData];
@@ -240,7 +225,6 @@
 }
 
 - (void)loadGroups {
-
     [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"load groups response object: %@",responseObject);
         groups = [BHUtilities groupsFromJSONArray:[responseObject objectForKey:@"groups"]];
