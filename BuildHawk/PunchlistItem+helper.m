@@ -24,6 +24,17 @@
     if ([dictionary objectForKey:@"location"] && [dictionary objectForKey:@"location"] != [NSNull null]) {
         self.location = [dictionary objectForKey:@"location"];
     }
+    if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
+        NSDictionary *userDict = [dictionary objectForKey:@"user"];
+        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+        User *user = [User MR_findFirstWithPredicate:userPredicate];
+        if (!user){
+            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
+        }
+        [user populateFromDictionary:userDict];
+        self.user = user;
+    }
     if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         NSDictionary *userDict = [dictionary objectForKey:@"assignee"];

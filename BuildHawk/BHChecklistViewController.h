@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHDeselectableSegmentedControl.h"
 //#import "GAITrackedViewController.h"
 
 @interface BHChecklistViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
+@property (weak, nonatomic) IBOutlet BHDeselectableSegmentedControl *segmentedControl;
 @end

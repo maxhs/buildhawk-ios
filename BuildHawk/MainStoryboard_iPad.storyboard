@@ -154,22 +154,22 @@
                     <collectionView key="view" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" minimumZoomScale="0.0" maximumZoomScale="0.0" dataMode="prototypes" id="XIe-U0-S5w">
                         <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="5" minimumInteritemSpacing="5" id="LP5-tC-Qbn">
-                            <size key="itemSize" width="100" height="100"/>
-                            <size key="headerReferenceSize" width="34" height="34"/>
-                            <size key="footerReferenceSize" width="50" height="50"/>
+                        <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="1" minimumInteritemSpacing="0.0" id="LP5-tC-Qbn">
+                            <size key="itemSize" width="109.741" height="109.741"/>
+                            <size key="headerReferenceSize" width="768" height="30"/>
+                            <size key="footerReferenceSize" width="0.0" height="0.0"/>
                             <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                         </collectionViewFlowLayout>
                         <cells>
                             <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="PhotoCell" id="Yon-Vt-0Mr" customClass="BHCollectionPhotoCell">
-                                <rect key="frame" x="0.0" y="34" width="100" height="100"/>
+                                <rect key="frame" x="0.0" y="30" width="110" height="110"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                    <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="110" height="110"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleAspectFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Ard-so-aFe">
-                                            <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="109" height="109"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                             <state key="normal">
@@ -185,7 +185,7 @@
                             </collectionViewCell>
                         </cells>
                         <collectionReusableView key="sectionHeaderView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Header" id="rGw-93-bpv" customClass="BHPhotosHeaderView">
-                            <rect key="frame" x="0.0" y="0.0" width="768" height="34"/>
+                            <rect key="frame" x="0.0" y="0.0" width="768" height="30"/>
                             <autoresizingMask key="autoresizingMask"/>
                             <subviews>
                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="S52-gb-7qd">
@@ -199,10 +199,6 @@
                             <connections>
                                 <outlet property="headerLabel" destination="S52-gb-7qd" id="MVc-ur-h0x"/>
                             </connections>
-                        </collectionReusableView>
-                        <collectionReusableView key="sectionFooterView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="Footer" id="j2O-Fd-6Ej">
-                            <rect key="frame" x="0.0" y="134" width="768" height="50"/>
-                            <autoresizingMask key="autoresizingMask"/>
                         </collectionReusableView>
                         <connections>
                             <outlet property="dataSource" destination="wUF-dK-7Di" id="QaI-qd-cuG"/>
@@ -233,24 +229,23 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="SNx-xV-VSw">
-                                <rect key="frame" x="0.0" y="38" width="768" height="872"/>
+                                <rect key="frame" x="0.0" y="37" width="768" height="873"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="6" maxX="0.0" maxY="56"/>
-                                <inset key="scrollIndicatorInsets" minX="0.0" minY="6" maxX="0.0" maxY="56"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
                                 <connections>
                                     <outlet property="dataSource" destination="2" id="iqe-jr-kmG"/>
                                     <outlet property="delegate" destination="2" id="790-qZ-UvZ"/>
                                 </connections>
                             </tableView>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="s5c-1f-kMS">
-                                <rect key="frame" x="8" y="9" width="752" height="29"/>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="s5c-1f-kMS" customClass="BHDeselectableSegmentedControl">
+                                <rect key="frame" x="8" y="8" width="752" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
-                                    <segment title="All"/>
                                     <segment title="Active"/>
                                     <segment title="In Progress"/>
-                                    <segment title="Complete"/>
+                                    <segment title="Completed"/>
                                 </segments>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </segmentedControl>
@@ -297,7 +292,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="m4i-vh-i8d">
-                                <rect key="frame" x="0.0" y="39" width="768" height="921"/>
+                                <rect key="frame" x="0.0" y="37" width="768" height="923"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
@@ -308,7 +303,7 @@
                                 </connections>
                             </tableView>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="7ee-9b-fVh" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="44" y="10" width="680" height="29"/>
+                                <rect key="frame" x="8" y="8" width="752" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                 <segments>
                                     <segment title="Active"/>
@@ -486,11 +481,12 @@
                         <outlet property="tableView" destination="1Lr-cs-ex4" id="sJK-DB-5bO"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="PersonnelPicker" id="bd7-Rv-hQV"/>
+                        <segue destination="XFP-TZ-PCg" kind="push" identifier="SubcontractorPicker" id="8op-5V-Haa"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w2d-zW-wTP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5310" y="1286"/>
+            <point key="canvasLocation" x="5260" y="1286"/>
         </scene>
         <!--Reports View Controller - Reports-->
         <scene sceneID="QQn-O2-foH">
@@ -501,7 +497,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="Ejx-lg-dbz">
-                                <rect key="frame" x="0.0" y="36" width="768" height="924"/>
+                                <rect key="frame" x="0.0" y="37" width="768" height="923"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
@@ -521,8 +517,8 @@
                                     <outlet property="delegate" destination="nXn-66-heB" id="cZW-tX-U6i"/>
                                 </connections>
                             </tableView>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="q5h-kg-2Aj" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="124" y="8" width="520" height="29"/>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="q5h-kg-2Aj" customClass="BHDeselectableSegmentedControl">
+                                <rect key="frame" x="8" y="8" width="752" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <segments>
@@ -952,6 +948,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                             <searchBar alpha="0.0" contentMode="redraw" searchBarStyle="prominent" text="" placeholder="Search through projects..." translucent="NO" id="smN-Wa-QX7">
                                 <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="barTintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -981,6 +978,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <segue destination="RvR-ni-pZv" kind="push" identifier="Group" id="qfH-2b-k2d"/>
                         <segue destination="Aeb-Pi-CzK" kind="push" identifier="Archived" id="PVU-SM-ftc"/>
                         <segue destination="2KI-aN-Pwf" kind="push" identifier="Demos" id="xV3-g4-3Si"/>
+                        <segue destination="r0E-CY-Oux" kind="push" identifier="WorklistConnect" id="dko-BE-dy7"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yac-w0-EuF" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1327,6 +1325,52 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             </objects>
             <point key="canvasLocation" x="4227" y="112"/>
         </scene>
+        <!--Safety Topic View Controller-->
+        <scene sceneID="U4J-Hd-qKy">
+            <objects>
+                <viewController storyboardIdentifier="SafetyTopic" id="RUe-VN-Wp5" customClass="BHSafetyTopicViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Gkp-jq-c4V">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="iuS-3h-EwX">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="TitleCell" id="FEV-hK-HWv">
+                                        <rect key="frame" x="0.0" y="22" width="768" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="FEV-hK-HWv" id="wOf-42-8sG">
+                                            <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="InfoCell" id="YQN-0N-Nr5">
+                                        <rect key="frame" x="0.0" y="66" width="768" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="YQN-0N-Nr5" id="itb-Cs-Pvg">
+                                            <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
+                                <connections>
+                                    <outlet property="dataSource" destination="RUe-VN-Wp5" id="VKk-27-GnZ"/>
+                                    <outlet property="delegate" destination="RUe-VN-Wp5" id="xLh-Fn-T2o"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <connections>
+                        <outlet property="tableView" destination="iuS-3h-EwX" id="M8p-aS-FVh"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Bd7-Pi-INM" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="4515" y="-1442"/>
+        </scene>
         <!--Personnel Picker View Controller-->
         <scene sceneID="fbq-ua-OTI">
             <objects>
@@ -1361,6 +1405,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     <connections>
                         <outlet property="searchDisplayController" destination="QVX-3N-qPt" id="3m7-Jq-vVt"/>
                         <outlet property="tableView" destination="EEF-HI-3KG" id="LLT-KU-j28"/>
+                        <segue destination="RNc-Me-CVF" kind="push" identifier="AddPersonnel" id="SF0-4M-4HZ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gXJ-nV-AEc" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1374,7 +1419,36 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </connections>
                 </searchDisplayController>
             </objects>
-            <point key="canvasLocation" x="5163" y="-1077"/>
+            <point key="canvasLocation" x="5495" y="-1329"/>
+        </scene>
+        <!--Add Personnel View Controller-->
+        <scene sceneID="aB0-Qy-WsX">
+            <objects>
+                <viewController storyboardIdentifier="AddPersonnel" id="RNc-Me-CVF" customClass="BHAddPersonnelViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="kzB-ae-0Aa">
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" rowHeight="44" sectionHeaderHeight="10" sectionFooterHeight="10" id="C8H-2u-PCs">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="RNc-Me-CVF" id="3XJ-4W-aZr"/>
+                                    <outlet property="delegate" destination="RNc-Me-CVF" id="cMt-Lw-xas"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="rTS-EJ-FEh"/>
+                    <connections>
+                        <outlet property="tableView" destination="C8H-2u-PCs" id="vIJ-QO-QoV"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="6sJ-tR-o4P" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="6378" y="-1329"/>
         </scene>
         <!--Checklist Item View Controller - Checklist Item-->
         <scene sceneID="1qJ-tg-PbS">
@@ -1436,12 +1510,13 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="vI7-Ml-H9J"/>
+        <segue reference="eZr-X3-mJS"/>
+        <segue reference="dko-BE-dy7"/>
         <segue reference="EHj-le-a4N"/>
-        <segue reference="Cv8-k3-7jn"/>
-        <segue reference="Aym-Jz-3Mj"/>
-        <segue reference="BC4-fv-9Fr"/>
+        <segue reference="vI7-Ml-H9J"/>
+        <segue reference="Vim-B7-ekZ"/>
         <segue reference="Lue-dQ-dtC"/>
-        <segue reference="bd7-Rv-hQV"/>
+        <segue reference="BC4-fv-9Fr"/>
+        <segue reference="b6Y-cM-cBh"/>
     </inferredMetricsTieBreakers>
 </document>

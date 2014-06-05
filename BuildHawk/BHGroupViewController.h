@@ -8,9 +8,9 @@
 
 #import <UIKit/UIKit.h>
 #import "Project.h"
-#import "BHProjectGroup.h"
+#import "Group+helper.h"
 
 @interface BHGroupViewController : UIViewController <UITableViewDelegate, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (strong, nonatomic) BHProjectGroup *group;
+@property (strong, nonatomic) Group *group;
 @end

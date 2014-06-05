@@ -22,7 +22,6 @@
             PunchlistItem *item = [PunchlistItem MR_findFirstWithPredicate:itemPredicate];
             if (!item){
                 item = [PunchlistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                NSLog(@"couldn't find saved item, created a new one: %@",item.body);
             }
             [item populateFromDictionary:itemDict];
             [punchlistItems addObject:item];

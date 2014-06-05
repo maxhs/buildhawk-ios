@@ -14,6 +14,7 @@
 @interface ReportSub : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * companyId;
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSNumber * count;
 @property (nonatomic, retain) Report *report;

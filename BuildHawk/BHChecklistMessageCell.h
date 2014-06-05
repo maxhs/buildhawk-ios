@@ -11,7 +11,4 @@
 @interface BHChecklistMessageCell : UITableViewCell
 
 @property (weak, nonatomic) IBOutlet UITextView *messageTextView;
-@property (weak, nonatomic) IBOutlet UIButton *callButton;
-@property (weak, nonatomic) IBOutlet UIButton *textButton;
-@property (weak, nonatomic) IBOutlet UIButton *emailButton;
 @end

@@ -11,6 +11,7 @@
 #import "BHDashboardProjectCell.h"
 #import "BHTabBarViewController.h"
 #import "BHDashboardDetailViewController.h"
+#import "BHAppDelegate.h"
 
 @interface BHDemoProjectsViewController () {
     NSMutableArray *demoProjects;
@@ -31,7 +32,7 @@
 - (void)viewDidLoad
 {
     demoProjects = [NSMutableArray array];
-    manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     dashboardDetailDict = [NSMutableDictionary dictionary];
     categories = [NSMutableArray array];
     demoProjects = [Project MR_findByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]].mutableCopy;
@@ -108,14 +109,14 @@
     
     if (project.address.formattedAddress.length){
         [cell.subtitleLabel setText:project.address.formattedAddress];
-    } else {
-        [cell.subtitleLabel setText:project.company.name];
     }
     
-    [cell.progressLabel setText:project.progressPercentage];
-    
+    [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
+    [cell.progressButton setTag:indexPath.row];
+    [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+    
     [cell.titleLabel setTextColor:kDarkGrayColor];
     [cell.archiveButton setTag:indexPath.row];
     [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
@@ -160,16 +161,20 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         [ProgressHUD dismiss];
     }
 }
 
 - (void)goToProject:(UIButton*)button {
+    NSLog(@"should be going to project");
     Project *selectedProject = [demoProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
-
+- (void)goToProjectDetail:(UIButton*)button {
+    NSLog(@"should be going to detail");
+    Project *selectedProject = [demoProjects objectAtIndex:button.tag];
+    [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
+}
 
 #pragma mark - Table view delegate
 

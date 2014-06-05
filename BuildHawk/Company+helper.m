@@ -7,7 +7,7 @@
 //
 
 #import "Company+helper.h"
-#import "Subcontractor.h"
+#import "Subcontractor+helper.h"
 #import "User+helper.h"
 
 @implementation Company (helper)
@@ -20,7 +20,7 @@
         self.name = [dictionary objectForKey:@"name"];
     }
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSetWithOrderedSet:self.users];
+        NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate];
@@ -30,25 +30,32 @@
             [user populateFromDictionary:userDict];
             [orderedUsers addObject:user];
         }
+        for (User *user in self.users){
+            if (![orderedUsers containsObject:user]){
+                NSLog(@"deleting a company user that no longer exists: %@",user.fullname);
+                [user MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        
         self.users = orderedUsers;
     }
     if ([dictionary objectForKey:@"subcontractors"] && [dictionary objectForKey:@"subcontractors"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedSubcontractors = [NSMutableOrderedSet orderedSetWithOrderedSet:self.subcontractors];
+        NSMutableOrderedSet *orderedSubcontractors = [NSMutableOrderedSet orderedSet];
         for (id subDict in [dictionary objectForKey:@"subcontractors"]){
             //NSLog(@"sub dict: %@",subDict);
             NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
             Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:subPredicate];
-            if (subcontractor){
-                subcontractor.usersCount = [subDict objectForKey:@"users_count"];
-                //NSLog(@"found saved subcontractor: %@, %@",subcontractor.name,subcontractor.identifier);
-            } else {
+            if (!subcontractor){
                 subcontractor = [Subcontractor MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                subcontractor.identifier = [subDict objectForKey:@"id"];
-                subcontractor.name = [subDict objectForKey:@"name"];
-                subcontractor.usersCount = [subDict objectForKey:@"users_count"];
-                //NSLog(@"couldn't find saved subcontractor, created a new one: %@, %@",subcontractor.name, subcontractor.identifier);
             }
+            [subcontractor populateFromDictionary:subDict];
             [orderedSubcontractors addObject:subcontractor];
+        }
+        for (Subcontractor *subcontractor in self.subcontractors){
+            if (![orderedSubcontractors containsObject:subcontractor]){
+                NSLog(@"deleting a subcontractor that no longer exists: %@",subcontractor.name);
+                [subcontractor MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
         }
         self.subcontractors = orderedSubcontractors;
     }

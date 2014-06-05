@@ -14,6 +14,7 @@
 @interface ReportUser : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * userId;
 @property (nonatomic, retain) NSString * fullname;
 @property (nonatomic, retain) NSNumber * hours;
 @property (nonatomic, retain) Report *report;

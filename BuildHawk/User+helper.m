@@ -7,6 +7,7 @@
 //
 
 #import "User+helper.h"
+#import "PunchlistItem+helper.h"
 
 @implementation User (helper)
 
@@ -66,6 +67,19 @@
             }
             //NSLog(@"Couldn't find the company. Creating a new one: %@",self.company.identifier);
         }
+    }
+    if ([dictionary objectForKey:@"connect_items"] && [dictionary objectForKey:@"connect_items"] != [NSNull null]) {
+        NSMutableOrderedSet *punchlistItems = [NSMutableOrderedSet orderedSet];
+        for (id itemDict in [dictionary objectForKey:@"connect_items"]){
+            NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
+            PunchlistItem *item = [PunchlistItem MR_findFirstWithPredicate:itemPredicate];
+            if (!item){
+                item = [PunchlistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [item populateFromDictionary:itemDict];
+            [punchlistItems addObject:item];
+        }
+        self.assignedPunchlistItems = punchlistItems;
     }
 }
 /*

@@ -20,5 +20,17 @@
     if ([dictionary objectForKey:@"info"] && [dictionary objectForKey:@"info"] != [NSNull null]) {
         self.info = [dictionary objectForKey:@"info"];
     }
+    if ([dictionary objectForKey:@"safety_topic"] && [dictionary objectForKey:@"safety_topic"] != [NSNull null]) {
+        NSDictionary *topicDict = [dictionary objectForKey:@"safety_topic"];
+        if ([topicDict objectForKey:@"id"] && [topicDict objectForKey:@"id"] != [NSNull null]) {
+            self.topicId = [topicDict objectForKey:@"id"];
+        }
+        if ([topicDict objectForKey:@"title"] && [topicDict objectForKey:@"title"] != [NSNull null]) {
+            self.title = [topicDict objectForKey:@"title"];
+        }
+        if ([topicDict objectForKey:@"info"] && [topicDict objectForKey:@"info"] != [NSNull null]) {
+            self.info = [dictionary objectForKey:@"info"];
+        }
+    }
 }
 @end

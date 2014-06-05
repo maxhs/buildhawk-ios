@@ -22,7 +22,6 @@
 #import "BHOverlayView.h"
 
 @interface BHPunchlistViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate> {
-    Project *project;
     NSDateFormatter *dateFormatter;
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *activeListItems;
@@ -43,15 +42,18 @@
     UIBarButtonItem *addButton;
     UIView *overlayBackground;
     UIImageView *worklistScreenshot;
+    NSInteger lastSegmentIndex;
 }
 @end
 
 @implementation BHPunchlistViewController
+@synthesize project = _project;
+@synthesize punchlistItems = _punchlistItems;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    project =[(BHTabBarViewController*)self.tabBarController project];
-    self.navigationItem.title = [NSString stringWithFormat:@"%@: Worklists",project.name];
+    if (!_project) _project = [(BHTabBarViewController*)self.tabBarController project];
+    self.navigationItem.title = [NSString stringWithFormat:@"%@: Worklists",_project.name];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     self.tableView.rowHeight = 82;
     showActive = YES;
@@ -60,6 +62,10 @@
     showByLocation = NO;
 
     firstLoad = YES;
+    if (_connectMode){
+        NSLog(@"connect mode");
+        [self.segmentedControl removeSegmentAtIndex:2 animated:NO];
+    }
     [self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
@@ -75,14 +81,14 @@
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     [Flurry logEvent:@"Viewing punchlist"];
-    /*NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", project.identifier];
-    savedProject = [Project MR_findFirstWithPredicate:predicate inContext:localContext];*/
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createItem)];
     
-    if ([project.punchlist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+    if (_punchlistItems){
+        [self drawPunchlist];
+    } else if ([_project.punchlist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         [ProgressHUD show:@"Getting Worklist..."];
     } else {
+        _punchlistItems = _project.punchlist.punchlistItems.array.mutableCopy;
         [self drawPunchlist];
     }
 }
@@ -94,7 +100,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     loading = YES;
-    [self loadPunchlist];
+    if (!_punchlistItems.count && _project) [self loadPunchlist];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -191,9 +197,9 @@
 }
 
 - (void)drawPunchlist {
-    if (project.punchlist.punchlistItems.count > 0){
+    if (_punchlistItems.count > 0){
         [activeListItems removeAllObjects];
-        for (PunchlistItem *item in project.punchlist.punchlistItems.array){
+        for (PunchlistItem *item in _punchlistItems){
             if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
                 [activeListItems addObject:item];
             }
@@ -221,7 +227,6 @@
 }
 
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
-
     switch (sender.selectedSegmentIndex) {
         case 0:
             if (showActive == YES){
@@ -248,14 +253,27 @@
             
             break;
         case 2:
-            if (showByAssignee == YES){
-                [self resetSegments];
-                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
-                [self.tableView reloadData];
+            if (_connectMode){
+                //not necessary to show assignee during connect mode
+                if (showCompleted == YES){
+                    [self resetSegments];
+                    [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                    [self.tableView reloadData];
+                } else {
+                    [self resetSegments];
+                    showCompleted = YES;
+                    [self filterCompleted];
+                }
             } else {
-                [self resetSegments];
-                showByAssignee = YES;
-                [self filterAssignee];
+                if (showByAssignee == YES){
+                    [self resetSegments];
+                    [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                    [self.tableView reloadData];
+                } else {
+                    [self resetSegments];
+                    showByAssignee = YES;
+                    [self filterAssignee];
+                }
             }
             
             break;
@@ -301,7 +319,11 @@
             [locationActionSheet addButtonWithTitle:location];
         }
         locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
-        [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
+        if (self.tabBarController){
+            [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
+        } else {
+            [locationActionSheet showInView:self.view];
+        }
     }
 }
 
@@ -312,41 +334,46 @@
             if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(User*)assignee fullname]];
         }
         assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
-        [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
+        if (self.tabBarController){
+            [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
+        } else {
+            [assigneeActionSheet showInView:self.view];
+        }
     }
 }
 
 - (void)filterActive {
     [activeListItems removeAllObjects];
-    for (PunchlistItem *item in project.punchlist.punchlistItems){
+    for (PunchlistItem *item in _punchlistItems){
         if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
             [activeListItems addObject:item];
         }
     }
     [self.tableView reloadData];
+    lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
 }
 
 - (void)filterCompleted {
     [completedListItems removeAllObjects];
-    for (PunchlistItem *item in project.punchlist.punchlistItems){
+    for (PunchlistItem *item in _punchlistItems){
         if([item.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
             [completedListItems addObject:item];
         }
     }
     [self.tableView reloadData];
+    lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (actionSheet.cancelButtonIndex == buttonIndex){
-        [self resetSegments];
-        [self.segmentedControl setSelectedSegmentIndex:UISegmentedControlNoSegment];
-        [self.tableView reloadData];
+        [self.segmentedControl setSelectedSegmentIndex:lastSegmentIndex];
+        [self segmentedControlTapped:self.segmentedControl];
     } else if (actionSheet == assigneeActionSheet) {
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] length]) {
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             if (buttonTitle.length){
                 NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",buttonTitle];
-                for (PunchlistItem *item in project.punchlist.punchlistItems){
+                for (PunchlistItem *item in _punchlistItems){
                     if (item.assignees.count){
                         if([testForFullName evaluateWithObject:item.assignees.firstObject]) {
                             [assigneeListItems addObject:item];
@@ -355,23 +382,25 @@
                 }
             }
             [self.tableView reloadData];
+            lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
         }
     } else if (actionSheet == locationActionSheet){
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] length]) {
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             NSPredicate *testForLocation = [NSPredicate predicateWithFormat:@"location like %@",buttonTitle];
-            for (PunchlistItem *item in project.punchlist.punchlistItems){
+            for (PunchlistItem *item in _punchlistItems){
                 if([testForLocation evaluateWithObject:item]) {
                     [locationListItems addObject:item];
                 }
             }
             [self.tableView reloadData];
+            lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
         }
     }
 }
 
 - (void)loadPunchlist {
-    [manager GET:[NSString stringWithFormat:@"%@/punchlists", kApiBaseUrl] parameters:@{@"project_id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/punchlists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading punchlist: %@",responseObject);
         [self updatePunchlist:[responseObject objectForKey:@"punchlist"]];
         loading = NO;
@@ -388,19 +417,19 @@
 - (void)updatePunchlist:(NSDictionary*)dictionary {
     Punchlist *punchlist = [Punchlist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"id"]];
     if (!punchlist){
-        NSLog(@"creating punchlist");
         punchlist = [Punchlist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     }
     [punchlist populateFromDictionary:dictionary];
-    if (project.punchlist.punchlistItems.count > 0){
-        for (PunchlistItem *item in project.punchlist.punchlistItems) {
+    if (_project.punchlist.punchlistItems.count > 0){
+        for (PunchlistItem *item in _project.punchlist.punchlistItems) {
             if (![punchlist.punchlistItems containsObject:item]) {
                 NSLog(@"deleting a punchlist item that no longer exists: %@",item.body);
                 [item MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
     }
-    project.punchlist = punchlist;
+    _project.punchlist = punchlist;
+    _punchlistItems = punchlist.punchlistItems.array.mutableCopy;
 }
 
 #pragma mark - Table view data source
@@ -420,7 +449,7 @@
         return locationListItems.count;
     }
     else if (showByAssignee) return assigneeListItems.count;
-    else return project.punchlist.punchlistItems.count;
+    else return _punchlistItems.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -441,7 +470,7 @@
     } else if (showByAssignee) {
         item = [assigneeListItems objectAtIndex:indexPath.row];
     } else {
-        item = [project.punchlist.punchlistItems objectAtIndex:indexPath.row];
+        item = [_punchlistItems objectAtIndex:indexPath.row];
     }
     [cell.itemLabel setText:item.body];
     [cell.itemLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:19]];
@@ -482,7 +511,7 @@
     } else if (showByAssignee) {
         item = [assigneeListItems objectAtIndex:indexPath.row];
     } else {
-        item = [project.punchlist.punchlistItems objectAtIndex:indexPath.row];
+        item = [_punchlistItems objectAtIndex:indexPath.row];
     }
     if ([item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
         return YES;
@@ -506,11 +535,11 @@
         BHPunchlistItemViewController *vc = segue.destinationViewController;
         [vc setTitle:@"New Item"];
         [vc setNewItem:YES];
-        [vc setProject:project];
+        [vc setProject:_project];
         [vc setLocationSet:locationSet];
     } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
         BHPunchlistItemViewController *vc = segue.destinationViewController;
-        [vc setProject:project];
+        [vc setProject:_project];
         [vc setNewItem:NO];
         PunchlistItem *item;
         if (showActive && activeListItems.count > self.tableView.indexPathForSelectedRow.row) {
@@ -521,16 +550,23 @@
             item = [assigneeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         } else if (showCompleted && completedListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [completedListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (project.punchlist.punchlistItems.count > self.tableView.indexPathForSelectedRow.row) {
-            item = [project.punchlist.punchlistItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
+        } else if (_punchlistItems.count > self.tableView.indexPathForSelectedRow.row) {
+            item = [_punchlistItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
         if (!dateFormatter) dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setDateStyle:NSDateFormatterShortStyle];
         [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
-        [vc setTitle:[NSString stringWithFormat:@"%@",[dateFormatter stringFromDate:item.createdAt]]];
+        if (IDIOM == IPAD && item.user.fullname){
+            if (item.user.company.name.length){
+                [vc setTitle:[NSString stringWithFormat:@"Created By: %@ (%@) - %@",item.user.fullname,item.user.company.name,[dateFormatter stringFromDate:item.createdAt]]];
+            } else {
+                [vc setTitle:[NSString stringWithFormat:@"Created By: %@ - %@",item.user.fullname,[dateFormatter stringFromDate:item.createdAt]]];
+            }
+        } else {
+            [vc setTitle:[NSString stringWithFormat:@"%@",[dateFormatter stringFromDate:item.createdAt]]];
+        }
         [vc setPunchlistItem:item];
         [vc setLocationSet:locationSet];
-        //if (savedUser)[vc setSavedUser:savedUser];
     }
 }
 

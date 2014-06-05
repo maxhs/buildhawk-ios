@@ -218,10 +218,10 @@
     browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
     browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
     browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
-    browser.zoomPhotosToFill = YES; // Images that almost fill the screen will be initially zoomed to fill (defaults to YES)
-    browser.alwaysShowControls = YES; // Allows to control whether the bars and controls are always visible or whether they fade away to show the photo full (defaults to NO)
-    browser.enableGrid = YES; // Whether to allow the viewing of all the photo thumbnails on a grid (defaults to YES)
-    browser.startOnGrid = NO; // Whether to start on the grid of thumbnails instead of the first photo (defaults to NO)
+    browser.zoomPhotosToFill = YES;
+    browser.alwaysShowControls = YES;
+    browser.enableGrid = YES;
+    browser.startOnGrid = NO;
 
     browser.navigationController.navigationItem.rightBarButtonItems = @[[[UIBarButtonItem alloc] initWithTitle:@"Test" style:UIBarButtonItemStylePlain target:self action:@selector(save)]];
     [self.navigationController pushViewController:browser animated:YES];
@@ -282,11 +282,15 @@
 
 #pragma mark – UICollectionViewDelegateFlowLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
-    return CGSizeMake(100,100);
+    if (IDIOM == IPAD){
+        return CGSizeMake(screenWidth()/7,screenWidth()/7);
+    } else {
+        return CGSizeMake(screenWidth()/3,screenWidth()/3);
+    }
 }
 
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
-    return UIEdgeInsetsMake(5, 0, 5, 0);
+    return UIEdgeInsetsMake(0, 0, 0, 0);
 }
 
 - (void)viewDidDisappear:(BOOL)animated {

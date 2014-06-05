@@ -14,6 +14,7 @@
 @interface SafetyTopic : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * topicId;
 @property (nonatomic, retain) NSString * title;
 @property (nonatomic, retain) NSString * info;
 @property (nonatomic, retain) Report *report;

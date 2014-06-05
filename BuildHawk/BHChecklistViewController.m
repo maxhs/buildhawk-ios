@@ -89,7 +89,6 @@
         [self.tableView reloadData];
     }
     
-    [self.segmentedControl setSelectedSegmentIndex:0];
     [Flurry logEvent:@"Viewing checklist"];
     
     refreshControl = [[UIRefreshControl alloc] init];
@@ -195,22 +194,44 @@
         }
     }
 }
--(void)segmentedControlTapped:(UISegmentedControl*)sender {
+
+- (void)resetSegments {
     completed = NO;
     active = NO;
     inProgress = NO;
+}
+
+-(void)segmentedControlTapped:(UISegmentedControl*)sender {
+    [self condenseTableView];
     switch (sender.selectedSegmentIndex) {
         case 0:
-            [self resetChecklist];
+            if (active){
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self resetSegments];
+                [self resetChecklist];
+            } else {
+                [self filterActive];
+            }
+            
             break;
         case 1:
-            [self filterActive];
+            if (inProgress){
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self resetSegments];
+                [self resetChecklist];
+            } else {
+                [self filterInProgress];
+            }
+            
             break;
         case 2:
-            [self filterInProgress];
-            break;
-        case 3:
-            [self filterCompleted];
+            if (completed){
+                [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
+                [self resetSegments];
+                [self resetChecklist];
+            } else {
+                [self filterCompleted];
+            }
             break;
         default:
             break;
@@ -527,68 +548,71 @@
             
         } else if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
             NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
-            id item = [openRows objectAtIndex:indexPath.row-1];
-            
-            if ([item isKindOfClass:[Cat class]]){
-                Cat *category = (Cat*)item;
-                [cell.mainLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:22]];
-                [cell.mainLabel setTextColor:[UIColor whiteColor]];
-                [cell.mainLabel setText:[NSString stringWithFormat:@" %@",category.name]];
-                if (completed){
-                    [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.completedItems.count]];
-                } else if (active) {
-                    [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.activeItems.count]];
-                } else if (inProgress) {
-                    [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.inProgressItems.count]];
-                } else {
-                    [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.items.count]];
-                }
-                
-                [cell.detailLabel setTextColor:[UIColor whiteColor]];
-                [cell.progressPercentage setText:category.progressPercentage];
-                [cell.progressPercentage setTextColor:[UIColor whiteColor]];
-                [cell.photoImageView setHidden:YES];
-                cell.accessoryType = UITableViewCellAccessoryNone;
-                [backgroundView setBackgroundColor:kLightBlueColor];
-            } else {
-                ChecklistItem *item = [openRows objectAtIndex:indexPath.row-1];
-                [cell.itemBody setText:item.body];
-                [cell.itemBody setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
-                [cell.progressPercentage setText:@""];
-                [backgroundView setBackgroundColor:kBlueColor];
-                
-                if ([item.status isEqualToString:kNotApplicable]){
-                    UILabel *notApplicableLabel = [[UILabel alloc] init];
-                    [notApplicableLabel setText:@"N/A"];
+            if (openRows.count > indexPath.row-1){
+                id item = [openRows objectAtIndex:indexPath.row-1];
+                if (item && [item isKindOfClass:[Cat class]]){
+                    Cat *category = (Cat*)item;
+                    [cell.mainLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:22]];
+                    [cell.mainLabel setTextColor:[UIColor whiteColor]];
+                    [cell.mainLabel setText:[NSString stringWithFormat:@" %@",category.name]];
+                    if (completed){
+                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.completedItems.count]];
+                    } else if (active) {
+                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.activeItems.count]];
+                    } else if (inProgress) {
+                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.inProgressItems.count]];
+                    } else {
+                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.items.count]];
+                    }
+                    
+                    [cell.detailLabel setTextColor:[UIColor whiteColor]];
+                    [cell.progressPercentage setText:category.progressPercentage];
+                    [cell.progressPercentage setTextColor:[UIColor whiteColor]];
                     [cell.photoImageView setHidden:YES];
-                    [notApplicableLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
-                    [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
-                    cell.accessoryView = notApplicableLabel;
-                } else if ([item.status isEqualToString:kCompleted]){
-                    [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
-                    cell.accessoryType = UITableViewCellAccessoryCheckmark;
-                } else {
-                    [cell.itemBody setTextColor:[UIColor whiteColor]];
                     cell.accessoryType = UITableViewCellAccessoryNone;
-                }
-                
-                if ([item.photosCount compare:[NSNumber numberWithInt:0]] == NSOrderedDescending) {
-                    [cell.photoImageView setHidden:NO];
-                } else {
-                    [cell.photoImageView setHidden:YES];
-                }
-                
-                //set the image properly
-                if ([item.type isEqualToString:@"Com"]) {
-                    [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
-                } else if ([item.type isEqualToString:@"S&C"]) {
-                    [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
-                } else {
-                    [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+                    [backgroundView setBackgroundColor:kLightBlueColor];
+                } else if (item) {
+                    ChecklistItem *item = [openRows objectAtIndex:indexPath.row-1];
+                    [cell.itemBody setText:item.body];
+                    [cell.itemBody setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
+                    [cell.progressPercentage setText:@""];
+                    [backgroundView setBackgroundColor:kBlueColor];
+                    
+                    if ([item.status isEqualToString:kNotApplicable]){
+                        UILabel *notApplicableLabel = [[UILabel alloc] init];
+                        [notApplicableLabel setText:@"N/A"];
+                        [cell.photoImageView setHidden:YES];
+                        [notApplicableLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+                        [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+                        NSMutableAttributedString *attributedBody = cell.itemBody.attributedText.mutableCopy;
+                        [attributedBody addAttribute:NSStrikethroughStyleAttributeName value:@1 range:NSMakeRange(0, attributedBody.length)];
+                        cell.itemBody.attributedText = attributedBody;
+                        cell.accessoryView = notApplicableLabel;
+                    } else if ([item.status isEqualToString:kCompleted]){
+                        [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+                        cell.accessoryType = UITableViewCellAccessoryCheckmark;
+                    } else {
+                        [cell.itemBody setTextColor:[UIColor whiteColor]];
+                        cell.accessoryType = UITableViewCellAccessoryNone;
+                    }
+                    
+                    if ([item.photosCount compare:[NSNumber numberWithInt:0]] == NSOrderedDescending) {
+                        [cell.photoImageView setHidden:NO];
+                    } else {
+                        [cell.photoImageView setHidden:YES];
+                    }
+                    
+                    //set the image properly
+                    if ([item.type isEqualToString:@"Com"]) {
+                        [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
+                    } else if ([item.type isEqualToString:@"S&C"]) {
+                        [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+                    } else {
+                        [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+                    }
                 }
             }
         }
-        
         return cell;
     }
 }
@@ -632,9 +656,24 @@
         if (indexPath.row == 0){
             if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
                 phase.expanded = [NSNumber numberWithBool:NO];
-                for (Cat *category in phase.categories){
-                    category.expanded = NO;
+                if (completed) {
+                    for (Cat *category in phase.categories){
+                        category.expanded = NO;
+                    }
+                } else if (active){
+                    for (Cat *category in phase.activeCategories){
+                        category.expanded = NO;
+                    }
+                } else if (inProgress){
+                    for (Cat *category in phase.inProgressCategories){
+                        category.expanded = NO;
+                    }
+                } else {
+                    for (Cat *category in phase.categories){
+                        category.expanded = NO;
+                    }
                 }
+                
                 [rowDictionary removeObjectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
             } else {
                 phase.expanded = [NSNumber numberWithBool:YES];
@@ -651,63 +690,63 @@
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
         } else {
             NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
-            id item = [openRows objectAtIndex:indexPath.row-1];
-            if ([item isKindOfClass:[Cat class]]){
-                
-                Cat *category = [openRows objectAtIndex:indexPath.row-1];
-                
-                if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
-                    NSMutableArray *deleteIndexPaths = [NSMutableArray array];
-                    int subIdx = [openRows indexOfObject:category];
-                    
-                    NSMutableArray *deletionArray;
-                    if (completed){
-                        deletionArray = category.completedItems;
-                    } else if (active) {
-                        deletionArray = category.activeItems;
-                    } else if (inProgress) {
-                        deletionArray = category.inProgressItems;
+            if (openRows.count > indexPath.row-1){
+                id item = [openRows objectAtIndex:indexPath.row-1];
+                if ([item isKindOfClass:[Cat class]]){
+                    Cat *category = [openRows objectAtIndex:indexPath.row-1];
+                    if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                        NSMutableArray *deleteIndexPaths = [NSMutableArray array];
+                        int subIdx = [openRows indexOfObject:category];
+                        
+                        NSMutableArray *deletionArray;
+                        if (completed){
+                            deletionArray = category.completedItems;
+                        } else if (active) {
+                            deletionArray = category.activeItems;
+                        } else if (inProgress) {
+                            deletionArray = category.inProgressItems;
+                        } else {
+                            deletionArray = category.items.mutableCopy;
+                        }
+                        for (int idx = subIdx; idx < (deletionArray.count+subIdx); idx ++){
+                            NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
+                            [deleteIndexPaths addObject:newIndexPath];
+                        }
+                        
+                        [openRows removeObjectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange([openRows indexOfObject:category]+1, deletionArray.count)]];
+                        
+                        category.expanded = [NSNumber numberWithBool:NO];
+                        [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                     } else {
-                        deletionArray = category.items.mutableCopy;
-                    }
-                    for (int idx = subIdx; idx < (deletionArray.count+subIdx); idx ++){
-                        NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
-                        [deleteIndexPaths addObject:newIndexPath];
+                        category.expanded = [NSNumber numberWithBool:YES];
+                        NSMutableArray *newIndexPaths = [NSMutableArray array];
+                        int catIdx = [openRows indexOfObject:category];
+                        int itemIdx = 0;
+                        NSArray *insertionArray;
+                        if (completed) {
+                            insertionArray = category.completedItems;
+                        } else if (active){
+                            insertionArray = category.activeItems;
+                        } else if (inProgress){
+                            insertionArray = category.inProgressItems;
+                        } else {
+                            insertionArray = category.items.array;
+                        }
+                        
+                        for (int idx = catIdx; idx < (insertionArray.count+catIdx); idx ++){
+                            NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
+                            [newIndexPaths addObject:newIndexPath];
+                            [openRows insertObject:[insertionArray objectAtIndex:itemIdx] atIndex:idx+1];
+                            itemIdx++;
+                        }
+                        
+                        [self.tableView insertRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                     }
                     
-                    [openRows removeObjectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange([openRows indexOfObject:category]+1, deletionArray.count)]];
-                    
-                    category.expanded = [NSNumber numberWithBool:NO];
-                    [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                 } else {
-                    category.expanded = [NSNumber numberWithBool:YES];
-                    NSMutableArray *newIndexPaths = [NSMutableArray array];
-                    int catIdx = [openRows indexOfObject:category];
-                    int itemIdx = 0;
-                    NSArray *insertionArray;
-                    if (completed) {
-                        insertionArray = category.completedItems;
-                    } else if (active){
-                        insertionArray = category.activeItems;
-                    } else if (inProgress){
-                        insertionArray = category.inProgressItems;
-                    } else {
-                        insertionArray = category.items.array;
-                    }
-                    
-                    for (int idx = catIdx; idx < (insertionArray.count+catIdx); idx ++){
-                        NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
-                        [newIndexPaths addObject:newIndexPath];
-                        [openRows insertObject:[insertionArray objectAtIndex:itemIdx] atIndex:idx+1];
-                        itemIdx++;
-                    }
-                    
-                    [self.tableView insertRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationFade];
+                    ChecklistItem *item = [openRows objectAtIndex:indexPath.row-1];
+                    [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
                 }
-                
-            } else {
-                ChecklistItem *item = [openRows objectAtIndex:indexPath.row-1];
-                [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
             }
         }
     }
@@ -865,14 +904,33 @@
 
 - (void)condenseTableView {
     for (Phase *phase in _checklist.phases){
+        phase.expanded = [NSNumber numberWithBool:NO];
         for (Cat *category in phase.categories){
             category.expanded = [NSNumber numberWithBool:NO];
         }
     }
+    for (Phase *phase in _checklist.completedPhases){
+        phase.expanded = [NSNumber numberWithBool:NO];
+        for (Cat *category in phase.completedCategories){
+            category.expanded = [NSNumber numberWithBool:NO];
+        }
+    }
+    for (Phase *phase in _checklist.activePhases){
+        phase.expanded = [NSNumber numberWithBool:NO];
+        for (Cat *category in phase.activeCategories){
+            category.expanded = [NSNumber numberWithBool:NO];
+        }
+    }
+    for (Phase *phase in _checklist.inProgressPhases){
+        phase.expanded = [NSNumber numberWithBool:NO];
+        for (Cat *category in phase.inProgressCategories){
+            category.expanded = [NSNumber numberWithBool:NO];
+        }
+    }
+    [rowDictionary removeAllObjects];
 }
 
 - (void)dealloc {
-    NSLog(@"dealloc");
     [self condenseTableView];
 }
 

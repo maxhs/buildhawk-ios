@@ -37,7 +37,6 @@
     if ([dictionary objectForKey:@"active"]) {
         self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
     }
-    
     if ([dictionary objectForKey:@"core"]) {
         self.demo = [NSNumber numberWithBool:[[dictionary objectForKey:@"core"] boolValue]];
     }

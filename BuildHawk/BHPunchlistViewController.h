@@ -13,5 +13,8 @@
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet BHDeselectableSegmentedControl *segmentedControl;
+@property (strong, nonatomic) Project *project;
+@property (strong, nonatomic) NSMutableArray *punchlistItems;
+@property BOOL connectMode;
 
 @end

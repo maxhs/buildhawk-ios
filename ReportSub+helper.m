@@ -9,8 +9,8 @@
 #import "ReportSub+helper.h"
 
 @implementation ReportSub (helper)
-//NSLog(@"checklist item helper dictionary: %@",dictionary);
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
+    NSLog(@"report sub helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }

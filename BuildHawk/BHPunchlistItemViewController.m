@@ -119,6 +119,24 @@ typedef void(^RequestSuccess)(id result);
         [self.navigationItem setRightBarButtonItem:saveButton];
     }
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"PunchlistPersonnel" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
+    self.itemTextView.delegate = self;
+    [self.itemTextView setText:itemPlaceholder];
+    [Flurry logEvent:@"Viewing punchlist item"];
+    
+    self.navigationItem.hidesBackButton = YES;
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    self.navigationItem.leftBarButtonItem = backButton;
+    [self drawItem];
+}
+
+- (void)drawItem {
+    if (_punchlistItem.body) {
+        [self.itemTextView setText:_punchlistItem.body];
+    } else {
+        [self.itemTextView setTextColor:[UIColor lightGrayColor]];
+    }
     if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -129,17 +147,19 @@ typedef void(^RequestSuccess)(id result);
         [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"PunchlistPersonnel" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
-    self.itemTextView.delegate = self;
-    [self.itemTextView setText:itemPlaceholder];
-    [Flurry logEvent:@"Viewing punchlist item"];
-    
-    self.navigationItem.hidesBackButton = YES;
-    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
-    self.navigationItem.leftBarButtonItem = backButton;
+    if (_punchlistItem.location && _punchlistItem.location.length) {
+        [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",_punchlistItem.location] forState:UIControlStateNormal];
+    } else {
+        [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
+    }
+    if (_punchlistItem.assignees.count) {
+        id assignee = _punchlistItem.assignees.firstObject;
+        if ([assignee isKindOfClass:[User class]]){
+            User *assigneeUser = assignee;
+            if (assigneeUser.fullname.length) [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
+        }
+    }
 }
-
 
 - (void)shrinkButton:(UIButton*)button width:(int)width height:(int)height {
     CGRect buttonRect = button.frame;
@@ -150,30 +170,11 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (_punchlistItem.location && _punchlistItem.location.length) {
-        [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",_punchlistItem.location] forState:UIControlStateNormal];
-    } else {
-        [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
-    }
-    
-    if (_punchlistItem.body) {
-        [self.itemTextView setText:_punchlistItem.body];
-    } else {
-        [self.itemTextView setTextColor:[UIColor lightGrayColor]];
-    }
-    
-    if (_punchlistItem.assignees.count) {
-        id assignee = _punchlistItem.assignees.firstObject;
-        if ([assignee isKindOfClass:[User class]]){
-            User *assigneeUser = assignee;
-            if (assigneeUser.fullname.length) [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
-        }
-    }
 }
 
 - (void)loadItem {
     [manager GET:[NSString stringWithFormat:@"%@/punchlist_items/%@",kApiBaseUrl,_punchlistItem.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success getting punchlist item: %@",responseObject);
+        //NSLog(@"success getting punchlist item: %@",responseObject);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to load punchlist item: %@",error.description);
     }];
@@ -234,7 +235,7 @@ typedef void(^RequestSuccess)(id result);
     shouldSave = YES;
     if ([textView.text isEqualToString:kAddCommentPlaceholder] || [textView.text isEqualToString:itemPlaceholder]) {
         [textView setText:@""];
-        [textView setTextColor:[UIColor darkGrayColor]];
+        [textView setTextColor:[UIColor blackColor]];
     }
     
     [UIView animateWithDuration:.25 animations:^{
@@ -313,14 +314,12 @@ typedef void(^RequestSuccess)(id result);
 - (void)updatePersonnel:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
     User *user = [info objectForKey:kpersonnel];
-    NSLog(@"update personnel: %@",user.fullname);
     NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
     _punchlistItem.assignees = assigneeSet;
     [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
 }
 
 - (IBAction)completionTapped{
-
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:NO]]){
             [_completionButton setBackgroundColor:kDarkGrayColor];
@@ -334,7 +333,7 @@ typedef void(^RequestSuccess)(id result);
             _punchlistItem.completed = [NSNumber numberWithBool:NO];
         }
     } completion:^(BOOL finished) {
-        if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:NO]]){
+        if ([_punchlistItem.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
             [[[UIAlertView alloc] initWithTitle:@"Completion Photo" message:@"Can you take a photo of the completed worklist item?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
         }
         shouldSave = YES;
@@ -710,6 +709,7 @@ typedef void(^RequestSuccess)(id result);
     shouldSave = YES;
     assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this worklist item:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
     [assigneeActionSheet addButtonWithTitle:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]];
+    [assigneeActionSheet addButtonWithTitle:kSubcontractors];
     if (_punchlistItem.assignees.count) assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
     assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
     [assigneeActionSheet showInView:self.view];
@@ -732,6 +732,10 @@ typedef void(^RequestSuccess)(id result);
     BHPersonnelPickerViewController *vc = [segue destinationViewController];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
         [vc setUsers:_project.users.mutableCopy];
+        [vc setCountNotNeeded:YES];
+    } else if ([segue.identifier isEqualToString:@"SubcontractorPicker"]){
+        [vc setCompany:_project.company];
+        [vc setWorklistMode:YES];
         [vc setCountNotNeeded:YES];
     }
 }
@@ -968,6 +972,8 @@ typedef void(^RequestSuccess)(id result);
         _punchlistItem.location = nil;
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]]) {
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
+        [self performSegueWithIdentifier:@"SubcontractorPicker" sender:nil];
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         if (buttonIndex == assigneeActionSheet.destructiveButtonIndex){
             _punchlistItem.assignees = nil;

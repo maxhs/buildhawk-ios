@@ -17,9 +17,9 @@
 @property (strong, nonatomic) Report *report;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) NSMutableArray *reports;
-@property (strong, nonatomic) NSMutableArray *possibleTopics;
 @property (weak, nonatomic) IBOutlet UIDatePicker *datePicker;
 @property (weak, nonatomic) IBOutlet UIView *datePickerContainer;
 @property (weak, nonatomic) IBOutlet UIButton *cancelButton;
 @property (weak, nonatomic) IBOutlet UIButton *selectButton;
+@property (strong, nonatomic) UIPopoverController *popover;
 @end

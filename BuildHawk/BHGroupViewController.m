@@ -7,10 +7,10 @@
 //
 
 #import "BHGroupViewController.h"
-#import "BHProjectGroup.h"
 #import "BHDashboardProjectCell.h"
 #import "BHDashboardDetailViewController.h"
 #import "BHTabBarViewController.h"
+#import "BHAppDelegate.h"
 
 @interface BHGroupViewController () {
     NSMutableArray *_projects;
@@ -22,13 +22,12 @@
 @end
 
 @implementation BHGroupViewController
-
 @synthesize group = _group;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     [self loadGroup];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 }
@@ -40,18 +39,23 @@
 }
 
 - (void)loadGroup {
-    if (_group.projectsCount > 0){
-        [ProgressHUD show:@"Fetching Group Projects..."];
-        [manager GET:[NSString stringWithFormat:@"%@/groups/%@",kApiBaseUrl,_group.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting group: %@",responseObject);
-            _group = [[BHProjectGroup alloc] initWithDictionary:[responseObject objectForKey:@"group"]];
-            [self.tableView reloadData];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failure getting dashboard: %@",error.description);
-            [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong while fetching projects for this group. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            [ProgressHUD dismiss];
-        }];
-    }
+    [ProgressHUD show:@"Fetching Group Projects..."];
+    [manager GET:[NSString stringWithFormat:@"%@/groups/%@",kApiBaseUrl,_group.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success getting group: %@",responseObject);
+        if ([responseObject objectForKey:@"group"] && [responseObject objectForKey:@"group"] != [NSNull null]){
+            _group = [Group MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"group"] objectForKey:@"id"]];
+            if (!_group){
+                _group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [_group populateWithDict:[responseObject objectForKey:@"group"]];
+        }
+        NSLog(@"group projects: %d",_group.projects.count);
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure getting dashboard: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong while fetching projects for this group. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [ProgressHUD dismiss];
+    }];
 }
 
 #pragma mark - Table view data source
@@ -69,7 +73,6 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     Project *project = [_group.projects objectAtIndex:indexPath.row];
-    
     static NSString *CellIdentifier = @"ProjectCell";
     BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -84,10 +87,13 @@
         //[cell.subtitleLabel setText:project.company.name];
     }
     
-    [cell.progressLabel setText:project.progressPercentage];
-
+    [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
+    [cell.progressButton setTag:indexPath.row];
+    [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
+    
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+    
     [cell.titleLabel setTextColor:kDarkGrayColor];
     [cell.archiveButton setTag:indexPath.row];
     [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
@@ -119,21 +125,18 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         [ProgressHUD dismiss];
     }
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     Project *selectedProject = [_group.projects objectAtIndex:indexPath.row];
-    [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
+    [self performSegueWithIdentifier:@"Project" sender:selectedProject];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(Project*)project {
     [super prepareForSegue:segue sender:project];
-    
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
@@ -148,6 +151,10 @@
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
 
+- (void)goToProjectDetail:(UIButton*)button {
+    Project *selectedProject = [_group.projects objectAtIndex:button.tag];
+    [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
+}
 
 - (void)confirmArchive:(UIButton*)button{
     [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archive, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
@@ -158,7 +165,7 @@
     [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully archived the project: %@",responseObject);
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_group.projects indexOfObject:archivedProject] inSection:0];
-        [_group.projects removeObject:archivedProject];
+        [_group removeProject:archivedProject];
         [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];

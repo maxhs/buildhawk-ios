@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Comment, Company, Project, PunchlistItem, Report;
+@class Comment, Company, Project, PunchlistItem, Report, Subcontractor;
 
 @interface User : NSManagedObject
 
@@ -32,6 +32,7 @@
 @property (nonatomic, retain) NSNumber * uberAdmin;
 @property (nonatomic, retain) NSSet *comments;
 @property (nonatomic, retain) Company *company;
+@property (nonatomic, retain) Subcontractor *subcontractor;
 @property (nonatomic, retain) NSOrderedSet *projects;
 @property (nonatomic, retain) NSOrderedSet *assignedPunchlistItems;
 @property (nonatomic, retain) NSOrderedSet *reports;

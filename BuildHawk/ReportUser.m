@@ -16,5 +16,6 @@
 @dynamic fullname;
 @dynamic hours;
 @dynamic report;
+@dynamic userId;
 
 @end

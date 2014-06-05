@@ -39,5 +39,6 @@
 @dynamic assignedPunchlistItems;
 @dynamic reports;
 @dynamic punchlistItems;
+@dynamic subcontractor;
 
 @end

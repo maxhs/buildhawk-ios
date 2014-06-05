@@ -61,11 +61,18 @@
                     reportUser.hours = [userDict objectForKey:@"hours"];
                 }
                 [reportUser populateFromDictionary:[userDict objectForKey:@"user"]];
+                reportUser.identifier = [userDict objectForKey:@"id"];
+                
                 [orderedUsers addObject:reportUser];
             }
         }
+        for (ReportUser *reportUser in self.reportUsers){
+            if (![orderedUsers containsObject:reportUser]) {
+                NSLog(@"deleting a report user that no longer exists: %@",reportUser.fullname);
+                [reportUser MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
         self.reportUsers = orderedUsers;
-        NSLog(@"report user count %d for report: %@",self.reportUsers.count, self.createdDate);
     }
     if ([dictionary objectForKey:@"report_companies"] && [dictionary objectForKey:@"report_companies"] != [NSNull null]) {
         NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSet];
@@ -76,29 +83,23 @@
                 ReportSub *subcontractor = [ReportSub MR_findFirstWithPredicate:companyPredicate];
                 if (!subcontractor){
                     subcontractor = [ReportSub MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                    subcontractor.identifier = [subDict objectForKey:@"id"];
                 }
                 subcontractor.name = [[subDict objectForKey:@"company"] objectForKey:@"name"];
+                subcontractor.companyId = [[subDict objectForKey:@"company"] objectForKey:@"id"];
                 if ([subDict objectForKey:@"count"] != [NSNull null]) subcontractor.count = [subDict objectForKey:@"count"];
                 [orderedSubs addObject:subcontractor];
             }
         }
-        self.reportSubs = orderedSubs;
-    }
-    /*if ([dictionary objectForKey:@"report_subs"] && [dictionary objectForKey:@"report_subs"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedSubs = [NSMutableOrderedSet orderedSet];
-        for (id subDict in [dictionary objectForKey:@"report_subs"]){
-            //NSLog(@"sub dict from report subs: %@",subDict);
-            NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
-            Subcontractor *sub = [Subcontractor MR_findFirstWithPredicate:subPredicate];
-            if (!sub){
-                sub = [Subcontractor MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                sub.name = [[subDict objectForKey:@"sub"] objectForKey:@"name"];
-                NSLog(@"couldn't find saved report sub, created a new one: %@",sub.name);
+        for (ReportSub *reportSub in self.reportSubs){
+            if (![orderedSubs containsObject:reportSub]) {
+                NSLog(@"deleting a report sub that no longer exists: %@",reportSub.name);
+                [reportSub MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-            [orderedSubs addObject:sub];
         }
         self.reportSubs = orderedSubs;
-    }*/
+    }
+    
     if ([dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
@@ -120,12 +121,14 @@
         }
         self.photos = orderedPhotos;
     }
-    if ([dictionary objectForKey:@"safety_topics"]) {
+    if ([dictionary objectForKey:@"report_topics"] && [dictionary objectForKey:@"report_topics"] != [NSNull null]) {
         NSMutableOrderedSet *orderedTopic = [NSMutableOrderedSet orderedSet];
-        for (id topicDict in [dictionary objectForKey:@"safety_topics"]){
-            NSPredicate *topicPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [topicDict objectForKey:@"id"]];
+        for (id topicDict in [dictionary objectForKey:@"report_topics"]){
+            NSLog(@"topic dict: %@",topicDict);
+            NSPredicate *topicPredicate = [NSPredicate predicateWithFormat:@"topicId == %@", [topicDict objectForKey:@"safety_topic_id"]];
             SafetyTopic *topic = [SafetyTopic MR_findFirstWithPredicate:topicPredicate];
             if (!topic){
+                NSLog(@"creating a new safety topic");
                 topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [topic populateWithDict:topicDict];

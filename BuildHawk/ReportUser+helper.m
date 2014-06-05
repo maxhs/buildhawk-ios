@@ -12,7 +12,7 @@
 //NSLog(@"checklist item helper dictionary: %@",dictionary);
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
     if ([dictionary objectForKey:@"id"]) {
-        self.identifier = [dictionary objectForKey:@"id"];
+        self.userId = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"hours"] && [dictionary objectForKey:@"hours"]) {
         self.hours = [dictionary objectForKey:@"hours"];

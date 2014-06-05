@@ -91,6 +91,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     self.tabBarController.navigationItem.rightBarButtonItem = nil;
+    if (!loading) [self drawDocuments:_project.documents];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -123,7 +124,6 @@
         [self drawDocuments:_project.documents];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         loading = NO;
-        [self.tableView reloadData];
         if (photosArray.count == 0)[ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting photos: %@",error.description);
@@ -154,6 +154,7 @@
         if (photo.source.length && ![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
         if (photo.userName.length && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
     }
+    [self.tableView reloadData];
 }
 
 - (void)removePhoto:(NSNotification*)notification {

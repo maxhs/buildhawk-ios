@@ -27,13 +27,15 @@
 }
 
 - (void)configureCell {
-    [self buttonTreatment:_choosePersonnelButton];
+    /*[self buttonTreatment:_choosePersonnelButton];
     _prefillButton.layer.cornerRadius = 7.f;
     [_prefillButton setTitleColor:kDarkerGrayColor forState:UIControlStateNormal];
     _prefillButton.layer.borderColor = kDarkerGrayColor.CGColor;
     _prefillButton.layer.borderWidth = .5f;
     _prefillButton.layer.shouldRasterize = YES;
-    _prefillButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    _prefillButton.layer.rasterizationScale = [UIScreen mainScreen].scale;*/
+    [_prefillButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_choosePersonnelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
 }
 
 - (void)buttonTreatment:(UIButton*)button {

@@ -14,7 +14,7 @@
 @dynamic identifier;
 @dynamic name;
 @dynamic company;
-@dynamic usersCount;
 @dynamic count;
 @dynamic report;
+@dynamic users;
 @end

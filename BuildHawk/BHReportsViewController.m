@@ -58,15 +58,8 @@
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
     datePickerButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"calendar"] style:UIBarButtonItemStylePlain target:self action:@selector(showDatePicker)];
     
-    [_cancelButton.layer setBorderColor:[UIColor colorWithWhite:0 alpha:.9].CGColor];
-    [_cancelButton.layer setBorderWidth:.5f];
-    _cancelButton.layer.cornerRadius = 2.f;
-    _cancelButton.clipsToBounds = YES;
-    
-    [_selectButton.layer setBorderColor:[UIColor colorWithWhite:0 alpha:.9].CGColor];
-    [_selectButton.layer setBorderWidth:.5f];
-    _selectButton.layer.cornerRadius = 2.f;
-    _selectButton.clipsToBounds = YES;
+    [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     
     _possibleTopics = [NSMutableArray array];
 }
@@ -169,16 +162,22 @@
     [manager GET:[NSString stringWithFormat:@"%@/reports/options",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success getting possible topics: %@",responseObject);
         NSArray *topicResponseArray = [responseObject objectForKey:@"possible_topics"];
+        NSMutableOrderedSet *topicsSet = [NSMutableOrderedSet orderedSet];
         for (id dict in topicResponseArray){
             SafetyTopic *topic = [SafetyTopic MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"]];
             if (!topic){
-                NSLog(@"had to create new topic");
                 topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [topic populateWithDict:dict];
-            [_possibleTopics addObject:topic];
+            [topicsSet addObject:topic];
         }
-        
+        for (SafetyTopic *topic in project.company.safetyTopics) {
+            if (![topicsSet containsObject:topic]) {
+                NSLog(@"deleting safety topic that no longer exists: %@",topic.title);
+                [topic MR_deleteEntity];
+            }
+        }
+        project.company.safetyTopics = topicsSet;
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failed to get possible topics: %@",error.description);
     }];
@@ -341,9 +340,7 @@
     if ([[segue identifier] isEqualToString:@"Report"]){
         BHReportViewController *vc = [segue destinationViewController];
         [vc setProject:project];
-        [vc setPossibleTopics:_possibleTopics];
         if (daily || safety || weekly){
-            NSLog(@"how many filtered reports? %d",_filteredReports.count);
             [vc setReports:_filteredReports];
         } else {
             [vc setReports:project.reports.array.mutableCopy];
@@ -465,7 +462,7 @@
     //[self saveContext];
 }
 - (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         loading = NO;
         [ProgressHUD dismiss];
         if (safety) {

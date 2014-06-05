@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHPersonnelCountTextField.h"
 
 @interface BHSubcontractorCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *personLabel;
 @property (weak, nonatomic) IBOutlet UIButton *removeButton;
-@property (weak, nonatomic) IBOutlet UITextField *countTextField;
+@property (weak, nonatomic) IBOutlet BHPersonnelCountTextField *countTextField;
 @end

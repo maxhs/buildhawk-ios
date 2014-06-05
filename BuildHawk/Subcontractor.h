@@ -15,8 +15,8 @@
 
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * name;
-@property (nonatomic, retain) NSNumber *usersCount;
 @property (nonatomic, retain) NSNumber *count;
+@property (nonatomic, retain) NSOrderedSet *users;
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) Report *report;
 

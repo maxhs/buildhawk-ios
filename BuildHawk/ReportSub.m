@@ -16,5 +16,6 @@
 @dynamic name;
 @dynamic count;
 @dynamic report;
+@dynamic companyId;
 
 @end

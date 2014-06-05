@@ -32,7 +32,8 @@
 }
 
 - (void)configureCell {
-    self.chooseTopicsButton.layer.cornerRadius = 8.f;
+    [_chooseTopicsButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    /*self.chooseTopicsButton.layer.cornerRadius = 8.f;
     [self.chooseTopicsButton setBackgroundColor:kDarkerGrayColor];
     [self.chooseTopicsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     self.chooseTopicsButton.layer.borderColor = kDarkerGrayColor.CGColor;
@@ -42,7 +43,7 @@
     self.chooseTopicsButton.layer.shadowRadius = 2.f;
     self.chooseTopicsButton.layer.shadowOffset = CGSizeMake(0, 0);
     self.chooseTopicsButton.layer.shouldRasterize = YES;
-    self.chooseTopicsButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
+    self.chooseTopicsButton.layer.rasterizationScale = [UIScreen mainScreen].scale;*/
 }
 
 @end

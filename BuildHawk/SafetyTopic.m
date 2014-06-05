@@ -17,5 +17,6 @@
 @dynamic info;
 @dynamic report;
 @dynamic company;
+@dynamic topicId;
 
 @end

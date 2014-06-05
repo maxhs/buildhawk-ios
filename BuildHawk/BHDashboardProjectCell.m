@@ -29,9 +29,8 @@
 }
 
 - (void)awakeFromNib {
-    screen = [UIScreen mainScreen].bounds;
     [self.archiveButton setBackgroundColor:[UIColor redColor]];
-    [self.scrollView setContentSize:CGSizeMake(screen.size.width, 88)];
+    [self.scrollView setContentSize:CGSizeMake(screenWidth(), 88)];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {

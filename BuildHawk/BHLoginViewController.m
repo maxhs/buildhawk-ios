@@ -154,7 +154,6 @@
         [[NSUserDefaults standardUserDefaults] setObject:user.lastName forKey:kUserDefaultsLastName];
         [[NSUserDefaults standardUserDefaults] setObject:user.fullname forKey:kUserDefaultsFullName];
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
-        //[[NSUserDefaults standardUserDefaults] setObject:user.photo.urlThumb forKey:kUserDefaultsPhotoUrl100];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
         [[NSUserDefaults standardUserDefaults] setBool:user.admin.boolValue forKey:kUserDefaultsAdmin];
         [[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin.boolValue forKey:kUserDefaultsCompanyAdmin];
@@ -176,7 +175,11 @@
 
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error logging in: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        if (operation.response.statusCode == 401) {
+            [[[UIAlertView alloc] initWithTitle:@"Incorrect password" message:@"Your email and password don't match. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        } else {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
         [ProgressHUD dismiss];
         [self.loginContainerView setAlpha:1.0];
         [self.loginButton setUserInteractionEnabled:YES];

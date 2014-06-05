@@ -28,6 +28,8 @@
 #import "Project.h"
 #import "BHAppDelegate.h"
 #import "Comment+helper.h"
+#import "BHItemContactCell.h"
+#import "BHItemReminderCell.h"
 
 @interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, CTAssetsPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     NSMutableArray *photosArray;
@@ -112,20 +114,29 @@
     }];
 }
 
+- (void)setReminder {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    
+    [manager POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"success creating a remidner: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error creating a checklist item reminder: %@",error.description);
+    }];
+}
+
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 5;
+    return 7;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
     else if (section == 1) return 3;
-    else if (section == 2) return 1;
-    else if (section == 3) return 1;
-    else if (section == 4) return _item.comments.count;
+    else if (section == 2 || section == 3 || section == 4 || section == 5) return 1;
+    else if (section == 6) return _item.comments.count;
     return 0;
 }
 
@@ -144,14 +155,7 @@
         }
         [messageCell.messageTextView setText:_item.body];
         [messageCell.messageTextView setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
-        [messageCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
-        [messageCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
-        [messageCell.textButton addTarget:self action:@selector(sendText) forControlEvents:UIControlEventTouchUpInside];
-        if (iPad) {
-            [messageCell.callButton setHidden:YES];
-            messageCell.emailButton.transform = CGAffineTransformMakeTranslation(275, 0);
-            messageCell.textButton.transform = CGAffineTransformMakeTranslation(173, 0);
-        }
+        
         return messageCell;
     } else if (indexPath.section == 1) {
         static NSString *CellIdentifier = @"ActionCell";
@@ -198,6 +202,27 @@
         [photoCell.choosePhotoButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
         return photoCell;
     } else if (indexPath.section == 3) {
+        BHItemReminderCell *reminderCell = [tableView dequeueReusableCellWithIdentifier:@"ReminderCell"];
+        if (reminderCell == nil) {
+            reminderCell = [[[NSBundle mainBundle] loadNibNamed:@"BHItemReminderCell" owner:self options:nil] lastObject];
+        }
+        
+        return reminderCell;
+    } else if (indexPath.section == 4) {
+        BHItemContactCell *contactCell = [tableView dequeueReusableCellWithIdentifier:@"ContactCell"];
+        if (contactCell == nil) {
+            contactCell = [[[NSBundle mainBundle] loadNibNamed:@"BHItemContactCell" owner:self options:nil] lastObject];
+        }
+        [contactCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
+        [contactCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
+        [contactCell.textButton addTarget:self action:@selector(sendText) forControlEvents:UIControlEventTouchUpInside];
+        if (iPad) {
+            [contactCell.callButton setHidden:YES];
+            contactCell.emailButton.transform = CGAffineTransformMakeTranslation(275, 0);
+            contactCell.textButton.transform = CGAffineTransformMakeTranslation(173, 0);
+        }
+        return contactCell;
+    } else if (indexPath.section == 5) {
         BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
         if (addCommentCell == nil) {
             addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
@@ -232,7 +257,7 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     switch (indexPath.section) {
         case 0:
-            return 180;
+            return 120;
             break;
         case 1:
             return 54;
@@ -262,7 +287,7 @@
     [cancelButton setTitle:@"Cancel"];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
     if (textView == addCommentTextView){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:5] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     }
 }
 
@@ -320,7 +345,7 @@
                 }
                 _item.comments = orderedComments;
                 // *** //
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
                 addCommentTextView.text = @"";
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"failure creating a comment: %@",error.description);
@@ -835,7 +860,7 @@
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 4) {
+    if (indexPath.section == 6) {
         Comment *comment = [_item.comments objectAtIndex:indexPath.row];
         if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
             return YES;

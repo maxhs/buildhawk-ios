@@ -35,7 +35,11 @@
 
 - (void)configureReport:(Report *)report {
     [_reportLabel setText:[NSString stringWithFormat:@"%@ Report - %@",report.type,report.createdDate]];
-    [_personnelLabel setText:[NSString stringWithFormat:@"Personnel onsite: %i",report.reportUsers.count]];
+    int count = report.reportUsers.count;
+    for (ReportSub *reportSub in report.reportSubs){
+        if (reportSub.count.intValue > 0) count += reportSub.count.intValue;
+    }
+    [_personnelLabel setText:[NSString stringWithFormat:@"Personnel onsite: %i",count]];
     if (report.body){
         [_notesLabel setText:[NSString stringWithFormat:@"Notes: %@",report.body]];
     } else {

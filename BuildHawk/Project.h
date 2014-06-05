@@ -13,23 +13,22 @@
 #import "Company.h"
 #import "Punchlist.h"
 
-@class Checklist, ChecklistItem, Phase, Report;
+@class Checklist, ChecklistItem, Phase, Report, Group;
 
 @interface Project : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * active;
 @property (nonatomic, retain) NSNumber * demo;
-@property (nonatomic, retain) id group;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) id notifications;
-
 @property (nonatomic, retain) NSString * progressPercentage;
 @property (nonatomic, retain) Address *address;
 @property (nonatomic, retain) Punchlist *punchlist;
 @property (nonatomic, retain) Checklist *checklist;
 @property (nonatomic, retain) NSOrderedSet *phases;
 @property (nonatomic, retain) Company *company;
+@property (nonatomic, retain) Group *group;
 @property (nonatomic, retain) NSOrderedSet *recentItems;
 @property (nonatomic, retain) NSOrderedSet *reports;
 @property (nonatomic, retain) NSOrderedSet *upcomingItems;

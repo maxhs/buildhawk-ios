@@ -7,10 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHReportPhotoScrollView.h"
 
 @interface BHReportPhotoCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UIView *photoButtonContainerView;
-@property (weak, nonatomic) IBOutlet UIScrollView *photoScrollView;
+@property (weak, nonatomic) IBOutlet BHReportPhotoScrollView *photoScrollView;
 @end
