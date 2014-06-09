@@ -29,5 +29,6 @@
 @dynamic folderId;
 @dynamic photoPhase;
 @dynamic assignee;
+@dynamic caption;
 
 @end

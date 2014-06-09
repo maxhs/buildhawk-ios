@@ -43,6 +43,9 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
+    if ([dictionary objectForKey:@"comments_count"] != [NSNull null]) {
+        self.commentsCount = [dictionary objectForKey:@"comments_count"];
+    }
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
         NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
         //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);

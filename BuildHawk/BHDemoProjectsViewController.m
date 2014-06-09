@@ -12,6 +12,7 @@
 #import "BHTabBarViewController.h"
 #import "BHDashboardDetailViewController.h"
 #import "BHAppDelegate.h"
+#import "Company+helper.h"
 
 @interface BHDemoProjectsViewController () {
     NSMutableArray *demoProjects;
@@ -23,11 +24,13 @@
     NSMutableArray *upcomingChecklistItems;
     NSMutableArray *categories;
     NSMutableDictionary *dashboardDetailDict;
+    Project *archivedProject;
 }
 
 @end
 
 @implementation BHDemoProjectsViewController
+@synthesize currentUser = _currentUser;
 
 - (void)viewDidLoad
 {
@@ -174,6 +177,42 @@
     NSLog(@"should be going to detail");
     Project *selectedProject = [demoProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
+}
+
+- (void)confirmArchive:(UIButton*)button{
+    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archived, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
+    archivedProject = [demoProjects objectAtIndex:button.tag];
+    BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:button.tag inSection:0]];
+    [cell.scrollView setContentOffset:CGPointZero animated:YES];
+}
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Archive"]){
+        [self archiveProject];
+    }
+}
+
+- (void)archiveProject{
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Successfully archived the project: %@",responseObject);
+        if ([responseObject objectForKey:@"user"]){
+            [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"admin"] boolValue] forKey:kUserDefaultsAdmin];
+            [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"company_admin"] boolValue] forKey:kUserDefaultsCompanyAdmin];
+            [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"uber_admin"] boolValue] forKey:kUserDefaultsUberAdmin];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+            [[[UIAlertView alloc] initWithTitle:@"Unable to Archive" message:@"Only administrators can archive projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [self.tableView reloadData];
+        } else {
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:archivedProject] inSection:0];
+
+            [_currentUser.company removeProject:archivedProject];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        }
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        NSLog(@"Failed to archive the project: %@",error.description);
+    }];
 }
 
 #pragma mark - Table view delegate

@@ -55,6 +55,20 @@ static NSString *textPlaceholder = @"Text Message";
     } else {
         iPad = YES;
     }
+    
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self loadNotifications];
+}
+
+- (void)loadNotifications {
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"SUccess getting notifications: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error getting notifications: %@",error.description);
+    }];
 }
 
 - (void)didReceiveMemoryWarning

@@ -11,5 +11,5 @@
 @interface BHDemoProjectsViewController : UIViewController <UITableViewDelegate, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-
+@property (strong, nonatomic) User *currentUser;
 @end

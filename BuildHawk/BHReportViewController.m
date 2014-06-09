@@ -1240,7 +1240,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         } else if (photo.urlLarge.length) {
             mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         }
-        
+        if (photo.caption.length) [mwPhoto setCaption:photo.caption];
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
     }

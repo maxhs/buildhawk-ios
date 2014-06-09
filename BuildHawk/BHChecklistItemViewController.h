@@ -11,12 +11,16 @@
 #import "Comment.h"
 #import "Photo.h"
 #import "Project.h"
+#import "BHDatePicker.h"
 
 @interface BHChecklistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) ChecklistItem *item;
 @property (strong, nonatomic) Project *project;
+@property (weak, nonatomic) IBOutlet UIView *datePickerContainer;
+@property (weak, nonatomic) IBOutlet BHDatePicker *datePicker;
+@property (weak, nonatomic) IBOutlet UIButton *selectButton;
+@property (weak, nonatomic) IBOutlet UIButton *cancelButton;
 @property int row;
-
 @end

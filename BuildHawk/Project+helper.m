@@ -16,7 +16,6 @@
 @implementation Project (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"project helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }

@@ -26,6 +26,7 @@
 @property (nonatomic, retain) NSString * userName;
 @property (nonatomic, retain) NSString * photoPhase;
 @property (nonatomic, retain) NSString * assignee;
+@property (nonatomic, retain) NSString * caption;
 @property (nonatomic, retain) NSString * folder;
 @property (nonatomic, retain) NSNumber * folderId;
 @property (nonatomic, retain) id image;

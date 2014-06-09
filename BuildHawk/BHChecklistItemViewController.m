@@ -55,6 +55,7 @@
     ALAssetsLibrary *library;
     Project *savedProject;
     NSIndexPath *indexPathForDeletion;
+    UIView *overlayBackground;
 }
 
 @end
@@ -114,9 +115,65 @@
     }];
 }
 
+- (IBAction)cancelDatePicker{
+    [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        _datePickerContainer.transform = CGAffineTransformIdentity;
+        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+        [overlayBackground setAlpha:0];
+    } completion:^(BOOL finished) {
+        overlayBackground = nil;
+        [overlayBackground removeFromSuperview];
+    }];
+}
+
+- (void)showDatePicker:(id)sender{
+    if (overlayBackground == nil){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:YES];
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
+        tapGesture.numberOfTapsRequired = 1;
+        [overlayBackground addGestureRecognizer:tapGesture];
+        [self.view insertSubview:overlayBackground belowSubview:_datePickerContainer];
+        [self.view bringSubviewToFront:_datePickerContainer];
+        [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -_datePickerContainer.frame.size.height);
+            
+            if (IDIOM == IPAD)
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 56);
+            else
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+    } else {
+        [self cancelDatePicker];
+    }
+}
+
+/*- (IBAction)selectDate {
+    [self cancelDatePicker];
+    NSString *dateString = [formatter stringFromDate:self.datePicker.date];
+    BOOL duplicate = NO;
+    for (Report *report in _project.reports){
+        if ([report.type isEqualToString:_report.type] && [report.createdDate isEqualToString:dateString]) duplicate = YES;
+    }
+    if (duplicate){
+        [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        _report.createdDate = dateString;
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
+        [self.beforeTableView reloadData];
+        if ([_report.type isEqualToString:kDaily]){
+            [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
+        }
+    }
+}*/
+
 - (void)setReminder {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+    }
     [manager POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"success creating a remidner: %@",responseObject);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -206,7 +263,7 @@
         if (reminderCell == nil) {
             reminderCell = [[[NSBundle mainBundle] loadNibNamed:@"BHItemReminderCell" owner:self options:nil] lastObject];
         }
-        
+        [reminderCell.reminderButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
         return reminderCell;
     } else if (indexPath.section == 4) {
         BHItemContactCell *contactCell = [tableView dequeueReusableCellWithIdentifier:@"ContactCell"];
@@ -791,6 +848,9 @@
             mwPhoto = [MWPhoto photoWithImage:photo.image];
         } else {
             mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
+        }
+        if (photo.caption.length){
+            mwPhoto.caption = photo.caption;
         }
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];

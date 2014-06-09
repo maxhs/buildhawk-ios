@@ -10,12 +10,12 @@
 #import "MWCaptionView.h"
 #import "MWPhoto.h"
 
-static const CGFloat labelPadding = 10;
+static const CGFloat labelPadding = 5;
 
 // Private
 @interface MWCaptionView () {
     id <MWPhoto> _photo;
-    UILabel *_label;    
+    UITextView *_textView;
 }
 @end
 
@@ -24,7 +24,7 @@ static const CGFloat labelPadding = 10;
 - (id)initWithPhoto:(id<MWPhoto>)photo {
     self = [super initWithFrame:CGRectMake(0, 0, 320, 44)]; // Random initial frame
     if (self) {
-        self.userInteractionEnabled = NO;
+        //self.userInteractionEnabled = NO;
         _photo = photo;
         if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7")) {
             // Use iOS 7 blurry goodness
@@ -51,35 +51,29 @@ static const CGFloat labelPadding = 10;
 }
 
 - (CGSize)sizeThatFits:(CGSize)size {
-    CGFloat maxHeight = 9999;
-    if (_label.numberOfLines > 0) maxHeight = _label.font.leading*_label.numberOfLines;
-    CGSize textSize = [_label.text sizeWithFont:_label.font 
-                              constrainedToSize:CGSizeMake(size.width - labelPadding*2, maxHeight)
-                                  lineBreakMode:_label.lineBreakMode];
-    return CGSizeMake(size.width, textSize.height + labelPadding * 2);
+    //if (_textView.numberOfLines > 0) maxHeight = _label.font.leading*_label.numberOfLines;
+    CGRect textRect = [_textView.text boundingRectWithSize:CGSizeMake(screenWidth()-labelPadding*2, CGFLOAT_MAX) options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) attributes:nil context:nil];
+    return CGSizeMake(size.width, textRect.size.height + labelPadding * 2);
 }
 
 - (void)setupCaption {
-    _label = [[UILabel alloc] initWithFrame:CGRectIntegral(CGRectMake(labelPadding, 0,
+    _textView = [[UITextView alloc] initWithFrame:CGRectIntegral(CGRectMake(labelPadding, 0,
                                                        self.bounds.size.width-labelPadding*2,
                                                        self.bounds.size.height))];
-    _label.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    _label.opaque = NO;
-    _label.backgroundColor = [UIColor clearColor];
-    _label.textAlignment = NSTextAlignmentCenter;
-    _label.lineBreakMode = NSLineBreakByWordWrapping;
-    _label.numberOfLines = 0;
-    _label.textColor = [UIColor whiteColor];
-    if (SYSTEM_VERSION_LESS_THAN(@"7")) {
-        // Shadow on 6 and below
-        _label.shadowColor = [UIColor blackColor];
-        _label.shadowOffset = CGSizeMake(1, 1);
-    }
-    _label.font = [UIFont systemFontOfSize:17];
+    _textView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    _textView.opaque = NO;
+    _textView.backgroundColor = [UIColor clearColor];
+    _textView.textAlignment = NSTextAlignmentLeft;
+    _textView.scrollEnabled = YES;
+    //_textView.lineBreakMode = NSLineBreakByWordWrapping;
+    //_textView.numberOfLines = 0;
+    _textView.editable = NO;
+    _textView.textColor = [UIColor whiteColor];
+    _textView.font = [UIFont systemFontOfSize:16];
     if ([_photo respondsToSelector:@selector(caption)]) {
-        _label.text = [_photo caption] ? [_photo caption] : @" ";
+        _textView.text = [_photo caption] ? [_photo caption] : @" ";
     }
-    [self addSubview:_label];
+    [self addSubview:_textView];
 }
 
 

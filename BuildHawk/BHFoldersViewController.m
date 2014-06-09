@@ -165,6 +165,7 @@
         MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];
+        if (photo.caption.length) mwPhoto.caption = photo.caption;
     }
     
     // Create browser

@@ -18,5 +18,5 @@
 @property (strong, nonatomic) NSNumber *level;
 @property (strong, nonatomic) ChecklistItem *item;
 @property (weak, nonatomic) IBOutlet UIImageView *photoImageView;
-@property (weak, nonatomic) IBOutlet UIImageView *typeImageView;
+@property (weak, nonatomic) IBOutlet UIImageView *chatImageView;
 @end

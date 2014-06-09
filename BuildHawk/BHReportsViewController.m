@@ -57,6 +57,8 @@
     _filteredReports = [NSMutableArray array];
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
     datePickerButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"calendar"] style:UIBarButtonItemStylePlain target:self action:@selector(showDatePicker)];
+    datePickerButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -60);
+    addButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -5);
     
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];

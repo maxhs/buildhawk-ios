@@ -674,6 +674,9 @@ typedef void(^RequestSuccess)(id result);
             mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         }
         [mwPhoto setPhoto:photo];
+        if (photo.caption.length){
+            mwPhoto.caption = photo.caption;
+        }
         [browserPhotos addObject:mwPhoto];
     }
 

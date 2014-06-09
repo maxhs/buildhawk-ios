@@ -25,6 +25,7 @@
 #import "BHOverlayView.h"
 #import "BHPunchlistViewController.h"
 #import "BHWorklistConnectCell.h"
+#import "BHDemoProjectsViewController.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate,SWRevealViewControllerDelegate> {
     CGRect searchContainerRect;
@@ -480,7 +481,11 @@
     headerLabel.textAlignment = NSTextAlignmentCenter;
     switch (section) {
         case 0:
-            [headerLabel setText:[NSString stringWithFormat:@"%@ Projects",currentUser.company.name]];
+            if (currentUser.company.name.length){
+                [headerLabel setText:[NSString stringWithFormat:@"%@ Projects",currentUser.company.name]];
+            } else {
+                [headerLabel setText:@"Projects"];
+            }
             break;
         case 1:
             if (currentUser.company.groups.count)[headerLabel setText:[NSString stringWithFormat:@"%@ Project Groups",currentUser.company.name]];
@@ -507,7 +512,7 @@
 }
 
 - (void)confirmArchive:(UIButton*)button{
-    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archive, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
+    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archived, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
     archivedProject = [currentUser.company.projects objectAtIndex:button.tag];
     BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:button.tag inSection:0]];
     [cell.scrollView setContentOffset:CGPointZero animated:YES];
@@ -594,6 +599,9 @@
         BHGroupViewController *vc = [segue destinationViewController];
         [vc setTitle:group.name];
         [vc setGroup:group];
+    } else if ([segue.identifier isEqualToString:@"Demos"]){
+        BHDemoProjectsViewController *vc = [segue destinationViewController];
+        [vc setCurrentUser:currentUser];
     } else if ([segue.identifier isEqualToString:@"Archived"]){
         BHArchivedViewController *vc = [segue destinationViewController];
         [vc setTitle:@"Archived Projects"];
@@ -616,12 +624,19 @@
 
 - (void)goToProject:(UIButton*)button {
     Project *selectedProject;
-    if (self.searchDisplayController.isActive){
+    if (self.searchDisplayController.isActive && filteredProjects.count > button.tag){
         selectedProject = [filteredProjects objectAtIndex:button.tag];
-    } else {
+    } else if (currentUser.company.projects.count > button.tag) {
         selectedProject = [currentUser.company.projects objectAtIndex:button.tag];
     }
-    [self performSegueWithIdentifier:@"Project" sender:selectedProject];
+    
+    //make sure there's a project
+    if (![selectedProject.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        [self performSegueWithIdentifier:@"Project" sender:selectedProject];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to fetch this project. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [self handleRefresh:nil];
+    }
 }
 
 - (void)goToProjectDetail:(UIButton*)button {

@@ -185,6 +185,7 @@
     }
     if (self.displayActionButton) {
         _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"zoom"] style:UIBarButtonItemStylePlain target:self action:@selector(actionButtonPressed:)];
+        _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -30);
         if (self.displayTrashButton){
             UIBarButtonItem *trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(confirmRemove)];
             self.navigationItem.rightBarButtonItems = @[trashButton, _actionButton];
@@ -193,12 +194,8 @@
         }
     }
     
-    // Update
     [self reloadData];
-    
-	// Super
     [super viewDidLoad];
-	
 }
 
 - (void)confirmRemove {
@@ -847,6 +844,7 @@
             if (captionView) {
                 captionView.frame = [self frameForCaptionView:captionView atIndex:index];
                 [_pagingScrollView addSubview:captionView];
+                [_pagingScrollView bringSubviewToFront:captionView];
                 page.captionView = captionView;
             }
             

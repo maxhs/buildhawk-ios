@@ -54,6 +54,9 @@
     if ([dictionary objectForKey:@"created_date"]) {
         self.createdDate = [dictionary objectForKey:@"created_date"];
     }
+    if ([dictionary objectForKey:@"description"] != [NSNull null]) {
+        self.caption = [dictionary objectForKey:@"description"];
+    }
     if ([dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];

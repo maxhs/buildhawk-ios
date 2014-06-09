@@ -91,6 +91,7 @@
 		F22681A9187FB0ED00D78BDD /* cloudy@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F22681A3187FB0ED00D78BDD /* cloudy@2x.png */; };
 		F22681AA187FB0ED00D78BDD /* sunny.png in Resources */ = {isa = PBXBuildFile; fileRef = F22681A4187FB0ED00D78BDD /* sunny.png */; };
 		F22681AB187FB0ED00D78BDD /* sunny@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F22681A5187FB0ED00D78BDD /* sunny@2x.png */; };
+		F227B64519456B3B007DE86F /* BHDatePicker.m in Sources */ = {isa = PBXBuildFile; fileRef = F227B64419456B3B007DE86F /* BHDatePicker.m */; };
 		F228706917DE8DA600A88475 /* BHPunchlistItemCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */; };
 		F228706B17DE8DB100A88475 /* BHPunchlistItemCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */; };
 		F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */; };
@@ -128,8 +129,6 @@
 		F25699C819087B8800ED9032 /* BHReportsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699C719087B8800ED9032 /* BHReportsViewController.m */; };
 		F25699CB19087F1C00ED9032 /* BHReportCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699CA19087F1C00ED9032 /* BHReportCell.m */; };
 		F25699CD19087F2800ED9032 /* BHReportCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = F25699CC19087F2800ED9032 /* BHReportCell.xib */; };
-		F25699D61908E13400ED9032 /* calendar.png in Resources */ = {isa = PBXBuildFile; fileRef = F25699D41908E13400ED9032 /* calendar.png */; };
-		F25699D71908E13400ED9032 /* calendar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F25699D51908E13400ED9032 /* calendar@2x.png */; };
 		F25699DA1908EFB300ED9032 /* ProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699D91908EFB300ED9032 /* ProgressHUD.m */; };
 		F25699DD1908F9F800ED9032 /* Project+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699DC1908F9F800ED9032 /* Project+helper.m */; };
 		F25699E01909000400ED9032 /* Address.m in Sources */ = {isa = PBXBuildFile; fileRef = F25699DF1909000400ED9032 /* Address.m */; };
@@ -266,6 +265,8 @@
 		F2D84035191D8F7800592F3D /* reportScreenshot@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D84033191D8F7700592F3D /* reportScreenshot@2x.png */; };
 		F2D84038191D8FB000592F3D /* detailScreenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D84036191D8FB000592F3D /* detailScreenshot.png */; };
 		F2D84039191D8FB000592F3D /* detailScreenshot@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2D84037191D8FB000592F3D /* detailScreenshot@2x.png */; };
+		F2E41EF519421AD5006C7583 /* calendar.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E41EF319421AD5006C7583 /* calendar.png */; };
+		F2E41EF619421AD5006C7583 /* calendar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2E41EF419421AD5006C7583 /* calendar@2x.png */; };
 		F2EA262E190ECABE00EEF2CC /* upWhiteArrow.png in Resources */ = {isa = PBXBuildFile; fileRef = F2EA262C190ECABE00EEF2CC /* upWhiteArrow.png */; };
 		F2EA262F190ECABE00EEF2CC /* upWhiteArrow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2EA262D190ECABE00EEF2CC /* upWhiteArrow@2x.png */; };
 		F2EA2633190ECCC900EEF2CC /* percentageArrow@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2EA2631190ECCC900EEF2CC /* percentageArrow@2x.png */; };
@@ -446,6 +447,8 @@
 		F22681A3187FB0ED00D78BDD /* cloudy@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cloudy@2x.png"; sourceTree = "<group>"; };
 		F22681A4187FB0ED00D78BDD /* sunny.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sunny.png; sourceTree = "<group>"; };
 		F22681A5187FB0ED00D78BDD /* sunny@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "sunny@2x.png"; sourceTree = "<group>"; };
+		F227B64319456B3B007DE86F /* BHDatePicker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDatePicker.h; sourceTree = "<group>"; };
+		F227B64419456B3B007DE86F /* BHDatePicker.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDatePicker.m; sourceTree = "<group>"; };
 		F228706717DE8DA600A88475 /* BHPunchlistItemCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPunchlistItemCell.h; sourceTree = "<group>"; };
 		F228706817DE8DA600A88475 /* BHPunchlistItemCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPunchlistItemCell.m; sourceTree = "<group>"; };
 		F228706A17DE8DB100A88475 /* BHPunchlistItemCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHPunchlistItemCell.xib; sourceTree = "<group>"; };
@@ -502,8 +505,6 @@
 		F25699C919087F1C00ED9032 /* BHReportCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHReportCell.h; sourceTree = "<group>"; };
 		F25699CA19087F1C00ED9032 /* BHReportCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHReportCell.m; sourceTree = "<group>"; };
 		F25699CC19087F2800ED9032 /* BHReportCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = BHReportCell.xib; sourceTree = "<group>"; };
-		F25699D41908E13400ED9032 /* calendar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = calendar.png; sourceTree = "<group>"; };
-		F25699D51908E13400ED9032 /* calendar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "calendar@2x.png"; sourceTree = "<group>"; };
 		F25699D81908EFB300ED9032 /* ProgressHUD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProgressHUD.h; sourceTree = "<group>"; };
 		F25699D91908EFB300ED9032 /* ProgressHUD.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProgressHUD.m; sourceTree = "<group>"; };
 		F25699DB1908F9F800ED9032 /* Project+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Project+helper.h"; sourceTree = "<group>"; };
@@ -691,6 +692,8 @@
 		F2D84033191D8F7700592F3D /* reportScreenshot@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reportScreenshot@2x.png"; sourceTree = "<group>"; };
 		F2D84036191D8FB000592F3D /* detailScreenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = detailScreenshot.png; sourceTree = "<group>"; };
 		F2D84037191D8FB000592F3D /* detailScreenshot@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "detailScreenshot@2x.png"; sourceTree = "<group>"; };
+		F2E41EF319421AD5006C7583 /* calendar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = calendar.png; sourceTree = "<group>"; };
+		F2E41EF419421AD5006C7583 /* calendar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "calendar@2x.png"; sourceTree = "<group>"; };
 		F2EA262C190ECABE00EEF2CC /* upWhiteArrow.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = upWhiteArrow.png; sourceTree = "<group>"; };
 		F2EA262D190ECABE00EEF2CC /* upWhiteArrow@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "upWhiteArrow@2x.png"; sourceTree = "<group>"; };
 		F2EA2631190ECCC900EEF2CC /* percentageArrow@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "percentageArrow@2x.png"; sourceTree = "<group>"; };
@@ -869,6 +872,8 @@
 		F2139D771939735100EE5C96 /* Custom Objects */ = {
 			isa = PBXGroup;
 			children = (
+				F227B64319456B3B007DE86F /* BHDatePicker.h */,
+				F227B64419456B3B007DE86F /* BHDatePicker.m */,
 				F2C2009918FDF816003C401A /* BHDeselectableSegmentedControl.h */,
 				F2C2009A18FDF816003C401A /* BHDeselectableSegmentedControl.m */,
 				F2094FE3192AC09E00329A54 /* BHReportTableView.h */,
@@ -1223,14 +1228,14 @@
 				F2EA26A71910106700EEF2CC /* dashboardiPad@2x.png */,
 				F2EA264D190EF12700EEF2CC /* downWhiteArrow@2x.png */,
 				F2EA264E190EF12700EEF2CC /* downWhiteArrow.png */,
+				F2E41EF319421AD5006C7583 /* calendar.png */,
+				F2E41EF419421AD5006C7583 /* calendar@2x.png */,
 				F2EA2649190EE5CE00EEF2CC /* welcome.png */,
 				F2EA264A190EE5CE00EEF2CC /* welcome@2x.png */,
 				F2EA2634190ECCE400EEF2CC /* percentageArrow.png */,
 				F2EA2631190ECCC900EEF2CC /* percentageArrow@2x.png */,
 				F2EA262C190ECABE00EEF2CC /* upWhiteArrow.png */,
 				F2EA262D190ECABE00EEF2CC /* upWhiteArrow@2x.png */,
-				F25699D41908E13400ED9032 /* calendar.png */,
-				F25699D51908E13400ED9032 /* calendar@2x.png */,
 				F285E95718E5E5F6008FFEC1 /* libraryButton.png */,
 				F285E95818E5E5F6008FFEC1 /* libraryButton@2x.png */,
 				F285E95318E5E532008FFEC1 /* miniLibraryButton.png */,
@@ -1648,6 +1653,7 @@
 				F29EF2E81815BE1B00F737B7 /* navBarBackground.png in Resources */,
 				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
 				F203966D17D3E052001CFF61 /* punchlists@2x.png in Resources */,
+				F2E41EF619421AD5006C7583 /* calendar@2x.png in Resources */,
 				F2FAE45018F5B01D005E582B /* BHArchivedProjectCell.xib in Resources */,
 				F226815D186B699A00D78BDD /* backArrow@2x.png in Resources */,
 				F2D84039191D8FB000592F3D /* detailScreenshot@2x.png in Resources */,
@@ -1659,11 +1665,9 @@
 				F29579D017F7729B0082DE5A /* menu@2x.png in Resources */,
 				F28F9A0D189D890C000A46D4 /* empty100.png in Resources */,
 				F292AC1317F9F2DE0020DE13 /* mailButton.png in Resources */,
-				F25699D61908E13400ED9032 /* calendar.png in Resources */,
 				F226815218622D8100D78BDD /* documentsOutlineDark.png in Resources */,
 				F2EA2635190ECCE400EEF2CC /* percentageArrow.png in Resources */,
 				F28F9A3D18A34E04000A46D4 /* BuildHawk_app_icon_40.png in Resources */,
-				F25699D71908E13400ED9032 /* calendar@2x.png in Resources */,
 				F2D8402E191C8B8C00592F3D /* dashboardScreenshot.png in Resources */,
 				F285E95A18E5E5F6008FFEC1 /* libraryButton@2x.png in Resources */,
 				F22681A8187FB0ED00D78BDD /* cloudy.png in Resources */,
@@ -1676,6 +1680,7 @@
 				F21F6EB51930FB82003BC323 /* Default-iPad.png in Resources */,
 				F226815C186B699A00D78BDD /* backArrow.png in Resources */,
 				F252F5E1193FF3EC00515471 /* blackX.png in Resources */,
+				F2E41EF519421AD5006C7583 /* calendar.png in Resources */,
 				F203967617D3E361001CFF61 /* tabBarBackground@2x.png in Resources */,
 				F28F9A3518A34D43000A46D4 /* BuildHawk_app_icon_80.png in Resources */,
 				F28F9A2918A33F5E000A46D4 /* BuildHawk_app_icon_120.png in Resources */,
@@ -1883,6 +1888,7 @@
 				F252F5EB1940F5E600515471 /* BHAddPersonnelViewController.m in Sources */,
 				F29EF2EF1815D30F00F737B7 /* BHPersonnelCell.m in Sources */,
 				F2139D2C19380C5100EE5C96 /* ReportSub.m in Sources */,
+				F227B64519456B3B007DE86F /* BHDatePicker.m in Sources */,
 				F203965C17D3DD6B001CFF61 /* BHPunchlistViewController.m in Sources */,
 				F2139D2F1938101500EE5C96 /* ReportUser+helper.m in Sources */,
 				F2EA26BD1910BFE000EEF2CC /* Checklist+helper.m in Sources */,

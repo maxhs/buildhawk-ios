@@ -89,6 +89,7 @@
     </entity>
     <entity name="Photo" representedClassName="Photo" syncable="YES">
         <attribute name="assignee" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="caption" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="createdDate" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="folder" optional="YES" attributeType="String" syncable="YES"/>
@@ -231,8 +232,9 @@
         <element name="ChecklistItem" positionX="9" positionY="153" width="128" height="298"/>
         <element name="Comment" positionX="27" positionY="153" width="128" height="148"/>
         <element name="Company" positionX="0" positionY="0" width="128" height="163"/>
+        <element name="Group" positionX="27" positionY="153" width="128" height="118"/>
         <element name="Phase" positionX="45" positionY="180" width="128" height="238"/>
-        <element name="Photo" positionX="36" positionY="171" width="128" height="358"/>
+        <element name="Photo" positionX="36" positionY="171" width="128" height="375"/>
         <element name="Project" positionX="0" positionY="0" width="128" height="328"/>
         <element name="Punchlist" positionX="27" positionY="153" width="128" height="90"/>
         <element name="PunchlistItem" positionX="36" positionY="162" width="128" height="208"/>
@@ -242,6 +244,5 @@
         <element name="SafetyTopic" positionX="27" positionY="153" width="128" height="133"/>
         <element name="Subcontractor" positionX="27" positionY="153" width="128" height="120"/>
         <element name="User" positionX="0" positionY="0" width="128" height="390"/>
-        <element name="Group" positionX="27" positionY="153" width="128" height="118"/>
     </elements>
 </model>

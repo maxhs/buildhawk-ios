@@ -169,6 +169,7 @@
     [super viewDidAppear:animated];
     //self.screenName = @"Checklist view controller";
     if (_checklist.phases.count == 0){
+        [self loadChecklist];
         [ProgressHUD show:@"Loading Checklist..."];
     }
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist]){
@@ -594,6 +595,12 @@
                     } else {
                         [cell.itemBody setTextColor:[UIColor whiteColor]];
                         cell.accessoryType = UITableViewCellAccessoryNone;
+                    }
+                    
+                    if (item.commentsCount) {
+                        [cell.chatImageView setHidden:NO];
+                    } else {
+                        [cell.chatImageView setHidden:YES];
                     }
                     
                     if ([item.photosCount compare:[NSNumber numberWithInt:0]] == NSOrderedDescending) {
