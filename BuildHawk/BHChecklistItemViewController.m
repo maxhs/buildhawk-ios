@@ -56,6 +56,8 @@
     Project *savedProject;
     NSIndexPath *indexPathForDeletion;
     UIView *overlayBackground;
+    NSDateFormatter *formatter;
+    BHDatePicker *_datePicker;
 }
 
 @end
@@ -97,6 +99,10 @@
     self.navigationItem.hidesBackButton = YES;
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
+    formatter = [[NSDateFormatter alloc] init];
+    [formatter setLocale:[NSLocale currentLocale]];
+    [formatter setDateStyle:NSDateFormatterShortStyle];
+    [formatter setTimeStyle:NSDateFormatterShortStyle];
 }
 
 - (void)didReceiveMemoryWarning
@@ -127,6 +133,11 @@
 }
 
 - (void)showDatePicker:(id)sender{
+    if (_datePicker == nil) {
+        _datePicker = [[BHDatePicker alloc] initWithFrame:CGRectMake(_selectButton.frame.origin.x, _selectButton.frame.size.height + _selectButton.frame.origin.y+4, screenWidth()-10, 162)];
+        [_datePickerContainer addSubview:_datePicker];
+    }
+    
     if (overlayBackground == nil){
         overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:YES];
         UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
@@ -150,26 +161,14 @@
     }
 }
 
-/*- (IBAction)selectDate {
+- (IBAction)selectDate {
     [self cancelDatePicker];
-    NSString *dateString = [formatter stringFromDate:self.datePicker.date];
-    BOOL duplicate = NO;
-    for (Report *report in _project.reports){
-        if ([report.type isEqualToString:_report.type] && [report.createdDate isEqualToString:dateString]) duplicate = YES;
-    }
-    if (duplicate){
-        [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else {
-        _report.createdDate = dateString;
-        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
-        [self.beforeTableView reloadData];
-        if ([_report.type isEqualToString:kDaily]){
-            [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
-        }
-    }
-}*/
+    NSString *dateString = [formatter stringFromDate:_datePicker.date];
+    NSLog(@"selected date string: %@",dateString);
+    //[self setReminder:_datePicker.date];
+}
 
-- (void)setReminder {
+- (void)setReminder:(NSDate*)date {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
@@ -602,9 +601,8 @@
                     orientation = [orientationValue intValue];
                 }
                 
-                CGFloat scale  = 1;
                 UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
-                                                     scale:scale orientation:orientation];
+                                                     scale:[UIScreen mainScreen].scale orientation:orientation];
                 Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [newPhoto setImage:[self fixOrientation:image]];
                 [_item addPhoto:newPhoto];
@@ -617,79 +615,17 @@
 
 - (UIImage *)fixOrientation:(UIImage*)image {
     if (image.imageOrientation == UIImageOrientationUp) return image;
-    CGAffineTransform transform = CGAffineTransformIdentity;
-    
-    switch (image.imageOrientation) {
-        case UIImageOrientationDown:
-        case UIImageOrientationDownMirrored:
-            transform = CGAffineTransformTranslate(transform, image.size.width, image.size.height);
-            transform = CGAffineTransformRotate(transform, M_PI);
-            break;
-            
-        case UIImageOrientationLeft:
-        case UIImageOrientationLeftMirrored:
-            transform = CGAffineTransformTranslate(transform, image.size.width, 0);
-            transform = CGAffineTransformRotate(transform, M_PI_2);
-            break;
-            
-        case UIImageOrientationRight:
-        case UIImageOrientationRightMirrored:
-            transform = CGAffineTransformTranslate(transform, 0, image.size.height);
-            transform = CGAffineTransformRotate(transform, -M_PI_2);
-            break;
-        case UIImageOrientationUp:
-        case UIImageOrientationUpMirrored:
-            break;
-    }
-    
-    switch (image.imageOrientation) {
-        case UIImageOrientationUpMirrored:
-        case UIImageOrientationDownMirrored:
-            transform = CGAffineTransformTranslate(transform, image.size.width, 0);
-            transform = CGAffineTransformScale(transform, -1, 1);
-            break;
-            
-        case UIImageOrientationLeftMirrored:
-        case UIImageOrientationRightMirrored:
-            transform = CGAffineTransformTranslate(transform, image.size.height, 0);
-            transform = CGAffineTransformScale(transform, -1, 1);
-            break;
-        case UIImageOrientationUp:
-        case UIImageOrientationDown:
-        case UIImageOrientationLeft:
-        case UIImageOrientationRight:
-            break;
-    }
-
-    CGContextRef ctx = CGBitmapContextCreate(NULL, image.size.width, image.size.height,
-                                             CGImageGetBitsPerComponent(image.CGImage), 0,
-                                             CGImageGetColorSpace(image.CGImage),
-                                             CGImageGetBitmapInfo(image.CGImage));
-    CGContextConcatCTM(ctx, transform);
-    switch (image.imageOrientation) {
-        case UIImageOrientationLeft:
-        case UIImageOrientationLeftMirrored:
-        case UIImageOrientationRight:
-        case UIImageOrientationRightMirrored:
-            CGContextDrawImage(ctx, CGRectMake(0,0,image.size.height,image.size.width), image.CGImage);
-            break;
-            
-        default:
-            CGContextDrawImage(ctx, CGRectMake(0,0,image.size.width,image.size.height), image.CGImage);
-            break;
-    }
-
-    CGImageRef cgimg = CGBitmapContextCreateImage(ctx);
-    UIImage *img = [UIImage imageWithCGImage:cgimg];
-    CGContextRelease(ctx);
-    CGImageRelease(cgimg);
-    return img;
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+    [image drawInRect:(CGRect){0, 0, image.size}];
+    UIImage *correctedImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return correctedImage;
 }
 
 - (void)savePostToLibrary:(UIImage*)originalImage {
     if (saveToLibrary){
         NSString *albumName = @"BuildHawk";
-        UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
+        UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:[UIScreen mainScreen].scale orientation:UIImageOrientationUp];
         [library addAssetsGroupAlbumWithName:albumName
                                  resultBlock:^(ALAssetsGroup *group) {
                                      
@@ -749,8 +685,8 @@
 - (void)saveImage:(UIImage*)image {
     if (![_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [self savePostToLibrary:image];
-        NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
-        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":@{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kChecklist,@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        NSData *imageData = UIImageJPEGRepresentation(image, 1);
+        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":@{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kChecklist,@"mobile":[NSNumber numberWithBool:YES],@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"save image response object: %@",responseObject);

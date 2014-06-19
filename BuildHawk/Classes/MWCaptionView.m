@@ -15,25 +15,26 @@ static const CGFloat labelPadding = 5;
 // Private
 @interface MWCaptionView () {
     id <MWPhoto> _photo;
-    UITextView *_textView;
 }
 @end
 
 @implementation MWCaptionView
+
+@synthesize textView = _textView;
 
 - (id)initWithPhoto:(id<MWPhoto>)photo {
     self = [super initWithFrame:CGRectMake(0, 0, 320, 44)]; // Random initial frame
     if (self) {
         //self.userInteractionEnabled = NO;
         _photo = photo;
-        if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7")) {
+        //if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7")) {
             // Use iOS 7 blurry goodness
             self.barStyle = UIBarStyleBlackTranslucent;
             self.tintColor = nil;
             self.barTintColor = nil;
             self.barStyle = UIBarStyleBlackTranslucent;
             [self setBackgroundImage:nil forToolbarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
-        } else {
+        /*} else {
             // Transparent black with no gloss
             CGRect rect = CGRectMake(0.0f, 0.0f, 1.0f, 1.0f);
             UIGraphicsBeginImageContext(rect.size);
@@ -43,7 +44,7 @@ static const CGFloat labelPadding = 5;
             UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
             UIGraphicsEndImageContext();
             [self setBackgroundImage:image forToolbarPosition:UIBarPositionAny barMetrics:UIBarMetricsDefault];
-        }
+        }*/
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin|UIViewAutoresizingFlexibleLeftMargin|UIViewAutoresizingFlexibleRightMargin;
         [self setupCaption];
     }

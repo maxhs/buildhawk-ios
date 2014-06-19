@@ -35,6 +35,6 @@
 @dynamic reports;
 @dynamic upcomingItems;
 @dynamic users;
-@dynamic punchlist;
+@dynamic worklist;
 
 @end

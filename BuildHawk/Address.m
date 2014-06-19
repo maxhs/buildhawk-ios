@@ -12,6 +12,7 @@
 
 @implementation Address
 
+@dynamic identifier;
 @dynamic city;
 @dynamic state;
 @dynamic country;

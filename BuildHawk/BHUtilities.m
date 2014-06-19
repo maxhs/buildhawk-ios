@@ -132,14 +132,4 @@
     }
 }
 
-+ (void)vacuumLocalPhotos:(id)object {
-    //clean existing photos//    
-    for (Photo *photo in [object photos]){
-        if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            NSLog(@"Vacuuming local photo");
-            [photo MR_deleteEntity];
-        }
-    }
-}
-
 @end

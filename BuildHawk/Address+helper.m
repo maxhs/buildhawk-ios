@@ -10,6 +10,9 @@
 
 @implementation Address (helper)
 - (void)populateWithDict:(NSDictionary *)dictionary {
+    if ([dictionary objectForKey:@"id"] != [NSNull null]){
+        self.identifier = [dictionary objectForKey:@"id"];
+    }
     if ([dictionary objectForKey:@"formatted_address"] != [NSNull null]){
         self.formattedAddress = [dictionary objectForKey:@"formatted_address"];
     }

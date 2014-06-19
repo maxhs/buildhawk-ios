@@ -13,6 +13,7 @@
 
 @interface Address : NSManagedObject
 
+@property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * city;
 @property (nonatomic, retain) NSString * state;
 @property (nonatomic, retain) NSString * country;

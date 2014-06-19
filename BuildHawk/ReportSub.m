@@ -2,7 +2,7 @@
 //  ReportSub.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/29/14.
+//  Created by Max Haines-Stiles on 6/11/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -12,10 +12,10 @@
 
 @implementation ReportSub
 
+@dynamic companyId;
+@dynamic count;
 @dynamic identifier;
 @dynamic name;
-@dynamic count;
 @dynamic report;
-@dynamic companyId;
 
 @end

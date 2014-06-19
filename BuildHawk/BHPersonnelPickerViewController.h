@@ -15,7 +15,7 @@
 @property (strong, nonatomic) NSMutableOrderedSet *users;
 @property (strong, nonatomic) NSMutableOrderedSet *orderedUsers;
 @property (strong, nonatomic) NSMutableOrderedSet *orderedSubs;
-@property BOOL worklistMode;
+@property BOOL taskMode;
 @property BOOL companyMode;
 @property BOOL countNotNeeded;
 @property BOOL phone;

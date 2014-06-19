@@ -15,6 +15,7 @@
 #import "Checklist+helper.h"
 #import "Company+helper.h"
 #import "Project+helper.h"
+#import "Worklist+helper.h"
 #import "Address.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHTabBarViewController.h"
@@ -23,7 +24,7 @@
 #import "BHGroupViewController.h"
 #import "BHArchivedViewController.h"
 #import "BHOverlayView.h"
-#import "BHPunchlistViewController.h"
+#import "BHTasksViewController.h"
 #import "BHWorklistConnectCell.h"
 #import "BHDemoProjectsViewController.h"
 
@@ -50,6 +51,7 @@
     NSManagedObjectContext *defaultContext;
     NSMutableOrderedSet *connectCompanies;
     NSMutableOrderedSet *connectProjects;
+    NSMutableOrderedSet *groupSet;
 }
 
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *leftMenuButton;
@@ -68,7 +70,7 @@
    
     manager = manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     loading = YES;
-    
+    self.leftMenuButton.imageInsets = UIEdgeInsetsMake(0, -8, 0, 0);
     self.tableView.rowHeight = 88;
     self.searchDisplayController.searchResultsTableView.rowHeight = 88;
     
@@ -120,6 +122,7 @@
         }
     }
     
+    connectProjects = [NSMutableOrderedSet orderedSet];
     currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
 }
 
@@ -134,6 +137,7 @@
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboard];
     }
+    [self loadConnectItems];
 }
 
 - (IBAction)revealMenu {
@@ -207,7 +211,6 @@
     } else {
         NSMutableOrderedSet *projectSet = [NSMutableOrderedSet orderedSet];
         for (id obj in projectsArray) {
-            //NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [obj objectForKey:@"id"]];
             Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[obj objectForKey:@"id"]];
             if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
@@ -216,15 +219,17 @@
             [projectSet addObject:project];
         }
         NSMutableOrderedSet *archivedSet = [NSMutableOrderedSet orderedSet];
-        for (Project *p in currentUser.company.projects){
-            if (![projectSet containsObject:p]){
-                NSLog(@"deleting project %@ because it no longer exists",p.name);
-                [p MR_deleteEntity];
-            } else {
-                if ([p.active isEqualToNumber:[NSNumber numberWithBool:NO]]){
-                    [projectSet removeObject:p];
-                    [archivedSet addObject:p];
-                }
+        groupSet = [NSMutableOrderedSet orderedSet];
+        for (Project *p in projectSet){
+            if ([p.active isEqualToNumber:[NSNumber numberWithBool:NO]]){
+                [projectSet removeObject:p];
+                [archivedSet addObject:p];
+            }
+            
+            if (p.group.projectsCount.intValue > 0){
+                NSLog(@"group? %d",p.group.projectsCount.intValue);
+                //[projectSet removeObject:p];
+                //[groupSet addObject:p.group];
             }
         }
         currentUser.company.archivedProjects = archivedSet;
@@ -234,6 +239,22 @@
             [self.tableView reloadData];
         }];
     }
+}
+
+- (void)loadConnectItems {
+    [manager GET:[NSString stringWithFormat:@"%@/users/%@/worklist_connect",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"success loading connect items: %@",responseObject);
+        for (id itemDict in [responseObject objectForKey:@"worklist_items"]){
+            WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
+            if (!item) {
+                item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [item populateFromDictionary:itemDict];
+        }
+        [self.tableView reloadData];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure loading connect items: %@",error.description);
+    }];
 }
 
 - (void)loadGroups {
@@ -321,15 +342,16 @@
     } else if (section == 0){
         return currentUser.company.projects.count;
     } else if (section == 1) {
-        return currentUser.company.groups.count;
+        return groupSet.count;
     } else if (section == 2) {
-        if (!connectProjects) connectProjects = [NSMutableOrderedSet orderedSet];
-        else [connectProjects removeAllObjects];
-        for (PunchlistItem *item in currentUser.assignedPunchlistItems){
-            if (![connectProjects containsObject:item.punchlist.project]/* && currentUser.company != item.punchlist.project.company*/) {
-                [connectProjects addObject:item.punchlist.project];
+        for (WorklistItem *item in currentUser.assignedWorklistItems){
+            NSNumber *companyId = item.project.company.identifier;
+            if (companyId && ![currentUser.company.identifier isEqualToNumber:companyId]) {
+                NSLog(@"company id: %@",companyId);
+                [connectProjects addObject:item.project];
             }
         }
+        NSLog(@"connect projects count: %d",connectProjects.count);
         return connectProjects.count;
     } else if (section == 3 && currentUser.company.archivedProjects.count) {
         NSLog(@"archived? %d",currentUser.company.archivedProjects.count);
@@ -388,15 +410,13 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardGroupCell" owner:self options:nil] lastObject];
         }
-        Group *group = [currentUser.company.groups objectAtIndex:indexPath.row];
+        Group *group = [groupSet objectAtIndex:indexPath.row];
         [cell.nameLabel setText:group.name];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-        if (group.projectsCount){
-            [cell.groupCountLabel setHidden:NO];
-            [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %@",group.projectsCount]];
-        } else {
-            [cell.groupCountLabel setHidden:YES];
-        }
+        
+        [cell.groupCountLabel setHidden:NO];
+        [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %@",group.projectsCount]];
+        
         [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
         [cell.nameLabel setTextColor:kDarkGrayColor];
         return cell;
@@ -411,8 +431,8 @@
         Project *project = [connectProjects objectAtIndex:indexPath.row];
         [cell.companyNameLabel setText:project.name];
         __block int count = 0;
-        [currentUser.assignedPunchlistItems enumerateObjectsUsingBlock:^(PunchlistItem *item, NSUInteger idx, BOOL *stop) {
-            if ([item.punchlist.project.identifier isEqualToNumber:project.identifier]) {
+        [currentUser.assignedWorklistItems enumerateObjectsUsingBlock:^(WorklistItem *item, NSUInteger idx, BOOL *stop) {
+            if ([item.project.identifier isEqualToNumber:project.identifier]) {
                 count ++;
             }
         }];
@@ -464,7 +484,7 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     if (section == 1 && !currentUser.company.groups.count) return 0;
-    else if (section == 2 && !currentUser.assignedPunchlistItems) return 0;
+    else if (section == 2 && !currentUser.assignedWorklistItems) return 0;
     else if (section == 3 || section == 4) return 0;
     else return 34;
 }
@@ -492,7 +512,7 @@
             else return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
             break;
         case 2:
-            if (currentUser.assignedPunchlistItems.count)[headerLabel setText:@"Worklist Connect"];
+            if (currentUser.assignedWorklistItems.count)[headerLabel setText:@"Worklist Connect"];
             else return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
             break;
         default:
@@ -607,16 +627,16 @@
         [vc setTitle:@"Archived Projects"];
         [vc setArchivedProjects:currentUser.company.archivedProjects.mutableCopy];
     } else if ([segue.identifier isEqualToString:@"WorklistConnect"]){
-        BHPunchlistViewController *vc = [segue destinationViewController];
+        BHTasksViewController *vc = [segue destinationViewController];
         NSIndexPath *indexPath = (NSIndexPath*)sender;
         Project *project = [connectProjects objectAtIndex:indexPath.row];
-        NSMutableArray *punchlistItems = [NSMutableArray array];
-        [currentUser.assignedPunchlistItems enumerateObjectsUsingBlock:^(PunchlistItem *item, NSUInteger idx, BOOL *stop) {
-            if ([item.punchlist.project.identifier isEqualToNumber:project.identifier]) {
-                [punchlistItems addObject:item];
+        NSMutableArray *worklistItems = [NSMutableArray array];
+        for (WorklistItem *item in currentUser.assignedWorklistItems){
+            if ([item.project.identifier isEqualToNumber:project.identifier]) {
+                [worklistItems addObject:item];
             }
-        }];
-        [vc setPunchlistItems:punchlistItems];
+        }
+        [vc setWorklistItems:worklistItems];
         [vc setProject:project];
         [vc setConnectMode:YES];
     }

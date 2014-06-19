@@ -7,7 +7,7 @@
 //
 
 #import "BHPersonnelPickerViewController.h"
-#import "BHPunchlistItemViewController.h"
+#import "BHTaskViewController.h"
 #import "BHChecklistItemViewController.h"
 #import "BHAppDelegate.h"
 #import "Company+helper.h"
@@ -27,9 +27,11 @@
     Subcontractor *selectedSubcontractor;
     UIBarButtonItem *saveButton;
     BOOL loading;
+    NSMutableArray *_subcontractors;
 }
-
 @end
+
+static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 @implementation BHPersonnelPickerViewController
 @synthesize phone, email, countNotNeeded;
@@ -42,18 +44,19 @@
 {
     [super viewDidLoad];
     [self.view setBackgroundColor:kDarkerGrayColor];
-    self.tableView.rowHeight = 54;
-    self.searchDisplayController.searchResultsTableView.rowHeight = 54;
+    
+    self.searchDisplayController.searchResultsTableView.rowHeight = 60;
     if (_users.count){
         filteredUsers = [NSMutableArray array];
     } else {
         filteredSubcontractors = [NSMutableArray array];
         loading = YES;
+        _subcontractors = _company.subcontractors.array.mutableCopy;
         [self loadSubcontractors];
     }
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;
-    
+    self.tableView.tableHeaderView = self.searchDisplayController.searchBar;
     //set the search bar tint color so you can see the cursor
     for (id subview in [self.searchDisplayController.searchBar.subviews.firstObject subviews]){
         if ([subview isKindOfClass:[UITextField class]]){
@@ -71,6 +74,9 @@
     [super viewWillAppear:animated];
     if (self.searchDisplayController.isActive){
         [self loadSubcontractors];
+    } else {
+        _subcontractors = _company.subcontractors.array.mutableCopy;
+        [self.tableView reloadData];
     }
 }
 - (void)viewDidAppear:(BOOL)animated {
@@ -84,14 +90,16 @@
 - (void)loadSubcontractors {
     [ProgressHUD show:@"Getting company list..."];
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/companies/%@",kApiBaseUrl,_company.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        [ProgressHUD dismiss];
-        NSLog(@"success loading company subcontractors: %@",responseObject);
+        //NSLog(@"success loading company subcontractors: %@",responseObject);
         [_company populateWithDict:[responseObject objectForKey:@"company"]];
-        [self.tableView reloadData];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"%u success with saving company",success);
-        }];
         loading = NO;
+        [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+            _subcontractors = _company.subcontractors.array.mutableCopy;
+            NSLog(@"%u success with saving company",success);
+            [ProgressHUD dismiss];
+            [self.tableView reloadData];
+        }];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to load company information: %@",error.description);
         [ProgressHUD dismiss];
@@ -112,9 +120,15 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    if (_worklistMode) {
-        if (loading) return 0;
-        else return _company.subcontractors.count;
+    if (_taskMode) {
+        if (loading) {
+            return 0;
+        } else if (tableView == self.searchDisplayController.searchResultsTableView){
+            return 1;
+        }
+        else {
+            return _subcontractors.count;
+        }
     } else {
         return 1;
     }
@@ -133,13 +147,13 @@
             }
         }
     } else {
-        if (_worklistMode){
-            Subcontractor *subcontractor = [_company.subcontractors objectAtIndex:section];
-            return subcontractor.users.count;
+        if (_taskMode){
+            Subcontractor *subcontractor = [_subcontractors objectAtIndex:section];
+            return subcontractor.users.count + 2;
         } else if (_users.count) {
             return _users.count;
         } else {
-            return _company.subcontractors.count;
+            return _subcontractors.count;
         }
     }
 }
@@ -155,10 +169,10 @@
         User *user;
         if (tableView == self.searchDisplayController.searchResultsTableView){
             user = [filteredUsers objectAtIndex:indexPath.row];
-            [cell.textLabel setText:user.fullname];
+            [cell.nameLabel setText:user.fullname];
         } else {
             user = [_users objectAtIndex:indexPath.row];
-            [cell.textLabel setText:user.fullname];
+            [cell.nameLabel setText:user.fullname];
             [cell.detailTextLabel setText:user.company.name];
         }
         [cell.hoursTextField setText:@""];
@@ -175,33 +189,88 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
         }
+        [cell.nameLabel setText:@""];
+        [cell.nameLabel setTextColor:[UIColor blackColor]];
+        [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
+        [cell.connectDetail setText:@""];
+        [cell.connectNameLabel setText:@""];
         
-        Subcontractor *subcontractor;
+        cell.userInteractionEnabled = YES;
+        Subcontractor *subcontractor = nil;
         if (tableView == self.searchDisplayController.searchResultsTableView){
             if (indexPath.row == filteredSubcontractors.count) {
-                [cell.textLabel setText:[NSString stringWithFormat:@"Add \"%@\" to list",self.searchDisplayController.searchBar.text]];
-                [cell.textLabel setTextColor:[UIColor lightGrayColor]];
-                [cell.textLabel setFont:[UIFont italicSystemFontOfSize:16]];
+                [cell.nameLabel setText:[NSString stringWithFormat:@"Add \"%@\" to list",self.searchDisplayController.searchBar.text]];
+                [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
+                [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
             } else {
                 subcontractor = [filteredSubcontractors objectAtIndex:indexPath.row];
-                [cell.textLabel setText:subcontractor.name];
-                [cell.textLabel setTextColor:[UIColor blackColor]];
-                [cell.textLabel setFont:[UIFont systemFontOfSize:16]];
+                [cell.nameLabel setText:subcontractor.name];
+                [cell.nameLabel setTextColor:[UIColor blackColor]];
+                [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
             }
         } else {
-            subcontractor = [_company.subcontractors objectAtIndex:indexPath.row];
-            [cell.textLabel setText:subcontractor.name];
-            [cell.detailTextLabel setHidden:YES];
+            
+            if (_taskMode){
+                subcontractor = [_subcontractors objectAtIndex:indexPath.section];
+                if (indexPath.row == 0){
+                    //first row is the subcontractor name
+                    [cell.nameLabel setText:subcontractor.name];
+                    cell.userInteractionEnabled = NO;
+                } else if (indexPath.row > 0 && indexPath.row <= subcontractor.users.count) {
+                    //next rows are for actual personnel
+                    User *user = subcontractor.users[indexPath.row-1];
+                    [cell.connectNameLabel setText:user.fullname];
+                    if (user.email.length){
+                        [cell.connectDetail setText:user.email];
+                    } else if (user.phone.length) {
+                        [cell.connectDetail setText:user.phone];
+                    }
+                } else {
+                    //the last row is for "adding new personnel"
+                    [cell.nameLabel setText:kAddPersonnelPlaceholder];
+                    [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:15]];
+                    [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
+                }
+            } else {
+                subcontractor = [_subcontractors objectAtIndex:indexPath.row];
+                [cell.nameLabel setText:subcontractor.name];
+            }
         }
         
         [cell.hoursTextField setText:@""];
-        for (ReportSub *reportSub in _orderedSubs){
-            if ([reportSub.companyId isEqualToNumber:subcontractor.identifier] && reportSub.count.intValue > 0){
-                [cell.hoursTextField setText:[NSString stringWithFormat:@"%@",reportSub.count]];
-                break;
+        if (subcontractor){
+            for (ReportSub *reportSub in _orderedSubs){
+                if ([reportSub.companyId isEqualToNumber:subcontractor.identifier] && reportSub.count.intValue > 0){
+                    [cell.hoursTextField setText:[NSString stringWithFormat:@"%@",reportSub.count]];
+                    break;
+                }
             }
         }
         return cell;
+    }
+}
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (_taskMode){
+        if (indexPath.row == 0){
+            cell.backgroundColor = [UIColor colorWithWhite:.95 alpha:1];
+        } else {
+            cell.backgroundColor = [UIColor whiteColor];
+        }
+    } else {
+        cell.backgroundColor = [UIColor whiteColor];
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (_taskMode){
+        if (indexPath.row == 0) {
+            return 34;
+        } else {
+            return 60;
+        }
+    } else {
+        return 60;
     }
 }
 
@@ -212,8 +281,17 @@
         if (_users.count){
             [vc setCompanyMode:NO];
         } else {
-            [vc setName:self.searchDisplayController.searchBar.text];
-            [vc setCompanyMode:YES];
+            if (_taskMode){
+                [vc setCompanyMode:NO];
+            } else {
+                [vc setCompanyMode:YES];
+            }
+            if ([sender isKindOfClass:[Subcontractor class]]){
+                [vc setTitle:[NSString stringWithFormat:@"Add to: %@",[(Subcontractor*)sender name]]];
+                [vc setSubcontractor:(Subcontractor*)sender];
+            } else if (self.searchDisplayController.searchBar.text) {
+                [vc setName:self.searchDisplayController.searchBar.text];
+            }
         }
     }
 }
@@ -239,8 +317,8 @@
             } else {
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have an email address on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
-        } else if ([precedingVC isKindOfClass:[BHPunchlistItemViewController class]]){
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"PunchlistPersonnel" object:nil userInfo:@{kpersonnel:selectedUser}];
+        } else if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"WorklistPersonnel" object:nil userInfo:@{kpersonnel:selectedUser}];
             [self.navigationController popViewControllerAnimated:YES];
         } else if ([precedingVC isKindOfClass:[BHChecklistItemViewController class]]) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ChecklistPersonnel" object:nil userInfo:@{kpersonnel:selectedUser}];
@@ -267,25 +345,39 @@
             [self.tableView reloadData];
         }
     } else {
-        selectedSubcontractor = [_company.subcontractors objectAtIndex:indexPath.row];
-        BOOL select = YES;
-        for (ReportSub *reportSub in _orderedSubs) {
-            if ([selectedSubcontractor.identifier isEqualToNumber:reportSub.companyId]){
-                selectedSubcontractor.count = nil;
-                [_orderedSubs removeObject:reportSub];
-                select = NO;
-                break;
+        //subcontractor select mode
+        if (_taskMode){
+            selectedSubcontractor = [_subcontractors objectAtIndex:indexPath.section];
+            if (indexPath.row > 0 && indexPath.row <= selectedSubcontractor.users.count){
+                //selecting an actual user
+                User *user = selectedSubcontractor.users[indexPath.row-1];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":user}];
+                NSLog(@"selected: %@", user.fullname);
+                [self.navigationController popViewControllerAnimated:YES];
+            } else {
+                //selecting "add new"
+                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedSubcontractor];
+            }
+        } else {
+            selectedSubcontractor = [_subcontractors objectAtIndex:indexPath.row];
+            BOOL select = YES;
+            for (ReportSub *reportSub in _orderedSubs) {
+                if ([selectedSubcontractor.identifier isEqualToNumber:reportSub.companyId]){
+                    selectedSubcontractor.count = nil;
+                    [_orderedSubs removeObject:reportSub];
+                    select = NO;
+                    break;
+                }
+            }
+            if (select){
+                companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel onsite" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+                companyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+                [[companyAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
+                [companyAlertView show];
+            } else {
+                [self.tableView reloadData];
             }
         }
-        if (select){
-            companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel onsite" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
-            companyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
-            [[companyAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
-            [companyAlertView show];
-        } else {
-            [self.tableView reloadData];
-        }
-        
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
@@ -333,8 +425,8 @@
     }
     
     id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
-    if ([precedingVC isKindOfClass:[BHPunchlistItemViewController class]]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"PunchlistPersonnel" object:nil userInfo:userInfo];
+    if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"WorklistPersonnel" object:nil userInfo:userInfo];
     } else if ([precedingVC isKindOfClass:[BHChecklistItemViewController class]]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ChecklistPersonnel" object:nil userInfo:userInfo];
     } else {
@@ -351,19 +443,18 @@
 
 #pragma mark UISearchDisplayController Delegate Methods
 
-
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
     if (_users.count){
         [filteredUsers removeAllObjects];
         for (User *user in _users){
-            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", searchText];
             if([predicate evaluateWithObject:user.fullname]) {
                 [filteredUsers addObject:user];
             }
         }
     } else {
         [filteredSubcontractors removeAllObjects];
-        for (Subcontractor *subcontractor in _company.subcontractors){
+        for (Subcontractor *subcontractor in _subcontractors){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", searchText];
             if([predicate evaluateWithObject:subcontractor.name]) {
                 [filteredSubcontractors addObject:subcontractor];

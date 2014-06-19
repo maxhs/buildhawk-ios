@@ -18,41 +18,38 @@
     if ([dictionary objectForKey:@"name"]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"url_small"]) {
+    if ([dictionary objectForKey:@"url_small"] != [NSNull null]) {
         self.urlSmall = [dictionary objectForKey:@"url_small"];
     }
-    if ([dictionary objectForKey:@"url_large"]) {
+    if ([dictionary objectForKey:@"url_large"] != [NSNull null]) {
         self.urlLarge = [dictionary objectForKey:@"url_large"];
     }
-    if ([dictionary objectForKey:@"url_thumb"]) {
+    if ([dictionary objectForKey:@"url_thumb"] != [NSNull null]) {
         self.urlThumb = [dictionary objectForKey:@"url_thumb"];
     }
-    if ([dictionary objectForKey:@"original"]) {
+    if ([dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];
     }
     if ([dictionary objectForKey:@"created_date"]) {
         self.createdDate = [dictionary objectForKey:@"created_date"];
     }
-    if ([dictionary objectForKey:@"source"]) {
+    if ([dictionary objectForKey:@"phase"] != [NSNull null]) {
         self.source = [dictionary objectForKey:@"source"];
     }
-    if ([dictionary objectForKey:@"phase"] && [dictionary objectForKey:@"phase"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"phase"] != [NSNull null]) {
         self.photoPhase = [dictionary objectForKey:@"phase"];
     }
-    if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"assignee"] != [NSNull null]) {
         self.assignee = [dictionary objectForKey:@"assignee"];
     }
-    if ([dictionary objectForKey:@"folder_name"] && [dictionary objectForKey:@"folder_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"folder_name"] != [NSNull null]) {
         self.folder = [dictionary objectForKey:@"folder_name"];
     }
-    if ([dictionary objectForKey:@"folder_id"] && [dictionary objectForKey:@"folder_id"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"folder_id"] != [NSNull null]) {
         self.folderId = [dictionary objectForKey:@"folder_id"];
     }
-    if ([dictionary objectForKey:@"user_name"] && [dictionary objectForKey:@"user_name"]!=[NSNull null]) {
+    if ([dictionary objectForKey:@"user_name"] !=[NSNull null]) {
         self.userName = [dictionary objectForKey:@"user_name"];
-    }
-    if ([dictionary objectForKey:@"created_date"]) {
-        self.createdDate = [dictionary objectForKey:@"created_date"];
     }
     if ([dictionary objectForKey:@"description"] != [NSNull null]) {
         self.caption = [dictionary objectForKey:@"description"];
@@ -63,7 +60,7 @@
     }
     /*if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
         NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSetWithOrderedSet:self.comments];
-        NSLog(@"punchlist item comments %@",[dictionary objectForKey:@"comments"]);
+        NSLog(@"worklist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
             Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];

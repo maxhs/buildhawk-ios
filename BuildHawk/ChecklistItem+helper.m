@@ -61,7 +61,7 @@
         self.comments = orderedComments;
     }
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
-        [BHUtilities vacuumLocalPhotos:self];
+
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
@@ -72,6 +72,11 @@
             }
             [photo populateFromDictionary:photoDict];
             [orderedPhotos addObject:photo];
+        }
+        for (Photo *photo in self.photos) {
+            if (![orderedPhotos containsObject:photo]){
+                [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
         }
         self.photos = orderedPhotos;
     }

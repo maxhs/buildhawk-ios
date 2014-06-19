@@ -51,19 +51,17 @@
     [super viewDidLoad];
     [self.collectionView reloadData];
     screen = [UIScreen mainScreen].bounds;
-    if (!sectionArray) sectionArray = [NSMutableArray array];
-    if (!compositePhotos) compositePhotos = [NSMutableArray array];
-    if (!browserArray) browserArray = [NSMutableArray array];
-    if (!browserPhotos) browserPhotos = [NSMutableArray array];
+    sectionArray = [NSMutableArray array];
+    compositePhotos = [NSMutableArray array];
+    browserArray = [NSMutableArray array];
+    browserPhotos = [NSMutableArray array];
     sortByUser = NO;
     sortByDate = NO;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
+    if (IDIOM == IPAD) {
         iPad = YES;
     } else
         iPad = NO;
-    
-    NSLog(@"photos array: %d",_photosArray.count);
 }
 - (void)viewWillAppear:(BOOL)animated {
     [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height, screen.size.width, 49)];

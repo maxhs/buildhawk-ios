@@ -2,7 +2,7 @@
 //  ReportUser.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/29/14.
+//  Created by Max Haines-Stiles on 6/11/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -12,10 +12,10 @@
 
 @implementation ReportUser
 
-@dynamic identifier;
 @dynamic fullname;
 @dynamic hours;
-@dynamic report;
+@dynamic identifier;
 @dynamic userId;
+@dynamic report;
 
 @end

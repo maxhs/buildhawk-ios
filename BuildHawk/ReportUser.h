@@ -2,7 +2,7 @@
 //  ReportUser.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/29/14.
+//  Created by Max Haines-Stiles on 6/11/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -13,10 +13,10 @@
 
 @interface ReportUser : NSManagedObject
 
-@property (nonatomic, retain) NSNumber * identifier;
-@property (nonatomic, retain) NSNumber * userId;
 @property (nonatomic, retain) NSString * fullname;
 @property (nonatomic, retain) NSNumber * hours;
+@property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * userId;
 @property (nonatomic, retain) Report *report;
 
 @end

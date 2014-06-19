@@ -12,14 +12,14 @@
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "ChecklistItem.h"
 #import "Photo.h"
-#import "PunchlistItem+helper.h"
+#import "WorklistItem+helper.h"
 #import "BHRecentDocumentCell.h"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
 #import "Flurry.h"
 #import "BHChecklistViewController.h"
 #import "BHChecklistItemViewController.h"
-#import "BHPunchlistItemViewController.h"
+#import "BHTaskViewController.h"
 #import "BHProgressCell.h"
 #import "BHOverlayView.h"
 #import <LDProgressView/LDProgressView.h>
@@ -104,10 +104,10 @@
         BHChecklistItemViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[ChecklistItem class]])
             [vc setItem:(ChecklistItem*)sender];
-    } else if ([segue.identifier isEqualToString:@"PunchlistItem"]) {
-        BHPunchlistItemViewController *vc = [segue destinationViewController];
-        if ([sender isKindOfClass:[PunchlistItem class]])
-            [vc setPunchlistItem:(PunchlistItem*)sender];
+    } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
+        BHTaskViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[WorklistItem class]])
+            [vc setWorklistItem:(WorklistItem*)sender];
     }
 }
 

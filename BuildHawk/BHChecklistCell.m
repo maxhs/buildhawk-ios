@@ -21,7 +21,7 @@
 
 - (void)awakeFromNib
 {
-    [self.progressPercentage setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+    [_progressPercentage setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

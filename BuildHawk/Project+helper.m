@@ -12,6 +12,7 @@
 #import "Address+helper.h"
 #import "Company+helper.h"
 #import "Photo+helper.h"
+#import "Group+helper.h"
 
 @implementation Project (helper)
 
@@ -48,7 +49,6 @@
             User *user = [User MR_findFirstWithPredicate:userPredicate];
             if (!user){
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                NSLog(@"couldn't find saved user, created a new one: %@",user.fullname);
             }
             [user populateFromDictionary:userDict];
             [orderedUsers addObject:user];
@@ -56,15 +56,23 @@
         self.users = orderedUsers;
     }
     
-    if ([dictionary objectForKey:@"address"]) {
-        //NSLog(@"address: %@",[dictionary objectForKey:@"address"]);
-        if (!self.address) {
-            NSLog(@"no address, creating a new one");
-            self.address = [Address MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    if ([dictionary objectForKey:@"address"] != [NSNull null]) {
+        NSDictionary *addressDict = [dictionary objectForKey:@"address"];
+        Address *address = [Address MR_findFirstByAttribute:@"identifier" withValue:[addressDict objectForKey:@"id"]];
+        if (!address) {
+            address = [Address MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
-        if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]){
-            [self.address populateWithDict:[dictionary objectForKey:@"address"]];
+        [address populateWithDict:addressDict];
+        self.address = address;
+    }
+    if ([dictionary objectForKey:@"project_group"] != [NSNull null]) {
+        NSDictionary *groupDict = [dictionary objectForKey:@"project_group"];
+        Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"]];
+        if (!group) {
+            group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
+        [group populateWithDict:[dictionary objectForKey:@"project_group"]];
+        self.group = group;
     }
     
     if ([dictionary objectForKey:@"progress"]) {

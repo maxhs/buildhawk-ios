@@ -21,7 +21,7 @@
     if ([dictionary objectForKey:@"projects_count"] && [dictionary objectForKey:@"projects_count"] != [NSNull null]) {
         self.projectsCount = [dictionary objectForKey:@"projects_count"];
     }
-    if ([dictionary objectForKey:@"projects"] && [dictionary objectForKey:@"projects"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"projects"] != [NSNull null]) {
         NSMutableOrderedSet *orderedProjects = [NSMutableOrderedSet orderedSet];
         for (id projectDict in [dictionary objectForKey:@"projects"]){
             NSLog(@"project dict: %@",projectDict);
@@ -33,12 +33,12 @@
             [project populateFromDictionary:projectDict];
             [orderedProjects addObject:project];
         }
-        for (Project *project in self.projects){
+        /*for (Project *project in self.projects){
             if (![orderedProjects containsObject:project]){
                 NSLog(@"deleting a project that no longer exists: %@",project.name);
                 [project MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-        }
+        }*/
         
         self.projects = orderedProjects;
     }

@@ -10,4 +10,5 @@
 
 @interface Subcontractor (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)addUser:(User*)user;
 @end

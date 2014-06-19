@@ -2,15 +2,14 @@
 //  ChecklistItem.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/8/14.
+//  Created by Max Haines-Stiles on 6/16/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-#import "Photo+helper.h"
 
-@class Cat, Checklist, Comment, Phase, Project;
+@class Cat, Checklist, Comment, Notification, Phase, Photo, Project;
 
 @interface ChecklistItem : NSManagedObject
 
@@ -24,14 +23,14 @@
 @property (nonatomic, retain) NSNumber * photosCount;
 @property (nonatomic, retain) NSString * status;
 @property (nonatomic, retain) NSString * type;
-@property (nonatomic, retain) Phase *phase;
+@property (nonatomic, retain) Cat *category;
 @property (nonatomic, retain) Checklist *checklist;
 @property (nonatomic, retain) NSOrderedSet *comments;
-@property (nonatomic, retain) NSOrderedSet * photos;
+@property (nonatomic, retain) Notification *notification;
+@property (nonatomic, retain) Phase *phase;
+@property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) Project *project;
-@property (nonatomic, retain) Cat *category;
 @property (nonatomic, retain) Project *upcomingItems;
-@property BOOL filtered;
 @end
 
 @interface ChecklistItem (CoreDataGeneratedAccessors)
@@ -46,4 +45,14 @@
 - (void)removeCommentsObject:(Comment *)value;
 - (void)addComments:(NSOrderedSet *)values;
 - (void)removeComments:(NSOrderedSet *)values;
+- (void)insertObject:(Photo *)value inPhotosAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromPhotosAtIndex:(NSUInteger)idx;
+- (void)insertPhotos:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removePhotosAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInPhotosAtIndex:(NSUInteger)idx withObject:(Photo *)value;
+- (void)replacePhotosAtIndexes:(NSIndexSet *)indexes withPhotos:(NSArray *)values;
+- (void)addPhotosObject:(Photo *)value;
+- (void)removePhotosObject:(Photo *)value;
+- (void)addPhotos:(NSOrderedSet *)values;
+- (void)removePhotos:(NSOrderedSet *)values;
 @end

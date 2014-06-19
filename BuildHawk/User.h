@@ -2,22 +2,25 @@
 //  User.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/19/14.
+//  Created by Max Haines-Stiles on 6/9/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Comment, Company, Project, PunchlistItem, Report, Subcontractor;
+@class Comment, Company, Notification, Project, Subcontractor, WorklistItem;
 
 @interface User : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * admin;
 @property (nonatomic, retain) NSString * authToken;
 @property (nonatomic, retain) NSNumber * companyAdmin;
+@property (nonatomic, retain) NSNumber * emailPermissions;
+@property (nonatomic, retain) NSNumber * textPermissions;
+@property (nonatomic, retain) NSNumber * pushPermissions;
 @property (nonatomic, retain) NSNumber * count;
-@property (nonatomic, retain) id coworkers;
+@property (nonatomic, retain) id image;
 @property (nonatomic, retain) NSNumber * demo;
 @property (nonatomic, retain) NSString * email;
 @property (nonatomic, retain) NSString * firstName;
@@ -27,20 +30,33 @@
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * lastName;
 @property (nonatomic, retain) NSString * phone;
+@property (nonatomic, retain) NSString * photoUrlMedium;
 @property (nonatomic, retain) NSString * photoUrlSmall;
 @property (nonatomic, retain) NSString * photoUrlThumb;
 @property (nonatomic, retain) NSNumber * uberAdmin;
+@property (nonatomic, retain) NSOrderedSet *assignedWorklistItems;
 @property (nonatomic, retain) NSSet *comments;
 @property (nonatomic, retain) Company *company;
-@property (nonatomic, retain) Subcontractor *subcontractor;
 @property (nonatomic, retain) NSOrderedSet *projects;
-@property (nonatomic, retain) NSOrderedSet *assignedPunchlistItems;
 @property (nonatomic, retain) NSOrderedSet *reports;
-@property (nonatomic, retain) NSOrderedSet *punchlistItems;
+@property (nonatomic, retain) NSOrderedSet *worklistItems;
+@property (nonatomic, retain) Subcontractor *subcontractor;
+@property (nonatomic, retain) NSOrderedSet *notifications;
+
 @end
 
 @interface User (CoreDataGeneratedAccessors)
 
+- (void)insertObject:(WorklistItem *)value inAssignedWorklistItemsAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromAssignedWorklistItemsAtIndex:(NSUInteger)idx;
+- (void)insertAssignedWorklistItems:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeAssignedWorklistItemsAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInAssignedWorklistItemsAtIndex:(NSUInteger)idx withObject:(WorklistItem *)value;
+- (void)replaceAssignedWorklistItemsAtIndexes:(NSIndexSet *)indexes withAssignedWorklistItems:(NSArray *)values;
+- (void)addAssignedWorklistItemsObject:(WorklistItem *)value;
+- (void)removeAssignedWorklistItemsObject:(WorklistItem *)value;
+- (void)addAssignedWorklistItems:(NSOrderedSet *)values;
+- (void)removeAssignedWorklistItems:(NSOrderedSet *)values;
 - (void)addCommentsObject:(Comment *)value;
 - (void)removeCommentsObject:(Comment *)value;
 - (void)addComments:(NSSet *)values;
@@ -56,34 +72,24 @@
 - (void)removeProjectsObject:(Project *)value;
 - (void)addProjects:(NSOrderedSet *)values;
 - (void)removeProjects:(NSOrderedSet *)values;
-- (void)insertObject:(PunchlistItem *)value inAssignedPunchlistItemsAtIndex:(NSUInteger)idx;
-- (void)removeObjectFromAssignedPunchlistItemsAtIndex:(NSUInteger)idx;
-- (void)insertAssignedPunchlistItems:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
-- (void)removeAssignedPunchlistItemsAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInAssignedPunchlistItemsAtIndex:(NSUInteger)idx withObject:(PunchlistItem *)value;
-- (void)replaceAssignedPunchlistItemsAtIndexes:(NSIndexSet *)indexes withAssignedPunchlistItems:(NSArray *)values;
-- (void)addAssignedPunchlistItemsObject:(PunchlistItem *)value;
-- (void)removeAssignedPunchlistItemsObject:(PunchlistItem *)value;
-- (void)addAssignedPunchlistItems:(NSOrderedSet *)values;
-- (void)removeAssignedPunchlistItems:(NSOrderedSet *)values;
-- (void)insertObject:(Report *)value inReportsAtIndex:(NSUInteger)idx;
-- (void)removeObjectFromReportsAtIndex:(NSUInteger)idx;
-- (void)insertReports:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
-- (void)removeReportsAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInReportsAtIndex:(NSUInteger)idx withObject:(Report *)value;
-- (void)replaceReportsAtIndexes:(NSIndexSet *)indexes withReports:(NSArray *)values;
-- (void)addReportsObject:(Report *)value;
-- (void)removeReportsObject:(Report *)value;
-- (void)addReports:(NSOrderedSet *)values;
-- (void)removeReports:(NSOrderedSet *)values;
-- (void)insertObject:(PunchlistItem *)value inPunchlistItemsAtIndex:(NSUInteger)idx;
-- (void)removeObjectFromPunchlistItemsAtIndex:(NSUInteger)idx;
-- (void)insertPunchlistItems:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
-- (void)removePunchlistItemsAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInPunchlistItemsAtIndex:(NSUInteger)idx withObject:(PunchlistItem *)value;
-- (void)replacePunchlistItemsAtIndexes:(NSIndexSet *)indexes withPunchlistItems:(NSArray *)values;
-- (void)addPunchlistItemsObject:(PunchlistItem *)value;
-- (void)removePunchlistItemsObject:(PunchlistItem *)value;
-- (void)addPunchlistItems:(NSOrderedSet *)values;
-- (void)removePunchlistItems:(NSOrderedSet *)values;
+- (void)insertObject:(WorklistItem *)value inWorklistItemsAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromWorklistItemsAtIndex:(NSUInteger)idx;
+- (void)insertWorklistItems:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeWorklistItemsAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInWorklistItemsAtIndex:(NSUInteger)idx withObject:(WorklistItem *)value;
+- (void)replaceWorklistItemsAtIndexes:(NSIndexSet *)indexes withWorklistItems:(NSArray *)values;
+- (void)addWorklistItemsObject:(WorklistItem *)value;
+- (void)removeWorklistItemsObject:(WorklistItem *)value;
+- (void)addWorklistItems:(NSOrderedSet *)values;
+- (void)removeWorklistItems:(NSOrderedSet *)values;
+- (void)insertObject:(Notification *)value inNotificationsAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromNotificationsAtIndex:(NSUInteger)idx;
+- (void)insertNotifications:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeNotificationsAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInNotificationsAtIndex:(NSUInteger)idx withObject:(Notification *)value;
+- (void)replaceNotificationsAtIndexes:(NSIndexSet *)indexes withNotifications:(NSArray *)values;
+- (void)addNotificationsObject:(Notification *)value;
+- (void)removeNotificationsObject:(Notification *)value;
+- (void)addNotifications:(NSOrderedSet *)values;
+- (void)removeNotifications:(NSOrderedSet *)values;
 @end

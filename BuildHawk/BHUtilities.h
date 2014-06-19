@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ChecklistItem.h"
-#import "PunchlistItem.h"
+#import "WorklistItem.h"
 #import "Report.h"
 #import "Report+helper.h"
 #import "Cat.h"
@@ -22,5 +22,4 @@
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;
 + (BOOL)isIPhone5;
-+ (void)vacuumLocalPhotos:(id)object;
 @end

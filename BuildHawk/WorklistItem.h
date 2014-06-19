@@ -1,17 +1,17 @@
 //
-//  PunchlistItem.h
+//  WorklistItem.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/8/14.
+//  Created by Max Haines-Stiles on 6/9/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Comment, Photo, Punchlist, User;
+@class Comment, Notification, Photo, User, Worklist, Project;
 
-@interface PunchlistItem : NSManagedObject
+@interface WorklistItem : NSManagedObject
 
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSNumber * completed;
@@ -19,15 +19,27 @@
 @property (nonatomic, retain) NSDate * createdAt;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * location;
+@property (nonatomic, retain) NSOrderedSet *assignees;
 @property (nonatomic, retain) NSOrderedSet *comments;
 @property (nonatomic, retain) NSOrderedSet *photos;
-@property (nonatomic, retain) NSOrderedSet *assignees;
+@property (nonatomic, retain) Project *project;
+@property (nonatomic, retain) Worklist *worklist;
 @property (nonatomic, retain) User *user;
-@property (nonatomic, retain) Punchlist *punchlist;
+@property (nonatomic, retain) Notification *notification;
 @end
 
-@interface PunchlistItem (CoreDataGeneratedAccessors)
+@interface WorklistItem (CoreDataGeneratedAccessors)
 
+- (void)insertObject:(User *)value inAssigneesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromAssigneesAtIndex:(NSUInteger)idx;
+- (void)insertAssignees:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeAssigneesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInAssigneesAtIndex:(NSUInteger)idx withObject:(User *)value;
+- (void)replaceAssigneesAtIndexes:(NSIndexSet *)indexes withAssignees:(NSArray *)values;
+- (void)addAssigneesObject:(User *)value;
+- (void)removeAssigneesObject:(User *)value;
+- (void)addAssignees:(NSOrderedSet *)values;
+- (void)removeAssignees:(NSOrderedSet *)values;
 - (void)insertObject:(Comment *)value inCommentsAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromCommentsAtIndex:(NSUInteger)idx;
 - (void)insertComments:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
@@ -48,14 +60,4 @@
 - (void)removePhotosObject:(Photo *)value;
 - (void)addPhotos:(NSOrderedSet *)values;
 - (void)removePhotos:(NSOrderedSet *)values;
-- (void)insertObject:(User *)value inUserAssigneesAtIndex:(NSUInteger)idx;
-- (void)removeObjectFromUserAssigneesAtIndex:(NSUInteger)idx;
-- (void)insertUserAssignees:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
-- (void)removeUserAssigneesAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInUserAssigneesAtIndex:(NSUInteger)idx withObject:(User *)value;
-- (void)replaceUserAssigneesAtIndexes:(NSIndexSet *)indexes withUserAssignees:(NSArray *)values;
-- (void)addUserAssigneesObject:(User *)value;
-- (void)removeUserAssigneesObject:(User *)value;
-- (void)addUserAssignees:(NSOrderedSet *)values;
-- (void)removeUserAssignees:(NSOrderedSet *)values;
 @end

@@ -7,9 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Subcontractor+helper.h"
 
 @interface BHAddPersonnelViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) Subcontractor *subcontractor;
 @property (strong, nonatomic) NSString *name;
 @property BOOL companyMode;
 

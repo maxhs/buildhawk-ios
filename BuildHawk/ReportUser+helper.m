@@ -11,13 +11,13 @@
 @implementation ReportUser (helper)
 //NSLog(@"checklist item helper dictionary: %@",dictionary);
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] != [NSNull null]) {
         self.userId = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"hours"] && [dictionary objectForKey:@"hours"]) {
+    if ([dictionary objectForKey:@"hours"] != [NSNull null]) {
         self.hours = [dictionary objectForKey:@"hours"];
     }
-    if ([dictionary objectForKey:@"full_name"] && [dictionary objectForKey:@"full_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"full_name"] != [NSNull null]) {
         self.fullname = [dictionary objectForKey:@"full_name"];
     }
 }

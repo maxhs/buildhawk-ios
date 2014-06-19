@@ -185,7 +185,7 @@
     }
     if (self.displayActionButton) {
         _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"zoom"] style:UIBarButtonItemStylePlain target:self action:@selector(actionButtonPressed:)];
-        _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -30);
+        _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -60);
         if (self.displayTrashButton){
             UIBarButtonItem *trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(confirmRemove)];
             self.navigationItem.rightBarButtonItems = @[trashButton, _actionButton];
@@ -1013,9 +1013,9 @@
 
 - (CGRect)frameForCaptionView:(MWCaptionView *)captionView atIndex:(NSUInteger)index {
     CGRect pageFrame = [self frameForPageAtIndex:index];
-    CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, 0)];
+    CGSize captionSize = [captionView sizeThatFits:CGSizeMake(pageFrame.size.width, CGFLOAT_MAX)];
     CGRect captionFrame = CGRectMake(pageFrame.origin.x,
-                                     pageFrame.size.height - captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0),
+                                     pageFrame.size.height - captionView.textView.frame.size.height/*captionSize.height - (_toolbar.superview?_toolbar.frame.size.height:0)*/,
                                      pageFrame.size.width,
                                      captionSize.height);
     return CGRectIntegral(captionFrame);

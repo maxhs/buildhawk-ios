@@ -1,5 +1,5 @@
 //
-//  BHPunchlistViewController.h
+//  BHTasksViewController.h
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 9/1/13.
@@ -9,12 +9,12 @@
 #import <UIKit/UIKit.h>
 #import "BHDeselectableSegmentedControl.h"
 
-@interface BHPunchlistViewController : UIViewController
+@interface BHTasksViewController : UIViewController
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet BHDeselectableSegmentedControl *segmentedControl;
 @property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) NSMutableArray *punchlistItems;
+@property (strong, nonatomic) NSMutableArray *worklistItems;
 @property BOOL connectMode;
 
 @end

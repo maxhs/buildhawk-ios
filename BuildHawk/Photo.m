@@ -7,7 +7,7 @@
 //
 
 #import "Photo.h"
-#import "PunchlistItem.h"
+#import "WorklistItem.h"
 
 
 @implementation Photo
@@ -23,12 +23,14 @@
 @dynamic urlSmall;
 @dynamic urlThumb;
 @dynamic userName;
-@dynamic punchlistItem;
+@dynamic worklistItem;
 @dynamic image;
 @dynamic folder;
 @dynamic folderId;
 @dynamic photoPhase;
 @dynamic assignee;
 @dynamic caption;
+@dynamic report;
+@dynamic checklistItem;
 
 @end

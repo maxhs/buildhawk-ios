@@ -31,6 +31,7 @@
     UIView *overlayBackground;
     UIImageView *reportsScreenshot;
     CGRect screen;
+    NSIndexPath *indexPathForDeletion;
 }
 - (IBAction)cancelDatePicker;
 - (IBAction)selectDate;
@@ -44,7 +45,7 @@
     [super viewDidLoad];
 
     refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
+    [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
@@ -62,8 +63,9 @@
     
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    
     _possibleTopics = [NSMutableArray array];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReport:) name:@"ReloadReport" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -85,23 +87,29 @@
     }];
 }
 
+- (void)reloadReport:(NSNotification*)notification {
+    NSLog(@"should be reloading a report, like because a photo just posted: %@",notification.userInfo);
+}
+
 - (void)loadReports {
     loading = YES;
-    //NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@", project.identifier];
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting reports: %@",responseObject);
-        [self loadOptions];
         [self updateLocalReports:[responseObject objectForKey:@"reports"]];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        loading = NO;
+        
+        [ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting reports: %@",error.description);
         [ProgressHUD dismiss];
+        loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         
     }];
 }
 
-- (void)handleRefresh:(id)sender {
+- (void)handleRefresh {
     [self loadReports];
 }
 
@@ -160,37 +168,10 @@
     [self.tableView reloadData];
 }
 
-- (void)loadOptions {
-    [manager GET:[NSString stringWithFormat:@"%@/reports/options",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success getting possible topics: %@",responseObject);
-        NSArray *topicResponseArray = [responseObject objectForKey:@"possible_topics"];
-        NSMutableOrderedSet *topicsSet = [NSMutableOrderedSet orderedSet];
-        for (id dict in topicResponseArray){
-            SafetyTopic *topic = [SafetyTopic MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"]];
-            if (!topic){
-                topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-            [topic populateWithDict:dict];
-            [topicsSet addObject:topic];
-        }
-        for (SafetyTopic *topic in project.company.safetyTopics) {
-            if (![topicsSet containsObject:topic]) {
-                NSLog(@"deleting safety topic that no longer exists: %@",topic.title);
-                [topic MR_deleteEntity];
-            }
-        }
-        project.company.safetyTopics = topicsSet;
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"failed to get possible topics: %@",error.description);
-    }];
-}
-
 - (void)updateLocalReports:(NSArray*)array {
     NSMutableOrderedSet *reportSet = [NSMutableOrderedSet orderedSet];
-    
     for (id obj in array) {
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@",[obj objectForKey:@"id"]];
-        Report *report = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"]];
         if (!report){
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -199,12 +180,21 @@
     }
     for (Report *report in project.reports) {
         if (![reportSet containsObject:report]) {
-            NSLog(@"deleting a report that no longer exists: %@",report.createdDate);
+            NSLog(@"Deleting a report that no longer exists: %@",report.createdDate);
             [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
+    
     project.reports = reportSet;
-    [self saveContext];
+    if (safety) {
+        [self filter:kSafety];
+    } else if (weekly) {
+        [self filter:kWeekly];
+    } else if (daily) {
+        [self filter:kDaily];
+    } else {
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+    }
 }
 
 #pragma mark - Table view data source
@@ -310,6 +300,65 @@
             [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         }
     }
+}
+-(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    Report *report;
+    if (safety || weekly || daily){
+        report = [_filteredReports objectAtIndex:indexPath.row];
+    } else {
+        report = [project.reports objectAtIndex:indexPath.row];
+    }
+    
+    if ([report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+        return YES;
+    } else {
+        return NO;
+    }
+}
+
+
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (editingStyle == UITableViewCellEditingStyleDelete) {
+        indexPathForDeletion = indexPath;
+        [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to delete this report?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
+        [self deleteReport];
+    } else {
+        indexPathForDeletion = nil;
+    }
+}
+
+- (void)deleteReport{
+    [ProgressHUD show:@"Deleting..."];
+    Report *report;
+    if (daily || weekly || safety){
+        report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
+    } else {
+        report = [project.reports objectAtIndex:indexPathForDeletion.row];
+    }
+    [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success deleting report: %@",responseObject);
+        
+        //remove the report from all data sources
+        [project removeReport:report];
+        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        if (safety || weekly || daily){
+            [_filteredReports removeObject:report];
+        }
+        //update the UI
+        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        [ProgressHUD dismiss];
+        indexPathForDeletion = nil;
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        //NSLog(@"Error deleting notification: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [ProgressHUD dismiss];
+        indexPathForDeletion = nil;
+    }];
 }
 
 - (void)newReport {
@@ -461,23 +510,15 @@
     [super viewDidDisappear:animated];
     self.tabBarController.navigationItem.rightBarButtonItems = nil;
     [self cancelDatePicker];
-    //[self saveContext];
 }
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self saveContext];
+}
+
 - (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        loading = NO;
-        [ProgressHUD dismiss];
-        if (safety) {
-            [self filter:kSafety];
-        } else if (weekly) {
-            [self filter:kWeekly];
-        } else if (daily) {
-            [self filter:kDaily];
-        } else {
-            [self.tableView reloadData];
-        }
-        NSLog(@"What happened during reports save? %hhd %@",success, error);
-    }];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
 }
 
 @end

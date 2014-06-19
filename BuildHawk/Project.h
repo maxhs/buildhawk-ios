@@ -11,7 +11,7 @@
 #import "Address.h"
 #import "User.h"
 #import "Company.h"
-#import "Punchlist.h"
+#import "Worklist.h"
 
 @class Checklist, ChecklistItem, Phase, Report, Group;
 
@@ -24,7 +24,7 @@
 @property (nonatomic, retain) id notifications;
 @property (nonatomic, retain) NSString * progressPercentage;
 @property (nonatomic, retain) Address *address;
-@property (nonatomic, retain) Punchlist *punchlist;
+@property (nonatomic, retain) Worklist *worklist;
 @property (nonatomic, retain) Checklist *checklist;
 @property (nonatomic, retain) NSOrderedSet *phases;
 @property (nonatomic, retain) Company *company;

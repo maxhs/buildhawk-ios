@@ -47,7 +47,6 @@
                 completion(NO, nil);
             });
         }
-        
         return;
     }
 

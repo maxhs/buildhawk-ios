@@ -2,7 +2,7 @@
 //  ChecklistItem.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/8/14.
+//  Created by Max Haines-Stiles on 6/16/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -10,7 +10,9 @@
 #import "Cat.h"
 #import "Checklist.h"
 #import "Comment.h"
+#import "Notification.h"
 #import "Phase.h"
+#import "Photo.h"
 #import "Project.h"
 
 
@@ -23,16 +25,16 @@
 @dynamic criticalDate;
 @dynamic identifier;
 @dynamic orderIndex;
-@dynamic photos;
 @dynamic photosCount;
 @dynamic status;
 @dynamic type;
-@dynamic phase;
+@dynamic category;
 @dynamic checklist;
 @dynamic comments;
+@dynamic notification;
+@dynamic phase;
+@dynamic photos;
 @dynamic project;
-@dynamic category;
 @dynamic upcomingItems;
-@synthesize filtered;
 
 @end

@@ -1,5 +1,5 @@
 //
-//  BHPunchlistItemCell.h
+//  BHTaskCell.h
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 9/9/13.
@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@interface BHPunchlistItemCell : UITableViewCell
+@interface BHTaskCell : UITableViewCell
 
 @property (weak, nonatomic) IBOutlet UILabel *itemLabel;
+@property (weak, nonatomic) IBOutlet UILabel *ownerLabel;
+@property (weak, nonatomic) IBOutlet UILabel *createdLabel;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 
 @end

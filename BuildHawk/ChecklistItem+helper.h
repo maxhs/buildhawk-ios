@@ -7,7 +7,7 @@
 //
 
 #import "ChecklistItem.h"
-#import "Comment.h"
+#import "Comment+helper.h"
 
 @interface ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;

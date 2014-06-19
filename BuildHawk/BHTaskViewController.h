@@ -1,5 +1,5 @@
 //
-//  BHPunchlistItemViewController.h
+//  BHTaskViewController.h
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 9/10/13.
@@ -7,13 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "PunchlistItem+helper.h"
+#import "WorklistItem+helper.h"
 #import "Project.h"
 #import "Project+helper.h"
 
-@interface BHPunchlistItemViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
+@interface BHTaskViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
-@property (strong, nonatomic) PunchlistItem *punchlistItem;
+@property (strong, nonatomic) WorklistItem *worklistItem;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;

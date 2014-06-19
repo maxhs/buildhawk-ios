@@ -32,6 +32,7 @@
     [super viewDidLoad];
     self.title = self.project.name;
     self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
+    self.tabBar.clipsToBounds = YES;
 }
 
 - (void)didReceiveMemoryWarning

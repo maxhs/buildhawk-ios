@@ -2,16 +2,17 @@
 //  User.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/19/14.
+//  Created by Max Haines-Stiles on 6/9/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "User.h"
 #import "Comment.h"
 #import "Company.h"
+#import "Notification.h"
 #import "Project.h"
-#import "PunchlistItem.h"
-#import "Report.h"
+#import "Subcontractor.h"
+#import "WorklistItem.h"
 
 
 @implementation User
@@ -19,8 +20,11 @@
 @dynamic admin;
 @dynamic authToken;
 @dynamic companyAdmin;
+@dynamic pushPermissions;
+@dynamic emailPermissions;
+@dynamic textPermissions;
 @dynamic count;
-@dynamic coworkers;
+@dynamic image;
 @dynamic demo;
 @dynamic email;
 @dynamic firstName;
@@ -30,15 +34,17 @@
 @dynamic identifier;
 @dynamic lastName;
 @dynamic phone;
+@dynamic photoUrlMedium;
 @dynamic photoUrlSmall;
 @dynamic photoUrlThumb;
 @dynamic uberAdmin;
+@dynamic assignedWorklistItems;
 @dynamic comments;
 @dynamic company;
 @dynamic projects;
-@dynamic assignedPunchlistItems;
 @dynamic reports;
-@dynamic punchlistItems;
+@dynamic worklistItems;
 @dynamic subcontractor;
+@dynamic notifications;
 
 @end

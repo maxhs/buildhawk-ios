@@ -14,10 +14,10 @@
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"count"] && [dictionary objectForKey:@"count"]) {
+    if ([dictionary objectForKey:@"count"] != [NSNull null]) {
         self.count = [dictionary objectForKey:@"count"];
     }
-    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
 }

@@ -19,7 +19,6 @@
 @property (strong, nonatomic) ChecklistItem *item;
 @property (strong, nonatomic) Project *project;
 @property (weak, nonatomic) IBOutlet UIView *datePickerContainer;
-@property (weak, nonatomic) IBOutlet BHDatePicker *datePicker;
 @property (weak, nonatomic) IBOutlet UIButton *selectButton;
 @property (weak, nonatomic) IBOutlet UIButton *cancelButton;
 @property int row;

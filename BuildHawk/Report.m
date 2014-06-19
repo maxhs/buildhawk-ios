@@ -2,34 +2,40 @@
 //  Report.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/22/14.
+//  Created by Max Haines-Stiles on 6/11/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Report.h"
+#import "Notification.h"
+#import "Photo.h"
 #import "Project.h"
-#import "User.h"
+#import "ReportSub.h"
+#import "ReportUser.h"
+#import "SafetyTopic.h"
 
 
 @implementation Report
 
 @dynamic body;
+@dynamic createdAt;
 @dynamic createdDate;
 @dynamic humidity;
 @dynamic identifier;
-@dynamic photos;
+@dynamic possibleTopics;
 @dynamic precip;
 @dynamic temp;
 @dynamic type;
+@dynamic updatedAt;
 @dynamic weather;
 @dynamic weatherIcon;
 @dynamic wind;
-@dynamic createdAt;
-@dynamic updatedAt;
-@dynamic possibleTopics;
+@dynamic notification;
+@dynamic photos;
 @dynamic project;
-@dynamic reportUsers;
 @dynamic reportSubs;
+@dynamic reportUsers;
 @dynamic safetyTopics;
+@dynamic author;
 
 @end

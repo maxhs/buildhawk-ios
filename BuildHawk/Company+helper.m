@@ -42,7 +42,6 @@
     if ([dictionary objectForKey:@"subcontractors"] && [dictionary objectForKey:@"subcontractors"] != [NSNull null]) {
         NSMutableOrderedSet *orderedSubcontractors = [NSMutableOrderedSet orderedSet];
         for (id subDict in [dictionary objectForKey:@"subcontractors"]){
-            //NSLog(@"sub dict: %@",subDict);
             NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
             Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:subPredicate];
             if (!subcontractor){
@@ -53,7 +52,7 @@
         }
         for (Subcontractor *subcontractor in self.subcontractors){
             if (![orderedSubcontractors containsObject:subcontractor]){
-                NSLog(@"deleting a subcontractor that no longer exists: %@",subcontractor.name);
+                NSLog(@"Deleting a subcontractor that no longer exists: %@",subcontractor.name);
                 [subcontractor MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }

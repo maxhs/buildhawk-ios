@@ -356,7 +356,7 @@
         [ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        //[[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [ProgressHUD dismiss];
     }];
@@ -375,16 +375,18 @@
         [phases addObject:phase];
     }
     
-    for (Phase *phase in checklistParam.phases){
+    /*for (Phase *phase in checklistParam.phases){
         for (Cat *category in phase.categories){
             for (ChecklistItem *item in category.items){
                 item.checklist = checklistParam;
             }
         }
-    }
+    }*/
     
     checklistParam.phases = phases;
-    [self.tableView reloadData];
+    if (self.isViewLoaded && self.view.window){
+        [self.tableView reloadData];
+    }
 }
 
 
@@ -393,6 +395,9 @@
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:0]];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
+    if (self.tableView.numberOfSections == 0){
+        [self.tableView reloadData];
+    }
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -511,6 +516,9 @@
         [cell.mainLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:24]];
         [cell.mainLabel setNumberOfLines:5];
         [cell.detailLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+        CGRect cellFrame = cell.frame;
+        cellFrame.origin.x -= 1;
+        cellFrame.size.width += 2;
         UIView *backgroundView = [[UIView alloc] initWithFrame:cell.frame];
         cell.backgroundView = backgroundView;
         
@@ -548,6 +556,11 @@
             [backgroundView setBackgroundColor:[UIColor whiteColor]];
             
         } else if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+            
+            //add a border
+            cell.layer.borderWidth = .5f;
+            cell.layer.borderColor = [UIColor colorWithWhite:1 alpha:.2].CGColor;
+            
             NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
             if (openRows.count > indexPath.row-1){
                 id item = [openRows objectAtIndex:indexPath.row-1];
@@ -578,6 +591,8 @@
                     [cell.itemBody setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
                     [cell.progressPercentage setText:@""];
                     [backgroundView setBackgroundColor:kBlueColor];
+                    
+                    
                     
                     if ([item.status isEqualToString:kNotApplicable]){
                         UILabel *notApplicableLabel = [[UILabel alloc] init];
@@ -625,7 +640,8 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return itemRowHeight;
+    if (indexPath.row == 0 && IDIOM != IPAD) return 80;
+    else return itemRowHeight;
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {

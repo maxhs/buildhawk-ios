@@ -9,6 +9,8 @@
 #import "BHAddPersonnelViewController.h"
 #import "BHAddPersonnelCell.h"
 #import "BHAppDelegate.h"
+#import <AddressBook/AddressBook.h>
+#import "BHAddressBookPickerViewController.h"
 
 @interface BHAddPersonnelViewController () <UITextFieldDelegate> {
     UIBarButtonItem *createButton;
@@ -22,6 +24,7 @@
     UITextField *lastNameTextField;
     UITextField *emailTextField;
     UITextField *phoneTextField;
+    NSArray *peopleArray;
 }
 
 @end
@@ -31,7 +34,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(create)];
+    createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(create)];
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
     self.navigationItem.rightBarButtonItem = createButton;
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
@@ -88,7 +91,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 4;
+    return 5;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -104,31 +107,50 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddPersonnelCell" owner:self options:nil] lastObject];
     }
     cell.personnelTextField.delegate = self;
+    [cell.personnelTextField setUserInteractionEnabled:YES];
+    cell.selectionStyle = UITableViewCellSelectionStyleDefault;
     if (_companyMode){
         switch (indexPath.section) {
             case 0:
+            {
+                [cell.textLabel setText:@"Tap to pull from address book"];
+                [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+                [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+                UIImageView *buttonBackground = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"wideButton"]];
+                [buttonBackground setFrame:CGRectMake(40, 2, 240, 50)];
+                [cell addSubview:buttonBackground];
+                [cell sendSubviewToBack:buttonBackground];
+                [cell.personnelTextField setUserInteractionEnabled:NO];
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            }
+                break;
+            case 1:
                 cell.personnelTextField.placeholder = @"Company name";
                 companyNameTextField = cell.personnelTextField;
                 if (_name.length) [companyNameTextField setText:_name];
                 [companyNameTextField setKeyboardType:UIKeyboardTypeDefault];
+                [companyNameTextField setReturnKeyType:UIReturnKeyNext];
                 [companyNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
-            case 1:
+            case 2:
                 cell.personnelTextField.placeholder = @"Your contact at this company";
                 contactTextField = cell.personnelTextField;
                 [contactTextField setKeyboardType:UIKeyboardTypeDefault];
+                [contactTextField setReturnKeyType:UIReturnKeyNext];
                 [contactTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
-            case 2:
+            case 3:
                 cell.personnelTextField.placeholder = @"A contact email address";
                 companyEmailTextField = cell.personnelTextField;
                 [companyEmailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
+                [companyEmailTextField setReturnKeyType:UIReturnKeyNext];
                 [companyEmailTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
                 break;
-            case 3:
+            case 4:
                 cell.personnelTextField.placeholder = @"A contact phone number";
                 companyPhoneTextField = cell.personnelTextField;
                 [companyPhoneTextField setKeyboardType:UIKeyboardTypePhonePad];
+                [companyPhoneTextField setReturnKeyType:UIReturnKeyDone];
                 [companyPhoneTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
                 break;
                 
@@ -138,25 +160,36 @@
     } else {
         switch (indexPath.section) {
             case 0:
+            {
+                [cell.textLabel setText:@"Tap to pull from address book"];
+                [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+                [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+                UIImageView *buttonBackground = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"wideButton"]];
+                [buttonBackground setFrame:CGRectMake(40, 5, 240, 50)];
+                [cell addSubview:buttonBackground];
+                [cell sendSubviewToBack:buttonBackground];
+                [cell.personnelTextField setUserInteractionEnabled:NO];
+            }
+                break;
+            case 1:
                 cell.personnelTextField.placeholder = @"First name";
                 firstNameTextField = cell.personnelTextField;
-                if (_name.length) [firstNameTextField setText:_name];
                 [firstNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [firstNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
-            case 1:
+            case 2:
                 cell.personnelTextField.placeholder = @"Last name";
                 lastNameTextField = cell.personnelTextField;
                 [lastNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [lastNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
-            case 2:
+            case 3:
                 cell.personnelTextField.placeholder = @"Email address";
                 emailTextField = cell.personnelTextField;
                 [emailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
                 [emailTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
                 break;
-            case 3:
+            case 4:
                 cell.personnelTextField.placeholder = @"Phone number";
                 phoneTextField = cell.personnelTextField;
                 [phoneTextField setKeyboardType:UIKeyboardTypePhonePad];
@@ -167,8 +200,19 @@
                 break;
         }
     }
-    
     return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 20;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 0) {
+        return 60;
+    } else {
+        return 50;
+    }
 }
 
 - (void)create {
@@ -186,7 +230,7 @@
             [parameters setObject:companyEmailTextField.text forKey:@"email"];
         }
         if (companyPhoneTextField.text.length){
-            [parameters setObject:companyPhoneTextField.text forKey:@"phone_number"];
+            [parameters setObject:companyPhoneTextField.text forKey:@"phone"];
         }
         [manager POST:[NSString stringWithFormat:@"%@/company_subs",kApiBaseUrl] parameters:@{@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"subcontractor":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"success creating a new company sub: %@",responseObject);
@@ -207,8 +251,22 @@
             [parameters setObject:emailTextField.text forKey:@"email"];
         }
         if (phoneTextField.text.length){
-            [parameters setObject:phoneTextField.text forKey:@"phone_number"];
+            [parameters setObject:phoneTextField.text forKey:@"phone"];
         }
+        [manager POST:[NSString stringWithFormat:@"%@/company_subs/%@/add_user",kApiBaseUrl,_subcontractor.identifier] parameters:@{@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success creating a new company sub user: %@",responseObject);
+            User *user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [user populateFromDictionary:[responseObject objectForKey:@"user"]];
+            [_subcontractor addUser:user];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [ProgressHUD dismiss];
+                [self.navigationController popViewControllerAnimated:YES];
+            }];
+            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error creating a company sub: %@",error.description);
+            [ProgressHUD dismiss];
+        }];
     }
 }
 
@@ -216,15 +274,18 @@
     if (_companyMode){
         switch (section) {
             case 0:
-                return @"Company Name";
+                return @"";
                 break;
             case 1:
-                return @"Contact";
+                return @"Company Name";
                 break;
             case 2:
-                return @"Email address";
+                return @"Contact";
                 break;
             case 3:
+                return @"Email address";
+                break;
+            case 4:
                 return @"Phone number";
                 break;
             default:
@@ -234,15 +295,18 @@
     } else {
         switch (section) {
             case 0:
-                return @"First Name";
+                return @"";
                 break;
             case 1:
-                return @"Last Name";
+                return @"First Name";
                 break;
             case 2:
-                return @"Email address";
+                return @"Last Name";
                 break;
             case 3:
+                return @"Email address";
+                break;
+            case 4:
                 return @"Phone number";
                 break;
             default:
@@ -252,12 +316,47 @@
     }
 }
 
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 0){
+        CFErrorRef error = nil;
+        ABAddressBookRef addressBook = ABAddressBookCreateWithOptions(NULL, &error);
+        if (!addressBook)
+        {
+            //some sort of error preventing us from grabbing the address book
+            return;
+        }
+        
+        ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error) {
+            if (granted){
+                CFArrayRef arrayOfPeople = ABAddressBookCopyArrayOfAllPeople(addressBook);
+                peopleArray = (__bridge NSArray *)(arrayOfPeople);
+                
+                CFRelease(arrayOfPeople);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self performSegueWithIdentifier:@"AddressBook" sender:nil];
+                });
+            }
+        });
+    }
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"AddressBook"]){
+        BHAddressBookPickerViewController *vc = [segue destinationViewController];
+        [vc setPeopleArray:peopleArray];
+        [vc setTitle:[NSString stringWithFormat:@"%@",_subcontractor.name]];
+    }
+}
+
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     self.navigationItem.rightBarButtonItem = doneButton;
+    
     if (textField == companyEmailTextField || textField == emailTextField){
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     } else if (textField == phoneTextField || textField == companyPhoneTextField){
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        
     }
 }
 
@@ -266,53 +365,5 @@
     [self.view endEditing:YES];
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

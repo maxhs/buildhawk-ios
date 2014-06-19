@@ -265,7 +265,6 @@ typedef enum {
         
         for (NSString *monthName in self.dateFormatter.monthSymbols) {
             CGFloat monthWidth = [monthName sizeWithAttributes:@{NSFontAttributeName : self.font}].width;
-            
             maxWidth = MAX(monthWidth, maxWidth);
         }
         

@@ -8,8 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-
-@class PunchlistItem;
+#import "Report+helper.h"
+#import "WorklistItem+helper.h"
+#import "ChecklistItem+helper.h"
 
 @interface Photo : NSManagedObject
 
@@ -30,6 +31,8 @@
 @property (nonatomic, retain) NSString * folder;
 @property (nonatomic, retain) NSNumber * folderId;
 @property (nonatomic, retain) id image;
-@property (nonatomic, retain) PunchlistItem *punchlistItem;
+@property (nonatomic, retain) WorklistItem *worklistItem;
+@property (nonatomic, retain) Report *report;
+@property (nonatomic, retain) ChecklistItem *checklistItem;
 
 @end
