@@ -14,6 +14,7 @@
 #import "Subcontractor.h"
 #import "ReportSub.h"
 #import "ReportUser.h"
+#import "Project+helper.h"
 #import "BHChoosePersonnelCell.h"
 #import "BHAddPersonnelViewController.h"
 
@@ -36,7 +37,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 @implementation BHPersonnelPickerViewController
 @synthesize phone, email, countNotNeeded;
 @synthesize users = _users;
+@synthesize project = _project;
 @synthesize company = _company;
+@synthesize task = _task;
 @synthesize orderedSubs = _orderedSubs;
 @synthesize orderedUsers = _orderedUsers;
 
@@ -88,14 +91,15 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 }
 
 - (void)loadSubcontractors {
-    [ProgressHUD show:@"Getting company list..."];
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/companies/%@",kApiBaseUrl,_company.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success loading company subcontractors: %@",responseObject);
-        [_company populateWithDict:[responseObject objectForKey:@"company"]];
+    [ProgressHUD show:@"Getting personnel..."];
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/project_subs/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"success loading project: %@",responseObject);
+        [_project populateFromDictionary:[responseObject objectForKey:@"project"]];
         loading = NO;
-        [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-            _subcontractors = _company.subcontractors.array.mutableCopy;
-            NSLog(@"%u success with saving company",success);
+        _subcontractors = _project.subcontractors.array.mutableCopy;
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            
+            NSLog(@"%u success with saving project subs",success);
             [ProgressHUD dismiss];
             [self.tableView reloadData];
         }];
@@ -278,6 +282,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"AddPersonnel"]){
         BHAddPersonnelViewController *vc = [segue destinationViewController];
+        [vc setTask:_task];
         if (_users.count){
             [vc setCompanyMode:NO];
         } else {
@@ -420,7 +425,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     NSDictionary *userInfo;
     if (_users.count){
         userInfo = @{kUsers:_orderedUsers};
-    } else {
+    } else if (_orderedSubs.count) {
         userInfo = @{kSubcontractors:_orderedSubs};
     }
     

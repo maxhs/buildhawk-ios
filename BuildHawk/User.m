@@ -42,9 +42,11 @@
 @dynamic comments;
 @dynamic company;
 @dynamic projects;
+@dynamic archivedProjects;
 @dynamic reports;
 @dynamic worklistItems;
 @dynamic subcontractor;
 @dynamic notifications;
+@dynamic reminders;
 
 @end

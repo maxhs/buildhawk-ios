@@ -14,12 +14,24 @@
 #import "BHDashboardViewController.h"
 #import "Constants.h"
 #import "User+helper.h"
+#import "Project+helper.h"
+#import "BHTabBarViewController.h"
+
+static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
     BOOL iPhone5;
     BOOL iPad;
     NSString *forgotPasswordEmail;
+    BHAppDelegate* delegate;
+    NSMutableOrderedSet *projectSet;
+    Project *demoProject;
+    UIButton *demoButton;
+    NSArray *views;
+    NSUInteger completedAnimations;
+    void (^completionBlock)();
 }
+
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
@@ -33,21 +45,11 @@
 
 @implementation BHLoginViewController
 
-@synthesize managedObjectContext = _managedObjectContext;
-@synthesize managedObjectModel = _managedObjectModel;
-
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
-{
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone){
@@ -60,19 +62,85 @@
     [self textFieldTreatment:self.emailTextField];
     [self textFieldTreatment:self.passwordTextField];
     
-    [self.loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:.8]];
-    [self.loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [self.loginButton setTitleColor:[UIColor colorWithWhite:0 alpha:.2] forState:UIControlStateNormal];
+    [self.forgotPasswordButton setTitleColor:[UIColor colorWithWhite:0 alpha:.2] forState:UIControlStateNormal];
     [self.loginButton setEnabled:NO];
-    self.loginButton.layer.borderColor = [UIColor colorWithWhite:.8 alpha:1].CGColor;
+    self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
     self.loginButton.layer.borderWidth = .5f;
-    self.loginButton.layer.cornerRadius = 5.f;
+    self.loginButton.layer.cornerRadius = 0.f;
     [self adjustLoginContainer];
+    demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]];
+}
+
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:YES];
+    [self loadDemo];
+}
+
+- (void)loadDemo {
+    [self drawDemoButton];
+    [delegate.manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"success getting demo projects: %@",responseObject);
+        [self updateProjects:[responseObject objectForKey:@"projects"]];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failed to get demo project: %@", error.description);
+    }];
+}
+
+- (void)updateProjects:(NSArray*)projectsArray {
+    if (projectsArray.count == 0){
+        [ProgressHUD dismiss];
+    } else {
+        projectSet = [NSMutableOrderedSet orderedSet];
+        for (id obj in projectsArray) {
+            Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[obj objectForKey:@"id"]];
+            if (!project){
+                project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [project populateFromDictionary:obj];
+            [projectSet addObject:project];
+        }
+
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            NSLog(@"What happened during login save? %hhd %@",success, error);
+            if (projectSet.count){
+                [demoButton setUserInteractionEnabled:YES];
+                [UIView animateWithDuration:.23 animations:^{
+                    [demoButton setAlpha:1.0];
+                }];
+            }
+        }];
+    }
+}
+
+- (void)drawDemoButton {
+    demoButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [demoButton setFrame:CGRectMake(0, screenHeight()-44, screenWidth(), 44)];
+    [demoButton setTitle:@"View demo project" forState:UIControlStateNormal];
+    [demoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [demoButton setBackgroundColor:kBlueColor];
+    [demoButton addTarget:self action:@selector(viewDemoProject) forControlEvents:UIControlEventTouchUpInside];
+    [demoButton setUserInteractionEnabled:NO];
+    [demoButton setAlpha:0];
+    [self.view addSubview:demoButton];
+}
+
+- (void) viewDemoProject {
+    [self performSegueWithIdentifier:@"DemoProject" sender:nil];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"DemoProject"]){
+        BHTabBarViewController *vc = [segue destinationViewController];
+        [vc setProject:projectSet.lastObject];
+    }
 }
 
 - (void)textFieldTreatment:(UITextField*)textField {
     textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
     textField.layer.borderWidth = .5f;
-    textField.layer.cornerRadius = 5.f;
+    textField.layer.cornerRadius = 0.f;
     UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 7, 20)];
     textField.leftView = paddingView;
     textField.leftViewMode = UITextFieldViewModeAlways;
@@ -98,8 +166,7 @@
         } else {
             email = self.emailTextField.text;
         }
-        AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-        [manager POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success with forgot password: %@",responseObject);
             if ([responseObject objectForKey:@"failure"]){
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find an account for that email address." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -124,7 +191,6 @@
 }
 
 - (void)login:(NSString*)email andPassword:(NSString*)password{
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [ProgressHUD show:@"Logging in..."];
     if (!email.length)
         email = self.emailTextField.text;
@@ -134,19 +200,14 @@
     if (email) [parameters setObject:email forKey:@"email"];
     if (password) [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
-    [manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"log in response object: %@",responseObject);
-        
-        NSManagedObjectContext *localContext = [NSManagedObjectContext MR_defaultContext];
-        
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:predicate inContext:localContext];
+        User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user) {
-            user = [User MR_createInContext:localContext];
-            NSLog(@"Created a new MR user");
+            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [user populateFromDictionary:[responseObject objectForKey:@"user"]];
-
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] setObject:user.authToken forKey:kUserDefaultsAuthToken];
@@ -160,23 +221,36 @@
         [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
-        [localContext MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"LoginSuccessful" object:nil];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [delegate.menu setCurrentUser:user];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];
             [UIView animateWithDuration:.3 animations:^{
                 self.loginContainerView.transform = CGAffineTransformIdentity;
                 self.logoContainerView.transform = CGAffineTransformIdentity;
                 [self.view endEditing:YES];
             } completion:^(BOOL finished) {
-                
+                [self.loginButton setUserInteractionEnabled:YES];
+                [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
             }];
-            [self.loginButton setUserInteractionEnabled:YES];
-            [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+            
         }];
 
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error logging in: %@",error.description);
+
         if (operation.response.statusCode == 401) {
-            [[[UIAlertView alloc] initWithTitle:@"Incorrect password" message:@"Your email and password don't match. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            if ([operation.responseString isEqualToString:@"Incorrect password"]){
+                [self addShakeAnimationForView:self.passwordTextField withDuration:.77];
+                
+            } else if ([operation.responseString isEqualToString:@"User already exists"]) {
+                //[self addShakeAnimationForView:self.registerEmailTextField withDuration:.77];
+                //[self alert:@"An account with that email address already exists."];
+                
+            } else if ([operation.responseString isEqualToString:@"No email"]) {
+                [self addShakeAnimationForView:self.emailTextField withDuration:.77];
+                //[self alert:@"Sorry, but we couldn't find an account for that email address."];
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Uh oh" message:@"Something went wrong while trying to log you in." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
         } else {
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
@@ -186,10 +260,35 @@
     }];
 }
 
+#pragma mark - Shake Animation
+
+- (void)addShakeAnimationForView:(UIView *)view withDuration:(NSTimeInterval)duration {
+    CAKeyframeAnimation * animation = [CAKeyframeAnimation animationWithKeyPath:@"transform.translation.x"];
+    animation.delegate = self;
+    animation.duration = duration;
+    animation.values = @[ @(0), @(10), @(-8), @(8), @(-5), @(5), @(0) ];
+    animation.keyTimes = @[ @(0), @(0.225), @(0.425), @(0.6), @(0.75), @(0.875), @(1) ];
+    animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+    [view.layer addAnimation:animation forKey:kShakeAnimationKey];
+}
+
+
+#pragma mark - CAAnimation Delegate
+
+- (void)animationDidStop:(CAAnimation *)animation finished:(BOOL)flag {
+    completedAnimations += 1;
+    if ( completedAnimations >= views.count ) {
+        completedAnimations = 0;
+        if ( completionBlock ) {
+            completionBlock();
+        }
+    }
+}
+
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [UIView animateWithDuration:.3 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if (iPhone5){
-            self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
+            self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -180);
             self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -190);
         } else if (iPad) {
             
@@ -202,9 +301,6 @@
     }];
 }
 
-- (void)textFieldDidEndEditing:(UITextField *)textField {
-    
-}
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
     if (self.emailTextField.text.length && self.passwordTextField.text.length){
@@ -212,16 +308,19 @@
         [self.loginButton setBackgroundColor:kBlueColor];
         [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     } else {
-        [self.loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:.8]];
-        [self.loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        [self.loginButton setTitleColor:[UIColor colorWithWhite:0 alpha:.2] forState:UIControlStateNormal];
+        [self.loginButton setBackgroundColor:[UIColor clearColor]];
+        self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
         [self.loginButton setEnabled:NO];
     }
     if ([text isEqualToString:@"\n"]) {
-        if (self.passwordTextField.text.length && self.emailTextField.text.length) {
+        if (textField == self.emailTextField){
+            [self.passwordTextField becomeFirstResponder];
+            return YES;
+        } else if (self.passwordTextField.text.length && self.emailTextField.text.length) {
+            [textField resignFirstResponder];
             [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
         }
-        [textField resignFirstResponder];
-        return NO;
     }
     return YES;
 }
@@ -229,6 +328,7 @@
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     [self.loginContainerView setAlpha:1.0];
+    [demoButton removeFromSuperview];
 }
 
 - (void)didReceiveMemoryWarning

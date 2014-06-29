@@ -29,15 +29,41 @@
 }
 
 - (void)awakeFromNib {
-    [self.archiveButton setBackgroundColor:[UIColor redColor]];
-    [self.scrollView setContentSize:CGSizeMake(screenWidth(), 88)];
+    [_archiveButton setBackgroundColor:[UIColor redColor]];
+    [_scrollView setContentSize:CGSizeMake(screenWidth(), 88)];
+    [_alertLabel setBackgroundColor:[UIColor redColor]];
+    [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
+    _alertLabel.layer.cornerRadius = 11.f;
+}
+
+- (void)configureForProject:(Project*)project andUser:(User*)user {
+    [_titleLabel setText:[project name]];
+    if (project.address.formattedAddress){
+        [_subtitleLabel setText:project.address.formattedAddress];
+        [_subtitleLabel sizeToFit];
+    } else {
+        //[_subtitleLabel setText:project.company.name];
+    }
+    __block int count = 0;
+    
+    [user.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+        if ([reminder.project.identifier isEqualToNumber:project.identifier]){
+            count ++;
+        }
+        if (idx == user.reminders.count - 1 && count > 0){
+            [_alertLabel setText:[NSString stringWithFormat:@"%d",count]];
+            [UIView animateWithDuration:.3 animations:^{
+                [_alertLabel setAlpha:1.0];
+            }];
+        }
+    }];
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView.contentOffset.x >= 88){
-        [self.archiveButton setUserInteractionEnabled:YES];
+        [_archiveButton setUserInteractionEnabled:YES];
     } else {
-        [self.archiveButton setUserInteractionEnabled:NO];
+        [_archiveButton setUserInteractionEnabled:NO];
     }
 }
 

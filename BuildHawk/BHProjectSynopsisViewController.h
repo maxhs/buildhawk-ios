@@ -1,5 +1,5 @@
 //
-//  BHDashboardDetailViewController.h
+//  BHProjectSynopsisViewController.h
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 8/30/13.
@@ -10,6 +10,6 @@
 #import "Project.h"
 #import "Project+helper.h"
 
-@interface BHDashboardDetailViewController : UITableViewController
+@interface BHProjectSynopsisViewController : UITableViewController
 @property (strong, nonatomic) Project *project;
 @end

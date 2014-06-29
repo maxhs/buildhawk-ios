@@ -18,6 +18,7 @@
 #import "BHNotificationCell.h"
 #import "Notification+helper.h"
 #import "BHSettingsViewController.h"
+#import <RESideMenu/RESideMenu.h>
 
 static NSString *callPlaceholder = @"Call";
 static NSString *emailPlaceholder = @"Email";
@@ -25,7 +26,6 @@ static NSString *textPlaceholder = @"Text Message";
 
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
     User *selectedCoworker;
-    User *currentUser;
     CGRect screen;
     BOOL iPhone5;
     BOOL iPad;
@@ -39,17 +39,15 @@ static NSString *textPlaceholder = @"Text Message";
 @end
 
 @implementation BHMenuViewController
-
+@synthesize currentUser = _currentUser;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
     self.view.backgroundColor = kDarkGrayColor;
     self.tableView.backgroundColor = kDarkGrayColor;
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    NSManagedObjectContext *localContext = [NSManagedObjectContext MR_contextForCurrentThread];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
-    currentUser = [User MR_findFirstWithPredicate:predicate inContext:localContext];
-    //NSLog(@"user coworkers from menu? %@",user.coworkers);
+
+    [self.tableView reloadData];
     screen = [UIScreen mainScreen].bounds;
     [self.logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
     [self.logoutButton setBackgroundColor:kDarkGrayColor];
@@ -63,6 +61,13 @@ static NSString *textPlaceholder = @"Text Message";
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
     [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadUser) name:@"ReloadUser" object:nil];
+}
+
+- (void)reloadUser {
+    [self.tableView beginUpdates];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+    [self.tableView endUpdates];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -71,12 +76,14 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)loadNotifications {
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting messages: %@",responseObject);
-        [self updateNotifications:[responseObject objectForKey:@"notifications"]];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error getting notifications: %@",error.description);
-    }];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success getting messages: %@",responseObject);
+            [self updateNotifications:[responseObject objectForKey:@"notifications"]];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error getting notifications: %@",error.description);
+        }];
+    }
 }
 
 - (void)updateNotifications:(NSArray*)array {
@@ -90,16 +97,18 @@ static NSString *textPlaceholder = @"Text Message";
         [notifications addObject:notification];
     }
     
-    for (Notification *notification in currentUser.notifications) {
+    for (Notification *notification in _currentUser.notifications) {
         if (![notifications containsObject:notification]) {
             NSLog(@"Deleting a notification that no longer exists: %@",notification.body);
             [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
-    currentUser.notifications = notifications;
+    _currentUser.notifications = notifications;
     [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
         NSLog(@"Success saving notifications: %u",success);
+        [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
     }];
 }
 
@@ -119,7 +128,7 @@ static NSString *textPlaceholder = @"Text Message";
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else return currentUser.notifications.count;
+    else return _currentUser.notifications.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -151,8 +160,7 @@ static NSString *textPlaceholder = @"Text Message";
         [cell addSubview:imageView];
         [cell addSubview:nameLabel];
         [cell addSubview:settingsLabel];
-        
-        [imageView setImageWithURL:[NSURL URLWithString:currentUser.photoUrlSmall]];
+        [imageView setImageWithURL:[NSURL URLWithString:_currentUser.photoUrlSmall]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setBackgroundColor:[UIColor clearColor]];
         
@@ -164,7 +172,7 @@ static NSString *textPlaceholder = @"Text Message";
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
         }
-        Notification *notification = [currentUser.notifications objectAtIndex:indexPath.row];
+        Notification *notification = [_currentUser.notifications objectAtIndex:indexPath.row];
         [cell.textLabel setText:notification.body];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setBackgroundColor:[UIColor clearColor]];
@@ -223,11 +231,15 @@ static NSString *textPlaceholder = @"Text Message";
 
 - (void)deleteNotification{
     [ProgressHUD show:@"Deleting..."];
-    Notification *notification = [currentUser.notifications objectAtIndex:indexPathForDeletion.row];
-    [currentUser removeNotification:notification];
+    Notification *notification = [_currentUser.notifications objectAtIndex:indexPathForDeletion.row];
+    [_currentUser removeNotification:notification];
     [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/notifications/%@",kApiBaseUrl, notification.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        
+        [self.tableView beginUpdates];
         [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
+        
         NSLog(@"Success deleting notification: %@",responseObject);
         [ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -240,18 +252,24 @@ static NSString *textPlaceholder = @"Text Message";
 - (IBAction)logout {
     [self cleanAndResetupDB];
     
+    //don't repeat the new user walkthroughs
+    BOOL checklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist];
+    BOOL dashboardDate = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard];
+    BOOL summaryState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail];
+    BOOL worklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenWorklist];
+    BOOL reportState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports];
     NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
     [NSUserDefaults resetStandardUserDefaults];
-    if ([self.presentingViewController isKindOfClass:[BHLoginViewController class]]){
-        [(BHLoginViewController*)self.presentingViewController adjustLoginContainer];
-        [self dismissViewControllerAnimated:YES completion:^{}];
-    } else {
-        UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"MainStoryboard_iPhone" bundle:nil];
-        BHLoginViewController *initialVC = [storyboard instantiateInitialViewController];
-        [initialVC adjustLoginContainer];
-        [self presentViewController:initialVC animated:YES completion:nil];
-    }
+    [[NSUserDefaults standardUserDefaults] setBool:checklistState forKey:kHasSeenChecklist];
+    [[NSUserDefaults standardUserDefaults] setBool:dashboardDate forKey:kHasSeenDashboard];
+    [[NSUserDefaults standardUserDefaults] setBool:summaryState forKey:kHasSeenDashboardDetail];
+    [[NSUserDefaults standardUserDefaults] setBool:worklistState forKey:kHasSeenWorklist];
+    [[NSUserDefaults standardUserDefaults] setBool:reportState forKey:kHasSeenReports];
+    [[NSUserDefaults standardUserDefaults] synchronize];
+    
+    [self.sideMenuViewController hideMenuViewController];
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate nav] popToRootViewControllerAnimated:YES];
     [ProgressHUD dismiss];
 }
 

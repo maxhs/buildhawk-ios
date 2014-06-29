@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
-#import "Project.h"
+#import "Photo+helper.h"
 #import "User.h"
 #import "ChecklistItem.h"
 #import "Cat.h"

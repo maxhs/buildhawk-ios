@@ -77,7 +77,7 @@
     locationSet = [NSMutableSet set];
     assigneeSet = [NSMutableSet set];
     refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
+    [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
@@ -119,7 +119,6 @@
 - (void)addItem:(NSNotification*)notification {
     WorklistItem *newItem = [notification.userInfo objectForKey:@"item"];
     [_worklistItems insertObject:newItem atIndex:0];
-    NSLog(@"new photo for %@? count:%d, image: %@",newItem.body,newItem.photos.count,[newItem.photos.firstObject image]);
     firstLoad = YES;
     [self drawWorklist];
 }
@@ -159,7 +158,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenWorklist]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenWorklist];
     }
@@ -169,9 +168,12 @@
 - (void)drawWorklist {
     if (_worklistItems.count > 0){
         [activeListItems removeAllObjects];
+        [completedListItems removeAllObjects];
+        [locationSet removeAllObjects];
+        [assigneeSet removeAllObjects];
+        
         for (WorklistItem *item in _worklistItems){
             if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
-                NSLog(@"adding %@ to active: %d",item.body,item.photos.count);
                 [activeListItems addObject:item];
             }
             if (item.location.length) {
@@ -182,12 +184,19 @@
             }
         }
     }
-    if (firstLoad){
-        showActive = YES;
-        firstLoad = NO;
-        [self.segmentedControl setSelectedSegmentIndex:0];
+
+    if (showActive){
+        [self filterActive];
+    } else if (showByAssignee){
+        [self.tableView reloadData];
+    } else if (showByLocation){
+        [self.tableView reloadData];
+    } else if (showCompleted){
+        [self filterCompleted];
+    } else {
+        [self.tableView reloadData];
     }
-    [self.tableView reloadData];
+    
     if (refreshControl.isRefreshing) [refreshControl endRefreshing];
 }
 
@@ -276,9 +285,7 @@
     showActive = NO;
 }
 
-- (void)handleRefresh:(id)sender {
-    firstLoad = YES;
-    [self resetSegments];
+- (void)handleRefresh {
     [ProgressHUD show:@"Refreshing..."];
     [self loadWorklist];
 }
@@ -378,8 +385,6 @@
         } else if ([responseObject objectForKey:@"worklist"]) {
             [self updateWorklist:[responseObject objectForKey:@"worklist"]];
         }
-        loading = NO;
-        [self drawWorklist];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error loading worklists: %@",error.description);
         [ProgressHUD dismiss];
@@ -403,8 +408,15 @@
             }
         }
     }
-    _project.worklist = worklist;
-    _worklistItems = worklist.worklistItems.array.mutableCopy;
+    if (_project){
+        _project.worklist = worklist;
+        _worklistItems = worklist.worklistItems.array.mutableCopy;
+    }
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"What happened during worklist save? %hhd %@",success, error);
+        loading = NO;
+        [self drawWorklist];
+    }];
 }
 
 #pragma mark - Table view data source
@@ -467,7 +479,7 @@
         [cell.ownerLabel setText:@""];
     }
     
-    NSLog(@"item %@ photos: %d",item.body, item.photos.count);
+    //NSLog(@"item %@ photos: %d",item.body, item.photos.count);
     if (item.photos.count) {
         if ([(Photo*)[item.photos firstObject] image]){
             [cell.photoButton setImage:[(Photo*)[item.photos firstObject] image] forState:UIControlStateNormal];
@@ -509,7 +521,8 @@
     } else {
         item = [_worklistItems objectAtIndex:indexPath.row];
     }
-    if ([item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+    //ensure there's a signed in user and that the user is the owner of the current item/task
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
         return YES;
     } else {
         return NO;
@@ -600,7 +613,9 @@
         
         //check if view is loaded first
         if (self.isViewLoaded && self.view.window) {
+            [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
         }
         
         NSLog(@"Success deleting task: %@",responseObject);
@@ -692,19 +707,6 @@
             [overlayBackground removeFromSuperview];
             [worklistScreenshot removeFromSuperview];
         }];
-    }];
-}
-
-#pragma mark Save Context
-
-- (void)viewWillDisappear:(BOOL)animated {
-    [self saveContext];
-    [super viewWillDisappear:animated];
-}
-
-- (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"What happened during worklist save? %hhd %@",success, error);
     }];
 }
 

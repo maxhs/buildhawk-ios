@@ -29,5 +29,6 @@
 @dynamic worklist;
 @dynamic user;
 @dynamic notification;
+@dynamic activities;
 
 @end

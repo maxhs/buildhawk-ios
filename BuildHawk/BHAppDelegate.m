@@ -18,15 +18,21 @@
 #import <Crashlytics/Crashlytics.h>
 #import "SDWebImageManager.h"
 #import "UIImage+ImageEffects.h"
+#import "BHTaskViewController.h"
+#import "BHMenuViewController.h"
+#import "BHDashboardViewController.h"
+#import <RESideMenu/RESideMenu.h>
 
-
-@interface BHAppDelegate () {
+@interface BHAppDelegate () <RESideMenuDelegate> {
     UIView *overlayView;
     CGRect screen;
 }
 @end
 
 @implementation BHAppDelegate
+
+@synthesize nav = _nav;
+@synthesize menu = _menu;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -59,32 +65,47 @@
                 break;
         }
     }];
-    _manager = [AFHTTPRequestOperationManager manager];
-    _manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
+    //_manager.requestSerializer = [AFJSONRequestSerializer serializer];
+    
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
-    [self.window makeKeyAndVisible];
+    _nav = (UINavigationController*)self.window.rootViewController;
+    _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
+    RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:_nav
+                                                                    leftMenuViewController:_menu
+                                                                   rightMenuViewController:nil];
+    sideMenuViewController.backgroundImage = [UIImage imageNamed:@"Stars"];
+    sideMenuViewController.menuPreferredStatusBarStyle = 1; // UIStatusBarStyleLightContent
+    sideMenuViewController.delegate = self;
+    /*sideMenuViewController.contentViewShadowColor = [UIColor blackColor];
+    sideMenuViewController.contentViewShadowOffset = CGSizeMake(0, 0);
+    sideMenuViewController.contentViewShadowOpacity = 0.6;
+    sideMenuViewController.contentViewShadowRadius = 12;
+    sideMenuViewController.contentViewShadowEnabled = YES;*/
+    self.window.rootViewController = sideMenuViewController;
+    
+    self.window.backgroundColor = [UIColor blackColor];
+    
     return YES;
 }
 
 - (void)customizeAppearance {
-    /*if ([[[UIDevice currentDevice] systemVersion] floatValue] < 7.0f) {
-        [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"] forBarMetrics:UIBarMetricsDefault];
-    } else {*/
-        [self.window setTintColor:[UIColor whiteColor]];
-        [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
-    //}
-    
+    [self.window setTintColor:[UIColor blackColor]];
+    [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
+    [[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];
     UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont boldSystemFontOfSize:16],
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     
+    
     [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont systemFontOfSize:15],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
      } forState:UIControlStateNormal];
+    [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
     
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
      setTitleTextAttributes:@{[UIColor blackColor]:NSForegroundColorAttributeName} forState:UIControlStateNormal];
@@ -104,9 +125,10 @@
     [[UITabBar appearance] setTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
+    [[UISwitch appearance] setOnTintColor:kBlueColor];
 }
 
-- (UIView*)addOverlay:(BOOL)underNav {
+- (UIView*)addOverlayUnderNav:(BOOL)underNav {
     screen = [UIScreen mainScreen].bounds;
     if (!overlayView) {
         overlayView = [[UIView alloc] initWithFrame:screen];
@@ -153,6 +175,61 @@
     } completion:^(BOOL finished) {
         [overlayView removeFromSuperview];
     }];
+}
+
+- (BOOL)application:(UIApplication *)application
+            openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication
+         annotation:(id)annotation
+{
+    //NSLog(@"url: %@",url);
+    if ([[url scheme] isEqualToString:kUrlScheme]) {
+        if ([[url query] length]) {
+            NSDictionary *urlDict = [self parseQueryString:[url query]];
+            if ([urlDict objectForKey:@"task_id"] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
+                BHDashboardViewController *dashboard = nil;
+                for (UIViewController *vc in [_nav viewControllers]) {
+                    if ([vc isKindOfClass:[BHDashboardViewController class]]){
+                        dashboard = (BHDashboardViewController*)vc;
+                        break;
+                    }
+                }
+                if (dashboard) {
+                    [_nav popToViewController:dashboard animated:NO];
+                    [_manager GET:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl,[urlDict objectForKey:@"task_id"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                        //NSLog(@"success getting task: %@",responseObject);
+                        WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"worklist_item"] objectForKey:@"id"]];
+                        if (!item){
+                            item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                        }
+                        [item populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+                        BHTaskViewController *taskVC = [_nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
+                        [taskVC setProject:item.project];
+                        [taskVC setWorklistItem:item];
+                        [_nav pushViewController:taskVC animated:YES];
+                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                        NSLog(@"Failed to load task: %@",error.description);
+                    }];
+                    
+                }
+            }
+        }
+
+    }
+    return YES;
+}
+
+- (NSDictionary *)parseQueryString:(NSString *)query {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    NSArray *pairs = [query componentsSeparatedByString:@"&"];
+    for (NSString *pair in pairs) {
+        NSArray *elements = [pair componentsSeparatedByString:@"="];
+        NSString *key = [[elements objectAtIndex:0] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        NSString *val = [[elements objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+        [dict setObject:val forKey:key];
+    }
+    //NSLog(@"parsed query dict: %@",dict);
+    return dict;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application

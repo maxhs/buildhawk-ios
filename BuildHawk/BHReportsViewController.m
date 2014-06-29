@@ -40,19 +40,21 @@
 @implementation BHReportsViewController
 
 - (void)viewDidLoad {
-    manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     project = [(BHTabBarViewController*)self.tabBarController project];
     [super viewDidLoad];
 
+    
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-    screen = [UIScreen mainScreen].bounds;
+    self.tableView.rowHeight = 90;
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
     
-    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    screen = [UIScreen mainScreen].bounds;
+    _possibleTopics = [NSMutableArray array];
     
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     _filteredReports = [NSMutableArray array];
@@ -63,7 +65,7 @@
     
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    _possibleTopics = [NSMutableArray array];
+    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReport:) name:@"ReloadReport" object:nil];
 }
@@ -71,7 +73,7 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
     } else if (project.reports.count == 0){
@@ -193,7 +195,9 @@
     } else if (daily) {
         [self filter:kDaily];
     } else {
+        [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
     }
 }
 
@@ -272,21 +276,14 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     Report *selectedReport;
-    if (daily || weekly || safety){
+    if ((daily || weekly || safety) && _filteredReports.count > indexPath.row){
         selectedReport = [_filteredReports objectAtIndex:indexPath.row];
-    } else {
+    } else if (project.reports.count > indexPath.row) {
         selectedReport = [project.reports objectAtIndex:indexPath.row];
     }
-    [self performSegueWithIdentifier:@"Report" sender:selectedReport];
+    if (selectedReport)
+        [self performSegueWithIdentifier:@"Report" sender:selectedReport];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (IDIOM == IPAD){
-        return 120;
-    } else {
-        return 90;
-    }
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
@@ -294,11 +291,11 @@
     if(indexPath.section == tableView.numberOfSections-1 && indexPath.row == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
         [ProgressHUD dismiss];
-        if (_filteredReports.count){
+        /*if (_filteredReports.count){
             [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         } else if (project.reports.count && !daily && !weekly && !safety){
             [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        }
+        }*/
     }
 }
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -309,7 +306,8 @@
         report = [project.reports objectAtIndex:indexPath.row];
     }
     
-    if ([report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+    //ensure that there's a signed in user and ask whether they're the current author
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
         return YES;
     } else {
         return NO;
@@ -350,7 +348,9 @@
             [_filteredReports removeObject:report];
         }
         //update the UI
+        [self.tableView beginUpdates];
         [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
         [ProgressHUD dismiss];
         indexPathForDeletion = nil;
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -428,7 +428,7 @@
 
 - (void)showDatePicker{
     if (overlayBackground == nil){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:YES];
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:YES];
         UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
         tapGesture.numberOfTapsRequired = 1;
         [overlayBackground addGestureRecognizer:tapGesture];

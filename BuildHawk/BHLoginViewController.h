@@ -7,11 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <SWRevealViewController/SWRevealViewController.h>
 
 @interface BHLoginViewController : UIViewController
-@property (strong, nonatomic) SWRevealViewController *revealViewController;
-@property (strong, nonatomic) NSManagedObjectContext *managedObjectContext;
-@property (strong, nonatomic) NSManagedObjectModel *managedObjectModel;
 -(void)adjustLoginContainer;
 @end

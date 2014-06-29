@@ -11,6 +11,8 @@
 #import <AddressBook/ABAddressBook.h>
 #import <AddressBookUI/AddressBookUI.h>
 #import "BHAddressBookCell.h"
+#import "BHAppDelegate.h"
+#import "BHTaskViewController.h"
 
 @interface BHAddressBookPickerViewController () {
     NSMutableArray *_addressBookArray;
@@ -21,6 +23,7 @@
 @implementation BHAddressBookPickerViewController
 
 @synthesize peopleArray = _peopleArray;
+@synthesize task = _task;
 
 - (void)viewDidLoad
 {
@@ -118,59 +121,67 @@
     [cell.lastNameLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:19]];
     [cell.emailLabel setText:user.email];
     [cell.emailLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
-    [cell.phoneLabel setText:user.formattedPhone];
+    [cell.phoneLabel setText:user.phone];
     [cell.phoneLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
     
     return cell;
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    User *selectedUser = _addressBookArray[indexPath.row];
+    [self createUser:selectedUser];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
-*/
 
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+- (void)createUser:(User*)user {
+    [ProgressHUD show:[NSString stringWithFormat:@"Adding user to \"%@\"...", _subcontractor.name]];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (user.lastName.length){
+        [parameters setObject:user.lastName forKey:@"last_name"];
+    }
+    if (user.firstName.length){
+        [parameters setObject:user.firstName forKey:@"first_name"];
+    }
+    if (user.email.length){
+        [parameters setObject:user.email forKey:@"email"];
+    }
+    if (user.phone.length){
+        [parameters setObject:user.phone forKey:@"phone"];
+    }
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_subcontractor.identifier] parameters:@{@"user":parameters,@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"task_id":_task.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"old user? %@",user);
+        NSLog(@"Success creating new user from Address book: %@",responseObject);
+        if ([responseObject objectForKey:@"user"]){
+            [user populateFromDictionary:[responseObject objectForKey:@"user"]];
+            [_subcontractor addUser:user];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":user}];
+        }
+        
+        BHTaskViewController *taskVC = nil;
+        for (UIViewController *vc in self.navigationController.viewControllers){
+            if ([vc isKindOfClass:[BHTaskViewController class]]){
+                taskVC = (BHTaskViewController*)vc;
+                break;
+            }
+        }
+        
+        if (taskVC) {
+            [self.navigationController popToViewController:taskVC animated:YES];
+        } else {
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+        [ProgressHUD dismiss];
+
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure creating new user from address book: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while adding this user. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [ProgressHUD dismiss];
+    }];
 }
-*/
 
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
+    
 }
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
-{
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

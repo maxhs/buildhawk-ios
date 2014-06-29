@@ -24,24 +24,6 @@
     return items;
 }
 
-+ (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array {
-    NSMutableArray *categories = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *categoryDictionary in array) {
-        Cat *category = [Cat MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [category populateFromDictionary:categoryDictionary];
-        [categories addObject:category];
-    }
-    return categories;
-}
-
-+ (NSMutableArray *)projectsFromJSONArray:(NSArray *) array {
-    NSMutableArray *projects = [NSMutableArray arrayWithCapacity:array.count];
-    /*for (NSDictionary *projectDictionary in array) {
-        BHProject *project = [[BHProject alloc] initWithDictionary:projectDictionary];
-        [projects addObject:project];
-    }*/
-    return projects;
-}
 
 /*+ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
     NSMutableArray *personnel = [NSMutableArray arrayWithCapacity:array.count];

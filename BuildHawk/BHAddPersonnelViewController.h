@@ -11,7 +11,8 @@
 
 @interface BHAddPersonnelViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (weak, nonatomic) Subcontractor *subcontractor;
+@property (strong, nonatomic) Subcontractor *subcontractor;
+@property (strong, nonatomic) WorklistItem *task;
 @property (strong, nonatomic) NSString *name;
 @property BOOL companyMode;
 

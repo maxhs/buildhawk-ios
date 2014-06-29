@@ -11,6 +11,7 @@
 #import "User+helper.h"
 #import "Subcontractor.h"
 #import "ReportSub.h"
+#import "Activity+helper.h"
 #import "SafetyTopic+helper.h"
 
 @implementation Report (helper)
@@ -148,6 +149,28 @@
         }
         [author populateFromDictionary:[dictionary objectForKey:@"author"]];
         self.author = author;
+    }
+    if ([dictionary objectForKey:@"activities"] && [dictionary objectForKey:@"activities"] != [NSNull null]) {
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        //NSLog(@"project activities %@",[dictionary objectForKey:@"activities"]);
+        for (id dict in [dictionary objectForKey:@"activities"]){
+            if ([dict objectForKey:@"id"]){
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate];
+                if (!activity){
+                    activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                }
+                [activity populateFromDictionary:dict];
+                [set addObject:activity];
+            }
+        }
+        for (Activity *activity in self.activities){
+            if (![set containsObject:activity]){
+                NSLog(@"Deleting an activity that no longer exists.");
+                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        self.activities = set;
     }
 }
 

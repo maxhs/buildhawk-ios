@@ -9,11 +9,12 @@
 #import "BHSettingsViewController.h"
 #import "BHAppDelegate.h"
 
-@interface BHSettingsViewController () {
+@interface BHSettingsViewController () <UITextFieldDelegate> {
     UIBarButtonItem *backButton;
     User *currentUser;
     AFHTTPRequestOperationManager *manager;
     UIBarButtonItem *saveButton;
+    UIBarButtonItem *doneButton;
 }
 
 @end
@@ -23,10 +24,13 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"blackX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;
+    
+    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
+    
     currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     self.tableView.rowHeight = 60;
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
@@ -155,6 +159,9 @@
             return @"Personal details";
             break;
         case 1:
+            return @"Alternate contact information";
+            break;
+        case 2:
             return @"Notification Permissions";
             break;
             
@@ -185,6 +192,19 @@
         default:
             break;
     }
+}
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField {
+    self.navigationItem.rightBarButtonItem = doneButton;
+}
+
+- (void)textFieldDidEndEditing:(UITextField *)textField {
+    
+}
+
+- (void)doneEditing {
+    self.navigationItem.rightBarButtonItem = saveButton;
+    [self.view endEditing:YES];
 }
 
 - (void)save {

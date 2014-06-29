@@ -37,5 +37,6 @@
 @dynamic reportUsers;
 @dynamic safetyTopics;
 @dynamic author;
+@dynamic activities;
 
 @end

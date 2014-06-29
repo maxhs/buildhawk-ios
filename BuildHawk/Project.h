@@ -33,8 +33,12 @@
 @property (nonatomic, retain) NSOrderedSet *reports;
 @property (nonatomic, retain) NSOrderedSet *upcomingItems;
 @property (nonatomic, retain) NSOrderedSet *users;
+@property (nonatomic, retain) NSOrderedSet *subcontractors;
 @property (nonatomic, retain) NSOrderedSet *recentDocuments;
 @property (nonatomic, retain) NSOrderedSet *documents;
+@property (nonatomic, retain) NSOrderedSet *activities;
+@property (nonatomic, retain) NSOrderedSet *reminders;
+@property (nonatomic, retain) NSOrderedSet *activeReminders;
 @end
 
 @interface Project (CoreDataGeneratedAccessors)

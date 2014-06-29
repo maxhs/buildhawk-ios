@@ -16,34 +16,34 @@
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"name"]) {
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"completed_count"]) {
+    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
         self.completed = [dictionary objectForKey:@"completed_count"];
     }
-    if ([dictionary objectForKey:@"item_count"]) {
+    if ([dictionary objectForKey:@"item_count"] && [dictionary objectForKey:@"item_count"] != [NSNull null]) {
         self.itemCount = [dictionary objectForKey:@"item_count"];
     }
-    if ([dictionary objectForKey:@"progress_percentage"]) {
+    if ([dictionary objectForKey:@"progress_percentage"] && [dictionary objectForKey:@"progress_percentage"] != [NSNull null]) {
         self.progressPercentage = [dictionary objectForKey:@"progress_percentage"];
     }
-    if ([dictionary objectForKey:@"progress_count"]) {
+    if ([dictionary objectForKey:@"progress_count"] && [dictionary objectForKey:@"progress_count"] != [NSNull null]) {
         self.progressCount = [dictionary objectForKey:@"progress_count"];
     }
-    if ([dictionary objectForKey:@"order_index"]) {
+    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
         self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
-    if ([dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"milestone_date"] doubleValue];
         self.milestoneDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
-    if ([dictionary objectForKey:@"completed_date"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
-        //[[NSManagedObjectContext MR_contextForCurrentThread] performBlock:^{
+
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
             Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"]];
@@ -52,10 +52,8 @@
             }
             [category populateFromDictionary:categoryDict];
             [categories addObject:category];
-            category.phase = self;
         }
         self.categories = categories;
-        //}];
     }
 }
 
@@ -70,17 +68,4 @@
     self.categories = set;
 }
 
-/*if ([key isEqualToString:@"id"]) {
-    self.identifier = value;
-} else if ([key isEqualToString:@"name"]) {
-    self.name = value;
-} else if ([key isEqualToString:@"progress_percentage"]) {
-    self.progressPercentage = value;
-} else if ([key isEqualToString:@"item_count"]) {
-    self.itemCount = value;
-} else if ([key isEqualToString:@"completed_count"]) {
-    self.completedCount = value;
-} else if ([key isEqualToString:@"progress_count"]) {
-    self.progressCount = value;
-}*/
 @end

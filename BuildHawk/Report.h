@@ -33,6 +33,7 @@
 @property (nonatomic, retain) NSOrderedSet *reportSubs;
 @property (nonatomic, retain) NSOrderedSet *reportUsers;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;
+@property (nonatomic, retain) NSOrderedSet *activities;
 @end
 
 @interface Report (CoreDataGeneratedAccessors)

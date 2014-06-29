@@ -12,6 +12,8 @@
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) Company *company;
+@property (strong, nonatomic) Project *project;
+@property (strong, nonatomic) WorklistItem *task;
 @property (strong, nonatomic) NSMutableOrderedSet *users;
 @property (strong, nonatomic) NSMutableOrderedSet *orderedUsers;
 @property (strong, nonatomic) NSMutableOrderedSet *orderedSubs;

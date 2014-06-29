@@ -16,7 +16,7 @@
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"project"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"project"] && [dictionary objectForKey:@"project"] != [NSNull null]) {
         Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[[dictionary objectForKey:@"project"] objectForKey:@"id"]];
         if (!project){
             project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
@@ -27,8 +27,8 @@
     if ([dictionary objectForKey:@"punchlist_items"] && [dictionary objectForKey:@"punchlist_items"] != [NSNull null]) {
         NSMutableOrderedSet *worklistItems = [NSMutableOrderedSet orderedSet];
         for (id itemDict in [dictionary objectForKey:@"punchlist_items"]){
-            NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-            WorklistItem *item = [WorklistItem MR_findFirstWithPredicate:itemPredicate];
+
+            WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
             if (!item){
                 item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -40,8 +40,7 @@
     if ([dictionary objectForKey:@"worklist_items"] && [dictionary objectForKey:@"worklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *worklistItems = [NSMutableOrderedSet orderedSet];
         for (id itemDict in [dictionary objectForKey:@"worklist_items"]){
-            NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-            WorklistItem *item = [WorklistItem MR_findFirstWithPredicate:itemPredicate];
+            WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
             if (!item){
                 item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }

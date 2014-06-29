@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13D65" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="YSk-d2-LcY">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13D65" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="4qn-JZ-wEX">
     <dependencies>
         <deployment defaultVersion="1792" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
@@ -281,7 +281,7 @@
                     </connections>
                 </searchDisplayController>
             </objects>
-            <point key="canvasLocation" x="2404" y="75"/>
+            <point key="canvasLocation" x="3378" y="75"/>
         </scene>
         <!--Tasks View Controller - Tasks-->
         <scene sceneID="W43-GP-5XY">
@@ -739,7 +739,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="Login" id="YSk-d2-LcY" customClass="BHLoginViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="tE6-Cd-HPV">
-                        <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
+                        <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Default-iPad.png" id="ZkS-iB-31d">
@@ -751,7 +751,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your email" minimumFontSize="17" id="EK6-57-ZkH">
-                                        <rect key="frame" x="30" y="92" width="460" height="40"/>
+                                        <rect key="frame" x="30" y="92" width="460" height="44"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -762,7 +762,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </textField>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your password" minimumFontSize="17" id="EQ4-0j-N6W">
-                                        <rect key="frame" x="30" y="138" width="460" height="40"/>
+                                        <rect key="frame" x="30" y="135" width="460" height="44"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -812,18 +812,18 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <outlet property="loginButton" destination="Nzu-Yg-ThW" id="NtP-k3-7dQ"/>
                         <outlet property="loginContainerView" destination="0pQ-iG-APx" id="JdB-rh-nWQ"/>
                         <outlet property="passwordTextField" destination="EQ4-0j-N6W" id="V5K-Rg-XAm"/>
-                        <segue destination="r96-nR-dYl" kind="modal" identifier="ExistingSession" animates="NO" id="EHj-le-a4N"/>
-                        <segue destination="r96-nR-dYl" kind="modal" identifier="LoginSuccessful" id="NH7-r7-qB8"/>
+                        <segue destination="hei-1C-lSF" kind="push" identifier="LoginSuccessful" id="fxg-PR-Dex"/>
+                        <segue destination="4" kind="push" identifier="DemoProject" id="KSP-pV-Kge"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qzQ-6S-Jol" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-3282" y="-260"/>
+            <point key="canvasLocation" x="-1460" y="-303"/>
         </scene>
-        <!--Dashboard Detail View Controller-->
+        <!--Project Synopsis View Controller-->
         <scene sceneID="lbZ-Tg-Aec">
             <objects>
-                <tableViewController storyboardIdentifier="DashboardRevealed" id="aNp-Zh-jY7" customClass="BHDashboardDetailViewController" sceneMemberID="viewController">
+                <tableViewController storyboardIdentifier="ProjectSynopsis" id="aNp-Zh-jY7" customClass="BHProjectSynopsisViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="OIE-JA-OV6">
                         <rect key="frame" x="0.0" y="64" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -902,20 +902,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="zYy-7u-IhW" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="562" y="-1442"/>
-        </scene>
-        <!--Reveal View Controller-->
-        <scene sceneID="TVs-7M-Nzf">
-            <objects>
-                <viewController storyboardIdentifier="Reveal" id="r96-nR-dYl" customClass="SWRevealViewController" sceneMemberID="viewController">
-                    <connections>
-                        <segue destination="VAS-mI-M3A" kind="custom" identifier="sw_front" customClass="SWRevealViewControllerSegue" id="hBh-cX-4ZF"/>
-                        <segue destination="Fgu-yL-IGj" kind="custom" identifier="sw_rear" customClass="SWRevealViewControllerSegue" id="NgI-NS-ylC"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="Cu4-SA-by1" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-2348" y="-260"/>
+            <point key="canvasLocation" x="442" y="-1666"/>
         </scene>
         <!--Dashboard View Controller-->
         <scene sceneID="oVg-z0-F9n">
@@ -973,7 +960,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <outlet property="leftMenuButton" destination="4Df-GJ-DQf" id="dH5-yA-Pgh"/>
                         <outlet property="searchDisplayController" destination="cXD-0W-g83" id="mfr-yT-hcs"/>
                         <outlet property="tableView" destination="MSS-Fp-KsI" id="ohO-eF-Fm9"/>
-                        <segue destination="aNp-Zh-jY7" kind="push" identifier="DashboardDetail" id="vI7-Ml-H9J"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="ProjectSynopsis" id="vI7-Ml-H9J"/>
                         <segue destination="4" kind="push" identifier="Project" id="Vim-B7-ekZ"/>
                         <segue destination="RvR-ni-pZv" kind="push" identifier="Group" id="qfH-2b-k2d"/>
                         <segue destination="Aeb-Pi-CzK" kind="push" identifier="Archived" id="PVU-SM-ftc"/>
@@ -992,7 +979,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </connections>
                 </searchDisplayController>
             </objects>
-            <point key="canvasLocation" x="-520" y="-260"/>
+            <point key="canvasLocation" x="-510" y="-463"/>
         </scene>
         <!--Menu View Controller-->
         <scene sceneID="Xia-Ve-j6C">
@@ -1184,7 +1171,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="qSf-jG-igZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="442" y="1033"/>
+            <point key="canvasLocation" x="430" y="817"/>
         </scene>
         <!--Group View Controller-->
         <scene sceneID="Zdo-XM-RzF">
@@ -1215,7 +1202,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="f64-3x-ddK" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="442" y="-111"/>
+            <point key="canvasLocation" x="1384" y="-1666"/>
         </scene>
         <!--Tab Bar View Controller-->
         <scene sceneID="15">
@@ -1237,26 +1224,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="14" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1406" y="-290"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="4rq-ev-GeD">
-            <objects>
-                <navigationController id="VAS-mI-M3A" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" translucent="NO" prompted="NO"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="ARr-xb-kzu">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="hei-1C-lSF" kind="relationship" relationship="rootViewController" id="2g8-LP-W6X"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="cB4-tx-fAR" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-1399" y="-260"/>
+            <point key="canvasLocation" x="1392" y="-330"/>
         </scene>
         <!--Category Checklist View Controller - First-->
         <scene sceneID="rtG-T4-uH6">
@@ -1304,7 +1272,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </connections>
                 </searchDisplayController>
             </objects>
-            <point key="canvasLocation" x="3330" y="112"/>
+            <point key="canvasLocation" x="4304" y="112"/>
         </scene>
         <!--Subcategory Checklist View Controller-->
         <scene sceneID="xym-iz-FZf">
@@ -1333,7 +1301,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="iLr-zx-1q6" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4227" y="112"/>
+            <point key="canvasLocation" x="5201" y="112"/>
         </scene>
         <!--Safety Topic View Controller-->
         <scene sceneID="U4J-Hd-qKy">
@@ -1429,7 +1397,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </connections>
                 </searchDisplayController>
             </objects>
-            <point key="canvasLocation" x="5495" y="-1329"/>
+            <point key="canvasLocation" x="6469" y="-1329"/>
         </scene>
         <!--Add Personnel View Controller-->
         <scene sceneID="aB0-Qy-WsX">
@@ -1459,7 +1427,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6sJ-tR-o4P" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6378" y="-1329"/>
+            <point key="canvasLocation" x="7352" y="-1329"/>
         </scene>
         <!--Address Book Picker View Controller-->
         <scene sceneID="wCp-L9-53g">
@@ -1498,7 +1466,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tKc-7g-NSS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="7243" y="-1329"/>
+            <point key="canvasLocation" x="8217" y="-1329"/>
         </scene>
         <!--Checklist Item View Controller - Checklist Item-->
         <scene sceneID="1qJ-tg-PbS">
@@ -1527,18 +1495,71 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                     <outlet property="delegate" destination="Afz-sP-qEO" id="F7C-sq-HXE"/>
                                 </connections>
                             </tableView>
+                            <view contentMode="scaleToFill" id="GjR-JJ-4g8">
+                                <rect key="frame" x="0.0" y="725" width="768" height="216"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="7Ll-tP-3oH">
+                                        <rect key="frame" x="226" y="2" width="156" height="54"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <state key="normal" title="Cancel">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="cancelDatePicker" destination="Afz-sP-qEO" eventType="touchUpInside" id="xUi-8w-gNZ"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="jc4-An-VjA">
+                                        <rect key="frame" x="386" y="2" width="156" height="54"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <state key="normal" title="Select">
+                                            <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </state>
+                                        <connections>
+                                            <action selector="selectDate" destination="Afz-sP-qEO" eventType="touchUpInside" id="eOd-c7-tNS"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" title="Checklist Item" id="G9r-09-fAr"/>
                     <connections>
+                        <outlet property="cancelButton" destination="7Ll-tP-3oH" id="7Hn-Xl-RG3"/>
+                        <outlet property="datePickerContainer" destination="GjR-JJ-4g8" id="N9E-8L-PKk"/>
+                        <outlet property="selectButton" destination="jc4-An-VjA" id="PSM-Ea-Qna"/>
                         <outlet property="tableView" destination="ebQ-g2-KCG" id="J8w-aO-gEx"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="PersonnelPicker" id="UiA-K0-N4p"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="heP-rM-XU7" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="5169" y="112"/>
+            <point key="canvasLocation" x="6143" y="112"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="tD4-kI-5dz">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="4qn-JZ-wEX" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" translucent="NO" prompted="NO"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="Y8A-1L-rRD">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="YSk-d2-LcY" kind="relationship" relationship="rootViewController" id="LOL-45-kdr"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="hQu-G2-lNa" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-2334" y="-303"/>
         </scene>
     </scenes>
     <resources>
@@ -1560,13 +1581,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Vim-B7-ekZ"/>
-        <segue reference="EHj-le-a4N"/>
+        <segue reference="Cv8-k3-7jn"/>
         <segue reference="vI7-Ml-H9J"/>
         <segue reference="dko-BE-dy7"/>
-        <segue reference="eZr-X3-mJS"/>
+        <segue reference="tY6-jf-jEH"/>
+        <segue reference="Aym-Jz-3Mj"/>
         <segue reference="bd7-Rv-hQV"/>
-        <segue reference="BC4-fv-9Fr"/>
         <segue reference="Lue-dQ-dtC"/>
     </inferredMetricsTieBreakers>
 </document>

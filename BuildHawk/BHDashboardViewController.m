@@ -9,7 +9,7 @@
 #import "BHDashboardViewController.h"
 #import "BHDashboardProjectCell.h"
 #import "BHDashboardGroupCell.h"
-#import "BHDashboardDetailViewController.h"
+#import "BHProjectSynopsisViewController.h"
 #import "BHTabBarViewController.h"
 #import "User.h"
 #import "Checklist+helper.h"
@@ -28,7 +28,7 @@
 #import "BHWorklistConnectCell.h"
 #import "BHDemoProjectsViewController.h"
 
-@interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate,SWRevealViewControllerDelegate> {
+@interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate> {
     CGRect searchContainerRect;
     UIRefreshControl *refreshControl;
     BOOL iPhone5;
@@ -39,8 +39,6 @@
     NSMutableArray *recentlyCompletedWorklistItems;
     NSMutableArray *notifications;
     NSMutableArray *upcomingChecklistItems;
-    NSMutableArray *categories;
-    NSMutableDictionary *dashboardDetailDict;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
     Project *archivedProject;
@@ -76,15 +74,10 @@
     
     screen = [UIScreen mainScreen].bounds;
     filteredProjects = [NSMutableArray array];
-    
-    SWRevealViewController *revealController = [self revealViewController];
-    revealController.delegate = self;
+
     if (IDIOM == IPAD){
-        revealController.rearViewRevealWidth = screen.size.width - 62;
-    } else {
         if (screen.size.height == 568) iPhone5 = YES;
         else iPhone5 = NO;
-        revealController.rearViewRevealWidth = screen.size.width - 52;
     }
     
     NSDate *now = [NSDate date];
@@ -98,8 +91,7 @@
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     
-    dashboardDetailDict = [NSMutableDictionary dictionary];
-    categories = [NSMutableArray array];
+
     [self loadProjects];
 
     searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(activateSearch)];
@@ -130,10 +122,15 @@
     [self performSegueWithIdentifier:@"Archived" sender:nil];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self.navigationController setNavigationBarHidden:NO animated:NO];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboard];
     }
@@ -141,15 +138,7 @@
 }
 
 - (IBAction)revealMenu {
-    [self.revealViewController revealToggleAnimated:YES];
-    [self.view addGestureRecognizer:self.revealViewController.tapGestureRecognizer];
-    self.tableView.userInteractionEnabled = NO;
-}
-
-- (void)revealController:(SWRevealViewController *)revealController didMoveToPosition:(FrontViewPosition)position {
-    if (position == FrontViewPositionLeft) {
-        self.tableView.userInteractionEnabled = YES;
-    }
+    [self.sideMenuViewController presentLeftMenuViewController];
 }
 
 - (void)activateSearch {
@@ -186,7 +175,7 @@
 
 - (void)loadProjects {
     
-    if (currentUser.company.projects.count == 0)[ProgressHUD show:@"Fetching projects..."];
+    if (currentUser.projects.count == 0)[ProgressHUD show:@"Fetching projects..."];
     else [self.tableView reloadData];
     
     [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -225,24 +214,20 @@
                 [projectSet removeObject:p];
                 [archivedSet addObject:p];
             }
-            
-            if (p.group.projectsCount.intValue > 0){
-                NSLog(@"group? %d",p.group.projectsCount.intValue);
-                //[projectSet removeObject:p];
-                //[groupSet addObject:p.group];
-            }
         }
-        currentUser.company.archivedProjects = archivedSet;
-        currentUser.company.projects = projectSet;
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"What happened during dashboard save? %hhd %@",success, error);
-            [self.tableView reloadData];
-        }];
+        if (currentUser && self.isViewLoaded && self.view.window){
+            if (archivedSet.count) currentUser.archivedProjects = archivedSet;
+            currentUser.projects = projectSet;
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                NSLog(@"What happened during dashboard save? %hhd %@",success, error);
+                [self.tableView reloadData];
+            }];
+        }
     }
 }
 
 - (void)loadConnectItems {
-    [manager GET:[NSString stringWithFormat:@"%@/users/%@/worklist_connect",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/users/%@/connect",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success loading connect items: %@",responseObject);
         for (id itemDict in [responseObject objectForKey:@"worklist_items"]){
             WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
@@ -251,7 +236,9 @@
             }
             [item populateFromDictionary:itemDict];
         }
-        [self.tableView reloadData];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [self.tableView reloadData];
+        }];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading connect items: %@",error.description);
     }];
@@ -279,7 +266,11 @@
             currentUser.company.groups = groups;
         }
         [self loadArchived];
+        
+        [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+        [self.tableView endUpdates];
+    
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         //NSLog(@"Error while loading groups: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -310,9 +301,9 @@
     }
 
     /*for (Project *p in currentUser.company.archivedProjects){
-        if (![projectSet containsObject:p] && ![currentUser.company.projects containsObject:p]){
+        if (![projectSet containsObject:p] && ![currentUser.projects containsObject:p]){
             NSLog(@"deleting archived project %@ because it no longer exists",p.name);
-            [p MR_deleteEntity];
+            [p MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }*/
     currentUser.company.archivedProjects = projectSet;
@@ -340,7 +331,7 @@
     if (tableView == self.searchDisplayController.searchResultsTableView) {
         return filteredProjects.count;
     } else if (section == 0){
-        return currentUser.company.projects.count;
+        return currentUser.projects.count;
     } else if (section == 1) {
         return groupSet.count;
     } else if (section == 2) {
@@ -353,8 +344,8 @@
         }
         NSLog(@"connect projects count: %d",connectProjects.count);
         return connectProjects.count;
-    } else if (section == 3 && currentUser.company.archivedProjects.count) {
-        NSLog(@"archived? %d",currentUser.company.archivedProjects.count);
+    } else if (section == 3 && currentUser.archivedProjects.count) {
+        NSLog(@"archived? %d",currentUser.archivedProjects.count);
         return 1;
     } else if (!loading && section == 4) {
         return 1;
@@ -370,7 +361,7 @@
         if (tableView == self.searchDisplayController.searchResultsTableView){
             project = [filteredProjects objectAtIndex:indexPath.row];
         } else {
-            project = [currentUser.company.projects objectAtIndex:indexPath.row];
+            project = [currentUser.projects objectAtIndex:indexPath.row];
         }
         static NSString *CellIdentifier = @"ProjectCell";
         BHDashboardProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -378,14 +369,8 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
         }
-        [cell.titleLabel setText:[project name]];
-
-        if (project.address.formattedAddress){
-            [cell.subtitleLabel setText:project.address.formattedAddress];
-            [cell.subtitleLabel sizeToFit];
-        } else {
-            //[cell.subtitleLabel setText:project.company.name];
-        }
+        
+        [cell configureForProject:project andUser:currentUser];
         
         [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
         [cell.progressButton setTag:indexPath.row];
@@ -512,7 +497,7 @@
             else return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
             break;
         case 2:
-            if (currentUser.assignedWorklistItems.count)[headerLabel setText:@"Worklist Connect"];
+            if (currentUser.assignedWorklistItems.count)[headerLabel setText:@"BuildHawk Connect"];
             else return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
             break;
         default:
@@ -533,7 +518,7 @@
 
 - (void)confirmArchive:(UIButton*)button{
     [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archived, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
-    archivedProject = [currentUser.company.projects objectAtIndex:button.tag];
+    archivedProject = [currentUser.projects objectAtIndex:button.tag];
     BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:button.tag inSection:0]];
     [cell.scrollView setContentOffset:CGPointZero animated:YES];
 }
@@ -549,9 +534,12 @@
             [[[UIAlertView alloc] initWithTitle:@"Unable to Archive" message:@"Only administrators can archive projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             [self.tableView reloadData];
         } else {
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[currentUser.company.projects indexOfObject:archivedProject] inSection:0];
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[currentUser.projects indexOfObject:archivedProject] inSection:0];
             [currentUser.company removeProject:archivedProject];
+            
+            [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -582,14 +570,13 @@
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-
     if (tableView == self.searchDisplayController.searchResultsTableView){
         [self.searchDisplayController setActive:NO animated:NO];
         Project *selectedProject = [filteredProjects objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"Project" sender:selectedProject];
     } else if (indexPath.section == 0) {
-        Project *selectedProject = [currentUser.company.projects objectAtIndex:indexPath.row];
-        [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
+        Project *selectedProject = [currentUser.projects objectAtIndex:indexPath.row];
+        [self performSegueWithIdentifier:@"ProjectSynopsis" sender:selectedProject];
     } else if (indexPath.section == 1) {
         Group *group = [currentUser.company.groups objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"Group" sender:group];
@@ -610,9 +597,9 @@
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
         [vc setUser:currentUser];
-    } else if ([segue.identifier isEqualToString:@"DashboardDetail"]) {
+    } else if ([segue.identifier isEqualToString:@"ProjectSynopsis"]) {
         Project *project = (Project*)sender;
-        BHDashboardDetailViewController *detailVC = [segue destinationViewController];
+        BHProjectSynopsisViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     } else if ([segue.identifier isEqualToString:@"Group"]){
         Group *group = (Group *)sender;
@@ -646,8 +633,8 @@
     Project *selectedProject;
     if (self.searchDisplayController.isActive && filteredProjects.count > button.tag){
         selectedProject = [filteredProjects objectAtIndex:button.tag];
-    } else if (currentUser.company.projects.count > button.tag) {
-        selectedProject = [currentUser.company.projects objectAtIndex:button.tag];
+    } else if (currentUser.projects.count > button.tag) {
+        selectedProject = [currentUser.projects objectAtIndex:button.tag];
     }
     
     //make sure there's a project
@@ -660,13 +647,13 @@
 }
 
 - (void)goToProjectDetail:(UIButton*)button {
-    Project *selectedProject = [currentUser.company.projects objectAtIndex:button.tag];
-    [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
+    Project *selectedProject = [currentUser.projects objectAtIndex:button.tag];
+    [self performSegueWithIdentifier:@"ProjectSynopsis" sender:selectedProject];
 }
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
     [filteredProjects removeAllObjects]; // First clear the filtered array.
-    for (Project *project in currentUser.company.projects){
+    for (Project *project in currentUser.projects){
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
         if([predicate evaluateWithObject:project.name]) {
             [filteredProjects addObject:project];

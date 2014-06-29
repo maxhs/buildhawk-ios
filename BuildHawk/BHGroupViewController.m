@@ -8,7 +8,7 @@
 
 #import "BHGroupViewController.h"
 #import "BHDashboardProjectCell.h"
-#import "BHDashboardDetailViewController.h"
+#import "BHProjectSynopsisViewController.h"
 #import "BHTabBarViewController.h"
 #import "BHAppDelegate.h"
 
@@ -50,7 +50,11 @@
             [_group populateWithDict:[responseObject objectForKey:@"group"]];
         }
         NSLog(@"group projects: %d",_group.projects.count);
+        
+        [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure getting dashboard: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong while fetching projects for this group. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -101,22 +105,6 @@
 
 }
 
-- (CGFloat)calculateCategories:(NSMutableArray*)array {
-    CGFloat completed = 0.0;
-    CGFloat pending = 0.0;
-    if (array.count) {
-        for (NSDictionary *dict in array){
-            if ([dict objectForKey:@"completed"]) completed += [[dict objectForKey:@"completed"] floatValue];
-            if ([dict objectForKey:@"pending"]) pending += [[dict objectForKey:@"pending"] floatValue];
-        }
-    }
-    if (completed > 0 && pending > 0){
-        return (completed/pending);
-    } else {
-        return 0;
-    }
-}
-
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return 88;
 }
@@ -141,7 +129,7 @@
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
     } else if ([segue.identifier isEqualToString:@"GroupDetail"]) {
-        BHDashboardDetailViewController *detailVC = [segue destinationViewController];
+        BHProjectSynopsisViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     }
 }
@@ -166,7 +154,10 @@
         NSLog(@"Successfully archived the project: %@",responseObject);
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_group.projects indexOfObject:archivedProject] inSection:0];
         [_group removeProject:archivedProject];
+        
+        [self.tableView beginUpdates];
         [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         NSLog(@"Failed to archive the project: %@",error.description);

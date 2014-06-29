@@ -29,7 +29,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>Pods-SWRevealViewController.xcscheme</key>
+		<key>Pods-RESideMenu.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -42,37 +42,37 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>28956F1A48AA4001A0272293</key>
+		<key>190AFAF51B8249FD8F6FC95C</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>451E24B02CB64860A737ABB5</key>
+		<key>6D82F1CA3A2F47A59B104F37</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>88EB59DD5F44475FBECB4BD1</key>
+		<key>98B149E37F9A4D9494AE0A51</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>A029B50240BE46CFB2CD9D41</key>
+		<key>9A393B4B4BF34B37B9971BAC</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>A60314A6DA0940778AFF98DB</key>
+		<key>B3C09B169FD946C7A25D8AD5</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>AA2AFA90C37945789E763191</key>
+		<key>C1F379442FBA420F866349E7</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>BD61AD0E546B4C7C937D45B4</key>
+		<key>E323E487EB3E4269B89DA85A</key>
 		<dict>
 			<key>primary</key>
 			<true/>

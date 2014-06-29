@@ -119,7 +119,7 @@
     loading = YES;
     
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
+        NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         [_project parseDocuments:[responseObject objectForKey:@"photos"]];
         [self drawDocuments:_project.documents];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];

@@ -16,8 +16,6 @@
 @interface BHUtilities : NSObject
 
 + (NSMutableArray *)checklistItemsFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)categoriesFromJSONArray:(NSArray *) array;
-+ (NSMutableArray *)projectsFromJSONArray:(NSArray *) array;
 + (NSDate*)parseDate:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;

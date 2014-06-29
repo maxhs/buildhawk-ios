@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "28956F1A48AA4001A0272293"
-               BuildableName = "libPods-SWRevealViewController.a"
-               BlueprintName = "Pods-SWRevealViewController"
+               BlueprintIdentifier = "C1F379442FBA420F866349E7"
+               BuildableName = "libPods-RESideMenu.a"
+               BlueprintName = "Pods-RESideMenu"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

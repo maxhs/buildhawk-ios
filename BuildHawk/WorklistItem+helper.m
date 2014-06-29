@@ -38,7 +38,7 @@
         self.project = project;
     }
 
-    if ([dictionary objectForKey:@"user"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
         NSDictionary *userDict = [dictionary objectForKey:@"user"];
         NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:userPredicate];
@@ -101,7 +101,7 @@
             [orderedPhotos addObject:photo];
         }
         for (Photo *photo in self.photos) {
-            if (![orderedPhotos containsObject:photo]/* && [photo.createdAt compare:[[NSDate date] dateByAddingTimeInterval:-60*60*24*1]] == NSOrderedAscending*/){
+            if (![orderedPhotos containsObject:photo]){
                 NSLog(@"Deleting a worklist item photo that no longer exists");
                 [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -129,6 +129,17 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set removeObject:photo];
     self.photos = set;
+}
+
+-(void)addAssignee:(User *)user {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.assignees];
+    [set addObject:user];
+    self.assignees = set;
+}
+-(void)removeAssignee:(User *)user {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.assignees];
+    [set removeObject:user];
+    self.assignees = set;
 }
 
 /*   

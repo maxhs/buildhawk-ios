@@ -83,7 +83,11 @@
         NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_archivedProjects indexOfObject:archivedProject] inSection:0];
         [_archivedProjects removeObject:archivedProject];
         if (_archivedProjects.count == 0) [self.navigationController popViewControllerAnimated:YES];
-        else [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+        else{
+            [self.tableView beginUpdates];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to unarchive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         NSLog(@"Failed to unarchive the project: %@",error.description);

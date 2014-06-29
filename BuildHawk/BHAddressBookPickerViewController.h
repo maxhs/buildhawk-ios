@@ -7,9 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Subcontractor+helper.h"
 
 @interface BHAddressBookPickerViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) NSArray *peopleArray;
+@property (strong, nonatomic) Subcontractor *subcontractor;
+@property (strong, nonatomic) WorklistItem *task;
 @end

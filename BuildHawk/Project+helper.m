@@ -8,25 +8,26 @@
 
 #import "Project+helper.h"
 #import "Phase+helper.h"
+#import "Subcontractor+helper.h"
 #import "ChecklistItem+helper.h"
 #import "Address+helper.h"
 #import "Company+helper.h"
 #import "Photo+helper.h"
 #import "Group+helper.h"
+#import "Activity+helper.h"
 
 @implementation Project (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"name"]) {
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"company"]) {
+    if ([dictionary objectForKey:@"company"] && [dictionary objectForKey:@"company"] != [NSNull null]) {
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [companyDict objectForKey:@"id"]];
-        Company *company = [Company MR_findFirstWithPredicate:predicate];
+        Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"]];
         if (!company){
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -34,10 +35,10 @@
         self.company = company;
     }
     
-    if ([dictionary objectForKey:@"active"]) {
+    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
         self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
     }
-    if ([dictionary objectForKey:@"core"]) {
+    if ([dictionary objectForKey:@"core"] && [dictionary objectForKey:@"core"] != [NSNull null]) {
         self.demo = [NSNumber numberWithBool:[[dictionary objectForKey:@"core"] boolValue]];
     }
     
@@ -56,7 +57,22 @@
         self.users = orderedUsers;
     }
     
-    if ([dictionary objectForKey:@"address"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"company_subs"] && [dictionary objectForKey:@"company_subs"] != [NSNull null]) {
+        //NSLog(@"project subs: %@",[dictionary objectForKey:@"subcontractors"]);
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        for (id dict in [dictionary objectForKey:@"company_subs"]){
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+            Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:predicate];
+            if (!subcontractor){
+                subcontractor = [Subcontractor MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [subcontractor populateFromDictionary:dict];
+            [set addObject:subcontractor];
+        }
+        self.subcontractors = set;
+    }
+    
+    if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]) {
         NSDictionary *addressDict = [dictionary objectForKey:@"address"];
         Address *address = [Address MR_findFirstByAttribute:@"identifier" withValue:[addressDict objectForKey:@"id"]];
         if (!address) {
@@ -65,7 +81,7 @@
         [address populateWithDict:addressDict];
         self.address = address;
     }
-    if ([dictionary objectForKey:@"project_group"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"project_group"] && [dictionary objectForKey:@"project_group"] != [NSNull null]) {
         NSDictionary *groupDict = [dictionary objectForKey:@"project_group"];
         Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"]];
         if (!group) {
@@ -75,7 +91,7 @@
         self.group = group;
     }
     
-    if ([dictionary objectForKey:@"progress"]) {
+    if ([dictionary objectForKey:@"progress"] && [dictionary objectForKey:@"progress"] != [NSNull null]) {
         self.progressPercentage = [dictionary objectForKey:@"progress"];
     }
     
@@ -93,6 +109,13 @@
                 [orderedPhotos addObject:photo];
             }
         }
+        for (Photo *photo in self.recentDocuments){
+            if (![orderedPhotos containsObject:photo]){
+                NSLog(@"Deleting a recent document that no longer exists.");
+                [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        
         if (orderedPhotos.count > 0) self.recentDocuments = orderedPhotos;
     }
     
@@ -113,7 +136,7 @@
         self.documents = orderedPhotos;
     }
     
-    if ([dictionary objectForKey:@"phases"]) {
+    if ([dictionary objectForKey:@"phases"] && [dictionary objectForKey:@"phases"] != [NSNull null]) {
         NSMutableOrderedSet *tmpPhases = [NSMutableOrderedSet orderedSet];
         for (id phaseDict in [dictionary objectForKey:@"phases"]){
             if ([phaseDict objectForKey:@"id"]){
@@ -132,7 +155,7 @@
         }
         self.phases = tmpPhases;
     }
-    if ([dictionary objectForKey:@"upcoming_items"]) {
+    if ([dictionary objectForKey:@"upcoming_items"] && [dictionary objectForKey:@"upcoming_items"] != [NSNull null]) {
         NSMutableOrderedSet *tmpUpcoming = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.upcomingItems];
         for (id itemDict in [dictionary objectForKey:@"upcoming_items"]){
             if ([itemDict objectForKey:@"id"]){
@@ -151,7 +174,7 @@
         }
         self.upcomingItems = tmpUpcoming;
     }
-    if ([dictionary objectForKey:@"recently_completed"]) {
+    if ([dictionary objectForKey:@"recently_completed"] && [dictionary objectForKey:@"recently_completed"] != [NSNull null]) {
         NSMutableOrderedSet *tmpRecent = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.recentItems];
         for (id itemDict in [dictionary objectForKey:@"recently_completed"]){
             if ([itemDict objectForKey:@"id"]){
@@ -169,6 +192,52 @@
         }
         self.recentItems = tmpRecent;
     }
+    
+    if ([dictionary objectForKey:@"activities"] && [dictionary objectForKey:@"activities"] != [NSNull null]) {
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        //NSLog(@"project activities %@",[dictionary objectForKey:@"activities"]);
+        for (id dict in [dictionary objectForKey:@"activities"]){
+            if ([dict objectForKey:@"id"]){
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate];
+                if (!activity){
+                    activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                }
+                [activity populateFromDictionary:dict];
+                [set addObject:activity];
+            }
+        }
+        for (Activity *activity in self.activities){
+            if (![set containsObject:activity]){
+                NSLog(@"Deleting an activity that no longer exists.");
+                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        self.activities = set;
+    }
+    
+    if ([dictionary objectForKey:@"active_reminders"] && [dictionary objectForKey:@"active_reminders"] != [NSNull null]) {
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        //NSLog(@"project activities %@",[dictionary objectForKey:@"activities"]);
+        for (id dict in [dictionary objectForKey:@"active_reminders"]){
+            if ([dict objectForKey:@"id"]){
+                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+                Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate];
+                if (!reminder){
+                    reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                }
+                [reminder populateFromDictionary:dict];
+                [set addObject:reminder];
+            }
+        }
+        for (Reminder *reminder in self.reminders){
+            if (![set containsObject:reminder]){
+                NSLog(@"Deleting an active reminder that no longer exists.");
+                [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        self.reminders = set;
+    }
 }
 
 - (void)parseDocuments:(NSArray *)array {
@@ -183,8 +252,8 @@
     }
     for (Photo *photo in self.documents){
         if (![photos containsObject:photo]){
-            NSLog(@"deleting photo that no longer exists: %@",photo.createdDate);
-            [photo MR_deleteEntity];
+            NSLog(@"Deleting photo that no longer exists: %@",photo.createdDate);
+            [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
     self.documents = photos;
@@ -213,40 +282,9 @@
 
 - (void)clearReports {
     for (Report *report in self.reports) {
-        [report MR_deleteEntity];
+        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
     }
 }
 
-/*- (void)setValue:(id)value forKey:(NSString *)key {
- if ([key isEqualToString:@"id"]) {
- self.identifier = value;
- } else if ([key isEqualToString:@"name"]) {
- self.name = value;
- } else if ([key isEqualToString:@"company"]) {
- self.company = [[BHCompany alloc] initWithDictionary:value];
- } else if ([key isEqualToString:@"active"]) {
- self.active = [value boolValue];
- } else if ([key isEqualToString:@"core"]) {
- self.demo = [value boolValue];
- } else if ([key isEqualToString:@"address"]) {
- self.address = [[BHAddress alloc] initWithDictionary:value];
- } else if ([key isEqualToString:@"users"]) {
- self.users = [BHUtilities usersFromJSONArray:value];
- } else if ([key isEqualToString:@"subs"]) {
- self.subs = [BHUtilities subcontractorsFromJSONArray:value];
- } else if ([key isEqualToString:@"project_group"]) {
- self.group = [[BHProjectGroup alloc] initWithDictionary:value];
- } else if ([key isEqualToString:@"recent_documents"]) {
- self.recentDocuments = [BHUtilities photosFromJSONArray:value];
- } else if ([key isEqualToString:@"categories"]) {
- self.checklistCategories = [BHUtilities categoriesFromJSONArray:value];
- } else if ([key isEqualToString:@"upcoming_items"]) {
- self.upcomingItems = [BHUtilities checklistItemsFromJSONArray:value];
- } else if ([key isEqualToString:@"recently_completed"]) {
- self.recentItems = [BHUtilities checklistItemsFromJSONArray:value];
- } else if ([key isEqualToString:@"progress"]) {
- self.progressPercentage = value;
- }
- }*/
 
 @end

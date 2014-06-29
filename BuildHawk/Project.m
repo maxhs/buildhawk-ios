@@ -35,6 +35,10 @@
 @dynamic reports;
 @dynamic upcomingItems;
 @dynamic users;
+@dynamic subcontractors;
 @dynamic worklist;
+@dynamic activities;
+@dynamic reminders;
+@dynamic activeReminders;
 
 @end

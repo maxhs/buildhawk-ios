@@ -17,4 +17,5 @@
 @dynamic count;
 @dynamic report;
 @dynamic users;
+@dynamic project;
 @end

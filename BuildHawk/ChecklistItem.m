@@ -7,14 +7,6 @@
 //
 
 #import "ChecklistItem.h"
-#import "Cat.h"
-#import "Checklist.h"
-#import "Comment.h"
-#import "Notification.h"
-#import "Phase.h"
-#import "Photo.h"
-#import "Project.h"
-
 
 @implementation ChecklistItem
 
@@ -36,5 +28,7 @@
 @dynamic photos;
 @dynamic project;
 @dynamic upcomingItems;
+@dynamic activities;
+@dynamic reminders;
 
 @end

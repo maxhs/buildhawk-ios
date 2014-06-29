@@ -10,7 +10,7 @@
 #import "Project.h"
 #import "BHDashboardProjectCell.h"
 #import "BHTabBarViewController.h"
-#import "BHDashboardDetailViewController.h"
+#import "BHProjectSynopsisViewController.h"
 #import "BHAppDelegate.h"
 #import "Company+helper.h"
 
@@ -22,7 +22,7 @@
     NSMutableArray *recentlyCompletedWorklistItems;
     NSMutableArray *notifications;
     NSMutableArray *upcomingChecklistItems;
-    NSMutableArray *categories;
+    NSMutableArray *phases;
     NSMutableDictionary *dashboardDetailDict;
     Project *archivedProject;
 }
@@ -37,7 +37,7 @@
     demoProjects = [NSMutableArray array];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     dashboardDetailDict = [NSMutableDictionary dictionary];
-    categories = [NSMutableArray array];
+    phases = [NSMutableArray array];
     demoProjects = [Project MR_findByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]].mutableCopy;
     [self loadDemos];
     self.title = @"Demo Projects";
@@ -128,10 +128,10 @@
 
 - (void)loadDetailView {
     for (Project *proj in demoProjects){
-        [categories removeAllObjects];
+        [phases removeAllObjects];
         [manager GET:[NSString stringWithFormat:@"%@/projects/dash",kApiBaseUrl] parameters:@{@"id":proj.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting dashboard detail view for demo projects: %@",[responseObject objectForKey:@"project"]);
-            categories = [[[responseObject objectForKey:@"project"] objectForKey:@"categories"] mutableCopy];
+            phases = [[[responseObject objectForKey:@"project"] objectForKey:@"phases"] mutableCopy];
             [dashboardDetailDict setObject:[responseObject objectForKey:@"project"] forKey:proj.identifier];
             if (dashboardDetailDict.count == demoProjects.count) {
                 //NSLog(@"dashboard detail array after addition: %@, %i",dashboardDetailDict, dashboardDetailDict.count);
@@ -141,22 +141,6 @@
             NSLog(@"Failure getting dashboard: %@",error.description);
             self.tableView.allowsSelection = YES;
         }];
-    }
-}
-
-- (CGFloat)calculateCategories:(NSMutableArray*)array {
-    CGFloat completed = 0.0;
-    CGFloat pending = 0.0;
-    if (array.count) {
-        for (NSDictionary *dict in array){
-            if ([dict objectForKey:@"completed"]) completed += [[dict objectForKey:@"completed"] floatValue];
-            if ([dict objectForKey:@"pending"]) pending += [[dict objectForKey:@"pending"] floatValue];
-        }
-    }
-    if (completed > 0 && pending > 0){
-        return (completed/pending);
-    } else {
-        return 0;
     }
 }
 
@@ -206,7 +190,10 @@
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:archivedProject] inSection:0];
 
             [_currentUser.company removeProject:archivedProject];
+            
+            [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -234,7 +221,7 @@
         [vc setProject:project];
     } else if ([segue.identifier isEqualToString:@"DashboardDetail"]) {
         Project *project = (Project*)sender;
-        BHDashboardDetailViewController *detailVC = [segue destinationViewController];
+        BHProjectSynopsisViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     }
 }

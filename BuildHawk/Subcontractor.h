@@ -19,5 +19,6 @@
 @property (nonatomic, retain) NSOrderedSet *users;
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) Report *report;
+@property (nonatomic, retain) Project *project;
 
 @end

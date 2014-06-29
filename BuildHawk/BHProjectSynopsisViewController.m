@@ -1,12 +1,12 @@
 //
-//  BHDashboardDetailViewController.m
+//  BHProjectSynopsisViewController.m
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 8/30/13.
 //  Copyright (c) 2013 BuildHawk. All rights reserved.
 //
 
-#import "BHDashboardDetailViewController.h"
+#import "BHProjectSynopsisViewController.h"
 #import "Constants.h"
 #import "BHTabBarViewController.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
@@ -26,8 +26,9 @@
 #import "BHAppDelegate.h"
 #import "User+helper.h"
 #import "Phase+helper.h"
+#import "Activity+helper.h"
 
-@interface BHDashboardDetailViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
+@interface BHProjectSynopsisViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     AFHTTPRequestOperationManager *manager;
     UIScrollView *documentsScrollView;
     BOOL iPad;
@@ -40,7 +41,7 @@
 
 @end
 
-@implementation BHDashboardDetailViewController
+@implementation BHProjectSynopsisViewController
 
 @synthesize project = _project;
 
@@ -82,7 +83,7 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlay:NO];
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboardDetail];
     }
@@ -115,14 +116,14 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 5;
+    return 6;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     switch (section) {
         case 0:
-            return 1;
+            return [_project.activities count];
             break;
         case 1:
             return [(NSArray*)_project.phases count];
@@ -139,6 +140,9 @@
             return [(NSArray*)_project.recentItems count];
         }
             break;
+        case 5:
+            return 1;
+            break;
         default:
             return 0;
             break;
@@ -152,12 +156,8 @@
         case 0: {
             static NSString *CellIdentifier = @"SynopsisCell";
             cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-            if (_project.address.formattedAddress){
-                [cell.textLabel setText:_project.address.formattedAddress];
-            } else if (_project.address){
-                [cell.textLabel setText:[NSString stringWithFormat:@"%@, %@, %@ %@",_project.address.street1,_project.address.city,_project.address.state,_project.address.zip]];
-            }
-            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",_project.users.count]];
+            Activity *activity = [_project.activities objectAtIndex:indexPath.row];
+            [cell.detailTextLabel setText:activity.body];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
         }
             break;
@@ -249,6 +249,19 @@
                 [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
             }
         }
+            break;
+        case 5: {
+            static NSString *CellIdentifier = @"SynopsisCell";
+            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+            if (_project.address.formattedAddress){
+                [cell.textLabel setText:_project.address.formattedAddress];
+            } else if (_project.address){
+                [cell.textLabel setText:[NSString stringWithFormat:@"%@, %@, %@ %@",_project.address.street1,_project.address.city,_project.address.state,_project.address.zip]];
+            }
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",_project.users.count]];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+        }
+            break;
         default:
             break;
     }
@@ -318,7 +331,7 @@
     
     switch (section) {
         case 0:
-            [headerLabel setText:@"Project Summary"];
+            [headerLabel setText:@"Alerts"];
             break;
         case 1:
             [headerLabel setText:@"Progress"];
@@ -331,6 +344,9 @@
             break;
         case 4:
             [headerLabel setText:@"Recent Checklist Items"];
+            break;
+        case 5:
+            [headerLabel setText:@"Project Summary"];
             break;
         default:
             return nil;

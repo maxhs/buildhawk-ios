@@ -8,8 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import "Project+helper.h"
 
-@class ChecklistItem, Phase, Project;
+@class ChecklistItem, Phase;
 
 @interface Checklist : NSManagedObject
 

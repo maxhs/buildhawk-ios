@@ -31,6 +31,7 @@
 {
     [super viewDidLoad];
     self.title = self.project.name;
+    self.automaticallyAdjustsScrollViewInsets = YES;
     self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
     self.tabBar.clipsToBounds = YES;
 }

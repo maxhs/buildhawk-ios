@@ -221,16 +221,20 @@
         
         [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
         if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-             [self.navigationController popViewControllerAnimated:YES];
-            [photo MR_deleteEntity];
+            
+            [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            [self.navigationController popViewControllerAnimated:YES];
+            
         } else {
             [ProgressHUD show:@"Deleting photo..."];
             [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 [ProgressHUD dismiss];
+                [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 [self.navigationController popViewControllerAnimated:YES];
-                [photo MR_deleteEntity];
+                
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 [ProgressHUD dismiss];
+                
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to remove this photo." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                 [self.navigationController popViewControllerAnimated:YES];
             }];
@@ -241,7 +245,6 @@
 }
 
 - (void)performLayout {
-    
     // Setup
     _performingLayout = YES;
     NSUInteger numberOfPhotos = [self numberOfPhotos];

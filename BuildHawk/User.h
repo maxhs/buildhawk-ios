@@ -38,10 +38,12 @@
 @property (nonatomic, retain) NSSet *comments;
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) NSOrderedSet *projects;
+@property (nonatomic, retain) NSOrderedSet *archivedProjects;
 @property (nonatomic, retain) NSOrderedSet *reports;
 @property (nonatomic, retain) NSOrderedSet *worklistItems;
 @property (nonatomic, retain) Subcontractor *subcontractor;
 @property (nonatomic, retain) NSOrderedSet *notifications;
+@property (nonatomic, retain) NSOrderedSet *reminders;
 
 @end
 

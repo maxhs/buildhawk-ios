@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <SWRevealViewController/SWRevealViewController.h>
+#import <RESideMenu/RESideMenu.h>
 
 @interface BHDashboardViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;

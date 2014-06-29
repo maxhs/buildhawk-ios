@@ -12,17 +12,20 @@
 @implementation User (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"checklist item helper dictionary: %@",dictionary);
-    if ([dictionary objectForKey:@"id"]) {
+    //NSLog(@"user helper dictionary: %@",dictionary);
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"full_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"authentication_token"] && [dictionary objectForKey:@"authentication_token"] != [NSNull null]) {
+        self.authToken = [dictionary objectForKey:@"authentication_token"];
+    }
+    if ([dictionary objectForKey:@"full_name"] && [dictionary objectForKey:@"full_name"] != [NSNull null]) {
         self.fullname = [dictionary objectForKey:@"full_name"];
     }
-    if ([dictionary objectForKey:@"first_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"first_name"] && [dictionary objectForKey:@"first_name"] != [NSNull null]) {
         self.firstName = [dictionary objectForKey:@"first_name"];
     }
-    if ([dictionary objectForKey:@"last_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"first_name"] && [dictionary objectForKey:@"last_name"] != [NSNull null]) {
         self.lastName = [dictionary objectForKey:@"last_name"];
     }
     if ([dictionary objectForKey:@"url_medium"] && [dictionary objectForKey:@"url_medium"] != [NSNull null]) {
@@ -43,10 +46,7 @@
     if ([dictionary objectForKey:@"email"] && [dictionary objectForKey:@"email"] != [NSNull null]) {
         self.email = [dictionary objectForKey:@"email"];
     }
-    if ([dictionary objectForKey:@"demo"] != [NSNull null]) {
-        self.demo = [dictionary objectForKey:@"demo"];
-    }
-    if ([dictionary objectForKey:@"admin"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"admin"] && [dictionary objectForKey:@"admin"] != [NSNull null]) {
         self.admin = [dictionary objectForKey:@"admin"];
     }
     if ([dictionary objectForKey:@"company_admin"] && [dictionary objectForKey:@"company_admin"] != [NSNull null]) {

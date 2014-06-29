@@ -31,6 +31,7 @@
 
 @implementation BHAddPersonnelViewController
 @synthesize name = _name;
+@synthesize task = _task;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -232,8 +233,8 @@
         if (companyPhoneTextField.text.length){
             [parameters setObject:companyPhoneTextField.text forKey:@"phone"];
         }
-        [manager POST:[NSString stringWithFormat:@"%@/company_subs",kApiBaseUrl] parameters:@{@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"subcontractor":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success creating a new company sub: %@",responseObject);
+        [manager POST:[NSString stringWithFormat:@"%@/project_subs",kApiBaseUrl] parameters:@{@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"subcontractor":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success creating a new project sub: %@",responseObject);
             [ProgressHUD dismiss];
             [self.navigationController popViewControllerAnimated:YES];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -253,8 +254,8 @@
         if (phoneTextField.text.length){
             [parameters setObject:phoneTextField.text forKey:@"phone"];
         }
-        [manager POST:[NSString stringWithFormat:@"%@/company_subs/%@/add_user",kApiBaseUrl,_subcontractor.identifier] parameters:@{@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success creating a new company sub user: %@",responseObject);
+        [manager POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_subcontractor.identifier] parameters:@{@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"success creating a new project sub user: %@",responseObject);
             User *user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [user populateFromDictionary:[responseObject objectForKey:@"user"]];
             [_subcontractor addUser:user];
@@ -345,7 +346,9 @@
     if ([segue.identifier isEqualToString:@"AddressBook"]){
         BHAddressBookPickerViewController *vc = [segue destinationViewController];
         [vc setPeopleArray:peopleArray];
+        [vc setSubcontractor:_subcontractor];
         [vc setTitle:[NSString stringWithFormat:@"%@",_subcontractor.name]];
+        [vc setTask:_task];
     }
 }
 

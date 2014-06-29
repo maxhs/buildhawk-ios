@@ -7,14 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "BHMenuViewController.h"
 //#import "GAI.h"
 
 @interface BHAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic) AFHTTPRequestOperationManager *manager;
+@property (strong, nonatomic) UINavigationController *nav;
+@property (strong, nonatomic) BHMenuViewController *menu;
 @property BOOL connected;
 
-- (UIView*)addOverlay:(BOOL)underNav;
+- (UIView*)addOverlayUnderNav:(BOOL)underNav;
 - (void)offlineNotification;
 @end

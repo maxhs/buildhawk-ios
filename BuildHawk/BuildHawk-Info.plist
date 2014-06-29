@@ -57,6 +57,21 @@
 	<string>1.04</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLIconFile</key>
+			<string>BuildHawk_app_icon_152</string>
+			<key>CFBundleURLName</key>
+			<string>com.buildhawk</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>buildhawk</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1.04</string>
 	<key>LSRequiresIPhoneOS</key>

@@ -15,4 +15,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *progressButton;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
 @property (weak, nonatomic) IBOutlet UIButton *archiveButton;
+@property (weak, nonatomic) IBOutlet UILabel *alertLabel;
+
+- (void)configureForProject:(Project*)project andUser:(User*)user;
 @end

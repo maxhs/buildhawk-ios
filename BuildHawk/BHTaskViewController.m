@@ -156,7 +156,11 @@ typedef void(^RequestSuccess)(id result);
         id assignee = _worklistItem.assignees.firstObject;
         if ([assignee isKindOfClass:[User class]]){
             User *assigneeUser = assignee;
-            if (assigneeUser.fullname.length) [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
+            if (assigneeUser.fullname.length){
+                [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
+            } else if (assigneeUser.firstName.length){
+                [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.firstName] forState:UIControlStateNormal];
+            }
         }
     }
 }
@@ -316,7 +320,12 @@ typedef void(^RequestSuccess)(id result);
     User *user = [info objectForKey:@"user"];
     NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
     _worklistItem.assignees = assigneeSet;
-    [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
+    if (user.fullname.length){
+        [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
+    } else if (user.firstName.length){
+        [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
+    }
+    NSLog(@"just assigned user with id: %@",user.identifier);
 }
 
 - (IBAction)completionTapped{
@@ -382,7 +391,6 @@ typedef void(^RequestSuccess)(id result);
         UIImagePickerController *vc = [[UIImagePickerController alloc] init];
         [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
         [vc setDelegate:self];
-        [vc setAllowsEditing:YES];
         //[vc setModalPresentationStyle:UIModalPresentationCurrentContext];
         [self presentViewController:vc animated:YES completion:^{
             
@@ -671,12 +679,13 @@ typedef void(^RequestSuccess)(id result);
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     BHPersonnelPickerViewController *vc = [segue destinationViewController];
+    [vc setProject:_project];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
         [vc setUsers:_project.users.mutableCopy];
         [vc setCountNotNeeded:YES];
     } else if ([segue.identifier isEqualToString:@"SubcontractorPicker"]){
-        [vc setCompany:_project.company];
         [vc setTaskMode:YES];
+        [vc setTask:_worklistItem];
     }
 }
 
@@ -696,7 +705,7 @@ typedef void(^RequestSuccess)(id result);
         }
         if (_worklistItem.assignees.count){
             User *assigneeUser = _worklistItem.assignees.firstObject;
-            if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
+            if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
         }
 
         [parameters setObject:_worklistItem.identifier forKey:@"id"];
@@ -746,7 +755,7 @@ typedef void(^RequestSuccess)(id result);
         
         if (_worklistItem.assignees.count){
             User *assigneeUser = _worklistItem.assignees.firstObject;
-            if (assigneeUser.fullname.length) [parameters setObject:assigneeUser.fullname forKey:@"user_assignee"];
+            if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
         }
         
         if (_itemTextView.text && ![_itemTextView.text isEqualToString:itemPlaceholder]) {
@@ -760,9 +769,9 @@ typedef void(^RequestSuccess)(id result);
             
             [_worklistItem populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
             _worklistItem.photos = photoSet;
+            
             //this will cause the worklist view to insert the new item in its tableview through an NSNotification
             [_project.worklist addWorklistItem:_worklistItem];
-            NSLog(@"task photos? %d",_worklistItem.photos.count);
             
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 [ProgressHUD dismiss];
@@ -966,15 +975,20 @@ typedef void(^RequestSuccess)(id result);
             [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
                 [_worklistItem removeComment:comment];
-                [comment MR_deleteEntity];
+                [comment MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 shouldSave = NO;
+                
+                [self.tableView beginUpdates];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView endUpdates];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"Failed to delete comment: %@",error.description);
             }];
         } else {
             [_worklistItem removeComment:comment];
+            [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
         }
     }
 }

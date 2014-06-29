@@ -24,7 +24,7 @@ PODS:
     - MagicalRecord/Core
   - MagicalRecord/Core (2.2)
   - Mixpanel (2.3.6)
-  - SWRevealViewController (1.1.1)
+  - RESideMenu (4.0.4)
 
 DEPENDENCIES:
   - AFNetworking
@@ -32,7 +32,7 @@ DEPENDENCIES:
   - LDProgressView
   - MagicalRecord
   - Mixpanel
-  - SWRevealViewController (= 1.1.1)
+  - RESideMenu (~> 4.0.4)
 
 SPEC CHECKSUMS:
   AFNetworking: ab63e259fe91eef4519b371ef0a4955af0e73e64
@@ -40,6 +40,6 @@ SPEC CHECKSUMS:
   LDProgressView: e0ee70a7cd858ac8c04b319ef87854e7250fb357
   MagicalRecord: 2b471584fc9e3137f3d0a56967917baa4979e224
   Mixpanel: 9aba38257fc4d2777ab5db1afc55e22bdfd57a4a
-  SWRevealViewController: 41cef03ba091c3e3db8bd1e7865b81a4586715fb
+  RESideMenu: af599feabe620b562667b91cb1abe3d961b01f08
 
 COCOAPODS: 0.33.1

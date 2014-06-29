@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Cat, Checklist, Comment, Notification, Phase, Photo, Project;
+@class Cat, Checklist, Comment, Notification, Phase, Photo,Project;
 
 @interface ChecklistItem : NSManagedObject
 
@@ -29,6 +29,8 @@
 @property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) Phase *phase;
 @property (nonatomic, retain) NSOrderedSet *photos;
+@property (nonatomic, retain) NSOrderedSet *activities;
+@property (nonatomic, retain) NSOrderedSet *reminders;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) Project *upcomingItems;
 @end

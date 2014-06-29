@@ -15,7 +15,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define IPAD     UIUserInterfaceIdiomPad
 
 #define kApiBaseUrl @"https://www.buildhawk.com/api/v2"
-
+#define kUrlScheme @"buildhawk"
 #define kFlurryKey @"VS4FQPRGGB5BXWWGGXSB"
 
 #define kUserDefaultsId @"user_id"

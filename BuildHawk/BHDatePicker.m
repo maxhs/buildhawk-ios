@@ -14,8 +14,8 @@ typedef enum {
     kBHDatePickerYear,
     kBHDatePickerMonth,
     kBHDatePickerDay,
-    kBHDatePickerHour,
-    kBHDatePickerMinute
+    kBHDatePickerHour/*,
+    kBHDatePickerMinute*/
 } BHDatePickerComponent;
 
 
@@ -57,7 +57,7 @@ typedef enum {
 
 - (void)commonInit {
     self.tintColor = [UIColor whiteColor];
-    self.font = [UIFont fontWithName:kHelveticaNeueRegular size:17];
+    self.font = [UIFont systemFontOfSize:21];
     self.calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     [self setLocale:[NSLocale currentLocale]];
     self.picker = [[UIPickerView alloc] initWithFrame:self.bounds];
@@ -67,13 +67,13 @@ typedef enum {
     [self.picker setBackgroundColor:[UIColor clearColor]];
     self.picker.tintColor = [UIColor whiteColor];
     self.date = [NSDate date];
-    
+    [self setMinimumDate:[NSDate date]];
     [self addSubview:self.picker];
     [self setBackgroundColor:[UIColor clearColor]];
 }
 
 - (CGSize)intrinsicContentSize {
-    return CGSizeMake(320.0f, 216.0f);
+    return CGSizeMake(320.f, 216.0f);
 }
 
 #pragma mark - Setup
@@ -94,7 +94,7 @@ typedef enum {
 }
 
 - (void)setDate:(NSDate *)date animated:(BOOL)animated {
-    self.currentDateComponents = [self.calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit | NSMinuteCalendarUnit)
+    self.currentDateComponents = [self.calendar components:(NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit | NSHourCalendarUnit /*| NSMinuteCalendarUnit*/)
                                                   fromDate:date];
     
     [self.picker reloadAllComponents];
@@ -124,13 +124,13 @@ typedef enum {
     else if ([letter isEqualToString:@"h"]) {
         return kBHDatePickerHour;
     }
-    else if ([letter isEqualToString:@"m"]) {
+    /*else if ([letter isEqualToString:@"m"]) {
         return kBHDatePickerMinute;
     }
     else if ([letter isEqualToString:@"a"] || [letter isEqualToString:@"p"]) {
         NSLog(@"invalid letter: %@",letter);
         return kBHDatePickerMinute;
-    }
+    }*/
     else {
         return kBHDatePickerInvalid;
     }
@@ -147,7 +147,7 @@ typedef enum {
 }
 
 - (void)updateComponents {
-    NSString *componentsOrdering = [NSDateFormatter dateFormatFromTemplate:@"MMM dd hh:mm y" options:0 locale:self.calendar.locale];
+    NSString *componentsOrdering = [NSDateFormatter dateFormatFromTemplate:@"MMM dd hh:mm a y" options:0 locale:self.calendar.locale];
     componentsOrdering = [componentsOrdering lowercaseString];
     
     /*NSString *firstLetter = [componentsOrdering substringToIndex:1];
@@ -158,12 +158,12 @@ typedef enum {
     _components[0] = kBHDatePickerMonth;
     _components[1] = kBHDatePickerDay;
     _components[2] = kBHDatePickerHour;
-    _components[3] = kBHDatePickerMinute;
-    _components[4] = kBHDatePickerYear;
+    //_components[3] = kBHDatePickerMinute;
+    _components[3] = kBHDatePickerYear;
     
     self.dateFormatter = [[NSDateFormatter alloc] init];
     self.dateFormatter.calendar = self.calendar;
-    self.dateFormatter.locale = self.calendar.locale;
+    self.dateFormatter.locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
     
     [self.picker reloadAllComponents];
     
@@ -185,16 +185,16 @@ typedef enum {
     else if (component == kBHDatePickerDay) {
         value = self.currentDateComponents.day;
     }
-    else if (component == kBHDatePickerHour) {
+    else /*if (component == kBHDatePickerHour)*/ {
         value = self.currentDateComponents.hour;
     }
-    else if (component == kBHDatePickerMinute) {
+    /*else if (component == kBHDatePickerMinute) {
         value = self.currentDateComponents.minute;
     }
     else {
         value = self.currentDateComponents.minute;
         //assert(NO);
-    }
+    }*/
     
     NSInteger index = (value - unitRange.location);
     NSInteger middleIndex = (INT16_MAX / 2) - (INT16_MAX / 2) % unitRange.length + index;
@@ -225,9 +225,9 @@ typedef enum {
     else if (component == kBHDatePickerHour) {
         return NSHourCalendarUnit;
     }
-    else if (component == kBHDatePickerMinute) {
+    /*else if (component == kBHDatePickerMinute) {
         return NSMinuteCalendarUnit;
-    }
+    }*/
     else {
         return NSMinuteCalendarUnit;
         assert(NO);
@@ -257,8 +257,7 @@ typedef enum {
     
     if (component == kBHDatePickerYear) {
         CGSize size = [@"0000" sizeWithAttributes:@{NSFontAttributeName : self.font}];
-        
-        return size.width + 0.0f;
+        return size.width + 10.0f;
     }
     else if (component == kBHDatePickerMonth) {
         CGFloat maxWidth = 0.0f;
@@ -271,20 +270,20 @@ typedef enum {
         return maxWidth + 10.f;
     }
     else if (component == kBHDatePickerDay) {
-        CGSize size = [@"00" sizeWithAttributes:@{NSFontAttributeName : self.font}];
+        CGSize size = [@" 00 " sizeWithAttributes:@{NSFontAttributeName : self.font}];
         
-        return size.width + 30.0f;
+        return size.width + 10.0f;
     }
     else if (component == kBHDatePickerHour) {
-        CGSize size = [@"00 : " sizeWithAttributes:@{NSFontAttributeName : self.font}];
+        CGSize size = [@"00  am" sizeWithAttributes:@{NSFontAttributeName : self.font}];
         
-        return size.width + 0.0f;
+        return size.width + 20.0f;
     }
-    else if (component == kBHDatePickerMinute) {
+    /*else if (component == kBHDatePickerMinute) {
         CGSize size = [@"00" sizeWithAttributes:@{NSFontAttributeName : self.font}];
         
-        return size.width + 0.0f;
-    }
+        return size.width + 10.0f;
+    }*/
     else {
         return 0.01f;
     }
@@ -305,11 +304,21 @@ typedef enum {
         return [NSString stringWithFormat:@"%li", (long) value];
     }
     else if (component == kBHDatePickerHour) {
-        return [NSString stringWithFormat:@"%li :", (long) value];
+        if (value == 0){
+            return [NSString stringWithFormat:@"Midnight"];
+        } else if (value == 12){
+            return [NSString stringWithFormat:@"Noon"];
+        } else if (value > 12){
+            int val = value - 12;
+            return [NSString stringWithFormat:@"%li  pm", (long) val];
+        } else {
+            return [NSString stringWithFormat:@"%li  am", (long) value];
+        }
+        
     }
-    else if (component == kBHDatePickerMinute) {
+    /*else if (component == kBHDatePickerMinute) {
         return [NSString stringWithFormat:@"%li", (long) value];
-    }
+    }*/
     else {
         return @"";
     }
@@ -327,7 +336,7 @@ typedef enum {
     dateComponents.month = self.currentDateComponents.month;
     dateComponents.day = self.currentDateComponents.day;
     dateComponents.hour = self.currentDateComponents.hour;
-    dateComponents.minute = self.currentDateComponents.minute;
+    //dateComponents.minute = self.currentDateComponents.minute;
     BHDatePickerComponent component = [self componentForIndex:componentIndex];
     NSInteger value = [self valueForRow:row andComponent:component];
     
@@ -343,13 +352,13 @@ typedef enum {
     else if (component == kBHDatePickerHour) {
         dateComponents.day = value;
     }
-    else if (component == kBHDatePickerMinute) {
+    /*else if (component == kBHDatePickerMinute) {
         dateComponents.day = value;
-    }
+    }*/
     
     NSDate *rowDate = [self.calendar dateFromComponents:dateComponents];
     
-    if (self.minimumDate != nil && [self.minimumDate compare:rowDate] == NSOrderedDescending) {
+    if (_minimumDate != nil && [_minimumDate compare:rowDate] == NSOrderedDescending) {
         return NO;
     }
     else if (self.maximumDate != nil && [rowDate compare:self.maximumDate] == NSOrderedDescending) {
@@ -388,9 +397,9 @@ typedef enum {
     
     label.attributedText = attributedTitle;
     
-    if (component == kBHDatePickerMonth || component == kBHDatePickerMinute) {
+    if (component == kBHDatePickerMonth/* || component == kBHDatePickerMinute*/) {
         label.textAlignment = NSTextAlignmentLeft;
-    } else if (component == kBHDatePickerYear || component == kBHDatePickerHour) {
+    } else if (component == kBHDatePickerYear) {
         label.textAlignment = NSTextAlignmentRight;
     } else {
         label.textAlignment = NSTextAlignmentCenter;
@@ -415,11 +424,11 @@ typedef enum {
     else if (component == kBHDatePickerHour) {
         self.currentDateComponents.hour = value;
     }
-    else if (component == kBHDatePickerMinute) {
+    /*else if (component == kBHDatePickerMinute) {
         self.currentDateComponents.minute = value;
-    }
+    }*/
     else {
-        assert(NO);
+        //assert(NO);
     }
     
     [self setIndexForComponentIndex:componentIndex animated:NO];

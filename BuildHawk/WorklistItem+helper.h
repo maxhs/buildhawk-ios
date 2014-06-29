@@ -8,6 +8,7 @@
 
 #import "WorklistItem.h"
 #import "Photo+helper.h"
+#import "User+helper.h"
 
 @interface WorklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
@@ -15,4 +16,6 @@
 - (void)removeComment:(Comment *)comment;
 - (void)addPhoto:(Photo *)photo;
 - (void)removePhoto:(Photo *)photo;
+- (void)addAssignee:(User *)user;
+- (void)removeAssignee:(User *)user;
 @end

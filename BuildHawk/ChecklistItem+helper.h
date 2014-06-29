@@ -7,7 +7,7 @@
 //
 
 #import "ChecklistItem.h"
-#import "Comment+helper.h"
+#import "Reminder+helper.h"
 
 @interface ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
@@ -15,4 +15,6 @@
 - (void)removeComment:(Comment *)comment;
 - (void)addPhoto:(Photo *)photo;
 - (void)removePhoto:(Photo *)photo;
+- (void)addReminder:(Reminder *)reminder;
+- (void)removeReminder:(Reminder *)reminder;
 @end
