@@ -25,6 +25,7 @@
 #import "Worklist+helper.h"
 #import "Comment+helper.h"
 #import "BHAppDelegate.h"
+#import "BHActivityCell.h"
 
 static NSString *assigneePlaceholder = @"Assign task";
 static NSString *locationPlaceholder = @"Select location";
@@ -191,13 +192,14 @@ typedef void(^RequestSuccess)(id result);
     if ([_worklistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
     }
-    else return 2;
+    else return 3;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else return _worklistItem.comments.count;
+    else if (section == 1) return _worklistItem.comments.count;
+    else return _worklistItem.activities.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -214,7 +216,7 @@ typedef void(^RequestSuccess)(id result);
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
-    } else {
+    } else if (indexPath.section == 1) {
         BHCommentCell *commentCell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell"];
         if (commentCell == nil) {
             commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
@@ -228,6 +230,14 @@ typedef void(^RequestSuccess)(id result);
         }
         [commentCell.nameLabel setText:comment.user.fullname];
         return commentCell;
+    } else {
+        BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+        }
+        Activity *activity = [_worklistItem.activities objectAtIndex:indexPath.row];
+        [cell.timestampLabel setText:[commentFormatter stringFromDate:activity.createdDate]];
+        return cell;
     }
 }
 
@@ -325,7 +335,6 @@ typedef void(^RequestSuccess)(id result);
     } else if (user.firstName.length){
         [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
     }
-    NSLog(@"just assigned user with id: %@",user.identifier);
 }
 
 - (IBAction)completionTapped{
@@ -656,12 +665,15 @@ typedef void(^RequestSuccess)(id result);
 
 -(IBAction)assigneeButtonTapped{
     shouldSave = YES;
-    assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this task:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    [assigneeActionSheet addButtonWithTitle:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]];
-    [assigneeActionSheet addButtonWithTitle:kSubcontractors];
-    if (_worklistItem.assignees.count) assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
-    assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
-    [assigneeActionSheet showInView:self.view];
+    if (_worklistItem.assignees.count){
+        assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this task:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+        [assigneeActionSheet addButtonWithTitle:@"Reassign"];
+        if (_worklistItem.assignees.count) assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
+        assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
+        [assigneeActionSheet showInView:self.view];
+    } else {
+        [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
+    }
 }
 
 -(IBAction)locationButtonTapped{
@@ -681,10 +693,7 @@ typedef void(^RequestSuccess)(id result);
     BHPersonnelPickerViewController *vc = [segue destinationViewController];
     [vc setProject:_project];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
-        [vc setUsers:_project.users.mutableCopy];
-        [vc setCountNotNeeded:YES];
-    } else if ([segue.identifier isEqualToString:@"SubcontractorPicker"]){
-        [vc setTaskMode:YES];
+        [vc setCompanyMode:NO];
         [vc setTask:_worklistItem];
     }
 }
@@ -719,12 +728,16 @@ typedef void(^RequestSuccess)(id result);
         } else {
             [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"completed"];
         }
-        [_project.worklist replaceWorklistItem:_worklistItem];
+        
         [manager PATCH:[NSString stringWithFormat:@"%@/worklist_items/%@", kApiBaseUrl, _worklistItem.identifier] parameters:@{@"worklist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success updating task: %@",responseObject);
             [_worklistItem populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
-            [ProgressHUD dismiss];
-            [self.navigationController popViewControllerAnimated:YES];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_worklistItem}];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [ProgressHUD dismiss];
+                [self.navigationController popViewControllerAnimated:YES];
+            }];
+            
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             [ProgressHUD dismiss];
             NSLog(@"Failed to update task: %@",error.description);
@@ -773,11 +786,6 @@ typedef void(^RequestSuccess)(id result);
             //this will cause the worklist view to insert the new item in its tableview through an NSNotification
             [_project.worklist addWorklistItem:_worklistItem];
             
-            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [ProgressHUD dismiss];
-                [self.navigationController popViewControllerAnimated:YES];
-            }];
-            
             if (![_worklistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
                 [parameters setObject:_worklistItem.identifier forKey:@"worklist_item_id"];
@@ -800,6 +808,10 @@ typedef void(^RequestSuccess)(id result);
                 }
             }
             
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [ProgressHUD dismiss];
+                [self.navigationController popViewControllerAnimated:YES];
+            }];
             
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failed to create a task: %@",error.description);
@@ -922,10 +934,8 @@ typedef void(^RequestSuccess)(id result);
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
         _worklistItem.location = nil;
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:[NSString stringWithFormat:@"%@ Personnel",_project.company.name]]) {
+    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Reassign"]) {
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSubcontractors]) {
-        [self performSegueWithIdentifier:@"SubcontractorPicker" sender:nil];
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         if (buttonIndex == assigneeActionSheet.destructiveButtonIndex){
             _worklistItem.assignees = nil;
@@ -1019,17 +1029,6 @@ typedef void(^RequestSuccess)(id result);
     } else {
         [self.navigationController popViewControllerAnimated:YES];
     }
-}
-
-- (void)viewWillDisappear:(BOOL)animated {
-    //[self saveContext];
-    [super viewWillDisappear:animated];
-}
-
-- (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"task save results: %hhd",success);
-    }];
 }
 
 - (void)didReceiveMemoryWarning

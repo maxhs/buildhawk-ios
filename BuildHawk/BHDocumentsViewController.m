@@ -394,7 +394,7 @@
         {
             BHPhotosViewController *vc = [segue destinationViewController];
             for (Photo *photo in photosArray){
-                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
+                if (photo.dateString && ![dateArray containsObject:photo.dateString]) [dateArray addObject:photo.dateString];
             }
             [vc setProject:_project];
             [vc setPhotosArray:photosArray.mutableCopy];
@@ -436,7 +436,7 @@
             NSMutableSet *titleSet = [NSMutableSet set];
             for (Photo *photo in checklistArray){
                 if (photo.photoPhase)[titleSet addObject:photo.photoPhase];
-                if (photo.createdDate && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
+                if (photo.dateString && ![dateArray containsObject:photo.dateString]) [dateArray addObject:photo.dateString];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
@@ -457,7 +457,7 @@
             NSMutableSet *titleSet = [NSMutableSet set];
             for (Photo *photo in worklistArray){
                 if (photo.userName.length)[titleSet addObject:photo.userName];
-                if (photo.createdDate.length && ![dateArray containsObject:photo.createdDate]) [dateArray addObject:photo.createdDate];
+                if (photo.dateString.length && ![dateArray containsObject:photo.dateString]) [dateArray addObject:photo.dateString];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
@@ -477,7 +477,7 @@
             BHPhotosViewController *vc = [segue destinationViewController];
             NSMutableSet *titleSet = [NSMutableSet set];
             for (Photo *photo in reportsArray){
-                if (photo.createdDate.length)[titleSet addObject:photo.createdDate];
+                if (photo.dateString.length)[titleSet addObject:photo.dateString];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];

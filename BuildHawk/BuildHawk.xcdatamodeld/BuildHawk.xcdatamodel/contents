@@ -120,7 +120,7 @@
         <attribute name="assignee" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="caption" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
-        <attribute name="createdDate" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="dateString" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="folder" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="folderId" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
@@ -180,7 +180,7 @@
     <entity name="Report" representedClassName="Report" syncable="YES">
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
-        <attribute name="createdDate" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="dateString" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="humidity" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="possibleTopics" optional="YES" attributeType="Transformable" syncable="YES"/>
@@ -287,6 +287,7 @@
         <relationship name="worklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Worklist" inverseName="worklistItems" inverseEntity="Worklist" syncable="YES"/>
     </entity>
     <elements>
+        <element name="Activity" positionX="36" positionY="162" width="128" height="148"/>
         <element name="Address" positionX="18" positionY="162" width="128" height="225"/>
         <element name="Cat" positionX="54" positionY="189" width="128" height="133"/>
         <element name="Checklist" positionX="18" positionY="162" width="128" height="103"/>
@@ -297,9 +298,10 @@
         <element name="Message" positionX="27" positionY="153" width="128" height="118"/>
         <element name="Notification" positionX="27" positionY="153" width="128" height="150"/>
         <element name="Phase" positionX="45" positionY="180" width="128" height="238"/>
-        <element name="Photo" positionX="36" positionY="171" width="128" height="373"/>
+        <element name="Photo" positionX="36" positionY="171" width="128" height="375"/>
         <element name="Project" positionX="0" positionY="0" width="128" height="433"/>
-        <element name="Report" positionX="0" positionY="0" width="128" height="358"/>
+        <element name="Reminder" positionX="45" positionY="171" width="128" height="148"/>
+        <element name="Report" positionX="0" positionY="0" width="128" height="360"/>
         <element name="ReportSub" positionX="36" positionY="162" width="128" height="118"/>
         <element name="ReportUser" positionX="27" positionY="153" width="128" height="118"/>
         <element name="SafetyTopic" positionX="27" positionY="153" width="128" height="133"/>
@@ -307,7 +309,5 @@
         <element name="User" positionX="0" positionY="0" width="128" height="538"/>
         <element name="Worklist" positionX="27" positionY="153" width="128" height="88"/>
         <element name="WorklistItem" positionX="36" positionY="162" width="128" height="253"/>
-        <element name="Activity" positionX="36" positionY="162" width="128" height="148"/>
-        <element name="Reminder" positionX="45" positionY="171" width="128" height="148"/>
     </elements>
 </model>

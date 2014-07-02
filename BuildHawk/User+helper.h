@@ -7,12 +7,13 @@
 //
 
 #import "User.h"
-#import "Company.h"
+#import "Company+helper.h"
 #import "Notification+helper.h"
 #import "WorklistItem+helper.h"
 
 @interface User (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)update:(NSDictionary*)dictionary;
 - (void)removeNotification:(Notification*)notification;
 - (void)addNotification:(Notification*)notification;
 - (void)assignWorklistItem:(WorklistItem*)item;

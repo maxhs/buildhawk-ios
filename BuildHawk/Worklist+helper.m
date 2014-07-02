@@ -53,11 +53,11 @@
 
 - (void)replaceWorklistItem:(WorklistItem*)newItem{
     NSMutableOrderedSet *orderedItems = [NSMutableOrderedSet orderedSetWithOrderedSet:self.worklistItems];
-    [self.worklistItems enumerateObjectsUsingBlock:^(WorklistItem *item, NSUInteger idx, BOOL *stop) {
-        if ([item.identifier isEqualToNumber:newItem.identifier]){
+    [self.worklistItems enumerateObjectsUsingBlock:^(WorklistItem *task, NSUInteger idx, BOOL *stop) {
+        if ([task.identifier isEqualToNumber:newItem.identifier]){
             [orderedItems replaceObjectAtIndex:idx withObject:newItem];
             self.worklistItems = orderedItems;
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadWorklistItem" object:nil userInfo:@{@"item":item,@"idx":[NSNumber numberWithUnsignedInteger:idx]}];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":task,@"idx":[NSNumber numberWithUnsignedInteger:idx]}];
             *stop = YES;
         }
     }];
@@ -67,7 +67,7 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.worklistItems];
     [set insertObject:item atIndex:0];
     self.worklistItems = set;
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"AddWorklistItem" object:nil userInfo:@{@"item":item}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"AddTask" object:nil userInfo:@{@"task":item}];
 }
 
 - (void)removeWorklistItem:(WorklistItem*)item{

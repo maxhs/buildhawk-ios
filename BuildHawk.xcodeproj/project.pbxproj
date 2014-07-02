@@ -898,7 +898,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		F203961817D12FA4001CFF61 /* Vendors */ = {
+		F203961817D12FA4001CFF61 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
 				F2EA2636190ED38800EEF2CC /* UIImage+ImageEffects.h */,
@@ -912,7 +912,7 @@
 				F2FAE3CD18F4DCA2005E582B /* PSTCollectionView */,
 				F292B28218353E21005E9123 /* Flurry */,
 			);
-			name = Vendors;
+			name = Libraries;
 			sourceTree = "<group>";
 		};
 		F2139D771939735100EE5C96 /* Custom Objects */ = {
@@ -1216,7 +1216,7 @@
 		F2B29FC217D0F31B00F09C6F /* BuildHawk */ = {
 			isa = PBXGroup;
 			children = (
-				F203961817D12FA4001CFF61 /* Vendors */,
+				F203961817D12FA4001CFF61 /* Libraries */,
 				F2BC8045180486F000FCD8D5 /* BuildHawk.xcdatamodeld */,
 				F2B29FCB17D0F31B00F09C6F /* BHAppDelegate.h */,
 				F2B29FCC17D0F31B00F09C6F /* BHAppDelegate.m */,

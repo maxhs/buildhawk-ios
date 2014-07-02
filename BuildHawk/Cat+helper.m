@@ -29,7 +29,9 @@
         NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
             ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
-            if (!item){
+            if (item){
+                [item update:itemDict];
+            } else {
                 item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [item populateFromDictionary:itemDict];
@@ -38,6 +40,33 @@
         self.items = items;
     }
 }
+
+- (void)update:(NSDictionary *)dictionary{
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
+        self.name = [dictionary objectForKey:@"name"];
+    }
+    if ([dictionary objectForKey:@"progress_percentage"] && [dictionary objectForKey:@"progress_percentage"] != [NSNull null]) {
+        self.progressPercentage = [dictionary objectForKey:@"progress_percentage"];
+    }
+    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
+        self.orderIndex = [dictionary objectForKey:@"order_index"];
+    }
+    if ([dictionary objectForKey:@"checklist_items"] && [dictionary objectForKey:@"checklist_items"] != [NSNull null]) {
+        NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
+        for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
+            ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
+            if (item){
+                [item update:itemDict];
+            } else {
+                item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [item populateFromDictionary:itemDict];
+            }
+            [items addObject:item];
+        }
+        self.items = items;
+    }
+}
+
 
 - (void)removeItem:(ChecklistItem *)item{
     NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.items];

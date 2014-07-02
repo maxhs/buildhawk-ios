@@ -31,4 +31,7 @@
     // Configure the view for the selected state
 }
 
+- (void)configureForActivity:(Activity*)activity {
+    [_activityLabel setText:activity.body];
+}
 @end

@@ -7,8 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Activity.h"
 
 @interface BHActivityCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *activityLabel;
 @property (weak, nonatomic) IBOutlet UILabel *timestampLabel;
+- (void)configureForActivity:(Activity*)activity;
 @end

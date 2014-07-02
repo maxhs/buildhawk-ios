@@ -11,6 +11,7 @@
 
 @interface ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)update:(NSDictionary*)dictionary;
 - (void)addComment:(Comment *)comment;
 - (void)removeComment:(Comment *)comment;
 - (void)addPhoto:(Photo *)photo;

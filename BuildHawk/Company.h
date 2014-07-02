@@ -21,6 +21,7 @@
 @property (nonatomic, retain) NSOrderedSet *subcontractors;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;
 @property (nonatomic, retain) NSOrderedSet *groups;
+@property (nonatomic, retain) NSMutableOrderedSet *projectUsers;
 @end
 
 @interface Company (CoreDataGeneratedAccessors)

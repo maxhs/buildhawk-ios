@@ -30,8 +30,8 @@
     if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];
     }
-    if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
-        self.createdDate = [dictionary objectForKey:@"created_date"];
+    if ([dictionary objectForKey:@"date_string"] && [dictionary objectForKey:@"date_string"] != [NSNull null]) {
+        self.dateString = [dictionary objectForKey:@"date_string"];
     }
     if ([dictionary objectForKey:@"source"] && [dictionary objectForKey:@"source"] != [NSNull null]) {
         self.source = [dictionary objectForKey:@"source"];
@@ -57,6 +57,30 @@
     if ([dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+}
+
+- (void)update:(NSDictionary *)dictionary {
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
+        self.name = [dictionary objectForKey:@"name"];
+    }
+    if ([dictionary objectForKey:@"date_string"] && [dictionary objectForKey:@"date_string"] != [NSNull null]) {
+        self.dateString = [dictionary objectForKey:@"date_string"];
+    }
+    if ([dictionary objectForKey:@"source"] && [dictionary objectForKey:@"source"] != [NSNull null]) {
+        self.source = [dictionary objectForKey:@"source"];
+    }
+    if ([dictionary objectForKey:@"phase"] && [dictionary objectForKey:@"phase"] != [NSNull null]) {
+        self.photoPhase = [dictionary objectForKey:@"phase"];
+    }
+    if ([dictionary objectForKey:@"folder_name"] != [NSNull null]) {
+        self.folder = [dictionary objectForKey:@"folder_name"];
+    }
+    if ([dictionary objectForKey:@"folder_id"] != [NSNull null]) {
+        self.folderId = [dictionary objectForKey:@"folder_id"];
+    }
+    if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {
+        self.caption = [dictionary objectForKey:@"description"];
     }
 }
 

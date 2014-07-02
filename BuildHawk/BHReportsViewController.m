@@ -182,7 +182,7 @@
     }
     for (Report *report in project.reports) {
         if (![reportSet containsObject:report]) {
-            NSLog(@"Deleting a report that no longer exists: %@",report.createdDate);
+            NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
             [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
@@ -404,7 +404,7 @@
             newReport.type = (NSString*)sender;
             NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
             [formatter setDateFormat:@"MM/dd/yyyy"];
-            newReport.createdDate = [formatter stringFromDate:[NSDate date]];
+            newReport.dateString = [formatter stringFromDate:[NSDate date]];
             [vc setReport:newReport];
         }
     }
@@ -456,13 +456,13 @@
     [formatter setDateFormat:@"MM/dd/yyyy"];
     NSString *selectedDateString = [formatter stringFromDate:self.datePicker.date];
     [project.reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
-        if ([report.createdDate isEqualToString:selectedDateString]){
+        if ([report.dateString isEqualToString:selectedDateString]){
             [self performSegueWithIdentifier:@"Report" sender:report];
             *stop = YES;
         }
         if (idx == project.reports.count-1){
             Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            newReport.createdDate = selectedDateString;
+            newReport.dateString = selectedDateString;
             newReport.type = kDaily;
             [self performSegueWithIdentifier:@"Report" sender:newReport];
             *stop = YES;

@@ -59,7 +59,6 @@
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
 
-    
     [UIView animateWithDuration:duration
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
@@ -109,16 +108,16 @@
     }
     cell.personnelTextField.delegate = self;
     [cell.personnelTextField setUserInteractionEnabled:YES];
-    cell.selectionStyle = UITableViewCellSelectionStyleDefault;
+
     if (_companyMode){
         switch (indexPath.section) {
             case 0:
             {
-                [cell.textLabel setText:@"Tap to pull from address book"];
+                [cell.textLabel setText:@"Pull info from address book"];
                 [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
                 [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
                 UIImageView *buttonBackground = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"wideButton"]];
-                [buttonBackground setFrame:CGRectMake(40, 2, 240, 50)];
+                [buttonBackground setFrame:CGRectMake(30, 2, 260, 50)];
                 [cell addSubview:buttonBackground];
                 [cell sendSubviewToBack:buttonBackground];
                 [cell.personnelTextField setUserInteractionEnabled:NO];
@@ -132,6 +131,7 @@
                 [companyNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [companyNameTextField setReturnKeyType:UIReturnKeyNext];
                 [companyNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
+                cell.selectionStyle = UITableViewCellSelectionStyleDefault;
                 break;
             case 2:
                 cell.personnelTextField.placeholder = @"Your contact at this company";
@@ -139,6 +139,7 @@
                 [contactTextField setKeyboardType:UIKeyboardTypeDefault];
                 [contactTextField setReturnKeyType:UIReturnKeyNext];
                 [contactTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
+                cell.selectionStyle = UITableViewCellSelectionStyleDefault;
                 break;
             case 3:
                 cell.personnelTextField.placeholder = @"A contact email address";
@@ -146,6 +147,7 @@
                 [companyEmailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
                 [companyEmailTextField setReturnKeyType:UIReturnKeyNext];
                 [companyEmailTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+                cell.selectionStyle = UITableViewCellSelectionStyleDefault;
                 break;
             case 4:
                 cell.personnelTextField.placeholder = @"A contact phone number";
@@ -175,6 +177,9 @@
             case 1:
                 cell.personnelTextField.placeholder = @"First name";
                 firstNameTextField = cell.personnelTextField;
+                if (_name.length){
+                    [firstNameTextField setText:_name];
+                }
                 [firstNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [firstNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
@@ -348,7 +353,9 @@
         [vc setPeopleArray:peopleArray];
         [vc setSubcontractor:_subcontractor];
         [vc setTitle:[NSString stringWithFormat:@"%@",_subcontractor.name]];
-        [vc setTask:_task];
+        if (_task){
+            [vc setTask:_task];
+        }
     }
 }
 

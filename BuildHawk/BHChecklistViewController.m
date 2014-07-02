@@ -370,10 +370,13 @@
     NSMutableOrderedSet *phases = [NSMutableOrderedSet orderedSet];
     for (id phaseDict in array) {
         Phase *phase = [Phase MR_findFirstByAttribute:@"identifier" withValue:[phaseDict objectForKey:@"id"]];
-        if (!phase){
+        if (phase){
+            [phase update:phaseDict];
+        } else {
             phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [phase populateFromDictionary:phaseDict];
         }
-        [phase populateFromDictionary:phaseDict];
+        
         [phases addObject:phase];
     }
     _checklist.phases = phases;

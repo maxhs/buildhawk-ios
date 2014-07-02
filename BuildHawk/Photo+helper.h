@@ -10,4 +10,5 @@
 
 @interface Photo (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)update:(NSDictionary*)dictionary;
 @end

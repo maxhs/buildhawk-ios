@@ -19,7 +19,7 @@
 
 @dynamic body;
 @dynamic createdAt;
-@dynamic createdDate;
+@dynamic dateString;
 @dynamic humidity;
 @dynamic identifier;
 @dynamic possibleTopics;

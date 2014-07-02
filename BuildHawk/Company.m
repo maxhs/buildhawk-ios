@@ -22,4 +22,6 @@
 @dynamic safetyTopics;
 @dynamic groups;
 
+@synthesize projectUsers;
+
 @end

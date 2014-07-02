@@ -98,8 +98,8 @@
     [dateFormatter setDateStyle:NSDateFormatterShortStyle];
     [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadItem:) name:@"ReloadWorklistItem" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addItem:) name:@"AddWorklistItem" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadTask:) name:@"ReloadTask" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addTask:) name:@"AddTask" object:nil];
 }
 
 - (void)createItem {
@@ -116,43 +116,37 @@
     }
 }
 
-- (void)addItem:(NSNotification*)notification {
-    WorklistItem *newItem = [notification.userInfo objectForKey:@"item"];
+- (void)addTask:(NSNotification*)notification {
+    WorklistItem *newItem = [notification.userInfo objectForKey:@"task"];
     [_worklistItems insertObject:newItem atIndex:0];
     firstLoad = YES;
     [self drawWorklist];
 }
 
-- (void)reloadItem:(NSNotification*)notification {
-
+- (void)reloadTask:(NSNotification*)notification {
     NSDictionary *userInfo = notification.userInfo;
-    WorklistItem *newItem = [userInfo objectForKey:@"item"];
-    if ([newItem.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
-        if (showCompleted){
-            NSIndexPath *indexPathToReload = [NSIndexPath indexPathForRow:[completedListItems indexOfObject:newItem] inSection:0];
-            if (self.isViewLoaded && self.view.window){
-                [self.tableView reloadRowsAtIndexPaths:@[indexPathToReload] withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            showCompleted = YES;
-            [self.tableView reloadData];
+    WorklistItem *notificationTask = [userInfo objectForKey:@"task"];
+    NSLog(@"notification task: %@",notificationTask);
+    if ([notificationTask.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if (![completedListItems containsObject:notificationTask]){
+            [completedListItems insertObject:notificationTask atIndex:0];
         }
-    } else if (showActive){
-        NSIndexPath *indexPathToReload = [NSIndexPath indexPathForRow:[activeListItems indexOfObject:newItem] inSection:0];
-        if (self.isViewLoaded && self.view.window){
-            [self.tableView reloadRowsAtIndexPaths:@[indexPathToReload] withRowAnimation:UITableViewRowAnimationFade];
-        }
-    } /*else if (showByAssignee){
-        indexPathToReload = [NSIndexPath indexPathForRow:[assigneeListItems indexOfObject:item] inSection:0];
-        [self.tableView reloadRowsAtIndexPaths:@[indexPathToReload] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (showByLocation) {
-        indexPathToReload = [NSIndexPath indexPathForRow:[locationListItems indexOfObject:item] inSection:0];
-        [self.tableView reloadRowsAtIndexPaths:@[indexPathToReload] withRowAnimation:UITableViewRowAnimationFade];
+        [_segmentedControl setSelectedSegmentIndex:3];
+        [self resetSegments];
+        showCompleted = YES;
+        [self filterCompleted];
     } else {
-        indexPathToReload = [NSIndexPath indexPathForRow:[_worklistItems indexOfObject:item] inSection:0];
-        [self.tableView reloadRowsAtIndexPaths:@[indexPathToReload] withRowAnimation:UITableViewRowAnimationFade];
-    }*/
-    
+        showActive = YES;
+        [_segmentedControl setSelectedSegmentIndex:0];
+        [self resetSegments];
+        showActive = YES;
+        
+        if (![_worklistItems containsObject:notificationTask]){
+            [_worklistItems addObject:notificationTask];
+        }
+        
+        [self filterActive];
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {

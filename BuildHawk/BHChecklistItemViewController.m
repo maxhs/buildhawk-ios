@@ -218,6 +218,33 @@
 }
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    
+    switch (section) {
+        case 0:
+            return _item.type;
+            break;
+        case 1:
+            return @"Status";
+            break;
+        case 2:
+            return @"Photos";
+            break;
+        case 3:
+            return @"Reminders";
+            break;
+        case 4:
+            return @"Contact";
+            break;
+        case 5:
+            return @"Comments";
+            break;
+        case 7:
+            return @"Activity";
+            break;
+        default:
+            return @"";
+            break;
+    }
     if (section == 0){
         return _item.type;
     } else return @"";
@@ -344,7 +371,7 @@
             activityCell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
         }
         Activity *activity = _item.activities[indexPath.row];
-        [activityCell.textLabel setText:activity.body];
+        [activityCell configureForActivity:activity];
         [activityCell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
         return activityCell;
     }
@@ -487,16 +514,14 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
-    BHPersonnelPickerViewController *vc = [segue destinationViewController];
-    [vc setCountNotNeeded:YES];
-    
-    if (phoneBool) {
-        [vc setPhone:YES];
-    } else if (emailBool) {
-        [vc setEmail:YES];
-    }
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]) {
-        [vc setUsers:_project.users.mutableCopy];
+        BHPersonnelPickerViewController *vc = [segue destinationViewController];
+        if (phoneBool) {
+            [vc setPhone:YES];
+        } else if (emailBool) {
+            [vc setEmail:YES];
+        }
+        //[vc setUsers:_project.users.mutableCopy];
     }
 }
 

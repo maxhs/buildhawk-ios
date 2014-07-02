@@ -11,6 +11,7 @@
 
 @interface Company (helper)
 - (void) populateWithDict:(NSDictionary*)dictionary;
+- (void) update:(NSDictionary*)dictionary;
 - (void) addProject:(Project*)project;
 - (void) removeProject:(Project*)project;
 @end

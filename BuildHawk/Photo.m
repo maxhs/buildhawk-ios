@@ -13,7 +13,7 @@
 @implementation Photo
 
 @dynamic createdAt;
-@dynamic createdDate;
+@dynamic dateString;
 @dynamic identifier;
 @dynamic name;
 @dynamic original;

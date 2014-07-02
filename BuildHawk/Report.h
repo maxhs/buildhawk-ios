@@ -15,7 +15,7 @@
 
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSDate * createdAt;
-@property (nonatomic, retain) NSString * createdDate;
+@property (nonatomic, retain) NSString * dateString;
 @property (nonatomic, retain) NSString * humidity;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) id possibleTopics;

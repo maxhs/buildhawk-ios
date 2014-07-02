@@ -34,7 +34,7 @@
 }
 
 - (void)configureReport:(Report *)report {
-    [_reportLabel setText:[NSString stringWithFormat:@"%@ Report - %@",report.type,report.createdDate]];
+    [_reportLabel setText:[NSString stringWithFormat:@"%@ Report - %@",report.type,report.dateString]];
     if (report.author.fullname.length){
         [_authorLabel setText:[NSString stringWithFormat:@"Author: %@",report.author.fullname]];
     } else {

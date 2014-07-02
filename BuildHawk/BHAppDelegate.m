@@ -74,7 +74,6 @@
     RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:_nav
                                                                     leftMenuViewController:_menu
                                                                    rightMenuViewController:nil];
-    sideMenuViewController.backgroundImage = [UIImage imageNamed:@"Stars"];
     sideMenuViewController.menuPreferredStatusBarStyle = 1; // UIStatusBarStyleLightContent
     sideMenuViewController.delegate = self;
     /*sideMenuViewController.contentViewShadowColor = [UIColor blackColor];
@@ -110,8 +109,8 @@
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
      setTitleTextAttributes:@{[UIColor blackColor]:NSForegroundColorAttributeName} forState:UIControlStateNormal];
     
-    [[UISearchBar appearance] setBackgroundImage:empty];
-    [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];
+    /*[[UISearchBar appearance] setBackgroundImage:empty];
+    [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];*/
     
     [[UITabBarItem appearance] setTitleTextAttributes: @{
                     NSForegroundColorAttributeName : [UIColor whiteColor],

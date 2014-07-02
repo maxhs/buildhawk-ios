@@ -128,10 +128,10 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         [self.activeTableView removeFromSuperview];
         [self.afterTableView removeFromSuperview];
         _report.createdAt = [NSDate date];
-        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
         [self.beforeTableView setReport:_report];
         _reportTableView = self.beforeTableView;
-        [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
+        [self loadWeather:[formatter dateFromString:_report.dateString] forTableView:self.beforeTableView];
         saveCreateButton = [[UIBarButtonItem alloc] initWithTitle:@"Create" style:UIBarButtonItemStylePlain target:self action:@selector(send)];
     } else {
         idx = [_reports indexOfObject:_report];
@@ -176,7 +176,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             [self.activeTableView setReport:_report];
             _reportTableView = self.activeTableView;
         }
-        self.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.createdDate];
+        self.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.dateString];
         saveCreateButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(send)];
     }
     previousContentOffsetX = _scrollView.contentOffset.x;
@@ -279,7 +279,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         if (idx <= 1 && self.scrollView.contentOffset.x < screenWidth()){
             NSLog(@"first report");
             idx = 0;
-            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",[(Report*)_reports.firstObject type], [(Report*)_reports.firstObject createdDate]];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",[(Report*)_reports.firstObject type], [(Report*)_reports.firstObject dateString]];
             [self.beforeTableView setReport:_reports.firstObject];
             _reportTableView = self.beforeTableView;
             
@@ -291,7 +291,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         } else if (idx == _reports.count-2 && x >= screenWidth()){
             NSLog(@"last report");
             idx = [_reports indexOfObject:_reports.lastObject];
-            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",[(Report*)_reports.lastObject type], [(Report*)_reports.lastObject createdDate]];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",[(Report*)_reports.lastObject type], [(Report*)_reports.lastObject dateString]];
             if (_reports.count > 2){
                 [self.beforeTableView setReport:[_reports objectAtIndex:idx-2]];
             }
@@ -309,7 +309,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             if (idx > 0) [self.beforeTableView setReport:[_reports objectAtIndex:idx-1]];
             if (idx < _reports.count - 1) [self.afterTableView setReport:[_reports objectAtIndex:idx+1]];
             
-            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.createdDate];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.dateString];
             [self.activeTableView reloadData];
             [self.afterTableView reloadData];
             [self.beforeTableView reloadData];
@@ -322,7 +322,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             [self.afterTableView setReport:[_reports objectAtIndex:idx+1]];
             _reportTableView = self.activeTableView;
             
-            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.createdDate];
+            self.navigationItem.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.dateString];
             [self.activeTableView reloadData];
             [self.beforeTableView reloadData];
             [self.afterTableView reloadData];
@@ -348,7 +348,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 - (void)loadReport {
     if (_reportTableView.report.identifier){
         [ProgressHUD show:@"Fetching report..."];
-        NSString *slashSafeDate = [_reportTableView.report.createdDate stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
+        NSString *slashSafeDate = [_reportTableView.report.dateString stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
         [manager GET:[NSString stringWithFormat:@"%@/reports/%@/review_report",kApiBaseUrl,_project.identifier] parameters:@{@"date_string":slashSafeDate} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting report: %@",responseObject);
             //_report = [[Report alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
@@ -409,8 +409,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         }
         [cell configure];
         [cell.typePickerButton setTitle:tableView.report.type forState:UIControlStateNormal];
-        if (tableView.report.createdDate.length) {
-            [cell.datePickerButton setTitle:tableView.report.createdDate forState:UIControlStateNormal];
+        if (tableView.report.dateString.length) {
+            [cell.datePickerButton setTitle:tableView.report.dateString forState:UIControlStateNormal];
             choosingDate = NO;
         } else {
             [cell.datePickerButton setTitle:@"" forState:UIControlStateNormal];
@@ -606,7 +606,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
         }
         Activity *activity = tableView.report.activities[indexPath.row];
-        [cell.textLabel setText:activity.body];
+        [cell configureForActivity:activity];
+        [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
         return cell;
     }
 }
@@ -653,14 +654,17 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         case 7:
             return 100;
             break;
-        default:
+        case 8:
             if (iPhone5){
-                return 266;
+                return 220;
             } else if (IDIOM == IPAD){
-                return 408;
+                return 360;
             } else {
-                return 180;
+                return 132;
             }
+            break;
+        default:
+            return 80;
             break;
     }
 }
@@ -801,16 +805,16 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     NSString *dateString = [formatter stringFromDate:self.datePicker.date];
     BOOL duplicate = NO;
     for (Report *report in _project.reports){
-        if ([report.type isEqualToString:_report.type] && [report.createdDate isEqualToString:dateString]) duplicate = YES;
+        if ([report.type isEqualToString:_report.type] && [report.dateString isEqualToString:dateString]) duplicate = YES;
     }
     if (duplicate){
         [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        _report.createdDate = dateString;
-        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.createdDate];
+        _report.dateString = dateString;
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
         [self.beforeTableView reloadData];
         if ([_report.type isEqualToString:kDaily]){
-            [self loadWeather:[formatter dateFromString:_report.createdDate] forTableView:self.beforeTableView];
+            [self loadWeather:[formatter dateFromString:_report.dateString] forTableView:self.beforeTableView];
         }
     }
 }
@@ -897,14 +901,14 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     if (actionSheet == typePickerActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]){
         BOOL duplicate = NO;
         for (Report *report in _project.reports){
-            if ([report.type isEqualToString:buttonTitle] && [report.createdDate isEqualToString:_reportTableView.report.createdDate]) duplicate = YES;
+            if ([report.type isEqualToString:buttonTitle] && [report.dateString isEqualToString:_reportTableView.report.dateString]) duplicate = YES;
         }
         if (!duplicate){
             _reportTableView.report.type = buttonTitle;
-            self.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.createdDate];
+            self.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.dateString];
             [self.beforeTableView reloadData];
             if ([_reportTableView.report.type isEqualToString:kDaily]){
-                [self loadWeather:[formatter dateFromString:_reportTableView.report.createdDate] forTableView:self.beforeTableView];
+                [self loadWeather:[formatter dateFromString:_reportTableView.report.dateString] forTableView:self.beforeTableView];
             }
         } else {
             [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -1311,7 +1315,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         if ([sender isEqualToString:kIndividual]) {
             BHPersonnelPickerViewController *vc = [segue destinationViewController];
             [vc setOrderedUsers:_reportTableView.report.reportUsers.mutableCopy];
-            [vc setUsers:_project.users.mutableCopy];
+            //[vc setUsers:_project.users.mutableCopy];
         } else if ([sender isEqualToString:kCompany]){
             BHPersonnelPickerViewController *vc = [segue destinationViewController];
             [vc setOrderedSubs:_reportTableView.report.reportSubs.mutableCopy];
@@ -1404,7 +1408,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         [parameters setObject:_project.identifier forKey:@"project_id"];
         if (_reportTableView.report.weather.length) [parameters setObject:_reportTableView.report.weather forKey:@"weather"];
-        if (_reportTableView.report.createdDate.length) [parameters setObject:_reportTableView.report.createdDate forKey:@"created_date"];
+        if (_reportTableView.report.dateString.length) [parameters setObject:_reportTableView.report.dateString forKey:@"date_string"];
         if (_reportTableView.report.type.length) [parameters setObject:_reportTableView.report.type forKey:@"report_type"];
         if (_reportTableView.report.precip.length) [parameters setObject:_reportTableView.report.precip forKey:@"precip"];
         if (_reportTableView.report.humidity.length) [parameters setObject:_reportTableView.report.humidity forKey:@"humidity"];
@@ -1534,7 +1538,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         SafetyTopic *topic = [tableView.report.safetyTopics objectAtIndex:indexPath.row];
         if (IDIOM == IPAD){
             BHSafetyTopicViewController* vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"SafetyTopic"];
-            [vc setTitle:[NSString stringWithFormat:@"%@ - %@", tableView.report.type, tableView.report.createdDate]];
+            [vc setTitle:[NSString stringWithFormat:@"%@ - %@", tableView.report.type, tableView.report.dateString]];
             [vc setSafetyTopic:topic];
             self.popover = [[UIPopoverController alloc] initWithContentViewController:vc];
             self.popover.delegate = self;
@@ -1550,7 +1554,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 -(void)showSafetyTopic:(SafetyTopic*)safetyTopic forReport:(Report*)report {
     BHSafetyTopicViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"SafetyTopic"];
     [vc setSafetyTopic:safetyTopic];
-    [vc setTitle:[NSString stringWithFormat:@"%@ - %@", report.type, report.createdDate]];
+    [vc setTitle:[NSString stringWithFormat:@"%@ - %@", report.type, report.dateString]];
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
     nav.transitioningDelegate = self;
     nav.modalPresentationStyle = UIModalPresentationCustom;

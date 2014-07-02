@@ -19,6 +19,7 @@
 @interface Report (helper)
 
 - (void) populateWithDict:(NSDictionary*)dictionary;
+- (void) update:(NSDictionary*)dictionary;
 - (void) addSafetyTopic:(SafetyTopic*)topic;
 - (void) removeSafetyTopic:(SafetyTopic*)topic;
 - (void) addReportUser:(ReportUser*)reportUser;

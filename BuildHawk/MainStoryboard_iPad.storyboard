@@ -481,7 +481,6 @@
                         <outlet property="tableView" destination="1Lr-cs-ex4" id="sJK-DB-5bO"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="PersonnelPicker" id="bd7-Rv-hQV"/>
-                        <segue destination="XFP-TZ-PCg" kind="push" identifier="SubcontractorPicker" id="8op-5V-Haa"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w2d-zW-wTP" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -1581,12 +1580,12 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Cv8-k3-7jn"/>
-        <segue reference="vI7-Ml-H9J"/>
         <segue reference="dko-BE-dy7"/>
+        <segue reference="vI7-Ml-H9J"/>
         <segue reference="tY6-jf-jEH"/>
+        <segue reference="Cv8-k3-7jn"/>
         <segue reference="Aym-Jz-3Mj"/>
-        <segue reference="bd7-Rv-hQV"/>
         <segue reference="Lue-dQ-dtC"/>
+        <segue reference="bd7-Rv-hQV"/>
     </inferredMetricsTieBreakers>
 </document>

@@ -8,18 +8,17 @@
 
 #import <UIKit/UIKit.h>
 
-@interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate>
+@interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+@property (weak, nonatomic) IBOutlet UIButton *addressBookButton;
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) WorklistItem *task;
-@property (strong, nonatomic) NSMutableOrderedSet *users;
 @property (strong, nonatomic) NSMutableOrderedSet *orderedUsers;
 @property (strong, nonatomic) NSMutableOrderedSet *orderedSubs;
-@property BOOL taskMode;
 @property BOOL companyMode;
-@property BOOL countNotNeeded;
 @property BOOL phone;
 @property BOOL email;
 
