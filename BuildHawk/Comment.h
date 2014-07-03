@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 #import "User+helper.h"
-
-@class ChecklistItem, User;
+#import "Activity.h"
+#import "ChecklistItem.h"
 
 @interface Comment : NSManagedObject
 
@@ -20,5 +20,6 @@
 @property (nonatomic, retain) NSString * createdOnString;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) User *user;
+@property (nonatomic, retain) Activity *activity;
 
 @end

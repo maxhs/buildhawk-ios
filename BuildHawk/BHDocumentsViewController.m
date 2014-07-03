@@ -65,10 +65,8 @@
     dateArray = [NSMutableArray array];
     sortedByUser = [NSMutableArray array];
     sourceArray = [NSMutableArray array];
-    checklistArray = [NSMutableArray array];
-    reportsArray = [NSMutableArray array];
-    worklistArray = [NSMutableArray array];
-    documentsArray = [NSMutableArray array];
+
+    
     sortByDate = NO;
     sortByUser = NO;
     [Flurry logEvent:@"Viewing documents"];
@@ -77,7 +75,7 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
-    [refreshControl setTintColor:[UIColor whiteColor]];
+    [refreshControl setTintColor:[UIColor blackColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     if (_project.documents.count > 0) [self drawDocuments:_project.documents];
@@ -135,13 +133,28 @@
 
 - (void)drawDocuments:(NSOrderedSet*)set {
     photosArray = set.array;
-    if (checklistArray.count) [checklistArray removeAllObjects];
-    if (worklistArray.count) [worklistArray removeAllObjects];
-    if (reportsArray.count) [reportsArray removeAllObjects];
-    if (documentsArray.count) [documentsArray removeAllObjects];
+    if (checklistArray) {
+        [checklistArray removeAllObjects];
+    } else {
+        checklistArray = [NSMutableArray array];
+    }
+    if (worklistArray) {
+        [worklistArray removeAllObjects];
+    } else {
+        worklistArray = [NSMutableArray array];
+    }
+    if (reportsArray) {
+        [reportsArray removeAllObjects];
+    } else {
+        reportsArray = [NSMutableArray array];
+    }
+    if (documentsArray) {
+        [documentsArray removeAllObjects];
+    } else {
+        documentsArray = [NSMutableArray array];
+    }
     
     for (Photo *photo in set.array) {
-
         if ([photo.source isEqualToString:kChecklist]) {
             [checklistArray addObject:photo];
         } else if ([photo.source isEqualToString:kWorklist]) {

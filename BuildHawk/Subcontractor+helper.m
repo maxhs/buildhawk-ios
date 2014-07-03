@@ -7,6 +7,7 @@
 //
 
 #import "Subcontractor+helper.h"
+#import "User+helper.h"
 
 @implementation Subcontractor (helper)
 
@@ -18,6 +19,7 @@
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
+    
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
         //NSLog(@"subcontractor users: %@",[dictionary objectForKey:@"users"]);
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];

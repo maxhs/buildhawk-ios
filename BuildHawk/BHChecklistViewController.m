@@ -9,11 +9,8 @@
 #import "BHChecklistViewController.h"
 #import "BHChecklistItemViewController.h"
 #import "BHTabBarViewController.h"
-#import "Phase.h"
 #import "Phase+helper.h"
 #import "Cat+helper.h"
-#import "Cat.h"
-#import "ChecklistItem.h"
 #import "ChecklistItem+helper.h"
 #import "Constants.h"
 #import "Checklist.h"
@@ -245,7 +242,7 @@
 - (void)filterActive {
     active = YES;
     _checklist.activePhases = [NSMutableArray array];
-    NSPredicate *testForActive = [NSPredicate predicateWithFormat:@"status != %@ and status != %@",kNotApplicable,kCompleted];
+    NSPredicate *testForActive = [NSPredicate predicateWithFormat:@"state != %@ and state != %@",kItemNotApplicable,kItemCompleted];
     for (Phase *phase in _checklist.phases){
         phase.activeCategories = [NSMutableArray array];
         
@@ -279,7 +276,7 @@
         _checklist.inProgressPhases = [NSMutableArray array];
     }
     
-    NSPredicate *testForProgress = [NSPredicate predicateWithFormat:@"status == %@",kInProgress];
+    NSPredicate *testForProgress = [NSPredicate predicateWithFormat:@"state == %@",kItemInProgress];
     for (Phase *phase in _checklist.phases){
         phase.inProgressCategories = [NSMutableArray array];
         for (Cat *category in phase.categories){
@@ -312,7 +309,7 @@
     } else {
         _checklist.completedPhases = [NSMutableArray array];
     }
-    NSPredicate *testForCompletion = [NSPredicate predicateWithFormat:@"status == %@",kCompleted];
+    NSPredicate *testForCompletion = [NSPredicate predicateWithFormat:@"state == %@",kItemCompleted];
     for (Phase *phase in _checklist.phases){
         phase.completedCategories = [NSMutableArray array];
         for (Cat *category in phase.categories){
@@ -376,16 +373,15 @@
             phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [phase populateFromDictionary:phaseDict];
         }
-        
         [phases addObject:phase];
     }
     _checklist.phases = phases;
     
-    if (self.isViewLoaded && self.view.window){
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        if (self.isViewLoaded && self.view.window){
             [self.tableView reloadData];
-        }];
-    }
+        }
+    }];
 }
 
 
@@ -486,7 +482,7 @@
         ChecklistItem *item = [filteredItems objectAtIndex:indexPath.row];
         [cell.textLabel setText:item.body];
         
-        if ([item.status isEqualToString:kCompleted]) {
+        if (item.state && [item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
             [cell.textLabel setTextColor:[UIColor lightGrayColor]];
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
             cell.accessoryView.tintColor = [UIColor lightGrayColor];
@@ -591,20 +587,26 @@
                     [cell.progressPercentage setText:@""];
                     [backgroundView setBackgroundColor:kBlueColor];
                     
-                    if ([item.status isEqualToString:kNotApplicable]){
-                        UILabel *notApplicableLabel = [[UILabel alloc] init];
-                        [notApplicableLabel setText:@"N/A"];
-                        [cell.photoImageView setHidden:YES];
-                        [notApplicableLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
-                        [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
-                        NSMutableAttributedString *attributedBody = cell.itemBody.attributedText.mutableCopy;
-                        [attributedBody addAttribute:NSStrikethroughStyleAttributeName value:@1 range:NSMakeRange(0, attributedBody.length)];
-                        cell.itemBody.attributedText = attributedBody;
-                        cell.accessoryView = notApplicableLabel;
-                    } else if ([item.status isEqualToString:kCompleted]){
-                        [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
-                        cell.accessoryType = UITableViewCellAccessoryCheckmark;
-                        [cell setTintColor:[UIColor whiteColor]];
+                    
+                    if (item.state){
+                        if ([item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
+                            [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+                            cell.accessoryType = UITableViewCellAccessoryCheckmark;
+                            [cell setTintColor:[UIColor whiteColor]];
+                        } else if ([item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
+                            [cell.itemBody setTextColor:[UIColor whiteColor]];
+                            cell.accessoryType = UITableViewCellAccessoryNone;
+                        } else {
+                            UILabel *notApplicableLabel = [[UILabel alloc] init];
+                            [notApplicableLabel setText:@"N/A"];
+                            [cell.photoImageView setHidden:YES];
+                            [notApplicableLabel setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+                            [cell.itemBody setTextColor:[UIColor colorWithWhite:1 alpha:.5]];
+                            NSMutableAttributedString *attributedBody = cell.itemBody.attributedText.mutableCopy;
+                            [attributedBody addAttribute:NSStrikethroughStyleAttributeName value:@1 range:NSMakeRange(0, attributedBody.length)];
+                            cell.itemBody.attributedText = attributedBody;
+                            cell.accessoryView = notApplicableLabel;
+                        }
                     } else {
                         [cell.itemBody setTextColor:[UIColor whiteColor]];
                         cell.accessoryType = UITableViewCellAccessoryNone;

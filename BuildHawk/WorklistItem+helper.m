@@ -37,6 +37,17 @@
         [project populateFromDictionary:projectDict];
         self.project = project;
     }
+    
+    if ([dictionary objectForKey:@"worklist_id"] && [dictionary objectForKey:@"worklist_id"] != [NSNull null]) {
+
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"worklist_id"]];
+        Worklist *worklist = [Worklist MR_findFirstWithPredicate:predicate];
+        if (!worklist){
+            worklist = [Worklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        worklist.project = self.project;
+        self.worklist = worklist;
+    }
 
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
         NSDictionary *userDict = [dictionary objectForKey:@"user"];
@@ -76,6 +87,25 @@
             [orderedComments addObject:comment];
         }
         self.comments = orderedComments;
+    }
+    
+    if ([dictionary objectForKey:@"activities"] && [dictionary objectForKey:@"activities"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedActivities = [NSMutableOrderedSet orderedSet];
+        for (id dict in [dictionary objectForKey:@"activities"]){
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+            Activity *activity = [Activity MR_findFirstWithPredicate:predicate];
+            if (!activity){
+                activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [activity populateFromDictionary:dict];
+            [orderedActivities addObject:activity];
+        }
+        for (Activity *activity in self.activities) {
+            if (![orderedActivities containsObject:activity]){
+                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        self.activities = orderedActivities;
     }
     
     if ([dictionary objectForKey:@"completed"] && [dictionary objectForKey:@"completed"] != [NSNull null]) {
@@ -140,6 +170,17 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.assignees];
     [set removeObject:user];
     self.assignees = set;
+}
+
+-(void)addActivity:(Activity *)activity {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
+    [set addObject:activity];
+    self.activities = set;
+}
+-(void)removeActivity:(Activity *)activity {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
+    [set removeObject:activity];
+    self.activities = set;
 }
 
 /*   

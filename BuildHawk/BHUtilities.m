@@ -7,23 +7,8 @@
 //
 
 #import "BHUtilities.h"
-#import "ChecklistItem+helper.h"
-#import "Cat+helper.h"
-#import "Comment.h"
-#import "Comment+helper.h"
 
 @implementation BHUtilities
-
-+ (NSMutableArray *)checklistItemsFromJSONArray:(NSArray *) array {
-    NSMutableArray *items = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *itemDictionary in array) {
-        ChecklistItem *item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [item populateFromDictionary:itemDictionary];
-        [items addObject:item];
-    }
-    return items;
-}
-
 
 /*+ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
     NSMutableArray *personnel = [NSMutableArray arrayWithCapacity:array.count];
@@ -47,25 +32,6 @@
     }
     return personnel;
 }*/
-
-+ (NSOrderedSet *)commentsFromJSONArray:(NSArray *) array {
-    NSMutableOrderedSet *comments = [NSMutableOrderedSet orderedSetWithCapacity:array.count];
-    for (NSDictionary *commentDictionary in array) {
-        Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [comment populateFromDictionary:commentDictionary];
-        [comments addObject:comment];
-    }
-    return comments;
-}
-
-+ (NSMutableArray *)subcontractorsFromJSONArray:(NSArray *) array {
-    NSMutableArray *subcontractors = [NSMutableArray arrayWithCapacity:array.count];
-    /*for (NSDictionary *subDictionary in array) {
-        Sub *sub = [[Sub alloc] initWithDictionary:subDictionary];
-        [subcontractors addObject:sub];
-    }*/
-    return subcontractors;
-}
 
 + (NSDate*)parseDate:(id)value {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];

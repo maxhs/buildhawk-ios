@@ -8,8 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-
-@class Cat, Checklist, ChecklistItem, Project;
+#import "Checklist.h"
+#import "Project.h"
+#import "User+helper.h"
 
 @interface Phase : NSManagedObject
 
@@ -32,26 +33,3 @@
 @property (nonatomic, retain) NSMutableArray *inProgressCategories;
 @end
 
-@interface Phase (CoreDataGeneratedAccessors)
-
-- (void)insertObject:(ChecklistItem *)value inChecklistItemsAtIndex:(NSUInteger)idx;
-- (void)removeObjectFromChecklistItemsAtIndex:(NSUInteger)idx;
-- (void)insertChecklistItems:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
-- (void)removeChecklistItemsAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInChecklistItemsAtIndex:(NSUInteger)idx withObject:(ChecklistItem *)value;
-- (void)replaceChecklistItemsAtIndexes:(NSIndexSet *)indexes withChecklistItems:(NSArray *)values;
-- (void)addChecklistItemsObject:(ChecklistItem *)value;
-- (void)removeChecklistItemsObject:(ChecklistItem *)value;
-- (void)addChecklistItems:(NSOrderedSet *)values;
-- (void)removeChecklistItems:(NSOrderedSet *)values;
-- (void)insertObject:(Cat *)value inCategoriesAtIndex:(NSUInteger)idx;
-- (void)removeObjectFromCategoriesAtIndex:(NSUInteger)idx;
-- (void)insertCategories:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
-- (void)removeCategoriesAtIndexes:(NSIndexSet *)indexes;
-- (void)replaceObjectInCategoriesAtIndex:(NSUInteger)idx withObject:(Cat *)value;
-- (void)replaceCategoriesAtIndexes:(NSIndexSet *)indexes withCategories:(NSArray *)values;
-- (void)addCategoriesObject:(Cat *)value;
-- (void)removeCategoriesObject:(Cat *)value;
-- (void)addCategories:(NSOrderedSet *)values;
-- (void)removeCategories:(NSOrderedSet *)values;
-@end

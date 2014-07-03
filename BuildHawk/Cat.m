@@ -7,9 +7,6 @@
 //
 
 #import "Cat.h"
-#import "ChecklistItem.h"
-#import "Phase.h"
-
 
 @implementation Cat
 

@@ -183,7 +183,7 @@
 - (void)hudOrient
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 {
-	CGFloat rotate;
+	/*CGFloat rotate;
 	//---------------------------------------------------------------------------------------------------------------------------------------------
 	UIInterfaceOrientation orient = [[UIApplication sharedApplication] statusBarOrientation];
 	//---------------------------------------------------------------------------------------------------------------------------------------------
@@ -191,8 +191,9 @@
 	if (orient == UIInterfaceOrientationPortraitUpsideDown)	rotate = M_PI;
 	if (orient == UIInterfaceOrientationLandscapeLeft)		rotate = - M_PI_2;
 	if (orient == UIInterfaceOrientationLandscapeRight)		rotate = + M_PI_2;
+    else rotate = 0.0;
 	//---------------------------------------------------------------------------------------------------------------------------------------------
-	hud.transform = CGAffineTransformMakeRotation(rotate);
+	hud.transform = CGAffineTransformMakeRotation(rotate);*/
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------

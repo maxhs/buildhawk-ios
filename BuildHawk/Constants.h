@@ -77,6 +77,10 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kSafety @"Safety"
 #define kWeekly @"Weekly"
 
+#define kReport @"Report"
+#define kChecklistItem @"ChecklistItem"
+#define kComment @"Comment"
+
 //Colors
 #define kBackgroundFade 0.3f
 #define kLightestGrayColor [UIColor colorWithWhite:.95 alpha:1.0]

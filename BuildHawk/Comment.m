@@ -7,9 +7,6 @@
 //
 
 #import "Comment.h"
-#import "ChecklistItem.h"
-#import "User.h"
-
 
 @implementation Comment
 
@@ -19,5 +16,6 @@
 @dynamic checklistItem;
 @dynamic user;
 @dynamic createdAt;
+@dynamic activity;
 
 @end

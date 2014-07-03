@@ -16,10 +16,13 @@
 
 @dynamic identifier;
 @dynamic body;
+@dynamic notificationType;
+@dynamic read;
 @dynamic checklistItem;
 @dynamic report;
 @dynamic worklistItem;
 @dynamic user;
 @dynamic createdDate;
+@dynamic message;
 
 @end

@@ -10,6 +10,7 @@
 #import "Project.h"
 #import <CoreData/CoreData.h>
 #import "Report.h"
+#import "Photo.h"
 #import "SafetyTopic+helper.h"
 #import "User+helper.h"
 #import "ReportUser+helper.h"

@@ -1,14 +1,14 @@
 //
-//  BHItemReminderCell.m
+//  BHSettingsCell.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 6/3/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
-#import "BHItemReminderCell.h"
+#import "BHSettingsCell.h"
 
-@implementation BHItemReminderCell
+@implementation BHSettingsCell
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {

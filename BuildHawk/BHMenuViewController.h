@@ -7,10 +7,12 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "User.h"
 
 @interface BHMenuViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UIButton *logoutButton;
 @property (strong, nonatomic) User *currentUser;
+- (void)loadNotifications;
 @end

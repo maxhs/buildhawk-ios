@@ -73,6 +73,8 @@ typedef void(^RequestSuccess)(id result);
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    
     if ([UIScreen mainScreen].bounds.size.height == 568) {
         iPhone5 = YES;
     } else if (IDIOM != IPAD) {
@@ -97,39 +99,37 @@ typedef void(^RequestSuccess)(id result);
         self.scrollView.transform = CGAffineTransformMakeTranslation(0, -32);
     }
     
-    if (_worklistItem.identifier){
-        [self redrawScrollView];
-    } else {
+    if (!_worklistItem || [_worklistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         _worklistItem = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(createItem)];
+        [self.navigationItem setRightBarButtonItem:createButton];
+    } else {
+        [self redrawScrollView];
+        [self loadItem];
+        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
+        [self.navigationItem setRightBarButtonItem:saveButton];
     }
+    self.navigationItem.hidesBackButton = YES;
+    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    self.navigationItem.leftBarButtonItem = backButton;
     
+    self.itemTextView.delegate = self;
+    [self.itemTextView setText:itemPlaceholder];
     shouldSave = NO;
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     
     library = [[ALAssetsLibrary alloc]init];
-	[self.completionButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+	
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
-    if ([_worklistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(createItem)];
-        [self.navigationItem setRightBarButtonItem:createButton];
-    } else {
-        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
-        [self.navigationItem setRightBarButtonItem:saveButton];
-    }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(assignTask:) name:@"AssignTask" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
-    self.itemTextView.delegate = self;
-    [self.itemTextView setText:itemPlaceholder];
-    [Flurry logEvent:@"Viewing task"];
     
-    self.navigationItem.hidesBackButton = YES;
-    UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
-    self.navigationItem.leftBarButtonItem = backButton;
     [self drawItem];
+    
+    [Flurry logEvent:@"Viewing task"];
 }
 
 - (void)drawItem {
@@ -138,6 +138,7 @@ typedef void(^RequestSuccess)(id result);
     } else {
         [self.itemTextView setTextColor:[UIColor lightGrayColor]];
     }
+    [self.completionButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
     if ([_worklistItem.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -179,7 +180,11 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)loadItem {
     [manager GET:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl,_worklistItem.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success getting task: %@",responseObject);
+        NSLog(@"success getting task: %@",responseObject);
+        [_worklistItem populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+        [self.tableView beginUpdates];
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to load task: %@",error.description);
     }];
@@ -192,13 +197,13 @@ typedef void(^RequestSuccess)(id result);
     if ([_worklistItem.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
     }
-    else return 3;
+    else return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 0) return 1;
-    else if (section == 1) return _worklistItem.comments.count;
+    //else if (section == 1) return _worklistItem.comments.count;
     else return _worklistItem.activities.count;
 }
 
@@ -216,7 +221,7 @@ typedef void(^RequestSuccess)(id result);
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
-    } else if (indexPath.section == 1) {
+    }/* else if (indexPath.section == 1) {
         BHCommentCell *commentCell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell"];
         if (commentCell == nil) {
             commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
@@ -230,12 +235,13 @@ typedef void(^RequestSuccess)(id result);
         }
         [commentCell.nameLabel setText:comment.user.fullname];
         return commentCell;
-    } else {
+    }*/ else {
         BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
         }
         Activity *activity = [_worklistItem.activities objectAtIndex:indexPath.row];
+        [cell configureForActivity:activity];
         [cell.timestampLabel setText:[commentFormatter stringFromDate:activity.createdDate]];
         return cell;
     }
@@ -303,19 +309,21 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            comment.body = addCommentTextView.text;
-            comment.createdOnString = @"Just now";
-            User *currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
-            comment.user = currentUser;
-            //[_worklistItem addComment:comment];
-            [self.tableView reloadData];
             
-            NSDictionary *commentDict = @{@"worklist_item_id":_worklistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+            NSDictionary *commentDict = @{@"worklist_item_id":_worklistItem.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"success creating a comment for task: %@",responseObject);
-                [_worklistItem populateFromDictionary:responseObject];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+                NSLog(@"success creating a comment for task: %@",responseObject);
+                Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
+                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_worklistItem.activities];
+                [set insertObject:activity atIndex:0];
+                _worklistItem.activities = set;
+                
+                [self.tableView beginUpdates];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView endUpdates];
+                
+                addCommentTextView.text = @"";
                 [addCommentTextView setTextColor:[UIColor lightGrayColor]];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"failure creating a comment for task: %@",error.description);
@@ -729,7 +737,7 @@ typedef void(^RequestSuccess)(id result);
             [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"completed"];
         }
         
-        [manager PATCH:[NSString stringWithFormat:@"%@/worklist_items/%@", kApiBaseUrl, _worklistItem.identifier] parameters:@{@"worklist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager PATCH:[NSString stringWithFormat:@"%@/worklist_items/%@", kApiBaseUrl, _worklistItem.identifier] parameters:@{@"worklist_item":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success updating task: %@",responseObject);
             [_worklistItem populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_worklistItem}];
@@ -958,8 +966,8 @@ typedef void(^RequestSuccess)(id result);
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 1){
-        Comment *comment = _worklistItem.comments[indexPath.row];
-        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+        Activity *activity = _worklistItem.activities[indexPath.row];
+        if ([activity.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] && [activity.activityType isEqualToString:kComment]){
             return YES;
         } else {
             return NO;
@@ -980,22 +988,22 @@ typedef void(^RequestSuccess)(id result);
     if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        Comment *comment = [_worklistItem.comments objectAtIndex:indexPathForDeletion.row];
-        if (comment.identifier != [NSNumber numberWithInt:0]){
-            [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        Activity *activity = [_worklistItem.activities objectAtIndex:indexPathForDeletion.row];
+        if (![activity.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [manager DELETE:[NSString stringWithFormat:@"%@/activities/%@",kApiBaseUrl,activity.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
-                [_worklistItem removeComment:comment];
-                [comment MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                [_worklistItem removeActivity:activity];
+                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 shouldSave = NO;
                 
                 [self.tableView beginUpdates];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                NSLog(@"Failed to delete comment: %@",error.description);
+                NSLog(@"Failed to delete activity: %@",error.description);
             }];
         } else {
-            [_worklistItem removeComment:comment];
+            [_worklistItem removeActivity:activity];
             [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];

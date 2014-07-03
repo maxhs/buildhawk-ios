@@ -13,13 +13,13 @@
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"project helper dictionary: %@",dictionary);
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"]!=[NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"body"]) {
+    if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"]!=[NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
     }
-    if ([dictionary objectForKey:@"created_at"]) {
+    if ([dictionary objectForKey:@"created_at"] && [dictionary objectForKey:@"created)at"]!=[NSNull null]) {
         self.createdAt = [BHUtilities parseDate:[dictionary objectForKey:@"created_at"]];
         self.createdOnString = [BHUtilities parseDateTimeReturnString:[dictionary objectForKey:@"created_at"]];
     }
@@ -35,15 +35,10 @@
     }
 }
 
-/*
- if ([key isEqualToString:@"id"]) {
- self.identifier = value;
- } else if ([key isEqualToString:@"body"]) {
- self.body = value;
- } else if ([key isEqualToString:@"user"]) {
- self.user = [[BHUser alloc] initWithDictionary:value];
- } else if ([key isEqualToString:@"created_at"]) {
- self.createdOn = [BHUtilities parseDate:value];
- }*/
+- (void)update:(NSDictionary *)dictionary {
+    if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"]!=[NSNull null]) {
+        self.body = [dictionary objectForKey:@"body"];
+    }
+}
 
 @end

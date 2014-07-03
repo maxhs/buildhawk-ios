@@ -36,6 +36,7 @@
 #import "BHSafetyTopicTransition.h"
 #import "BHSafetyTopicViewController.h"
 #import "Activity+helper.h"
+#import "Address.h"
 #import "BHActivityCell.h"
 
 static NSString * const kReportPlaceholder = @"Report details...";
@@ -1194,7 +1195,10 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         }
         if (photo.caption.length) [mwPhoto setCaption:photo.caption];
         [mwPhoto setPhoto:photo];
-        [browserPhotos addObject:mwPhoto];
+        
+        if (mwPhoto){
+            [browserPhotos addObject:mwPhoto];
+        }
     }
     
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];

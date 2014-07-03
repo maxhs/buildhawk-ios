@@ -32,6 +32,9 @@
 @implementation BHAddPersonnelViewController
 @synthesize name = _name;
 @synthesize task = _task;
+@synthesize project = _project;
+@synthesize company = _company;
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -181,12 +184,14 @@
                     [firstNameTextField setText:_name];
                 }
                 [firstNameTextField setKeyboardType:UIKeyboardTypeDefault];
+                [emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 [firstNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
             case 2:
                 cell.personnelTextField.placeholder = @"Last name";
                 lastNameTextField = cell.personnelTextField;
                 [lastNameTextField setKeyboardType:UIKeyboardTypeDefault];
+                [emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 [lastNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 break;
             case 3:
@@ -194,11 +199,13 @@
                 emailTextField = cell.personnelTextField;
                 [emailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
                 [emailTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+                [emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 break;
             case 4:
                 cell.personnelTextField.placeholder = @"Phone number";
                 phoneTextField = cell.personnelTextField;
                 [phoneTextField setKeyboardType:UIKeyboardTypePhonePad];
+                [emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 [phoneTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
                 break;
                 
@@ -222,23 +229,33 @@
 }
 
 - (void)create {
+    
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (_company && ![_company.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        [parameters setObject:_project.identifier forKey:@"company_id"];
+    }
+    if (_task && ![_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        [parameters setObject:_task.identifier forKey:@"task_id"];
+    }
+    
+    NSMutableDictionary *userParameters = [NSMutableDictionary dictionary];
     [ProgressHUD show:@"Adding to companies list..."];
     if (_companyMode){
         
         if (companyNameTextField.text.length){
-            [parameters setObject:companyNameTextField.text forKey:@"name"];
+            [userParameters setObject:companyNameTextField.text forKey:@"name"];
         }
         if (contactTextField.text.length){
-            [parameters setObject:contactTextField.text forKey:@"contact_name"];
+            [userParameters setObject:contactTextField.text forKey:@"contact_name"];
         }
         if (companyEmailTextField.text.length){
-            [parameters setObject:companyEmailTextField.text forKey:@"email"];
+            [userParameters setObject:companyEmailTextField.text forKey:@"email"];
         }
         if (companyPhoneTextField.text.length){
-            [parameters setObject:companyPhoneTextField.text forKey:@"phone"];
+            [userParameters setObject:companyPhoneTextField.text forKey:@"phone"];
         }
-        [manager POST:[NSString stringWithFormat:@"%@/project_subs",kApiBaseUrl] parameters:@{@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"subcontractor":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [parameters setObject:userParameters forKey:@"user"];
+        [manager POST:[NSString stringWithFormat:@"%@/project_subs",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"success creating a new project sub: %@",responseObject);
             [ProgressHUD dismiss];
             [self.navigationController popViewControllerAnimated:YES];
@@ -248,22 +265,34 @@
         }];
     } else {
         if (firstNameTextField.text.length){
-            [parameters setObject:firstNameTextField.text forKey:@"first_name"];
+            [userParameters setObject:firstNameTextField.text forKey:@"first_name"];
         }
         if (lastNameTextField.text.length){
-            [parameters setObject:lastNameTextField.text forKey:@"last_name"];
+            [userParameters setObject:lastNameTextField.text forKey:@"last_name"];
         }
         if (emailTextField.text.length){
-            [parameters setObject:emailTextField.text forKey:@"email"];
+            [userParameters setObject:emailTextField.text forKey:@"email"];
         }
         if (phoneTextField.text.length){
-            [parameters setObject:phoneTextField.text forKey:@"phone"];
+            [userParameters setObject:phoneTextField.text forKey:@"phone"];
         }
-        [manager POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_subcontractor.identifier] parameters:@{@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        
+        [parameters setObject:userParameters forKey:@"user"];
+        
+        [manager POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_project.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"success creating a new project sub user: %@",responseObject);
+            if ([responseObject objectForKey:@"connect_user"]){
+                NSString *alertMessage;
+                if ([[responseObject objectForKey:@"connect_user"] objectForKey:@"email"] != [NSNull null]){
+                    alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've emailed them this task.";
+                } else {
+                    alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've texted them this task.";
+                }
+                [[[UIAlertView alloc] initWithTitle:@"BuildHawk Connect" message:alertMessage delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
             User *user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [user populateFromDictionary:[responseObject objectForKey:@"user"]];
-            [_subcontractor addUser:user];
+            
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 [ProgressHUD dismiss];
                 [self.navigationController popViewControllerAnimated:YES];
@@ -351,8 +380,8 @@
     if ([segue.identifier isEqualToString:@"AddressBook"]){
         BHAddressBookPickerViewController *vc = [segue destinationViewController];
         [vc setPeopleArray:peopleArray];
-        [vc setSubcontractor:_subcontractor];
-        [vc setTitle:[NSString stringWithFormat:@"%@",_subcontractor.name]];
+        [vc setCompany:_company];
+        [vc setTitle:[NSString stringWithFormat:@"%@",_company.name]];
         if (_task){
             [vc setTask:_task];
         }
@@ -366,7 +395,6 @@
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     } else if (textField == phoneTextField || textField == companyPhoneTextField){
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-        
     }
 }
 

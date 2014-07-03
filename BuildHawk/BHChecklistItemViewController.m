@@ -29,7 +29,7 @@
 #import "BHAppDelegate.h"
 #import "Comment+helper.h"
 #import "BHItemContactCell.h"
-#import "BHItemReminderCell.h"
+#import "BHSetReminderCell.h"
 #import "BHActivityCell.h"
 #import "Activity+helper.h"
 #import "Reminder+helper.h"
@@ -44,7 +44,6 @@
     NSString *recipientEmail;
     UITextView *addCommentTextView;
     UIButton *doneButton;
-    UIEdgeInsets tableViewInset;
     UIActionSheet *callActionSheet;
     UIActionSheet *emailActionSheet;
     AFHTTPRequestOperationManager *manager;
@@ -75,8 +74,7 @@
 {
     [super viewDidLoad];
     photosArray = [NSMutableArray array];
-    tableViewInset = self.tableView.contentInset;
-    tableViewInset.top += 64;
+    
     self.tableView.backgroundColor = kLightestGrayColor;
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
@@ -98,6 +96,8 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
 
     self.navigationItem.hidesBackButton = YES;
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
@@ -117,16 +117,11 @@
     _cancelButton.clipsToBounds = YES;
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
 - (void)loadItem{
     [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
+        NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
         [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failure getting checklist item: %@",error.description);
@@ -204,21 +199,21 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 8;
+    return 7;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 0) return 1;
-    else if (section == 1) return 3;
-    else if (section == 2 || section == 3 || section == 4 || section == 5) return 1;
-    else if (section == 6) return _item.comments.count;
-    else if (section == 7) return _item.activities.count;
-    return 0;
+    if (section == 1) return 3;
+    else if (section == 6) return _item.activities.count;
+    return 1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 20;
 }
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    
     switch (section) {
         case 0:
             return _item.type;
@@ -238,16 +233,13 @@
         case 5:
             return @"Comments";
             break;
-        case 7:
+        case 6:
             return @"Activity";
             break;
         default:
             return @"";
             break;
     }
-    if (section == 0){
-        return _item.type;
-    } else return @"";
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -271,19 +263,19 @@
         cell.textLabel.highlightedTextColor = [UIColor whiteColor];
         switch (indexPath.row) {
             case 0:
-                if ([_item.status isEqualToString:kCompleted]) {
+                if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
                     [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
                 }
                 [cell.textLabel setText:@"COMPLETED"];
                 break;
             case 1:
-                if ([_item.status isEqualToString:kInProgress]) {
+                if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
                     [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
                 }
                 [cell.textLabel setText:@"IN-PROGRESS"];
                 break;
             case 2:
-                if ([_item.status isEqualToString:kNotApplicable]) {
+                if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
                     [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
                 }
                 [cell.textLabel setText:@"NOT APPLICABLE"];
@@ -306,9 +298,9 @@
         [photoCell.choosePhotoButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
         return photoCell;
     } else if (indexPath.section == 3) {
-        BHItemReminderCell *reminderCell = [tableView dequeueReusableCellWithIdentifier:@"ReminderCell"];
+        BHSetReminderCell *reminderCell = [tableView dequeueReusableCellWithIdentifier:@"SetReminderCell"];
         if (reminderCell == nil) {
-            reminderCell = [[[NSBundle mainBundle] loadNibNamed:@"BHItemReminderCell" owner:self options:nil] lastObject];
+            reminderCell = [[[NSBundle mainBundle] loadNibNamed:@"BHSetReminderCell" owner:self options:nil] lastObject];
         }
         [reminderCell.reminderButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
         
@@ -317,7 +309,7 @@
             if ([r.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
                 NSLog(@"Found a checklist item reminder for the current user");
                 Reminder *reminder = _item.reminders.lastObject;
-                [reminderCell.reminderLabel setText:[NSString stringWithFormat:@"Reminder: %@",[formatter stringFromDate:reminder.datetime]]];
+                [reminderCell.reminderLabel setText:[NSString stringWithFormat:@"Reminder: %@",[formatter stringFromDate:reminder.reminderDate]]];
                 break;
             }
         }
@@ -351,7 +343,7 @@
         addCommentCell.doneButton.clipsToBounds = YES;
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
-    } else  if (indexPath.section == 6){
+    }/* else  if (indexPath.section == 6){
         BHCommentCell *commentCell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell"];
         if (commentCell == nil) {
             commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
@@ -365,7 +357,7 @@
         }
         [commentCell.nameLabel setText:comment.user.fullname];
         return commentCell;
-    } else {
+    }*/ else {
         BHActivityCell *activityCell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
         if (activityCell == nil) {
             activityCell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
@@ -394,9 +386,20 @@
     }
 }
 
+-(void)willShowKeyboard:(NSNotification*)notification {
+    NSDictionary* keyboardInfo = [notification userInfo];
+    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameBeginUserInfoKey];
+    CGFloat keyboardHeight = [keyboardFrameBegin CGRectValue].size.height;
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+}
+
+-(void)willHideKeyboard:(NSNotification*)notification {
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+}
+
 - (void)textViewDidBeginEditing:(UITextView *)textView {
     shouldSave = YES;
-    UIEdgeInsets tempInset = tableViewInset;
+    UIEdgeInsets tempInset = self.tableView.contentInset;
     tempInset.bottom += 216;
     self.tableView.contentInset = tempInset;
     if ([textView.text isEqualToString:kAddCommentPlaceholder]) {
@@ -443,31 +446,15 @@
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to add comments to a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            comment.body = addCommentTextView.text;
-            comment.createdOnString = @"Just now";
-            User *user = [(BHTabBarViewController*) self.tabBarController user];
-            comment.user = user;
-            [_item addComment:comment];
-            
             [self.tableView reloadData];
-            NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":comment.body};
+            NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        
-                //CLEAN UP COMMENTS//
-                NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
-                //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);
-                for (id commentDict in [responseObject objectForKey:@"comments"]){
-                    NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
-                    Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
-                    if (!comment){
-                        comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    }
-                    [comment populateFromDictionary:commentDict];
-                    [orderedComments addObject:comment];
-                }
-                _item.comments = orderedComments;
-                // *** //
+                //NSLog(@"success posting a new comment %@",responseObject);
+                Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
+                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_item.activities];
+                [set insertObject:activity atIndex:0];
+                _item.activities = set;
                 
                 [self.tableView beginUpdates];
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
@@ -748,7 +735,6 @@
         [self redrawScrollView];
     }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
-    [self saveContext];
 }
 
 - (void)saveImage:(UIImage*)image {
@@ -823,18 +809,24 @@
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        if (_item.status) [parameters setObject:_item.status forKey:@"status"];
-        if ([_item.status isEqualToString:kCompleted]) {
-            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+        
+        if (_item.state){
+            [parameters setObject:_item.state forKey:@"state"];
         }
     
         [ProgressHUD show:@"Updating item..."];
-        [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:@{@"checklist_item":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:@{@"checklist_item":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success updating checklist item %@",responseObject);
             [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
+            NSLog(@"item expanded? %@ %@",_item.category.expanded, _item.category.phase.expanded);
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
-            [self.navigationController popViewControllerAnimated:YES];
-            [ProgressHUD dismiss];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+                NSLog(@"item expanded? %@ %@",_item.category.expanded, _item.category.phase.expanded);
+                NSLog(@"What happened during checklist item save? %hhd %@",success, error);
+                [self.navigationController popViewControllerAnimated:YES];
+                [ProgressHUD dismiss];
+            }];
+            
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure updating checklist item: %@",error.description);
             [ProgressHUD dismiss];
@@ -892,28 +884,26 @@
     if (indexPath.section == 1) {
         switch (indexPath.row) {
             case 0:
-                if ([_item.status isEqualToString:kCompleted]){
-                    _item.status = nil;
-                    _item.completed = NO;
+                if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
+                    _item.state = nil;
                 } else {
-                    [_item setStatus:kCompleted];
-                    _item.completed = @YES;
+                    _item.state = [NSNumber numberWithInteger:kItemCompleted];
                 }
                 [tableView reloadData];
                 break;
             case 1:
-                if ([_item.status isEqualToString:kInProgress]){
-                    [_item setStatus:nil];
+                if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
+                    [_item setState:nil];
                 } else {
-                    [_item setStatus:kInProgress];
+                    [_item setState:[NSNumber numberWithInteger:kItemInProgress]];
                 }
                 [tableView reloadData];
                 break;
             case 2:
-                if ([_item.status isEqualToString:kNotApplicable]){
-                    [_item setStatus:nil];
+                if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
+                    [_item setState:nil];
                 } else {
-                    [_item setStatus:kNotApplicable];
+                    [_item setState:[NSNumber numberWithInteger:kItemNotApplicable]];
                 }
                 [tableView reloadData];
                 break;
@@ -932,8 +922,8 @@
         }
 
     } else if (indexPath.section == 6) {
-        Comment *comment = [_item.comments objectAtIndex:indexPath.row];
-        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+        Activity *activity = [_item.activities objectAtIndex:indexPath.row];
+        if ([activity.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] && [activity.activityType isEqualToString:kComment]){
             return YES;
         } else {
             return NO;
@@ -1030,14 +1020,14 @@
 
 - (void)viewWillDisappear:(BOOL)animated {
     [ProgressHUD dismiss];
-    if (shouldSave)[self saveContext];
     [super viewWillDisappear:animated];
 }
 
-- (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"What happened during checklist item save? %hhd %@",success, error);
-    }];
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
+
 
 @end

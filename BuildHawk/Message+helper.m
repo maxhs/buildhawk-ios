@@ -7,6 +7,7 @@
 //
 
 #import "Message+helper.h"
+#import "User+helper.h"
 
 @implementation Message (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {

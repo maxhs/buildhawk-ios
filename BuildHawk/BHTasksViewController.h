@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BHDeselectableSegmentedControl.h"
+#import "Project.h"
 
 @interface BHTasksViewController : UIViewController
 

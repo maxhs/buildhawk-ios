@@ -8,7 +8,10 @@
 
 #import "BHReportCell.h"
 #import "Photo+helper.h"
+#import "ReportSub.h"
 #import "UIButton+WebCache.h"
+#import "Report+helper.h"
+#import "User+helper.h"
 
 @implementation BHReportCell
 

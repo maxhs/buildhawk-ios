@@ -147,10 +147,10 @@ typedef enum {
 }
 
 - (void)updateComponents {
-    NSString *componentsOrdering = [NSDateFormatter dateFormatFromTemplate:@"MMM dd hh:mm a y" options:0 locale:self.calendar.locale];
+    /*NSString *componentsOrdering = [NSDateFormatter dateFormatFromTemplate:@"MMM dd hh:mm a y" options:0 locale:self.calendar.locale];
     componentsOrdering = [componentsOrdering lowercaseString];
     
-    /*NSString *firstLetter = [componentsOrdering substringToIndex:1];
+    NSString *firstLetter = [componentsOrdering substringToIndex:1];
      NSString *lastLetter = [componentsOrdering substringFromIndex:(componentsOrdering.length - 1)];
      _components[0] = [self componentFromLetter:firstLetter];
      _components[2] = [self componentFromLetter:lastLetter];
@@ -382,17 +382,15 @@ typedef enum {
     BHDatePickerComponent component = [self componentForIndex:componentIndex];
     NSString *title = [self titleForRow:row forComponent:component];
     
+    /*BOOL enabled = [self isEnabledRow:row forComponent:componentIndex];
     UIColor *color;
-    
-    BOOL enabled = [self isEnabledRow:row forComponent:componentIndex];
-    
     if (enabled) {
         color = [UIColor whiteColor];
     }
     else {
         color = [UIColor colorWithWhite:0.0f alpha:0.5f];
     }
-    
+    */
     NSMutableAttributedString *attributedTitle = [[NSMutableAttributedString alloc] initWithString:title attributes:@{NSForegroundColorAttributeName:[UIColor whiteColor]}];
     
     label.attributedText = attributedTitle;

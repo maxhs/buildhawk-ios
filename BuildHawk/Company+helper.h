@@ -14,4 +14,5 @@
 - (void) update:(NSDictionary*)dictionary;
 - (void) addProject:(Project*)project;
 - (void) removeProject:(Project*)project;
+- (void)addUser:(User*)user;
 @end

@@ -9,6 +9,7 @@
 #import "WorklistItem.h"
 #import "Photo+helper.h"
 #import "User+helper.h"
+#import "Activity+helper.h"
 
 @interface WorklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
@@ -18,4 +19,7 @@
 - (void)removePhoto:(Photo *)photo;
 - (void)addAssignee:(User *)user;
 - (void)removeAssignee:(User *)user;
+
+- (void)addActivity:(Activity *)activity;
+- (void)removeActivity:(Activity *)activity;
 @end

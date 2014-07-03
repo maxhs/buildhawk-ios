@@ -8,13 +8,17 @@
 
 #import "BHSettingsViewController.h"
 #import "BHAppDelegate.h"
+#import "Alternate+helper.h"
+#import "BHSettingsCell.h"
 
-@interface BHSettingsViewController () <UITextFieldDelegate> {
+@interface BHSettingsViewController () <UITextFieldDelegate, UIAlertViewDelegate> {
     UIBarButtonItem *backButton;
     User *currentUser;
     AFHTTPRequestOperationManager *manager;
     UIBarButtonItem *saveButton;
     UIBarButtonItem *doneButton;
+    NSIndexPath *alternateIndexPathForDeletion;
+    UITextField *addAlternateTextField;
 }
 
 @end
@@ -28,8 +32,7 @@
     self.navigationItem.leftBarButtonItem = backButton;
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;
-    
-    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
+    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
     
     currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     self.tableView.rowHeight = 60;
@@ -46,7 +49,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 2;
+    return 3;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -56,6 +59,9 @@
             return 4;
             break;
         case 1:
+            return currentUser.alternates.count + 1;
+            break;
+        case 2:
             return 3;
             break;
             
@@ -67,52 +73,71 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"SettingsCell" forIndexPath:indexPath];
-    
+    static NSString *CellIdentifier = @"SettingsCell";
+    BHSettingsCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    if (cell == nil) {
+        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSettingsCell" owner:self options:nil] lastObject];
+    }
+    [cell.textLabel setFont:[UIFont systemFontOfSize:15]];
+    [cell.textField setAutocorrectionType:UITextAutocorrectionTypeNo];
+    cell.textField.delegate = self;
+    [cell.actionButton setHidden:YES];
     if (indexPath.section == 0){
-        UITextField *settingsTextField = [[UITextField alloc] init];
-        [settingsTextField setFrame:CGRectMake(14, 2, cell.frame.size.width-28, cell.frame.size.height-4)];
-        [cell addSubview:settingsTextField];
-        [settingsTextField setTag:indexPath.row];
-        
+        [cell.textField setTag:indexPath.row];
         switch (indexPath.row) {
             case 0:
             {
                 if (currentUser.firstName.length){
-                    [settingsTextField setText:currentUser.firstName];
+                    [cell.textField setText:currentUser.firstName];
                 }
-                [settingsTextField setPlaceholder:@"Your first name"];
-                [settingsTextField setKeyboardType:UIKeyboardTypeDefault];
+                [cell.textField setPlaceholder:@"Your first name"];
+                [cell.textField setKeyboardType:UIKeyboardTypeDefault];
             }
                 break;
             case 1:
             {
                 if (currentUser.lastName.length){
-                    [settingsTextField setText:currentUser.lastName];
+                    [cell.textField setText:currentUser.lastName];
                 }
-                [settingsTextField setKeyboardType:UIKeyboardTypeDefault];
-                [settingsTextField setPlaceholder:@"Your last name"];
+                [cell.textField setKeyboardType:UIKeyboardTypeDefault];
+                [cell.textField setPlaceholder:@"Your last name"];
             }
                 break;
             case 2:
             {
-                [settingsTextField setText:currentUser.email];
-                [settingsTextField setPlaceholder:@"Your email address"];
-                [settingsTextField setKeyboardType:UIKeyboardTypeEmailAddress];
+                [cell.textField setText:currentUser.email];
+                [cell.textField setPlaceholder:@"Your email address"];
+                [cell.textField setKeyboardType:UIKeyboardTypeEmailAddress];
             }
                 break;
             case 3:
             {
                 if (currentUser.formattedPhone.length){
-                    [settingsTextField setText:currentUser.formattedPhone];
+                    [cell.textField setText:currentUser.formattedPhone];
                 }
-                [settingsTextField setKeyboardType:UIKeyboardTypePhonePad];
-                [settingsTextField setPlaceholder:@"Your phone number"];
+                [cell.textField setKeyboardType:UIKeyboardTypePhonePad];
+                [cell.textField setPlaceholder:@"Your phone number"];
             }
                 break;
                 
             default:
                 break;
+        }
+    } else if (indexPath.section == 1){
+        if (indexPath.row == currentUser.alternates.count){
+            cell.textField.placeholder = @"Any alternate email addresses?";
+            [cell.actionButton addTarget:self action:@selector(createAlternate) forControlEvents:UIControlEventTouchUpInside];;
+            addAlternateTextField = cell.textField;
+            [cell.actionButton setHidden:NO];
+            cell.actionButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.1].CGColor;
+            cell.actionButton.layer.borderWidth = .5f;
+            cell.actionButton.layer.cornerRadius = 3.f;
+            cell.actionButton.clipsToBounds = YES;
+        } else {
+            Alternate *alternate = currentUser.alternates[indexPath.row];
+            if (alternate.email.length){
+                [cell.textLabel setText:alternate.email];
+            }
         }
         
     } else {
@@ -120,7 +145,7 @@
         cell.accessoryView = settingsSwitch;
         settingsSwitch.tag = indexPath.row;
         [settingsSwitch addTarget:self action:@selector(switchFlipped:) forControlEvents:UIControlEventValueChanged];
-        
+        [cell.actionButton setHidden:YES];
         switch (indexPath.row) {
             case 0:
             {
@@ -162,7 +187,7 @@
             return @"Alternate contact information";
             break;
         case 2:
-            return @"Notification Permissions";
+            return @"Notification permissions";
             break;
             
         default:
@@ -196,6 +221,9 @@
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     self.navigationItem.rightBarButtonItem = doneButton;
+    if (textField == addAlternateTextField){
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:currentUser.alternates.count inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+    }
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
@@ -224,33 +252,104 @@
     }];
 }
 
+- (void)createAlternate{
+    NSLog(@"create tapped: %@",addAlternateTextField.text);
+    NSString *email = addAlternateTextField.text;
+    if (email.length){
+        [ProgressHUD show:@"Adding your alternate contact info..."];
+        [manager POST:[NSString stringWithFormat:@"%@/users/%@/add_alternate",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success creating alternate: %@",responseObject);
+            Alternate *alternate = [Alternate MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [alternate populateFromDictionary:[responseObject objectForKey:@"alternate"]];
+            NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:currentUser.alternates];
+            [set addObject:alternate];
+            currentUser.alternates = set;
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [self.tableView beginUpdates];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView endUpdates];
+                [ProgressHUD dismiss];
+            }];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [ProgressHUD dismiss];
+            NSLog(@"Failed to create alternate");
+        }];
+    }
+}
+
 - (void)back {
     [self dismissViewControllerAnimated:YES completion:^{
         
     }];
 }
 
-/*
+
 // Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
+    if (indexPath.section == 1 && indexPath.row != currentUser.alternates.count){
+        return YES;
+    } else {
+        return NO;
+    }
 }
-*/
 
-/*
 // Override to support editing the table view.
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
+        alternateIndexPathForDeletion = indexPath;
+        [self confirmDeletion];
+    }
 }
-*/
+
+- (void)confirmDeletion{
+    [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to delete this? Messages will no longer be forwarded from this address." delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
+        [self deleteAlternate];
+    }
+}
+
+- (void)deleteAlternate {
+    Alternate *alternate = currentUser.alternates[alternateIndexPathForDeletion.row];
+    if (alternate){
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        if (![alternate.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [parameters setObject:alternate.identifier forKey:@"alternate_id"];
+        } else if (alternate.email.length) {
+            [parameters setObject:alternate.email forKey:@"email"];
+        }
+        [manager POST:[NSString stringWithFormat:@"%@/users/%@/delete_alternate",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success deletign an alternate: %@",responseObject);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failed to delete alternate");
+        }];
+        
+        NSMutableOrderedSet *alternates = [NSMutableOrderedSet orderedSetWithOrderedSet:currentUser.alternates];
+        [alternates removeObject:alternate];
+        currentUser.alternates = alternates;
+        [alternate MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        
+        if (currentUser.alternates.count > 1){
+            [self.tableView beginUpdates];
+            [self.tableView deleteRowsAtIndexPaths:@[alternateIndexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        } else {
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        }
+        alternateIndexPathForDeletion = nil;
+    } else {
+        [self.tableView beginUpdates];
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
+    }
+}
 
 /*
 // Override to support rearranging the table view.

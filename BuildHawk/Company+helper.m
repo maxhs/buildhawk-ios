@@ -116,4 +116,9 @@
     [set removeObject:project];
     self.projects = set;
 }
+- (void)addUser:(User *)user {
+    NSMutableOrderedSet *userSet = [NSMutableOrderedSet orderedSetWithOrderedSet:self.users];
+    [userSet addObject:user];
+    self.users = userSet;
+}
 @end

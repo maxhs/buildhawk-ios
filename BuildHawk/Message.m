@@ -18,5 +18,6 @@
 @dynamic user;
 @dynamic project;
 @dynamic createdDate;
+@dynamic notification;
 
 @end

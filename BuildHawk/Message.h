@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
+#import "Notification.h"
 
 @class Project, User;
 
@@ -18,5 +19,6 @@
 @property (nonatomic, retain) NSDate * createdDate;
 @property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Project *project;
+@property (nonatomic, retain) Notification *notification;
 
 @end

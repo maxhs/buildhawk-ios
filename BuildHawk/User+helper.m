@@ -8,6 +8,8 @@
 
 #import "User+helper.h"
 #import "WorklistItem+helper.h"
+#import "Company+helper.h"
+#import "Alternate+helper.h"
 
 @implementation User (helper)
 
@@ -74,19 +76,19 @@
         }
         self.company = company;
     }
-    /*if ([dictionary objectForKey:@"connect_items"] && [dictionary objectForKey:@"connect_items"] != [NSNull null]) {
-        NSMutableOrderedSet *worklistItems = [NSMutableOrderedSet orderedSet];
-        for (id itemDict in [dictionary objectForKey:@"connect_items"]){
-            NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-            WorklistItem *item = [WorklistItem MR_findFirstWithPredicate:itemPredicate];
+    if ([dictionary objectForKey:@"alternates"] && [dictionary objectForKey:@"alternates"] != [NSNull null]) {
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        for (id dict in [dictionary objectForKey:@"alternates"]){
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+            Alternate *item = [Alternate MR_findFirstWithPredicate:predicate];
             if (!item){
-                item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                item = [Alternate MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-            [item populateFromDictionary:itemDict];
-            [worklistItems addObject:item];
+            [item populateFromDictionary:dict];
+            [set addObject:item];
         }
-        self.assignedWorklistItems = worklistItems;
-    }*/
+        self.alternates = set;
+    }
 }
 
 - (void)update:(NSDictionary *)dictionary {

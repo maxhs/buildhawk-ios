@@ -12,7 +12,7 @@
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"photo helper dictionary: %@",dictionary);
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
@@ -42,19 +42,19 @@
     if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
         self.assignee = [dictionary objectForKey:@"assignee"];
     }
-    if ([dictionary objectForKey:@"folder_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"folder_name"] && [dictionary objectForKey:@"folder_name"] != [NSNull null]) {
         self.folder = [dictionary objectForKey:@"folder_name"];
     }
-    if ([dictionary objectForKey:@"folder_id"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"folder_id"] && [dictionary objectForKey:@"folder_id"] != [NSNull null]) {
         self.folderId = [dictionary objectForKey:@"folder_id"];
     }
-    if ([dictionary objectForKey:@"user_name"] !=[NSNull null]) {
+    if ([dictionary objectForKey:@"user_name"] && [dictionary objectForKey:@"user_name"] !=[NSNull null]) {
         self.userName = [dictionary objectForKey:@"user_name"];
     }
     if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {
         self.caption = [dictionary objectForKey:@"description"];
     }
-    if ([dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
@@ -73,10 +73,10 @@
     if ([dictionary objectForKey:@"phase"] && [dictionary objectForKey:@"phase"] != [NSNull null]) {
         self.photoPhase = [dictionary objectForKey:@"phase"];
     }
-    if ([dictionary objectForKey:@"folder_name"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"folder_name"] && [dictionary objectForKey:@"folder_name"] != [NSNull null]) {
         self.folder = [dictionary objectForKey:@"folder_name"];
     }
-    if ([dictionary objectForKey:@"folder_id"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"folder_id"] && [dictionary objectForKey:@"folder_id"] != [NSNull null]) {
         self.folderId = [dictionary objectForKey:@"folder_id"];
     }
     if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {

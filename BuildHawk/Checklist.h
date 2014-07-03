@@ -8,15 +8,16 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-#import "Project+helper.h"
-
-@class ChecklistItem, Phase;
+#import "Project.h"
+#import "Phase.h"
+#import "ChecklistItem.h"
 
 @interface Checklist : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSOrderedSet *phases;
 @property (nonatomic, retain) NSOrderedSet *items;
+@property (nonatomic, retain) NSOrderedSet *activities;
 @property (nonatomic, retain) Project *project;
 @property (strong, nonatomic) NSMutableArray *completedPhases;
 @property (strong, nonatomic) NSMutableArray *activePhases;

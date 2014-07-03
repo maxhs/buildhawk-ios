@@ -11,6 +11,7 @@
 #import "BHProjectSynopsisViewController.h"
 #import "BHTabBarViewController.h"
 #import "BHAppDelegate.h"
+#import "Address+helper.h"
 
 @interface BHGroupViewController () {
     NSMutableArray *_projects;

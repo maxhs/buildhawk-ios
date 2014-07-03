@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Project+helper.h"
 
 @interface BHDashboardProjectCell : UITableViewCell <UIScrollViewDelegate>
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;

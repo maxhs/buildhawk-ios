@@ -13,7 +13,7 @@
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary{
     //NSLog(@"project helper dictionary: %@",dictionary);
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
@@ -33,8 +33,8 @@
                 [item update:itemDict];
             } else {
                 item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [item populateFromDictionary:itemDict];
             }
-            [item populateFromDictionary:itemDict];
             [items addObject:item];
         }
         self.items = items;

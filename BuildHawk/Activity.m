@@ -2,25 +2,34 @@
 //  Activity.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 6/26/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Activity.h"
+#import "Checklist.h"
 #import "ChecklistItem.h"
+#import "Comment.h"
 #import "Project.h"
 #import "Report.h"
+#import "User.h"
+#import "Worklist.h"
 #import "WorklistItem.h"
 
 
 @implementation Activity
 
-@dynamic identifier;
+@dynamic activityType;
 @dynamic body;
 @dynamic createdDate;
+@dynamic identifier;
+@dynamic checklist;
 @dynamic checklistItem;
+@dynamic comment;
+@dynamic project;
 @dynamic report;
 @dynamic task;
-@dynamic project;
+@dynamic user;
+@dynamic worklist;
 
 @end

@@ -9,6 +9,8 @@
 #import "BHArchivedViewController.h"
 #import "BHArchivedProjectCell.h"
 #import "BHTabBarViewController.h"
+#import "Address.h"
+#import "Company.h"
 
 @interface BHArchivedViewController (){
     Project *archivedProject;

@@ -7,6 +7,8 @@
 //
 
 #import "BHDashboardProjectCell.h"
+#import "Address.h"
+#import "Reminder+helper.h"
 
 @implementation BHDashboardProjectCell {
     CGRect screen;

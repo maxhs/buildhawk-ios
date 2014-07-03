@@ -18,4 +18,5 @@
     #import <CoreData+MagicalRecord.h>
     #import <AFNetworking/AFHTTPRequestOperationManager.h>
     #import "ProgressHUD.h"
+    
 #endif

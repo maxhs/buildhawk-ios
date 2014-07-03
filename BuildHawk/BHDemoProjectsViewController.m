@@ -13,6 +13,7 @@
 #import "BHProjectSynopsisViewController.h"
 #import "BHAppDelegate.h"
 #import "Company+helper.h"
+#import "Address.h"
 
 @interface BHDemoProjectsViewController () {
     NSMutableArray *demoProjects;

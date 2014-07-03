@@ -12,13 +12,12 @@
 
 @dynamic body;
 @dynamic commentsCount;
-@dynamic completed;
 @dynamic completedDate;
 @dynamic criticalDate;
 @dynamic identifier;
 @dynamic orderIndex;
 @dynamic photosCount;
-@dynamic status;
+@dynamic state;
 @dynamic type;
 @dynamic category;
 @dynamic checklist;

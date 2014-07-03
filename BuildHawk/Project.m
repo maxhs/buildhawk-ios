@@ -2,43 +2,53 @@
 //  Project.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 5/8/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Project.h"
+#import "Activity.h"
 #import "Address.h"
 #import "Checklist.h"
 #import "ChecklistItem.h"
 #import "Company.h"
+#import "Group.h"
+#import "Message.h"
 #import "Phase.h"
+#import "Photo.h"
+#import "Reminder.h"
 #import "Report.h"
 #import "User.h"
+#import "Worklist.h"
+#import "WorklistItem.h"
 
 
 @implementation Project
 
 @dynamic active;
 @dynamic demo;
-@dynamic group;
 @dynamic identifier;
 @dynamic name;
 @dynamic notifications;
-@dynamic documents;
 @dynamic progressPercentage;
-@dynamic recentDocuments;
+@dynamic activities;
 @dynamic address;
 @dynamic checklist;
-@dynamic phases;
+@dynamic companies;
 @dynamic company;
+@dynamic companyArchives;
+@dynamic documents;
+@dynamic group;
+@dynamic messages;
+@dynamic phases;
+@dynamic recentDocuments;
 @dynamic recentItems;
+@dynamic reminders;
 @dynamic reports;
 @dynamic upcomingItems;
+@dynamic userArchiver;
 @dynamic users;
-@dynamic subcontractors;
 @dynamic worklist;
-@dynamic activities;
-@dynamic reminders;
-@dynamic activeReminders;
+@dynamic worklistItems;
 
 @end

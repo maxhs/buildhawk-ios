@@ -9,16 +9,19 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class ChecklistItem, WorklistItem, Report, User;
+@class ChecklistItem, WorklistItem, Report, User, Message;
 
 @interface Notification : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * body;
+@property (nonatomic, retain) NSString * notificationType;
+@property (nonatomic, retain) NSNumber * read;
 @property (nonatomic, retain) NSDate * createdDate;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) Report *report;
 @property (nonatomic, retain) WorklistItem *worklistItem;
 @property (nonatomic, retain) User *user;
+@property (nonatomic, retain) Message *message;
 
 @end

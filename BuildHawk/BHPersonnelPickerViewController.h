@@ -7,6 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Company.h"
+#import "Project.h"
+#import "WorklistItem.h"
 
 @interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate>
 

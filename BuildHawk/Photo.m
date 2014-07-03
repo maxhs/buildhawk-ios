@@ -2,35 +2,40 @@
 //  Photo.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 4/30/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "Photo.h"
+#import "ChecklistItem.h"
+#import "Project.h"
+#import "Report.h"
 #import "WorklistItem.h"
 
 
 @implementation Photo
 
+@dynamic assignee;
+@dynamic caption;
 @dynamic createdAt;
 @dynamic dateString;
+@dynamic folder;
+@dynamic folderId;
 @dynamic identifier;
+@dynamic image;
 @dynamic name;
 @dynamic original;
 @dynamic phase;
+@dynamic photoPhase;
 @dynamic source;
 @dynamic urlLarge;
 @dynamic urlSmall;
 @dynamic urlThumb;
 @dynamic userName;
-@dynamic worklistItem;
-@dynamic image;
-@dynamic folder;
-@dynamic folderId;
-@dynamic photoPhase;
-@dynamic assignee;
-@dynamic caption;
-@dynamic report;
 @dynamic checklistItem;
+@dynamic project;
+@dynamic recentDocuments;
+@dynamic report;
+@dynamic worklistItem;
 
 @end

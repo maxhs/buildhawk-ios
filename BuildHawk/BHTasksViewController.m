@@ -20,6 +20,8 @@
 #import "Flurry.h"
 #import "Project.h"
 #import "BHOverlayView.h"
+#import "Subcontractor.h"
+#import "Company.h"
 
 @interface BHTasksViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate> {
     NSDateFormatter *dateFormatter;
@@ -88,8 +90,13 @@
         [self drawWorklist];
     } else if ([_project.worklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         [ProgressHUD show:@"Getting Worklist..."];
+        loading = YES;
+        [self loadWorklist];
+        NSLog(@"project worklist is a placeholder, need to fetch the real thing");
     } else {
+        loading = YES;
         _worklistItems = _project.worklist.worklistItems.array.mutableCopy;
+        NSLog(@"already have %d worklist items",_worklistItems.count);
         [self drawWorklist];
         [self loadWorklist];
     }
@@ -108,10 +115,11 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    loading = YES;
+    
     if (_connectMode){
         
     } else if (_project.worklist.worklistItems.count == 0){
+        NSLog(@"project worklist has no items in it. should be loading");
         [self loadWorklist];
     }
 }
@@ -179,6 +187,7 @@
         }
     }
 
+    loading = NO;
     if (showActive){
         [self filterActive];
     } else if (showByAssignee){
@@ -373,7 +382,7 @@
 
 - (void)loadWorklist {
     [manager GET:[NSString stringWithFormat:@"%@/worklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success loading worklist: %@",responseObject);
+        NSLog(@"Success loading worklist: %@",responseObject);
         if ([responseObject objectForKey:@"punchlist"]){
             [self updateWorklist:[responseObject objectForKey:@"punchlist"]];
         } else if ([responseObject objectForKey:@"worklist"]) {
@@ -407,8 +416,7 @@
         _worklistItems = worklist.worklistItems.array.mutableCopy;
     }
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"What happened during worklist save? %hhd %@",success, error);
-        loading = NO;
+        NSLog(@"Worklist save: %hhd",success);
         [self drawWorklist];
     }];
 }

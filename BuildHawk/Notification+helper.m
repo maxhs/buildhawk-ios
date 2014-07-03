@@ -7,6 +7,7 @@
 //
 
 #import "Notification+helper.h"
+#import "User.h"
 
 @implementation Notification (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -16,6 +17,15 @@
     }
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"] != [NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
+    }
+    if ([dictionary objectForKey:@"notification_type"] && [dictionary objectForKey:@"notification_type"] != [NSNull null]) {
+        self.notificationType = [dictionary objectForKey:@"notification_type"];
+    }
+    if ([dictionary objectForKey:@"user_id"] && [dictionary objectForKey:@"user_id"] != [NSNull null]) {
+        User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"user_id"]];
+        if (user){
+            self.user = user;
+        }
     }
     if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"created_date"] doubleValue];

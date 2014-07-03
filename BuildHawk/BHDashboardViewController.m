@@ -37,7 +37,7 @@
     User *currentUser;
     NSMutableArray *recentChecklistItems;
     NSMutableArray *recentlyCompletedWorklistItems;
-    NSMutableArray *notifications;
+
     NSMutableArray *upcomingChecklistItems;
     AFHTTPRequestOperationManager *manager;
     CGRect screen;
@@ -139,6 +139,9 @@
 
 - (IBAction)revealMenu {
     [self.sideMenuViewController presentLeftMenuViewController];
+    if ([self.sideMenuViewController.leftMenuViewController isKindOfClass:[BHMenuViewController class]]){
+        [(BHMenuViewController*)self.sideMenuViewController.leftMenuViewController loadNotifications];
+    }
 }
 
 - (void)activateSearch {
@@ -179,7 +182,7 @@
     else [self.tableView reloadData];
     
     [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"load projects response object: %@",responseObject);
+        NSLog(@"load projects response object: %@",responseObject);
         [self updateProjects:[responseObject objectForKey:@"projects"]];
         loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -338,7 +341,6 @@
         for (WorklistItem *item in currentUser.assignedWorklistItems){
             NSNumber *companyId = item.project.company.identifier;
             if (companyId && ![currentUser.company.identifier isEqualToNumber:companyId]) {
-                NSLog(@"company id: %@",companyId);
                 [connectProjects addObject:item.project];
             }
         }

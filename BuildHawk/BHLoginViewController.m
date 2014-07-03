@@ -14,6 +14,7 @@
 #import "BHDashboardViewController.h"
 #import "Constants.h"
 #import "User+helper.h"
+#import "Company+helper.h"
 #import "Project+helper.h"
 #import "BHTabBarViewController.h"
 
@@ -201,7 +202,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     if (password) [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
     [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"log in response object: %@",responseObject);
+        NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user) {

@@ -7,13 +7,14 @@
 //
 
 #import "ChecklistItem.h"
-#import "Reminder+helper.h"
 
 @interface ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)update:(NSDictionary*)dictionary;
 - (void)addComment:(Comment *)comment;
 - (void)removeComment:(Comment *)comment;
+- (void)addActivity:(Activity *)activity;
+- (void)removeActivity:(Activity *)activity;
 - (void)addPhoto:(Photo *)photo;
 - (void)removePhoto:(Photo *)photo;
 - (void)addReminder:(Reminder *)reminder;

@@ -27,6 +27,12 @@
 #import "User+helper.h"
 #import "Phase+helper.h"
 #import "Activity+helper.h"
+#import "BHActivityCell.h"
+#import "BHReminderCell.h"
+#import "BHActivitiesViewController.h"
+#import "Worklist+helper.h"
+#import "Reminder+helper.h"
+#import "Address+helper.h"
 
 @interface BHProjectSynopsisViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     AFHTTPRequestOperationManager *manager;
@@ -37,6 +43,8 @@
     UIView *overlayBackground;
     UIImageView *screenshotView;
     NSDateFormatter *formatter;
+    NSDateFormatter *reminderFormatter;
+    CGRect screenRect;
 }
 
 @end
@@ -60,6 +68,7 @@
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
     }
+    screenRect = [[UIScreen mainScreen] applicationFrame];
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = _project.name;
     screen = [UIScreen mainScreen].bounds;
@@ -79,6 +88,7 @@
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
     formatter = [[NSDateFormatter alloc] init];
     [formatter setDateStyle:NSDateFormatterShortStyle];
+    [formatter setTimeStyle:NSDateFormatterShortStyle];
 }
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
@@ -87,60 +97,60 @@
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboardDetail];
     }
-}
-
-- (void)goToProject:(UIButton*)button {
-    [self performSegueWithIdentifier:@"Project" sender:button];
-}
-
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    [super prepareForSegue:segue sender:sender];
-    if ([segue.identifier isEqualToString:@"Project"]) {
-        BHTabBarViewController *vc = [segue destinationViewController];
-        if ([sender isKindOfClass:[NSIndexPath class]]){
-            [vc setChecklistIndexPath:(NSIndexPath*)sender];
-        }
-        [vc setProject:_project];
-    } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
-        BHChecklistItemViewController *vc = [segue destinationViewController];
-        if ([sender isKindOfClass:[ChecklistItem class]])
-            [vc setItem:(ChecklistItem*)sender];
-    } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
-        BHTaskViewController *vc = [segue destinationViewController];
-        if ([sender isKindOfClass:[WorklistItem class]])
-            [vc setWorklistItem:(WorklistItem*)sender];
-    }
+    NSLog(@"how many reminders? %d",_project.reminders.count);
+    NSLog(@"how many worklist activities: %d",_project.worklist.activities.count);
 }
 
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 6;
+    return 8;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     switch (section) {
         case 0:
-            return [_project.activities count];
+            if (_project.reminders.count > 3){
+                return 3;
+            } else {
+                return _project.reminders.count;
+            }
             break;
         case 1:
-            return [(NSArray*)_project.phases count];
+            return [(NSArray*)_project.upcomingItems count];
             break;
         case 2:
+            if (_project.activities.count > 3){
+                return 3;
+            } else {
+                return _project.activities.count;
+            }
+            
+            break;
+        case 3:
+            return [(NSArray*)_project.phases count];
+            break;
+        case 4:
+            if (_project.checklist.activities.count > 3){
+                return 3;
+            } else {
+                return _project.checklist.activities.count;
+            }
+            break;
+        case 5:
             if (_project.recentDocuments.count > 0) return 1;
             else return 0;
             break;
-        case 3:
-            return [(NSArray*)_project.upcomingItems count];
+        case 6:
+            if (_project.worklist.activities.count > 3){
+                return 3;
+            } else {
+                return _project.worklist.activities.count;
+            }
             break;
-        case 4:
-        {
-            return [(NSArray*)_project.recentItems count];
-        }
-            break;
-        case 5:
+        case 7:
             return 1;
             break;
         default:
@@ -151,17 +161,80 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITableViewCell *cell;
     switch (indexPath.section) {
         case 0: {
-            static NSString *CellIdentifier = @"SynopsisCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-            Activity *activity = [_project.activities objectAtIndex:indexPath.row];
-            [cell.detailTextLabel setText:activity.body];
-            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            BHReminderCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReminderCell"];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReminderCell" owner:self options:nil] lastObject];
+            }
+            
+            Reminder *reminder = _project.reminders[indexPath.row];
+
+            if (reminder.checklistItem){
+                [cell.reminderLabel setText:[NSString stringWithFormat:@"%@:\n%@",[formatter stringFromDate:reminder.reminderDate],reminder.checklistItem.body]];
+            } else {
+                [cell.reminderLabel setText:@""];
+            }
+            if ([reminder.reminderDate compare:[NSDate date]] == NSOrderedAscending){
+                [cell.reminderLabel setTextColor:[UIColor redColor]];
+            } else {
+                [cell.reminderLabel setTextColor:[UIColor blackColor]];
+            }
+            if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                [cell.activeButton setTitle:@"Hide" forState:UIControlStateNormal];
+            } else {
+                [cell.activeButton setTitle:@"Enable" forState:UIControlStateNormal];
+            }
+            cell.activeButton.tag = indexPath.row;
+            [cell.activeButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:13]];
+            [cell.activeButton addTarget:self action:@selector(reminderButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+            
+            return cell;
         }
+            
             break;
         case 1: {
+            static NSString *CellIdentifier = @"UpcomingItemCell";
+            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
+            ChecklistItem *checklistItem = [_project.upcomingItems objectAtIndex:indexPath.row];
+            [cell.textLabel setText:checklistItem.body];
+            if (checklistItem.criticalDate) {
+                NSLog(@"should be showing cricital date: %@", checklistItem.criticalDate);
+                [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",[formatter stringFromDate:checklistItem.criticalDate]]];
+                [cell.detailTextLabel setTextColor:[UIColor darkGrayColor]];
+            } else {
+                [cell.detailTextLabel setText:@"No critical date listed"];
+                [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
+            }
+            if ([checklistItem.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
+                [cell.textLabel setTextColor:[UIColor lightGrayColor]];
+            }
+            if ([[checklistItem type] isEqualToString:@"Com"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
+            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+            } else {
+                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+            }
+            return cell;
+        }
+            
+            break;
+        case 2: {
+            BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+            }
+            Activity *activity = [_project.activities objectAtIndex:indexPath.row];
+            [cell configureActivityForSynopsis:activity];
+            [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
+            
+            return cell;
+        }
+            
+            break;
+        case 3: {
             BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
             [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
             progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
@@ -191,10 +264,22 @@
             
             progressCell.selectionStyle = UITableViewCellSelectionStyleNone;
             return progressCell;
-            
         }
         break;
-        case 2: {
+        case 4: {
+            BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+            }
+            Activity *activity = [_project.activities objectAtIndex:indexPath.row];
+            [cell configureActivityForSynopsis:activity];
+            [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
+            
+            return cell;
+        }
+            break;
+        case 5: {
             BHRecentDocumentCell *cell = [tableView dequeueReusableCellWithIdentifier:@"RecentPhotosCell"];
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             if (cell == nil) {
@@ -208,51 +293,26 @@
                 [cell addSubview:documentsScrollView];
             }
             [self showDocuments];
-            //have to return this cell on its own because it's not a UITableViewCell like the rest
+            return cell;
+        }
+        
+            break;
+        case 6: {
+            BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+            }
+            Activity *activity = [_project.worklist.activities objectAtIndex:indexPath.row];
+            [cell configureForActivity:activity];
+            [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
             return cell;
         }
             break;
-        case 3: {
-            static NSString *CellIdentifier = @"UpcomingItemCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            ChecklistItem *checklistItem = [_project.upcomingItems objectAtIndex:indexPath.row];
-            [cell.textLabel setText:checklistItem.body];
-            if (checklistItem.criticalDate) {
-                [cell.detailTextLabel setText:[NSString stringWithFormat:@"Deadline: %@",[formatter stringFromDate:checklistItem.criticalDate]]];
-                [cell.detailTextLabel setTextColor:[UIColor darkGrayColor]];
-            } else {
-                [cell.detailTextLabel setText:@"No critical date listed"];
-                [cell.detailTextLabel setTextColor:[UIColor lightGrayColor]];
-            }
-            if ([checklistItem.status isEqualToString:kCompleted]){
-                [cell.textLabel setTextColor:[UIColor lightGrayColor]];
-            }
-            if ([[checklistItem type] isEqualToString:@"Com"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
-            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
-            } else {
-                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
-            }
-        }
-            break;
-        case 4: {
-            static NSString *CellIdentifier = @"RecentItemCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
-            ChecklistItem *checklistItem = [_project.recentItems.array objectAtIndex:indexPath.row];
-            [cell.textLabel setText:checklistItem.body];
-            if ([[checklistItem type] isEqualToString:@"Com"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
-            } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
-            } else {
-                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
-            }
-        }
-            break;
-        case 5: {
+        case 7: {
             static NSString *CellIdentifier = @"SynopsisCell";
-            cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+            UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
             if (_project.address.formattedAddress){
                 [cell.textLabel setText:_project.address.formattedAddress];
             } else if (_project.address){
@@ -260,52 +320,53 @@
             }
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",_project.users.count]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            cell.textLabel.numberOfLines = 0;
+            [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+            return cell;
         }
             break;
         default:
+            return nil;
             break;
     }
-    cell.textLabel.numberOfLines = 0;
-    [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
-    return cell;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 2) return 110;
-    else return 66;
+    if (indexPath.section == 5) return 110;
+    else return 80;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 2:
             if (_project.recentDocuments.count){
-                return 30;
+                return 40;
             } else {
                 return 0;
             }
             break;
         case 3:
             if ([(NSArray*)_project.upcomingItems count]){
-                return 30;
+                return 40;
             } else {
                 return 0;
             }
             break;
         case 4:
             if ([(NSArray*)_project.recentItems count]){
-                return 30;
+                return 40;
             } else {
                 return 0;
             }
             break;
         default:
-            return 30;
+            return 40;
             break;
     }
 }
 
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    CGRect screenRect = [[UIScreen mainScreen] applicationFrame];
+    
     UIView* headerView;
     if (section == 2 && _project.recentDocuments.count == 0) {
         return nil;
@@ -314,14 +375,14 @@
     } else if (section == 3 && [(NSArray*)_project.upcomingItems count] == 0) {
         return nil;
     } else {
-        headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 54.0)];
+        headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 40.0)];
     }
     
     [headerView setBackgroundColor:[UIColor clearColor]];
     
     // Add the label
     UILabel *headerLabel;
-    headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screenRect.size.width, 30.0)];
+    headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screenRect.size.width, 40.0)];
     headerLabel.backgroundColor = kLighterGrayColor;
     headerLabel.textColor = [UIColor darkGrayColor];
     headerLabel.font = [UIFont fontWithName:kHelveticaNeueLight size:16];
@@ -331,28 +392,100 @@
     
     switch (section) {
         case 0:
-            [headerLabel setText:@"Alerts"];
+        {
+            [headerLabel setText:@"Reminders"];
+            if (_project.reminders.count > 3){
+                UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:12]];
+                [allButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+                [allButton setFrame:CGRectMake(screenRect.size.width-44, 0, 44, 44)];
+                [allButton setTitle:@"ALL" forState:UIControlStateNormal];
+                [allButton addTarget:self action:@selector(loadReminders) forControlEvents:UIControlEventTouchUpInside];
+                [headerView addSubview:allButton];
+            }
+        }
             break;
         case 1:
-            [headerLabel setText:@"Progress"];
+        {
+            [headerLabel setText:@"Deadlines"];
+            UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [allButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:12]];
+            [allButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+            [allButton setFrame:CGRectMake(screenRect.size.width-44, 0, 44, 44)];
+            [allButton setTitle:@"ALL" forState:UIControlStateNormal];
+            [allButton addTarget:self action:@selector(loadDeadlines) forControlEvents:UIControlEventTouchUpInside];
+            [headerView addSubview:allButton];
+        }
             break;
         case 2:
-            [headerLabel setText:@"Recent Documents"];
+        {
+            [headerLabel setText:@"Other Alerts"];
+            if (_project.activities.count > 3){
+                UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:12]];
+                [allButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+                [allButton setFrame:CGRectMake(screenRect.size.width-44, 0, 44, 44)];
+                [allButton setTitle:@"ALL" forState:UIControlStateNormal];
+                [allButton addTarget:self action:@selector(loadActivities) forControlEvents:UIControlEventTouchUpInside];
+                [headerView addSubview:allButton];
+            }
+        }
             break;
         case 3:
-            [headerLabel setText:@"Upcoming Critical Items"];
+            [headerLabel setText:@"Progress"];
             break;
         case 4:
-            [headerLabel setText:@"Recent Checklist Items"];
+            [headerLabel setText:@"Checklist"];
             break;
         case 5:
+            [headerLabel setText:@"Documents"];
+            break;
+        case 6:
+            [headerLabel setText:@"Worklist"];
+            break;
+        case 7:
             [headerLabel setText:@"Project Summary"];
             break;
+            
         default:
             return nil;
             break;
     }
     return headerView;
+}
+
+- (void)reminderButtonTapped:(UIButton*)button{
+    Reminder *reminder = _project.reminders[button.tag];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        [parameters setObject:@NO forKey:@"active"];
+        [reminder setActive:[NSNumber numberWithBool:NO]];
+    } else {
+        [parameters setObject:@YES forKey:@"active"];
+        [reminder setActive:[NSNumber numberWithBool:YES]];
+    }
+    
+    [self.tableView beginUpdates];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+    [self.tableView endUpdates];
+    
+    [manager PATCH:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,reminder.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success updating reminder state: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failed to update remidner: %@",error.description);
+    }];
+}
+
+- (void)loadReminders {
+    [self performSegueWithIdentifier:@"Alerts" sender:_project.reminders];
+}
+
+- (void)loadDeadlines {
+    [self performSegueWithIdentifier:@"Alerts" sender:nil];
+}
+
+- (void)loadActivities {
+    [self performSegueWithIdentifier:@"Alerts" sender:_project.activities];
 }
 
 #pragma mark - Display events
@@ -428,14 +561,53 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 1){
-        [self performSegueWithIdentifier:@"Project" sender:indexPath];
-    } else if (indexPath.section == 3){
+    if (indexPath.section == 0){
+        Reminder *reminder = _project.reminders[indexPath.row];
+        if (reminder.checklistItem){
+            [self performSegueWithIdentifier:@"ChecklistItem" sender:reminder.checklistItem];
+        }
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    } else if (indexPath.section == 1){
         ChecklistItem *item = [_project.upcomingItems objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
-    } else if (indexPath.section == 4){
-        ChecklistItem *item = [_project.recentItems.array objectAtIndex:indexPath.row];
-        [self performSegueWithIdentifier:@"ChecklistItem" sender:item];
+    } else if (indexPath.section == 3){
+        [self performSegueWithIdentifier:@"Project" sender:indexPath];
+    } else if (indexPath.section == 5){
+        
+    }
+}
+
+- (void)goToProject:(UIButton*)button {
+    [self performSegueWithIdentifier:@"Project" sender:button];
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    [super prepareForSegue:segue sender:sender];
+    if ([segue.identifier isEqualToString:@"Project"]) {
+        BHTabBarViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[NSIndexPath class]]){
+            [vc setChecklistIndexPath:(NSIndexPath*)sender];
+        }
+        [vc setProject:_project];
+    } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
+        BHChecklistItemViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[ChecklistItem class]])
+            [vc setItem:(ChecklistItem*)sender];
+    } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
+        BHTaskViewController *vc = [segue destinationViewController];
+        if ([sender isKindOfClass:[WorklistItem class]])
+            [vc setWorklistItem:(WorklistItem*)sender];
+    } else if ([segue.identifier isEqualToString:@"Alerts"]) {
+        BHActivitiesViewController *vc = [segue destinationViewController];
+        NSOrderedSet *set;
+        if ([sender isKindOfClass:[NSOrderedSet class]]){
+            set = (NSOrderedSet*)sender;
+            if ([set.firstObject isKindOfClass:[Activity class]]){
+                [vc setActivities:set];
+            } else if ([set.firstObject isKindOfClass:[Reminder class]]){
+                
+            }
+        }
     }
 }
 

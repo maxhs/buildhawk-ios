@@ -17,7 +17,7 @@
 @implementation Report (helper)
 
 - (void)populateWithDict:(NSDictionary *)dictionary {
-    NSLog(@"report dict: %@",dictionary);
+    //NSLog(@"report dict: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }

@@ -13,7 +13,7 @@
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"category helper dictionary: %@",dictionary);
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
@@ -43,7 +43,6 @@
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
-
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
             Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"]];
@@ -88,7 +87,6 @@
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
-        
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
             Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"]];

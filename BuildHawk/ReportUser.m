@@ -7,8 +7,6 @@
 //
 
 #import "ReportUser.h"
-#import "Report.h"
-
 
 @implementation ReportUser
 

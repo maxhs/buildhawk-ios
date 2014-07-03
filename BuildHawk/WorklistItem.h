@@ -2,14 +2,14 @@
 //  WorklistItem.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 6/9/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Comment, Notification, Photo, User, Worklist, Project;
+@class Activity, Comment, Notification, Photo, Project, User, Worklist;
 
 @interface WorklistItem : NSManagedObject
 
@@ -19,18 +19,28 @@
 @property (nonatomic, retain) NSDate * createdAt;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * location;
+@property (nonatomic, retain) NSOrderedSet *activities;
 @property (nonatomic, retain) NSOrderedSet *assignees;
 @property (nonatomic, retain) NSOrderedSet *comments;
-@property (nonatomic, retain) NSOrderedSet *photos;
-@property (nonatomic, retain) NSOrderedSet *activities;
-@property (nonatomic, retain) Project *project;
-@property (nonatomic, retain) Worklist *worklist;
-@property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Notification *notification;
+@property (nonatomic, retain) NSOrderedSet *photos;
+@property (nonatomic, retain) Project *project;
+@property (nonatomic, retain) User *user;
+@property (nonatomic, retain) Worklist *worklist;
 @end
 
 @interface WorklistItem (CoreDataGeneratedAccessors)
 
+- (void)insertObject:(Activity *)value inActivitiesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromActivitiesAtIndex:(NSUInteger)idx;
+- (void)insertActivities:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeActivitiesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInActivitiesAtIndex:(NSUInteger)idx withObject:(Activity *)value;
+- (void)replaceActivitiesAtIndexes:(NSIndexSet *)indexes withActivities:(NSArray *)values;
+- (void)addActivitiesObject:(Activity *)value;
+- (void)removeActivitiesObject:(Activity *)value;
+- (void)addActivities:(NSOrderedSet *)values;
+- (void)removeActivities:(NSOrderedSet *)values;
 - (void)insertObject:(User *)value inAssigneesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromAssigneesAtIndex:(NSUInteger)idx;
 - (void)insertAssignees:(NSArray *)value atIndexes:(NSIndexSet *)indexes;

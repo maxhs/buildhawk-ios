@@ -13,6 +13,7 @@
 #import "BHAddressBookCell.h"
 #import "BHAppDelegate.h"
 #import "BHTaskViewController.h"
+#import "Company+helper.h"
 
 @interface BHAddressBookPickerViewController () {
     NSMutableArray *_addressBookArray;
@@ -48,6 +49,7 @@
                     CFStringRef emailRef = ABMultiValueCopyValueAtIndex(emails, ix);
                     if (emailRef != nil) email = (__bridge_transfer NSString*) (emailRef);
                 }
+                CFRelease(emails);
             }
             
             ABMultiValueRef phones = ABRecordCopyValue(person, kABPersonPhoneProperty);
@@ -58,6 +60,7 @@
                     CFStringRef phoneRef = ABMultiValueCopyValueAtIndex(phones, px);
                     phone1 = (__bridge_transfer NSString*) (phoneRef);
                 }
+                CFRelease(phones);
             }
             
             User *user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
@@ -134,7 +137,7 @@
 }
 
 - (void)createUser:(User*)user {
-    [ProgressHUD show:[NSString stringWithFormat:@"Adding user to \"%@\"...", _subcontractor.name]];
+    [ProgressHUD show:[NSString stringWithFormat:@"Adding user to \"%@\"...", _company.name]];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     if (user.lastName.length){
         [parameters setObject:user.lastName forKey:@"last_name"];
@@ -148,12 +151,12 @@
     if (user.phone.length){
         [parameters setObject:user.phone forKey:@"phone"];
     }
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_subcontractor.identifier] parameters:@{@"user":parameters,@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"task_id":_task.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_company.identifier] parameters:@{@"user":parameters,@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"task_id":_task.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"old user? %@",user);
         NSLog(@"Success creating new user from Address book: %@",responseObject);
         if ([responseObject objectForKey:@"user"]){
             [user populateFromDictionary:[responseObject objectForKey:@"user"]];
-            [_subcontractor addUser:user];
+            [_company addUser:user];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":user}];
         }
         

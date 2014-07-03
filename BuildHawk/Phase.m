@@ -7,11 +7,6 @@
 //
 
 #import "Phase.h"
-#import "Cat.h"
-#import "Checklist.h"
-#import "ChecklistItem.h"
-#import "Project.h"
-
 
 @implementation Phase
 

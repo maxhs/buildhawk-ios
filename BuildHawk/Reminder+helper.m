@@ -7,6 +7,8 @@
 //
 
 #import "Reminder+helper.h"
+#import "ChecklistItem+helper.h"
+#import "User+helper.h"
 
 @implementation Reminder (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -14,9 +16,12 @@
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
+    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
+        self.active = [dictionary objectForKey:@"active"];
+    }
     if ([dictionary objectForKey:@"reminder_date"] && [dictionary objectForKey:@"reminder_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"reminder_date"] doubleValue];
-        self.datetime = [NSDate dateWithTimeIntervalSince1970:_interval];
+        self.reminderDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"created_date"] doubleValue];

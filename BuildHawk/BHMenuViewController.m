@@ -46,9 +46,8 @@ static NSString *textPlaceholder = @"Text Message";
     self.view.backgroundColor = kDarkGrayColor;
     self.tableView.backgroundColor = kDarkGrayColor;
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-
-    [self.tableView reloadData];
     screen = [UIScreen mainScreen].bounds;
+    
     [self.logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
     [self.logoutButton setBackgroundColor:kDarkGrayColor];
     if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
@@ -57,6 +56,9 @@ static NSString *textPlaceholder = @"Text Message";
         iPhone5 = NO;
     } else {
         iPad = YES;
+    }
+    if (!_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     }
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setTimeStyle:NSDateFormatterShortStyle];

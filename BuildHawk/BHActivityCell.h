@@ -13,4 +13,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *activityLabel;
 @property (weak, nonatomic) IBOutlet UILabel *timestampLabel;
 - (void)configureForActivity:(Activity*)activity;
+- (void)configureActivityForSynopsis:(Activity*)activity;
 @end

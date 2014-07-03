@@ -13,6 +13,7 @@
 #import "Checklist+helper.h"
 #import "Project+helper.h"
 #import "Activity+helper.h"
+#import "Reminder+helper.h"
 
 @implementation ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -29,8 +30,10 @@
     if ([dictionary objectForKey:@"item_type"] && [dictionary objectForKey:@"item_type"] != [NSNull null]) {
         self.type = [dictionary objectForKey:@"item_type"];
     }
-    if ([dictionary objectForKey:@"status"] && [dictionary objectForKey:@"status"] != [NSNull null]) {
-        self.status = [dictionary objectForKey:@"status"];
+    if ([dictionary objectForKey:@"state"] && [dictionary objectForKey:@"state"] != [NSNull null]) {
+        self.state = [dictionary objectForKey:@"state"];
+    } else {
+        self.state = nil;
     }
     if ([dictionary objectForKey:@"photos_count"] && [dictionary objectForKey:@"photos_count"] != [NSNull null]) {
         self.photosCount = [dictionary objectForKey:@"photos_count"];
@@ -45,6 +48,18 @@
     }
     if ([dictionary objectForKey:@"comments_count"] && [dictionary objectForKey:@"comments_count"] != [NSNull null]) {
         self.commentsCount = [dictionary objectForKey:@"comments_count"];
+    }
+    if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
+        Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"project_id"]];
+        if (project){
+            self.project = project;
+        }
+    }
+    if ([dictionary objectForKey:@"checklist_id"] && [dictionary objectForKey:@"checklist_id"] != [NSNull null]) {
+        Checklist *checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"checklist_id"]];
+        if (checklist){
+            self.checklist = checklist;
+        }
     }
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
         NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
@@ -76,7 +91,6 @@
         for (Reminder *reminder in self.reminders) {
             if (![set containsObject:reminder]){
                 NSLog(@"Deleting a reminder that no longer exists for checklist item: %@",self.identifier);
-                [self removeReminder:reminder];
                 [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
@@ -120,13 +134,6 @@
         }
         self.activities = orderedActivities;
     }
-    
-    if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
-        Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"project_id"]];
-        if (project){
-            self.project = project;
-        }
-    }
 }
 
 - (void)update:(NSDictionary *)dictionary {
@@ -139,8 +146,10 @@
     if ([dictionary objectForKey:@"item_type"] && [dictionary objectForKey:@"item_type"] != [NSNull null]) {
         self.type = [dictionary objectForKey:@"item_type"];
     }
-    if ([dictionary objectForKey:@"status"] && [dictionary objectForKey:@"status"] != [NSNull null]) {
-        self.status = [dictionary objectForKey:@"status"];
+    if ([dictionary objectForKey:@"state"] && [dictionary objectForKey:@"state"] != [NSNull null]) {
+        self.state = [dictionary objectForKey:@"state"];
+    } else {
+        self.state = nil;
     }
     if ([dictionary objectForKey:@"photos_count"] && [dictionary objectForKey:@"photos_count"] != [NSNull null]) {
         self.photosCount = [dictionary objectForKey:@"photos_count"];
@@ -162,10 +171,13 @@
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
             Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
-            if (!comment){
+            if (comment){
+                [comment update:commentDict];
+            } else {
                 comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [comment populateFromDictionary:commentDict];
             }
-            [comment populateFromDictionary:commentDict];
+            
             [orderedComments addObject:comment];
         }
         self.comments = orderedComments;
@@ -186,7 +198,6 @@
         for (Reminder *reminder in self.reminders) {
             if (![set containsObject:reminder]){
                 NSLog(@"Deleting a reminder that no longer exists for checklist item: %@",self.identifier);
-                [self removeReminder:reminder];
                 [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
@@ -246,6 +257,18 @@
     [set removeObject:comment];
     self.comments = set;
 }
+
+-(void)addActivity:(Activity *)activity {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
+    [set addObject:activity];
+    self.activities = set;
+}
+-(void)removeActivity:(Activity *)activity {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
+    [set removeObject:activity];
+    self.activities = set;
+}
+
 -(void)addPhoto:(Photo *)photo {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set addObject:photo];

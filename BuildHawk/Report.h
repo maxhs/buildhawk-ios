@@ -2,14 +2,14 @@
 //  Report.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 6/11/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Notification, Photo, Project, ReportSub, ReportUser, SafetyTopic;
+@class Activity, Notification, Photo, Project, ReportSub, ReportUser, SafetyTopic, User;
 
 @interface Report : NSManagedObject
 
@@ -26,18 +26,28 @@
 @property (nonatomic, retain) NSString * weather;
 @property (nonatomic, retain) NSString * weatherIcon;
 @property (nonatomic, retain) NSString * wind;
+@property (nonatomic, retain) NSOrderedSet *activities;
+@property (nonatomic, retain) User *author;
 @property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) Project *project;
-@property (nonatomic, retain) User *author;
 @property (nonatomic, retain) NSOrderedSet *reportSubs;
 @property (nonatomic, retain) NSOrderedSet *reportUsers;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;
-@property (nonatomic, retain) NSOrderedSet *activities;
 @end
 
 @interface Report (CoreDataGeneratedAccessors)
 
+- (void)insertObject:(Activity *)value inActivitiesAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromActivitiesAtIndex:(NSUInteger)idx;
+- (void)insertActivities:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeActivitiesAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInActivitiesAtIndex:(NSUInteger)idx withObject:(Activity *)value;
+- (void)replaceActivitiesAtIndexes:(NSIndexSet *)indexes withActivities:(NSArray *)values;
+- (void)addActivitiesObject:(Activity *)value;
+- (void)removeActivitiesObject:(Activity *)value;
+- (void)addActivities:(NSOrderedSet *)values;
+- (void)removeActivities:(NSOrderedSet *)values;
 - (void)insertObject:(Photo *)value inPhotosAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromPhotosAtIndex:(NSUInteger)idx;
 - (void)insertPhotos:(NSArray *)value atIndexes:(NSIndexSet *)indexes;

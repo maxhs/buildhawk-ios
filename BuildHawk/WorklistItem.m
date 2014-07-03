@@ -2,14 +2,16 @@
 //  WorklistItem.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 6/9/14.
+//  Created by Max Haines-Stiles on 7/3/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import "WorklistItem.h"
+#import "Activity.h"
 #import "Comment.h"
 #import "Notification.h"
 #import "Photo.h"
+#import "Project.h"
 #import "User.h"
 #import "Worklist.h"
 
@@ -21,14 +23,14 @@
 @dynamic completedAt;
 @dynamic createdAt;
 @dynamic identifier;
-@dynamic project;
 @dynamic location;
+@dynamic activities;
 @dynamic assignees;
 @dynamic comments;
-@dynamic photos;
-@dynamic worklist;
-@dynamic user;
 @dynamic notification;
-@dynamic activities;
+@dynamic photos;
+@dynamic project;
+@dynamic user;
+@dynamic worklist;
 
 @end

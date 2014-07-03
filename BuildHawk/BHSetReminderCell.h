@@ -1,5 +1,5 @@
 //
-//  BHItemReminderCell.h
+//  BHSetReminderCell.h
 //  BuildHawk
 //
 //  Created by Max Haines-Stiles on 6/3/14.
@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface BHItemReminderCell : UITableViewCell
+@interface BHSetReminderCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIButton *reminderButton;
 @property (weak, nonatomic) IBOutlet UILabel *reminderLabel;
 @end
