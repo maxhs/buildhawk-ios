@@ -27,12 +27,17 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"created_date"] doubleValue];
         self.createdDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
-    if ([dictionary objectForKey:@"checklist_item_id"] && [dictionary objectForKey:@"checklist_item_id"] != [NSNull null]) {
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"checklist_item_id"]];
+    if ([dictionary objectForKey:@"checklist_item"] && [dictionary objectForKey:@"checklist_item"] != [NSNull null]) {
+        NSDictionary *dict = [dictionary objectForKey:@"checklist_item"];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
         ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate];
         if (item){
-            self.checklistItem = item;
+            [item update:dict];
+        } else {
+            item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [item populateFromDictionary:dict];
         }
+        self.checklistItem = item;
     }
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
         NSDictionary *userDict = [dictionary objectForKey:@"user"];

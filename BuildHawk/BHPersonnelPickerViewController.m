@@ -17,8 +17,6 @@
 #import "Project+helper.h"
 #import "BHChoosePersonnelCell.h"
 #import "BHAddPersonnelViewController.h"
-//#import <AddressBook/AddressBook.h>
-//#import "BHAddressBookPickerViewController.h"
 
 @interface BHPersonnelPickerViewController () <UIAlertViewDelegate> {
     NSMutableArray *filteredUsers;
@@ -26,7 +24,7 @@
     UIAlertView *userAlertView;
     UIAlertView *companyAlertView;
     User *selectedUser;
-    Subcontractor *selectedSubcontractor;
+    Company *selectedCompany;
     UIBarButtonItem *saveButton;
     UIBarButtonItem *doneButton;
     NSArray *peopleArray;
@@ -43,8 +41,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 @synthesize project = _project;
 @synthesize company = _company;
 @synthesize task = _task;
-@synthesize orderedSubs = _orderedSubs;
-@synthesize orderedUsers = _orderedUsers;
+@synthesize report = _report;
+//@synthesize orderedSubs = _orderedSubs;
+//@synthesize orderedUsers = _orderedUsers;
 
 - (void)viewDidLoad
 {
@@ -61,17 +60,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
-    
-    /*UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 44)];
-    [headerView setBackgroundColor:[UIColor clearColor]];
-    [headerView addSubview:self.searchBar];
-    [self.searchBar setFrame:CGRectMake(0, 0, screenWidth()/2, 44)];
-    self.searchBar.delegate = self;
 
-    [headerView addSubview:_addressBookButton];
-    [_addressBookButton setTitle:@"Address Book" forState:UIControlStateNormal];
-    [_addressBookButton setFrame:CGRectMake(screenWidth()/2, 0, screenWidth()/2, 44)];
-    [_addressBookButton addTarget:self action:@selector(goToAddressBook) forControlEvents:UIControlEventTouchUpInside];*/
     self.tableView.tableHeaderView = self.searchBar;
     
     //set the search bar tint color so you can see the cursor
@@ -97,10 +86,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)loadPersonnel {
     [ProgressHUD show:@"Getting personnel..."];
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/project_subs/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"success loading project personnel: %@",responseObject);
         [_project update:[responseObject objectForKey:@"project"]];
-    
         loading = NO;
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
@@ -120,42 +108,18 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [_project.companies enumerateObjectsUsingBlock:^(Company *company, NSUInteger idx, BOOL *stop) {
         [companySet addObject:company];
     }];
+    if (!_companyMode){
     [_project.users enumerateObjectsUsingBlock:^(User *user, NSUInteger idx, BOOL *stop) {
         if (!user.company.projectUsers){
             user.company.projectUsers = [NSMutableOrderedSet orderedSet];
         }
         [user.company.projectUsers addObject:user];
         [companySet addObject:user.company];
-        NSLog(@"inside block");
     }];
+    }
     
-    NSLog(@"what finishes first? company set: %d",companySet.count);
     [self.tableView reloadData];
 }
-/*- (void)goToAddressBook {
-    CFErrorRef error = nil;
-    ABAddressBookRef addressBook = ABAddressBookCreateWithOptions(NULL, &error);
-    if (!addressBook)
-    {
-        //some sort of error preventing us from grabbing the address book
-        return;
-    }
-    if (!peopleArray){
-        peopleArray = [NSArray array];
-    }
-    
-    ABAddressBookRequestAccessWithCompletion(addressBook, ^(bool granted, CFErrorRef error) {
-        if (granted){
-            CFArrayRef arrayOfPeople = ABAddressBookCopyArrayOfAllPeople(addressBook);
-            peopleArray = (__bridge NSArray *)(arrayOfPeople);
-            
-            CFRelease(arrayOfPeople);
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self performSegueWithIdentifier:@"AddressBook" sender:nil];
-            });
-        }
-    });
-}*/
 
 - (void)didReceiveMemoryWarning
 {
@@ -185,7 +149,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         if (loading) {
             return 0;
         } else {
-            return companySet.count;
+            if (_companyMode){
+                return 1;
+            } else {
+                return companySet.count;
+            }
         }
     }
 }
@@ -194,137 +162,45 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 {
     if (searching){
         if (section == 0) {
-            if (_companyMode) {
-                return filteredSubcontractors.count;
-            } else {
-                return filteredUsers.count;
-            }
+            return filteredUsers.count;
         } else {
             return 1;
         }
         
     } else {
         Company *company = companySet[section];
-        NSLog(@"returning %d users",company.projectUsers.count);
-        return company.projectUsers.count + 1;
-    }
-}
-
-- (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    if (searching){
-        return @"";
-    } else {
-        Company *company = companySet[section];
-        return company.name;
+        if (_report){
+            if (_companyMode){
+                return companySet.count;
+            } else {
+                if ([company.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                    return company.projectUsers.count + 2;
+                } else {
+                    return 1;
+                }
+            }
+        } else {
+            if ([company.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                return company.projectUsers.count + 2;
+            } else {
+                return 1;
+            }
+        }
     }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (_companyMode){
-        BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReportCell"];
-        if (cell == nil) {
-            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
-        }
-        [cell.nameLabel setText:@""];
-        [cell.nameLabel setTextColor:[UIColor blackColor]];
-        [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
-        [cell.connectDetailLabel setText:@""];
-        [cell.connectNameLabel setText:@""];
-        
-        cell.userInteractionEnabled = YES;
-        Subcontractor *subcontractor = nil;
-        if (searching){
-            if (indexPath.row == filteredSubcontractors.count) {
-                [cell.nameLabel setText:[NSString stringWithFormat:@"Add \"%@\" to list",self.searchBar.text]];
-                [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
-                [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
-            } else {
-                subcontractor = [filteredSubcontractors objectAtIndex:indexPath.row];
-                [cell.nameLabel setText:subcontractor.name];
-                [cell.nameLabel setTextColor:[UIColor blackColor]];
-                [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
-            }
-        }
-        /*
-         for (ReportUser *reportUser in _orderedUsers){
-         if ([reportUser.userId isEqualToNumber:user.identifier] && reportUser.hours.intValue > 0){
-         [cell.hoursTextField setText:[NSString stringWithFormat:@"%@",reportUser.hours]];
-         break;
-         }
-         }
-         */
-        [cell.hoursTextField setText:@""];
-        if (subcontractor){
-            for (ReportSub *reportSub in _orderedSubs){
-                if ([reportSub.companyId isEqualToNumber:subcontractor.identifier] && reportSub.count.intValue > 0){
-                    [cell.hoursTextField setText:[NSString stringWithFormat:@"%@",reportSub.count]];
-                    break;
-                }
-            }
-        }
-        return cell;
-
-    } else {
-        if (searching){
-            if (indexPath.section == 0){
-                static NSString *CellIdentifier = @"ReportCell";
-                BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-                if (cell == nil) {
-                    cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
-                }
-                User *user;
-                if (filteredUsers.count){
-                    user = [filteredUsers objectAtIndex:indexPath.row];
-                    [cell.connectNameLabel setText:user.fullname];
-                    if (user.company.name.length){
-                        NSAttributedString *companyString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"   (%@)",user.company.name] attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-                        NSMutableAttributedString *userString = [[NSMutableAttributedString alloc] initWithString:user.fullname];
-                        [userString appendAttributedString:companyString];
-                        [cell.connectNameLabel setAttributedText:userString];
-                    }
-                    
-                    if (user.email.length){
-                        [cell.connectDetailLabel setText:user.email];
-                    } else if (user.phone.length) {
-                        [cell.connectDetailLabel setText:user.phone];
-                    }
-                }
-                //clear out the plain old boring name label
-                [cell.nameLabel setText:@""];
-                [cell.hoursTextField setText:@""];
-                
-                return cell;
-            } else {
-                BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReportCell"];
-                if (cell == nil) {
-                    cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
-                }
-                [cell.connectNameLabel setText:@""];
-                [cell.connectDetailLabel setText:@""];
-                [cell.nameLabel setText:[NSString stringWithFormat:@"Add \"%@\"",self.searchBar.text]];
-                [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
-                [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
-                return cell;
-            }
-        } else {
+    if (searching){
+        if (indexPath.section == 0){
             static NSString *CellIdentifier = @"ReportCell";
             BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
             if (cell == nil) {
                 cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
             }
-            Company *company = companySet[indexPath.section];
-            if (indexPath.row == company.projectUsers.count){
-                [cell.connectNameLabel setText:@""];
-                [cell.connectDetailLabel setText:@""];
-                [cell.nameLabel setText:[NSString stringWithFormat:@"Add a contact to\"%@\"",company.name]];
-                [cell.nameLabel setNumberOfLines:0];
-                [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
-                [cell.nameLabel setTextAlignment:NSTextAlignmentCenter];
-                [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
-            } else {
-                User *user = company.projectUsers[indexPath.row];
-            
+            User *user;
+            if (filteredUsers.count){
+                user = [filteredUsers objectAtIndex:indexPath.row];
                 [cell.connectNameLabel setText:user.fullname];
                 if (user.company.name.length){
                     NSAttributedString *companyString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"   (%@)",user.company.name] attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
@@ -338,13 +214,105 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 } else if (user.phone.length) {
                     [cell.connectDetailLabel setText:user.phone];
                 }
-                //clear out the plain old boring name label
-                [cell.nameLabel setText:@""];
-                [cell.hoursTextField setText:@""];
             }
-        
+            //clear out the plain old boring name label
+            [cell.nameLabel setText:@""];
+            [cell.hoursLabel setText:@""];
+            
+            return cell;
+        } else {
+            BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReportCell"];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
+            }
+            [cell.connectNameLabel setText:@""];
+            [cell.connectDetailLabel setText:@""];
+            [cell.nameLabel setText:[NSString stringWithFormat:@"Add \"%@\"",self.searchBar.text]];
+            [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
             return cell;
         }
+    } else {
+        static NSString *CellIdentifier = @"ReportCell";
+        BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChoosePersonnelCell" owner:self options:nil] lastObject];
+        }
+        Company *company;
+        if (_companyMode){
+            company = companySet[indexPath.row];
+        } else {
+            company = companySet[indexPath.section];
+        }
+        
+        if (_companyMode){
+            [cell.connectNameLabel setText:@""];
+            [cell.connectDetailLabel setText:@""];
+            [cell.nameLabel setText:company.name];
+            [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
+                if ([company.identifier isEqualToNumber:reportSub.companyId]){
+                    [cell.connectNameLabel setText:company.name];
+                    [cell.connectNameLabel setFont:[UIFont boldSystemFontOfSize:16]];
+                    [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel onsite",reportSub.count]];
+                    [cell.nameLabel setText:@""];
+                    *stop = YES;
+                }
+            }];
+            
+            [cell.nameLabel setNumberOfLines:0];
+            [cell.nameLabel setTextColor:[UIColor blackColor]];
+            
+        } else if (indexPath.row == 0){
+            [cell.connectNameLabel setText:@""];
+            [cell.connectDetailLabel setText:@""];
+            [cell.nameLabel setText:company.name];
+            [cell.nameLabel setNumberOfLines:0];
+            [cell.nameLabel setTextColor:[UIColor blackColor]];
+            [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
+            [cell.nameLabel setFont:[UIFont boldSystemFontOfSize:16]];
+        } else if (indexPath.row == company.projectUsers.count + 1){
+            [cell.connectNameLabel setText:@""];
+            [cell.connectDetailLabel setText:@""];
+            [cell.nameLabel setText:[NSString stringWithFormat:@"+ new contact to \"%@\"",company.name]];
+            [cell.nameLabel setNumberOfLines:0];
+            [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.nameLabel setTextAlignment:NSTextAlignmentCenter];
+            [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
+        } else {
+            User *user = company.projectUsers[indexPath.row-1];
+            [cell.connectNameLabel setText:user.fullname];
+            if (user.company.name.length){
+                NSAttributedString *companyString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"   (%@)",user.company.name] attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+                NSMutableAttributedString *userString = [[NSMutableAttributedString alloc] initWithString:user.fullname];
+                [userString appendAttributedString:companyString];
+                [cell.connectNameLabel setAttributedText:userString];
+            }
+            
+            if (user.email.length){
+                [cell.connectDetailLabel setText:user.email];
+            } else if (user.phone.length) {
+                [cell.connectDetailLabel setText:user.phone];
+            }
+            //clear out the plain old boring name label
+            [cell.nameLabel setText:@""];
+            if (_report){
+                [cell.hoursLabel setText:@""];
+                [_report.reportUsers enumerateObjectsUsingBlock:^(ReportUser *reportUser, NSUInteger idx, BOOL *stop) {
+                    if ([user.identifier isEqualToNumber:reportUser.userId]){
+                        if (reportUser.hours.intValue == 1){
+                            [cell.hoursLabel setText:@"1 hour"];
+                        } else {
+                            [cell.hoursLabel setText:[NSString stringWithFormat:@"%@\nhours",reportUser.hours]];
+                        }
+                        
+                        *stop = YES;
+                    }
+                }];
+            } else {
+                [cell.hoursLabel setText:@""];
+            }
+        }
+        return cell;
     }
 }
 
@@ -357,40 +325,103 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     if ([segue.identifier isEqualToString:@"AddPersonnel"]){
         BHAddPersonnelViewController *vc = [segue destinationViewController];
         [vc setTask:_task];
+        [vc setReport:_report];
         [vc setProject:_project];
-        
-        if (_companyMode){
-            [vc setCompanyMode:YES];
-        } else {
-            [vc setCompanyMode:NO];
-        }
+
         if ([sender isKindOfClass:[Company class]]){
             [vc setTitle:[NSString stringWithFormat:@"Add to: %@",[(Company*)sender name]]];
             [vc setCompany:(Company*)sender];
-        } else if (self.searchBar.text) {
-            [vc setName:self.searchBar.text];
         }
-    }/* else if ([segue.identifier isEqualToString:@"AddressBook"]){
-        BHAddressBookPickerViewController *vc = [segue destinationViewController];
-        [vc setPeopleArray:peopleArray];
-        if (_task){
-            [vc setTask:_task];
-        }
-    }*/
+    }
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (searching && indexPath.row == filteredSubcontractors.count){
         [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
     } else if (_task){
-        NSLog(@"did select durign task mode");
-        Company *company = companySet[indexPath.section];
-        if (indexPath.row == company.projectUsers.count){
-            [self performSegueWithIdentifier:@"AddPersonnel" sender:company];
+        selectedCompany = companySet[indexPath.section];
+        if (indexPath.row == 0){
+            if ([selectedCompany.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                [selectedCompany setExpanded:[NSNumber numberWithBool:NO]];
+            } else {
+                [selectedCompany setExpanded:[NSNumber numberWithBool:YES]];
+            }
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        } else if (indexPath.row == selectedCompany.projectUsers.count+1){
+            [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
         } else {
-            selectedUser = [company.projectUsers objectAtIndex:indexPath.row];
+            selectedUser = [selectedCompany.projectUsers objectAtIndex:indexPath.row-1];
+            if (selectedUser){
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
+                [self.navigationController popViewControllerAnimated:YES];
+            }
         }
         
+    } else if (_report) {
+
+        if (_companyMode){
+            //selecting a company
+            selectedCompany = companySet[indexPath.row];
+            BOOL select = YES;
+            for (ReportSub *reportSub in _report.reportSubs) {
+                if ([selectedCompany.identifier isEqualToNumber:reportSub.companyId]){
+                    [_report removeReportSubcontractor:reportSub];
+                    [reportSub MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                    NSLog(@"should be removing a report sub");
+                    select = NO;
+                    break;
+                }
+            }
+            if (select){
+                companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel onsite" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+                companyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+                [[companyAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
+                [companyAlertView show];
+            } else {
+                [self.tableView reloadData];
+            }
+
+        } else {
+            //not in company mode, but this tableview still focuses on companies with a tap to expand to see individual users
+            selectedCompany = companySet[indexPath.section];
+            if (indexPath.row == 0){
+                if ([selectedCompany.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                    [selectedCompany setExpanded:[NSNumber numberWithBool:NO]];
+                } else {
+                    [selectedCompany setExpanded:[NSNumber numberWithBool:YES]];
+                }
+                [self.tableView beginUpdates];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView endUpdates];
+            } else if (indexPath.row == selectedCompany.projectUsers.count+1){
+                
+                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+                
+            } else {
+                selectedUser = [selectedCompany.projectUsers objectAtIndex:indexPath.row-1];
+                BOOL select = YES;
+                for (ReportUser *reportUser in _report.reportUsers) {
+                    if ([selectedUser.identifier isEqualToNumber:reportUser.userId]){
+                        [_report removeReportUser:reportUser];
+                        [reportUser MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                        select = NO;
+                        break;
+                    }
+                }
+                if (select){
+                    userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+                    userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+                    [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
+                    [userAlertView show];
+                } else {
+                    [self.tableView reloadData];
+                }
+            }
+        }
+        
+    } else {
         id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
         
         if (self.phone) {
@@ -408,66 +439,10 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have an email address on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
         } else if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
+            if (selectedUser){
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
+            }
             [self.navigationController popViewControllerAnimated:YES];
-        } else if ([precedingVC isKindOfClass:[BHChecklistItemViewController class]]) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ChecklistPersonnel" object:nil userInfo:@{kpersonnel:selectedUser}];
-            [self.navigationController popViewControllerAnimated:YES];
-        }
-        
-    } else if (_companyMode) {
-        NSLog(@"did select durign company mode");
-        //subcontractor select mode
-        if (_companyMode){
-            selectedSubcontractor = [_project.companies objectAtIndex:indexPath.row];
-            BOOL select = YES;
-            for (ReportSub *reportSub in _orderedSubs) {
-                if ([selectedSubcontractor.identifier isEqualToNumber:reportSub.companyId]){
-                    selectedSubcontractor.count = nil;
-                    [_orderedSubs removeObject:reportSub];
-                    select = NO;
-                    break;
-                }
-            }
-            if (select){
-                companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel onsite" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
-                companyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
-                [[companyAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
-                [companyAlertView show];
-            } else {
-                [self.tableView reloadData];
-            }
-        } else {
-            selectedSubcontractor = [_project.companies objectAtIndex:indexPath.section];
-            if (indexPath.row > 0 && indexPath.row <= selectedSubcontractor.users.count){
-                //selecting an actual user
-                User *user = selectedSubcontractor.users[indexPath.row-1];
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":user}];
-                NSLog(@"selected: %@", user.fullname);
-                [self.navigationController popViewControllerAnimated:YES];
-            } else {
-                //selecting "add new"
-                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedSubcontractor];
-            }
-        }
-    } else {
-        selectedUser = [_project.users objectAtIndex:indexPath.row];
-        BOOL select = YES;
-        for (ReportUser *reportUser in _orderedUsers) {
-            if ([selectedUser.identifier isEqualToNumber:reportUser.userId]){
-                selectedUser.hours = nil;
-                [_orderedUsers removeObject:reportUser];
-                select = NO;
-                break;
-            }
-        }
-        if (select){
-            userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
-            userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
-            [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
-            [userAlertView show];
-        } else {
-            [self.tableView reloadData];
         }
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -494,36 +469,33 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     reportUser.hours = count;
     reportUser.fullname = selectedUser.fullname;
     reportUser.userId = selectedUser.identifier;
-    [_orderedUsers addObject:reportUser];
+    [_report addReportUser:reportUser];
     [self.tableView reloadData];
 }
 
 - (void)selectReportCompany:(NSIndexPath*)indexPath andCount:(NSNumber*)count {
     ReportSub *reportSub = [ReportSub MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     reportSub.count = count;
-    reportSub.name = selectedSubcontractor.name;
-    reportSub.companyId = selectedSubcontractor.identifier;
-    [_orderedSubs addObject:reportSub];
+    reportSub.name = selectedCompany.name;
+    reportSub.companyId = selectedCompany.identifier;
+    [_report addReportSubcontractor:reportSub];
     [self.tableView reloadData];
 }
 
 - (void)save {
-    /*NSDictionary *userInfo;
-    if (_project.users.count){
-        userInfo = @{kUsers:_orderedUsers};
-    } else if (_orderedSubs.count) {
-        userInfo = @{kSubcontractors:_orderedSubs};
-    }
-    
-    id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
+        [self.navigationController popViewControllerAnimated:YES];
+    }];
+    /*id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
     if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
         [[NSNotificationCenter defaultCenter] postNotificationName:@"WorklistPersonnel" object:nil userInfo:userInfo];
     } else if ([precedingVC isKindOfClass:[BHChecklistItemViewController class]]) {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ChecklistPersonnel" object:nil userInfo:userInfo];
     } else {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil userInfo:userInfo];
+     
     }*/
-    [self.navigationController popViewControllerAnimated:YES];
+    
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -564,7 +536,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (BOOL)searchBar:(UISearchBar *)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
     NSString* newText = [searchBar.text stringByReplacingCharactersInRange:range withString:text];
-    NSLog(@"new text: %@",newText);
     [self filterContentForSearchText:newText scope:nil];
     return YES;
 }

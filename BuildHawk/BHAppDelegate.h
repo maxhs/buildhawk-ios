@@ -16,6 +16,7 @@
 @property (strong, nonatomic) AFHTTPRequestOperationManager *manager;
 @property (strong, nonatomic) UINavigationController *nav;
 @property (strong, nonatomic) BHMenuViewController *menu;
+@property (strong, nonatomic) User *currentUser;
 @property BOOL connected;
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav;

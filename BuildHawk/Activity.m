@@ -31,5 +31,6 @@
 @dynamic task;
 @dynamic user;
 @dynamic worklist;
+@dynamic photo;
 
 @end

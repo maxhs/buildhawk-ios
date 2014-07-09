@@ -11,6 +11,7 @@
 
 @interface BHDashboardViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 -(IBAction)revealMenu;
 
 @end

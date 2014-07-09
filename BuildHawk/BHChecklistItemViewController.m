@@ -88,6 +88,7 @@
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem:)];
     self.navigationItem.rightBarButtonItem = saveButton;
     [Flurry logEvent:@"Viewing checklist item"];
+
     [self loadItem];
 
     commentFormatter = [[NSDateFormatter alloc] init];
@@ -210,7 +211,11 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 20;
+    return 30;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return 30;
 }
 
 - (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -738,10 +743,22 @@
 }
 
 - (void)saveImage:(UIImage*)image {
-    if (![_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ![_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [self savePostToLibrary:image];
         NSData *imageData = UIImageJPEGRepresentation(image, 1);
-        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":@{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kChecklist,@"mobile":[NSNumber numberWithBool:YES],@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+        NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
+            [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+        }
+        if (_project && _project.identifier){
+            [photoParameters setObject:_project.identifier forKey:@"project_id"];
+        }
+        [photoParameters setObject:_item.identifier forKey:@"checklist_item_id"];
+        [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+        [photoParameters setObject:kChecklist forKey:@"source"];
+        [photoParameters setObject:[NSNumber numberWithBool:YES] forKey:@"mobile"];
+        
+        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"save image response object: %@",responseObject);

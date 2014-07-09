@@ -79,6 +79,10 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSettingsCell" owner:self options:nil] lastObject];
     }
     [cell.textLabel setFont:[UIFont systemFontOfSize:15]];
+    [cell.textField setText:@""];
+    [cell.textField setPlaceholder:@""];
+    [cell.textLabel setText:@""];
+    cell.accessoryView = nil;
     [cell.textField setAutocorrectionType:UITextAutocorrectionTypeNo];
     cell.textField.delegate = self;
     [cell.actionButton setHidden:YES];
@@ -129,15 +133,17 @@
             [cell.actionButton addTarget:self action:@selector(createAlternate) forControlEvents:UIControlEventTouchUpInside];;
             addAlternateTextField = cell.textField;
             [cell.actionButton setHidden:NO];
-            cell.actionButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.1].CGColor;
+            cell.actionButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.3].CGColor;
             cell.actionButton.layer.borderWidth = .5f;
-            cell.actionButton.layer.cornerRadius = 3.f;
+            cell.actionButton.layer.cornerRadius = 5.f;
             cell.actionButton.clipsToBounds = YES;
+            [cell.textLabel setText:@""];
         } else {
             Alternate *alternate = currentUser.alternates[indexPath.row];
             if (alternate.email.length){
                 [cell.textLabel setText:alternate.email];
             }
+            [cell.textField setHidden:YES];
         }
         
     } else {
@@ -242,7 +248,7 @@
     [parameters setObject:currentUser.textPermissions forKey:@"text_permissions"];
     [parameters setObject:currentUser.pushPermissions forKey:@"push_permissions"];
     [manager PATCH:[NSString stringWithFormat:@"%@/users/%@",kApiBaseUrl,currentUser.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success updating user: %@",responseObject);
+        //NSLog(@"Success updating user: %@",responseObject);
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [ProgressHUD dismiss];
             [self back];
@@ -253,9 +259,10 @@
 }
 
 - (void)createAlternate{
-    NSLog(@"create tapped: %@",addAlternateTextField.text);
     NSString *email = addAlternateTextField.text;
+    
     if (email.length){
+        [self doneEditing];
         [ProgressHUD show:@"Adding your alternate contact info..."];
         [manager POST:[NSString stringWithFormat:@"%@/users/%@/add_alternate",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success creating alternate: %@",responseObject);
@@ -324,7 +331,7 @@
             [parameters setObject:alternate.email forKey:@"email"];
         }
         [manager POST:[NSString stringWithFormat:@"%@/users/%@/delete_alternate",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success deletign an alternate: %@",responseObject);
+            
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failed to delete alternate");
         }];

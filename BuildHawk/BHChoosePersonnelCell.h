@@ -12,5 +12,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *nameLabel;
 @property (weak, nonatomic) IBOutlet UILabel *connectNameLabel;
 @property (weak, nonatomic) IBOutlet UILabel *connectDetailLabel;
-@property (weak, nonatomic) IBOutlet UITextField *hoursTextField;
+@property (weak, nonatomic) IBOutlet UILabel *hoursLabel;
 @end

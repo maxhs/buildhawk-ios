@@ -15,7 +15,6 @@
 #import "User.h"
 #import "Worklist.h"
 
-
 @implementation WorklistItem
 
 @dynamic body;
@@ -26,11 +25,13 @@
 @dynamic location;
 @dynamic activities;
 @dynamic assignees;
+@dynamic connectAssignees;
 @dynamic comments;
 @dynamic notification;
 @dynamic photos;
 @dynamic project;
 @dynamic user;
 @dynamic worklist;
+@dynamic reminders;
 
 @end

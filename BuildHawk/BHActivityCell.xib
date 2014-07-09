@@ -14,22 +14,28 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="d5t-Zs-qTu" userLabel="Timestamp">
-                        <rect key="frame" x="258.00000008997051" y="0.0" width="60" height="44"/>
+                        <rect key="frame" x="249.99999970197678" y="18" width="60" height="44"/>
                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="13"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
                         <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="uTE-Sl-4Jf" userLabel="Activity Label">
-                        <rect key="frame" x="10" y="0.0" width="244" height="80"/>
+                        <rect key="frame" x="50" y="0.0" width="200" height="80"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" heightSizable="YES"/>
                         <fontDescription key="fontDescription" type="system" pointSize="15"/>
                         <nil key="highlightedColor"/>
                     </label>
+                    <view contentMode="scaleToFill" id="Ahd-Z8-uaP">
+                        <rect key="frame" x="10" y="79" width="300" height="1"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
                 </subviews>
             </tableViewCellContentView>
             <connections>
                 <outlet property="activityLabel" destination="uTE-Sl-4Jf" id="KPA-Dc-4kr"/>
+                <outlet property="separatorView" destination="Ahd-Z8-uaP" id="1PI-tP-Wbq"/>
                 <outlet property="timestampLabel" destination="d5t-Zs-qTu" id="q7j-nZ-0Fp"/>
             </connections>
         </tableViewCell>

@@ -67,9 +67,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)reloadUser {
-    [self.tableView beginUpdates];
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-    [self.tableView endUpdates];
+    [self.tableView reloadData];
 }
 
 - (void)viewWillAppear:(BOOL)animated {

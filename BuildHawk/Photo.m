@@ -20,7 +20,6 @@
 @dynamic createdAt;
 @dynamic dateString;
 @dynamic folder;
-@dynamic folderId;
 @dynamic identifier;
 @dynamic image;
 @dynamic name;
@@ -37,5 +36,6 @@
 @dynamic recentDocuments;
 @dynamic report;
 @dynamic worklistItem;
+@dynamic activities;
 
 @end

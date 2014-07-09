@@ -39,12 +39,10 @@
         self.photosCount = [dictionary objectForKey:@"photos_count"];
     }
     if ([dictionary objectForKey:@"critical_date"] && [dictionary objectForKey:@"critical_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"critical_date"] doubleValue];
-        self.criticalDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+        self.criticalDate = [BHUtilities parseDate:[dictionary objectForKey:@"critical_date"]];
     }
     if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
-        self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+        self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
     }
     if ([dictionary objectForKey:@"comments_count"] && [dictionary objectForKey:@"comments_count"] != [NSNull null]) {
         self.commentsCount = [dictionary objectForKey:@"comments_count"];

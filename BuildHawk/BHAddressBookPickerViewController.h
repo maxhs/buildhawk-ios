@@ -15,5 +15,6 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) NSArray *peopleArray;
 @property (strong, nonatomic) Company *company;
+@property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) WorklistItem *task;
 @end

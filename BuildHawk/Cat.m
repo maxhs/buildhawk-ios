@@ -17,6 +17,8 @@
 @dynamic progressPercentage;
 @dynamic phase;
 @dynamic items;
+@dynamic milestoneDate;
+@dynamic completedDate;
 @synthesize completedItems;
 @synthesize activeItems;
 @synthesize inProgressItems;

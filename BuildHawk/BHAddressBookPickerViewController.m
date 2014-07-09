@@ -14,6 +14,7 @@
 #import "BHAppDelegate.h"
 #import "BHTaskViewController.h"
 #import "Company+helper.h"
+#import "BHAddPersonnelViewController.h"
 
 @interface BHAddressBookPickerViewController () {
     NSMutableArray *_addressBookArray;
@@ -25,6 +26,7 @@
 
 @synthesize peopleArray = _peopleArray;
 @synthesize task = _task;
+@synthesize project = _project;
 
 - (void)viewDidLoad
 {
@@ -118,14 +120,18 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddressBookCell" owner:self options:nil] lastObject];
     }
     User *user = _addressBookArray[indexPath.row];
-    [cell.firstNameLabel setText:user.firstName];
-    [cell.firstNameLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:19]];
-    [cell.lastNameLabel setText:user.lastName];
-    [cell.lastNameLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:19]];
+    if (user.firstName.length){
+        if (user.lastName.length){
+            [cell.nameLabel setText:[NSString stringWithFormat:@"%@ %@",user.firstName,user.lastName]];
+        } else {
+            [cell.nameLabel setText:user.firstName];
+        }
+    }
+    
     [cell.emailLabel setText:user.email];
-    [cell.emailLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+    [cell.emailLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
     [cell.phoneLabel setText:user.phone];
-    [cell.phoneLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+    [cell.phoneLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
     
     return cell;
 }
@@ -137,49 +143,27 @@
 }
 
 - (void)createUser:(User*)user {
-    [ProgressHUD show:[NSString stringWithFormat:@"Adding user to \"%@\"...", _company.name]];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (user.lastName.length){
-        [parameters setObject:user.lastName forKey:@"last_name"];
-    }
-    if (user.firstName.length){
-        [parameters setObject:user.firstName forKey:@"first_name"];
-    }
-    if (user.email.length){
-        [parameters setObject:user.email forKey:@"email"];
-    }
-    if (user.phone.length){
-        [parameters setObject:user.phone forKey:@"phone"];
-    }
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/project_subs/%@/add_user",kApiBaseUrl,_company.identifier] parameters:@{@"user":parameters,@"project_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId],@"task_id":_task.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"old user? %@",user);
-        NSLog(@"Success creating new user from Address book: %@",responseObject);
-        if ([responseObject objectForKey:@"user"]){
-            [user populateFromDictionary:[responseObject objectForKey:@"user"]];
-            [_company addUser:user];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":user}];
-        }
+    UIViewController *previousVC = [self.navigationController.viewControllers objectAtIndex:(self.navigationController.viewControllers.count-2)];
+    
+    if ([previousVC isKindOfClass:[BHAddPersonnelViewController class]]){
+        BHAddPersonnelViewController *vc = (BHAddPersonnelViewController*)previousVC;
+        [vc setFirstStepComplete:YES];
+        [vc.tableView reloadData];
         
-        BHTaskViewController *taskVC = nil;
-        for (UIViewController *vc in self.navigationController.viewControllers){
-            if ([vc isKindOfClass:[BHTaskViewController class]]){
-                taskVC = (BHTaskViewController*)vc;
-                break;
-            }
+        if (user.lastName.length){
+            vc.lastName = user.lastName;
         }
-        
-        if (taskVC) {
-            [self.navigationController popToViewController:taskVC animated:YES];
-        } else {
-            [self.navigationController popViewControllerAnimated:YES];
+        if (user.firstName.length){
+            vc.firstName = user.firstName;
         }
-        [ProgressHUD dismiss];
-
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failure creating new user from address book: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while adding this user. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [ProgressHUD dismiss];
-    }];
+        if (user.email.length){
+            [vc.emailTextField setText:user.email];
+        }
+        if (user.phone.length){
+            [vc.phoneTextField setText:user.phone];
+        }
+    }
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)viewWillDisappear:(BOOL)animated{

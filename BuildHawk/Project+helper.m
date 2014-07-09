@@ -251,7 +251,7 @@
 }
 
 - (void)update:(NSDictionary *)dictionary {
-    NSLog(@"update project dict: %@",dictionary);
+    //NSLog(@"update project dict: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
@@ -259,24 +259,34 @@
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
         Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"]];
         if (company){
-        
+            [company update:companyDict];
         } else {
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [company populateWithDict:companyDict];
         }
-        
         self.company = company;
     }
     
-    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
-        self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
-    }
-    if ([dictionary objectForKey:@"core"] && [dictionary objectForKey:@"core"] != [NSNull null]) {
-        self.demo = [NSNumber numberWithBool:[[dictionary objectForKey:@"core"] boolValue]];
+    //note that company and companies refer to different things.
+    
+    if ([dictionary objectForKey:@"companies"] && [dictionary objectForKey:@"companies"] != [NSNull null]) {
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        for (id dict in [dictionary objectForKey:@"companies"]){
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+            Company *company = [Company MR_findFirstWithPredicate:predicate];
+            if (company){
+                [company update:dict];
+            } else {
+                company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [company populateWithDict:dict];
+            }
+            [set addObject:company];
+        }
+        self.companies = set;
     }
     
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
-        //NSLog(@"project users: %@",[dictionary objectForKey:@"users"]);
+        
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
@@ -293,19 +303,11 @@
         self.users = orderedUsers;
     }
     
-    if ([dictionary objectForKey:@"companies"] && [dictionary objectForKey:@"companies"] != [NSNull null]) {
-        //NSLog(@"project subs: %@",[dictionary objectForKey:@"subcontractors"]);
-        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
-        for (id dict in [dictionary objectForKey:@"companies"]){
-            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Company *company = [Company MR_findFirstWithPredicate:predicate];
-            if (!company){
-                company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-            [company populateWithDict:dict];
-            [set addObject:company];
-        }
-        self.companies = set;
+    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
+        self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
+    }
+    if ([dictionary objectForKey:@"core"] && [dictionary objectForKey:@"core"] != [NSNull null]) {
+        self.demo = [NSNumber numberWithBool:[[dictionary objectForKey:@"core"] boolValue]];
     }
     
     if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]) {

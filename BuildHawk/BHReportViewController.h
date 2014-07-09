@@ -14,6 +14,7 @@
 @property (weak, nonatomic) IBOutlet BHReportTableView *beforeTableView;
 @property (weak, nonatomic) IBOutlet BHReportTableView *afterTableView;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (strong, nonatomic)  BHReportTableView *reportTableView;
 @property (strong, nonatomic) Report *report;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) NSMutableArray *reports;

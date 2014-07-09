@@ -18,6 +18,7 @@
 @dynamic identifier;
 @dynamic reminderDate;
 @dynamic checklistItem;
+@dynamic worklistItem;
 @dynamic project;
 @dynamic active;
 @dynamic user;

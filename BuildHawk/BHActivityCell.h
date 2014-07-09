@@ -12,6 +12,7 @@
 @interface BHActivityCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *activityLabel;
 @property (weak, nonatomic) IBOutlet UILabel *timestampLabel;
+@property (weak, nonatomic) IBOutlet UIView *separatorView;
 - (void)configureForActivity:(Activity*)activity;
 - (void)configureActivityForSynopsis:(Activity*)activity;
 @end

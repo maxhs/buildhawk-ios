@@ -50,5 +50,6 @@
 @dynamic users;
 @dynamic worklist;
 @dynamic worklistItems;
+@dynamic folders;
 
 @end

@@ -14,8 +14,7 @@ typedef enum {
     kBHDatePickerYear,
     kBHDatePickerMonth,
     kBHDatePickerDay,
-    kBHDatePickerHour/*,
-    kBHDatePickerMinute*/
+    kBHDatePickerHour
 } BHDatePickerComponent;
 
 

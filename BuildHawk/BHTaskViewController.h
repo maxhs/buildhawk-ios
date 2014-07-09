@@ -8,12 +8,11 @@
 
 #import <UIKit/UIKit.h>
 #import "WorklistItem+helper.h"
-#import "Project.h"
 #import "Project+helper.h"
 
 @interface BHTaskViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
-@property (strong, nonatomic) WorklistItem *worklistItem;
+@property (strong, nonatomic) WorklistItem *task;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;
@@ -27,8 +26,8 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) NSSet *locationSet;
-@property BOOL newItem;
 -(IBAction)completionTapped;
 -(IBAction)takePhoto;
 -(IBAction)choosePhoto;
+- (void)drawItem;
 @end

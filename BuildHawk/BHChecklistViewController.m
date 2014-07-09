@@ -352,9 +352,6 @@
         }
         [self drawChecklistWithPhases:[[responseObject objectForKey:@"checklist"] objectForKey:@"phases"]];
         
-        loading = NO;
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        [ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading checklist: %@",error.description);
         //[[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -378,6 +375,9 @@
     _checklist.phases = phases;
     
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        loading = NO;
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        [ProgressHUD dismiss];
         if (self.isViewLoaded && self.view.window){
             [self.tableView reloadData];
         }
@@ -612,7 +612,7 @@
                         cell.accessoryType = UITableViewCellAccessoryNone;
                     }
                     
-                    if (item.commentsCount) {
+                    if (item.commentsCount.intValue > 0) {
                         [cell.chatImageView setHidden:NO];
                     } else {
                         [cell.chatImageView setHidden:YES];

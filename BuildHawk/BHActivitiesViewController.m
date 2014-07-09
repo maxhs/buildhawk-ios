@@ -10,6 +10,9 @@
 #import "Activity+helper.h"
 #import "BHActivityCell.h"
 #import "BHAppDelegate.h"
+#import "BHReminderCell.h"
+#import "Reminder+helper.h"
+#import "ChecklistItem+helper.h"
 
 @interface BHActivitiesViewController () {
     AFHTTPRequestOperationManager *manager;
@@ -30,7 +33,7 @@
     formatter = [[NSDateFormatter alloc] init];
     [formatter setDateStyle:NSDateFormatterShortStyle];
     [formatter setTimeStyle:NSDateFormatterShortStyle];
-    self.tableView.rowHeight = 66.f;
+    self.tableView.rowHeight = 80;
 }
 
 - (void)didReceiveMemoryWarning
@@ -48,23 +51,64 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _activities.count;
+    if (_activities && _activities.count){
+        return _activities.count;
+    } else {
+        return _reminders.count;
+    }
 }
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"ActivityCell";
-    BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+    if (_activities && _activities.count){
+        static NSString *CellIdentifier = @"ActivityCell";
+        BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+        }
+        Activity *activity = _activities[indexPath.row];
+        [cell configureActivityForSynopsis:activity];
+        [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
+        
+        return cell;
+    } else {
+        static NSString *CellIdentifier = @"ReminderCell";
+        BHReminderCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReminderCell" owner:self options:nil] lastObject];
+        }
+        Reminder *reminder = _reminders[indexPath.row];
+        [cell.reminderDatetimeLabel setText:[formatter stringFromDate:reminder.reminderDate]];
+        [cell configureForReminder:reminder];
+        cell.activeButton.tag = indexPath.row;
+        [cell.activeButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:13]];
+        [cell.activeButton addTarget:self action:@selector(reminderButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+        return cell;
     }
-    Activity *activity = _activities[indexPath.row];
-    [cell configureActivityForSynopsis:activity];
-    [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
-    return cell;
 }
 
+- (void)reminderButtonTapped:(UIButton*)button{
+    Reminder *reminder = _reminders[button.tag];
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        [parameters setObject:@NO forKey:@"active"];
+        [reminder setActive:[NSNumber numberWithBool:NO]];
+    } else {
+        [parameters setObject:@YES forKey:@"active"];
+        [reminder setActive:[NSNumber numberWithBool:YES]];
+    }
+    
+    [self.tableView beginUpdates];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+    [self.tableView endUpdates];
+    
+    [manager PATCH:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,reminder.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success updating reminder state: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failed to update remidner: %@",error.description);
+    }];
+}
 /*
 // Override to support conditional editing of the table view.
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath

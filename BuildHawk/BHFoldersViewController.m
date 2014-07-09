@@ -136,8 +136,8 @@
     [super prepareForSegue:segue sender:indexPath];
     if ([segue.identifier isEqualToString:@"ProjectDocs"]){
         NSDictionary *dict = [_photoSet.allObjects objectAtIndex:indexPath.row];
-        NSString *folder = [[dict allKeys] firstObject];
-        NSPredicate *test = [NSPredicate predicateWithFormat:@"folder contains[cd] %@",folder];
+        NSString *folderName = [[dict allKeys] firstObject];
+        NSPredicate *test = [NSPredicate predicateWithFormat:@"folder.name contains[cd] %@",folderName];
         browserArray = [NSMutableArray array];
         for (Photo *photo in _photosArray){
             if([test evaluateWithObject:photo]) {
@@ -145,7 +145,7 @@
             }
         }
         BHProjectDocsViewController *vc = [segue destinationViewController];
-        [vc setTitle:folder];
+        [vc setTitle:folderName];
         [vc setPhotosArray:browserArray];
     }
 }

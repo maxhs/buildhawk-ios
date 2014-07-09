@@ -19,7 +19,6 @@
 - (void)removePhoto:(Photo *)photo;
 - (void)addAssignee:(User *)user;
 - (void)removeAssignee:(User *)user;
-
 - (void)addActivity:(Activity *)activity;
 - (void)removeActivity:(Activity *)activity;
 @end

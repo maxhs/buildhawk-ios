@@ -14,6 +14,7 @@
 @dynamic hours;
 @dynamic identifier;
 @dynamic userId;
+@dynamic connectUserId;
 @dynamic report;
 
 @end

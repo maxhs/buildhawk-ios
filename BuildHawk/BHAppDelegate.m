@@ -92,14 +92,11 @@
     [self.window setTintColor:[UIColor blackColor]];
     [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
     [[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];
-    UIImage *empty = [UIImage imageNamed:@"empty"];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont boldSystemFontOfSize:16],
                          NSForegroundColorAttributeName : [UIColor whiteColor]
                                     }];
     
-    
-    [[UIBarButtonItem appearance] setBackgroundImage:empty forState:UIControlStateNormal barMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
                                     NSFontAttributeName : [UIFont systemFontOfSize:15],
                                     NSForegroundColorAttributeName : [UIColor whiteColor]
@@ -111,6 +108,7 @@
     
     /*[[UISearchBar appearance] setBackgroundImage:empty];
     [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];*/
+    [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]    setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
     
     [[UITabBarItem appearance] setTitleTextAttributes: @{
                     NSForegroundColorAttributeName : [UIColor whiteColor],
@@ -204,7 +202,7 @@
                         [item populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
                         BHTaskViewController *taskVC = [_nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
                         [taskVC setProject:item.project];
-                        [taskVC setWorklistItem:item];
+                        [taskVC setTask:item];
                         [_nav pushViewController:taskVC animated:YES];
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                         NSLog(@"Failed to load task: %@",error.description);

@@ -185,7 +185,7 @@
     }
     if (self.displayActionButton) {
         _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"zoom"] style:UIBarButtonItemStylePlain target:self action:@selector(actionButtonPressed:)];
-        _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -60);
+        _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -10);
         if (self.displayTrashButton){
             UIBarButtonItem *trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(confirmRemove)];
             self.navigationItem.rightBarButtonItems = @[trashButton, _actionButton];

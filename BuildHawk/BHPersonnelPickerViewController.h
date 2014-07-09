@@ -10,6 +10,7 @@
 #import "Company.h"
 #import "Project.h"
 #import "WorklistItem.h"
+#import "Report+helper.h"
 
 @interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate>
 
@@ -19,10 +20,9 @@
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) WorklistItem *task;
-@property (strong, nonatomic) NSMutableOrderedSet *orderedUsers;
-@property (strong, nonatomic) NSMutableOrderedSet *orderedSubs;
-@property BOOL companyMode;
+@property (strong, nonatomic) Report *report;
 @property BOOL phone;
 @property BOOL email;
+@property BOOL companyMode;
 
 @end

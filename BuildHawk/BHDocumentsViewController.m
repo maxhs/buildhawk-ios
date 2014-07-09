@@ -11,6 +11,7 @@
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "Photo+helper.h"
+#import "Folder+helper.h"
 #import "Project+helper.h"
 #import "BHFoldersViewController.h"
 #import "UIButton+WebCache.h"
@@ -117,7 +118,7 @@
     loading = YES;
     
     [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
+        //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         [_project parseDocuments:[responseObject objectForKey:@"photos"]];
         [self drawDocuments:_project.documents];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -423,20 +424,20 @@
             [vc setTitle:@"Project Docs"];
             NSMutableSet *titleSet = [NSMutableSet set];
             for (Photo *photo in _project.documents){
-                if (photo.folder.length > 0)[titleSet addObject:photo.folder];
+                if (photo.folder.name.length > 0)[titleSet addObject:photo.folder.name];
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *sortedArray = [titleSet sortedArrayUsingDescriptors:@[valueDescriptor]];
             NSMutableSet *photoSet = [NSMutableSet set];
-            for (NSString *folder in sortedArray){
-                NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"folder like %@",folder];
+            for (NSString *folderName in sortedArray){
+                NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"folder.name like %@",folderName];
                 NSMutableArray *tempArray = [NSMutableArray array];
                 for (Photo *photo in _project.documents){
                     if([photo isKindOfClass:[Photo class]] && [testPredicate evaluateWithObject:photo]) {
                         [tempArray addObject:photo];
                     }
                 }
-                [photoSet addObject:@{folder:tempArray}];
+                [photoSet addObject:@{folderName:tempArray}];
             }
             [vc setPhotosArray:_project.documents.array.mutableCopy];
             [vc setSectionTitles:sortedArray];

@@ -22,6 +22,7 @@
 #import "BHOverlayView.h"
 #import "Subcontractor.h"
 #import "Company.h"
+#import "ConnectUser+helper.h"
 
 @interface BHTasksViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate> {
     NSDateFormatter *dateFormatter;
@@ -472,8 +473,10 @@
         User *assignee = item.assignees.firstObject;
         [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,assignee.fullname]];
         [cell.ownerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
-    } else if ([item.assignees.firstObject isKindOfClass:[Subcontractor class]]){
-        
+    } else if ([item.connectAssignees.firstObject isKindOfClass:[ConnectUser class]]){
+        ConnectUser *connectAssignee = item.connectAssignees.firstObject;
+        [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,connectAssignee.fullname]];
+        [cell.ownerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
     } else if (item.user) {
         [cell.ownerLabel setText:item.user.fullname];
         [cell.ownerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
@@ -545,13 +548,11 @@
     if ([segue.identifier isEqualToString:@"CreateItem"]) {
         BHTaskViewController *vc = segue.destinationViewController;
         [vc setTitle:@"New Task"];
-        [vc setNewItem:YES];
         [vc setProject:_project];
         [vc setLocationSet:locationSet];
     } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
         BHTaskViewController *vc = segue.destinationViewController;
         [vc setProject:_project];
-        [vc setNewItem:NO];
         WorklistItem *item;
         if (showActive && activeListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [activeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
@@ -564,17 +565,8 @@
         } else if (_worklistItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [_worklistItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
-        
-        if (IDIOM == IPAD && item.user.fullname){
-            if (item.user.company.name.length){
-                [vc setTitle:[NSString stringWithFormat:@"Created By: %@ (%@) - %@",item.user.fullname,item.user.company.name,[dateFormatter stringFromDate:item.createdAt]]];
-            } else {
-                [vc setTitle:[NSString stringWithFormat:@"Created By: %@ - %@",item.user.fullname,[dateFormatter stringFromDate:item.createdAt]]];
-            }
-        } else {
-            [vc setTitle:[NSString stringWithFormat:@"%@",[dateFormatter stringFromDate:item.createdAt]]];
-        }
-        [vc setWorklistItem:item];
+    
+        [vc setTask:item];
         [vc setLocationSet:locationSet];
     }
 }

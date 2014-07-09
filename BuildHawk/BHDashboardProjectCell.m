@@ -46,14 +46,14 @@
     } else {
         //[_subtitleLabel setText:project.company.name];
     }
-    __block int count = 0;
     
+    __block int reminderCount = 0;
     [user.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if ([reminder.project.identifier isEqualToNumber:project.identifier]){
-            count ++;
+        if ([reminder.project.identifier isEqualToNumber:project.identifier] && [reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+            reminderCount ++;
         }
-        if (idx == user.reminders.count - 1 && count > 0){
-            [_alertLabel setText:[NSString stringWithFormat:@"%d",count]];
+        if (idx == user.reminders.count - 1 && reminderCount > 0){
+            [_alertLabel setText:[NSString stringWithFormat:@"%d",reminderCount]];
             [UIView animateWithDuration:.3 animations:^{
                 [_alertLabel setAlpha:1.0];
             }];

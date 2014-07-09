@@ -27,6 +27,7 @@
 @property (nonatomic, retain) NSString * weatherIcon;
 @property (nonatomic, retain) NSString * wind;
 @property (nonatomic, retain) NSOrderedSet *activities;
+@property (nonatomic, retain) NSOrderedSet *dailyActivities;
 @property (nonatomic, retain) User *author;
 @property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *photos;

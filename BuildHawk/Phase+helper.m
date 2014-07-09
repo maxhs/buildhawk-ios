@@ -79,12 +79,10 @@
         self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
     if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"milestone_date"] doubleValue];
-        self.milestoneDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+        self.milestoneDate = [BHUtilities parseDate:[dictionary objectForKey:@"milestone_date"]];
     }
     if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
-        self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+        self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
     }
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];

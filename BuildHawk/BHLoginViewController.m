@@ -68,7 +68,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [self.loginButton setEnabled:NO];
     self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
     self.loginButton.layer.borderWidth = .5f;
-    self.loginButton.layer.cornerRadius = 0.f;
+    self.loginButton.layer.cornerRadius = 3.f;
     [self adjustLoginContainer];
     demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]];
 }
@@ -202,7 +202,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     if (password) [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
     [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success logging in: %@",responseObject);
+        //NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user) {
@@ -211,15 +211,6 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         [user populateFromDictionary:[responseObject objectForKey:@"user"]];
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
-        [[NSUserDefaults standardUserDefaults] setObject:user.authToken forKey:kUserDefaultsAuthToken];
-        [[NSUserDefaults standardUserDefaults] setObject:user.firstName forKey:kUserDefaultsFirstName];
-        [[NSUserDefaults standardUserDefaults] setObject:user.lastName forKey:kUserDefaultsLastName];
-        [[NSUserDefaults standardUserDefaults] setObject:user.fullname forKey:kUserDefaultsFullName];
-        [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
-        [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
-        [[NSUserDefaults standardUserDefaults] setBool:user.admin.boolValue forKey:kUserDefaultsAdmin];
-        [[NSUserDefaults standardUserDefaults] setBool:user.companyAdmin.boolValue forKey:kUserDefaultsCompanyAdmin];
-        [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
@@ -237,15 +228,12 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         }];
 
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-
         if (operation.response.statusCode == 401) {
             if ([operation.responseString isEqualToString:@"Incorrect password"]){
                 [self addShakeAnimationForView:self.passwordTextField withDuration:.77];
-                
             } else if ([operation.responseString isEqualToString:@"User already exists"]) {
                 //[self addShakeAnimationForView:self.registerEmailTextField withDuration:.77];
                 //[self alert:@"An account with that email address already exists."];
-                
             } else if ([operation.responseString isEqualToString:@"No email"]) {
                 [self addShakeAnimationForView:self.emailTextField withDuration:.77];
                 //[self alert:@"Sorry, but we couldn't find an account for that email address."];

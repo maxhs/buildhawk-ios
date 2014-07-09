@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class ChecklistItem, Project, Report, WorklistItem;
+@class ChecklistItem, Project, Report, WorklistItem, Folder;
 
 @interface Photo : NSManagedObject
 
@@ -17,8 +17,6 @@
 @property (nonatomic, retain) NSString * caption;
 @property (nonatomic, retain) NSDate * createdAt;
 @property (nonatomic, retain) NSString * dateString;
-@property (nonatomic, retain) NSString * folder;
-@property (nonatomic, retain) NSNumber * folderId;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) id image;
 @property (nonatomic, retain) NSString * name;
@@ -30,7 +28,9 @@
 @property (nonatomic, retain) NSString * urlSmall;
 @property (nonatomic, retain) NSString * urlThumb;
 @property (nonatomic, retain) NSString * userName;
+@property (nonatomic, retain) NSOrderedSet * activities;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
+@property (nonatomic, retain) Folder *folder;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) Project *recentDocuments;
 @property (nonatomic, retain) Report *report;

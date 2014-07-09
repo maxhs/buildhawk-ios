@@ -38,6 +38,7 @@
 @property (nonatomic, retain) NSOrderedSet *users;
 @property (nonatomic, retain) Worklist *worklist;
 @property (nonatomic, retain) NSOrderedSet *worklistItems;
+@property (nonatomic, retain) NSOrderedSet *folders;
 @end
 
 @interface Project (CoreDataGeneratedAccessors)

@@ -26,7 +26,7 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [_separatorView setBackgroundColor:kSeparatorColor];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

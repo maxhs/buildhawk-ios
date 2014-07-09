@@ -12,6 +12,7 @@
 #import "Worklist+helper.h"
 #import "Project+helper.h"
 #import "Photo+helper.h"
+#import "ConnectUser+helper.h"
 
 @implementation WorklistItem (helper)
 
@@ -26,7 +27,6 @@
     if ([dictionary objectForKey:@"location"] && [dictionary objectForKey:@"location"] != [NSNull null]) {
         self.location = [dictionary objectForKey:@"location"];
     }
-
     if ([dictionary objectForKey:@"project"] && [dictionary objectForKey:@"project"] != [NSNull null]) {
         NSDictionary *projectDict = [dictionary objectForKey:@"project"];
         NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
@@ -39,7 +39,6 @@
     }
     
     if ([dictionary objectForKey:@"worklist_id"] && [dictionary objectForKey:@"worklist_id"] != [NSNull null]) {
-
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"worklist_id"]];
         Worklist *worklist = [Worklist MR_findFirstWithPredicate:predicate];
         if (!worklist){
@@ -72,6 +71,20 @@
         [user assignWorklistItem:self];
         [orderedUsers addObject:user];
         self.assignees = orderedUsers;
+    }
+    
+    if ([dictionary objectForKey:@"connect_users"] && [dictionary objectForKey:@"connect_users"] != [NSNull null]) {
+        NSMutableOrderedSet *connectUsers = [NSMutableOrderedSet orderedSet];
+        NSDictionary *connectUserDict = [dictionary objectForKey:@"connect_users"];
+        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [connectUserDict objectForKey:@"id"]];
+        ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate];
+        if (!connectUser){
+            connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        [connectUser populateFromDictionary:connectUserDict];
+        //[connectUser assignWorklistItem:self];
+        [connectUsers addObject:connectUser];
+        self.connectAssignees = connectUsers;
     }
     
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {

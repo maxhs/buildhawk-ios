@@ -14,21 +14,14 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="c77-KY-WID" userLabel="First name label">
-                        <rect key="frame" x="10" y="4" width="150" height="23"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                        <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                        <nil key="highlightedColor"/>
-                    </label>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="hqH-Xg-JQa" userLabel="Last name label">
-                        <rect key="frame" x="162" y="4" width="150" height="23"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                        <rect key="frame" x="10" y="4" width="310" height="23"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="YUs-Mb-DfR" userLabel="Phone label">
-                        <rect key="frame" x="10" y="27" width="300" height="23"/>
+                        <rect key="frame" x="10" y="28" width="300" height="23"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -45,8 +38,7 @@
             </tableViewCellContentView>
             <connections>
                 <outlet property="emailLabel" destination="eAx-fi-lts" id="aK4-xc-hrG"/>
-                <outlet property="firstNameLabel" destination="c77-KY-WID" id="7qc-Do-FQp"/>
-                <outlet property="lastNameLabel" destination="hqH-Xg-JQa" id="If1-kt-DjX"/>
+                <outlet property="nameLabel" destination="c77-KY-WID" id="MKx-I7-VPz"/>
                 <outlet property="phoneLabel" destination="YUs-Mb-DfR" id="3cA-Ov-JVA"/>
             </connections>
         </tableViewCell>

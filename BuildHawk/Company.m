@@ -21,7 +21,8 @@
 @dynamic subcontractors;
 @dynamic safetyTopics;
 @dynamic groups;
+@dynamic connectUsers;
 
 @synthesize projectUsers;
-
+@synthesize expanded;
 @end

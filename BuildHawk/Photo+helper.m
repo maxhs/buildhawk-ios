@@ -7,6 +7,7 @@
 //
 
 #import "Photo+helper.h"
+#import "Folder+helper.h"
 
 @implementation Photo (helper)
 
@@ -42,11 +43,15 @@
     if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
         self.assignee = [dictionary objectForKey:@"assignee"];
     }
-    if ([dictionary objectForKey:@"folder_name"] && [dictionary objectForKey:@"folder_name"] != [NSNull null]) {
-        self.folder = [dictionary objectForKey:@"folder_name"];
-    }
-    if ([dictionary objectForKey:@"folder_id"] && [dictionary objectForKey:@"folder_id"] != [NSNull null]) {
-        self.folderId = [dictionary objectForKey:@"folder_id"];
+    if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
+        NSDictionary *dict = [dictionary objectForKey:@"folder"];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+        Folder *folder = [Folder MR_findFirstWithPredicate:predicate];
+        if (!folder){
+            folder = [Folder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        [folder populateFromDictionary:dict];
+        self.folder = folder;
     }
     if ([dictionary objectForKey:@"user_name"] && [dictionary objectForKey:@"user_name"] !=[NSNull null]) {
         self.userName = [dictionary objectForKey:@"user_name"];
@@ -73,11 +78,15 @@
     if ([dictionary objectForKey:@"phase"] && [dictionary objectForKey:@"phase"] != [NSNull null]) {
         self.photoPhase = [dictionary objectForKey:@"phase"];
     }
-    if ([dictionary objectForKey:@"folder_name"] && [dictionary objectForKey:@"folder_name"] != [NSNull null]) {
-        self.folder = [dictionary objectForKey:@"folder_name"];
-    }
-    if ([dictionary objectForKey:@"folder_id"] && [dictionary objectForKey:@"folder_id"] != [NSNull null]) {
-        self.folderId = [dictionary objectForKey:@"folder_id"];
+    if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
+        NSDictionary *dict = [dictionary objectForKey:@"folder"];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+        Folder *folder = [Folder MR_findFirstWithPredicate:predicate];
+        if (!folder){
+            folder = [Folder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        [folder populateFromDictionary:dict];
+        self.folder = folder;
     }
     if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {
         self.caption = [dictionary objectForKey:@"description"];

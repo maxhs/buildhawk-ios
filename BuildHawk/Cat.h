@@ -18,6 +18,8 @@
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSNumber * orderIndex;
 @property (nonatomic, retain) NSString * progressPercentage;
+@property (nonatomic, retain) NSDate * completedDate;
+@property (nonatomic, retain) NSDate * milestoneDate;
 @property (nonatomic, retain) Phase *phase;
 @property (nonatomic, retain) NSOrderedSet *items;
 @property (nonatomic, retain) NSMutableArray *completedItems;

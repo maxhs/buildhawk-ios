@@ -21,9 +21,11 @@
 @property (nonatomic, retain) NSString * location;
 @property (nonatomic, retain) NSOrderedSet *activities;
 @property (nonatomic, retain) NSOrderedSet *assignees;
+@property (nonatomic, retain) NSOrderedSet *connectAssignees;
 @property (nonatomic, retain) NSOrderedSet *comments;
 @property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *photos;
+@property (nonatomic, retain) NSOrderedSet *reminders;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Worklist *worklist;

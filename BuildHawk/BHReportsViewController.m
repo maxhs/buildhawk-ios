@@ -17,7 +17,6 @@
 #import "SafetyTopic+helper.h"
 
 @interface BHReportsViewController () {
-    NSMutableArray *_possibleTopics;
     AFHTTPRequestOperationManager *manager;
     Project *project;
     UIRefreshControl *refreshControl;
@@ -40,10 +39,11 @@
 @implementation BHReportsViewController
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    screen = [UIScreen mainScreen].bounds;
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     project = [(BHTabBarViewController*)self.tabBarController project];
-    [super viewDidLoad];
-
     
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
@@ -51,17 +51,14 @@
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     self.tableView.rowHeight = 90;
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     
-    screen = [UIScreen mainScreen].bounds;
-    _possibleTopics = [NSMutableArray array];
     
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    _filteredReports = [NSMutableArray array];
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
     datePickerButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"calendar"] style:UIBarButtonItemStylePlain target:self action:@selector(showDatePicker)];
-    datePickerButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -60);
-    addButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -5);
+    datePickerButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -20);
+    addButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, 0);
     
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
@@ -90,7 +87,7 @@
 }
 
 - (void)reloadReport:(NSNotification*)notification {
-    NSLog(@"should be reloading a report, like because a photo just posted: %@",notification.userInfo);
+    NSLog(@"Should be reloading a report: %@",notification.userInfo);
 }
 
 - (void)loadReports {
@@ -98,10 +95,7 @@
     [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting reports: %@",responseObject);
         [self updateLocalReports:[responseObject objectForKey:@"reports"]];
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        loading = NO;
-        
-        [ProgressHUD dismiss];
+    
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting reports: %@",error.description);
         [ProgressHUD dismiss];
@@ -161,6 +155,9 @@
 }
 
 - (void)filter:(NSString*)type {
+    if (!_filteredReports){
+        _filteredReports = [NSMutableArray array];
+    }
     [_filteredReports removeAllObjects];
     for (Report *report in project.reports){
         if ([report.type isEqualToString:type]){
@@ -186,6 +183,11 @@
             [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
+    
+    //begin to update the UI
+    loading = NO;
+    if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    [ProgressHUD dismiss];
     
     project.reports = reportSet;
     if (safety) {
@@ -270,7 +272,6 @@
     [nothingButton setFrame:CGRectMake(0, 0, self.tableView.frame.size.width, self.tableView.frame.size.height-100)];
     cell.backgroundView = [[UIView alloc] initWithFrame:cell.frame];
     [cell.backgroundView setBackgroundColor:[UIColor clearColor]];
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     return cell;
 }
 
@@ -291,27 +292,22 @@
     if(indexPath.section == tableView.numberOfSections-1 && indexPath.row == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row){
         //end of loading
         [ProgressHUD dismiss];
-        /*if (_filteredReports.count){
-            [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        } else if (project.reports.count && !daily && !weekly && !safety){
-            [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        }*/
     }
 }
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     Report *report;
-    if (safety || weekly || daily){
+    if (_filteredReports.count && (safety || weekly || daily)){
         report = [_filteredReports objectAtIndex:indexPath.row];
-    } else {
+    } else if (project.reports.count) {
         report = [project.reports objectAtIndex:indexPath.row];
     }
     
     //ensure that there's a signed in user and ask whether they're the current author
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+    if (report && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
         return YES;
-    } else {
-        return NO;
     }
+    
+    return NO;
 }
 
 

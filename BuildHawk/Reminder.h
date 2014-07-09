@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class ChecklistItem, Project, User;
+@class ChecklistItem, WorklistItem, Project, User;
 
 @interface Reminder : NSManagedObject
 
@@ -18,6 +18,7 @@
 @property (nonatomic, retain) NSNumber * active;
 @property (nonatomic, retain) NSDate * reminderDate;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
+@property (nonatomic, retain) ChecklistItem *worklistItem;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) User *user;
 

@@ -7,9 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Reminder+helper.h"
 
-@interface BHReminderCell : UITableViewCell
+@interface BHReminderCell : UITableViewCell <UIScrollViewDelegate>
 
+@property (weak, nonatomic) IBOutlet UILabel *reminderDatetimeLabel;
 @property (weak, nonatomic) IBOutlet UILabel *reminderLabel;
 @property (weak, nonatomic) IBOutlet UIButton *activeButton;
+@property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@property (weak, nonatomic) IBOutlet UIButton *reminderButton;
+@property (weak, nonatomic) IBOutlet UILabel *statusLabel;
+@property (strong, nonatomic) UITapGestureRecognizer *tapGesture;
+- (void)configureForReminder:(Reminder*)reminder;
+- (void)swipeScrollView;
 @end

@@ -25,6 +25,12 @@
     if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
         self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
+    if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
+        self.milestoneDate = [BHUtilities parseDate:[dictionary objectForKey:@"milestone_date"]];
+    }
+    if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
+        self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
+    }
     if ([dictionary objectForKey:@"checklist_items"] && [dictionary objectForKey:@"checklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {

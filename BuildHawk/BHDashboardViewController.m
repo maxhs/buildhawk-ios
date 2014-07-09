@@ -28,22 +28,23 @@
 #import "BHWorklistConnectCell.h"
 #import "BHDemoProjectsViewController.h"
 
-@interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UISearchDisplayDelegate, UIAlertViewDelegate> {
+@interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIAlertViewDelegate> {
     CGRect searchContainerRect;
-    UIRefreshControl *refreshControl;
     BOOL iPhone5;
     BOOL loading;
+    BOOL searching;
     NSMutableArray *filteredProjects;
+    AFHTTPRequestOperationManager *manager;
+    BHAppDelegate *delegate;
     User *currentUser;
     NSMutableArray *recentChecklistItems;
     NSMutableArray *recentlyCompletedWorklistItems;
-
     NSMutableArray *upcomingChecklistItems;
-    AFHTTPRequestOperationManager *manager;
+    
     CGRect screen;
     Project *archivedProject;
     UIBarButtonItem *archiveButtonItem;
-    UIBarButtonItem *searchButton;
+    UIBarButtonItem *refreshButton;
     UIView *overlayBackground;
     UIImageView *dashboardScreenshot;
     NSManagedObjectContext *defaultContext;
@@ -65,12 +66,16 @@
     }
     [super viewDidLoad];
     [self.view setBackgroundColor:kDarkerGrayColor];
-   
-    manager = manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = manager = [delegate manager];
+    if (delegate.currentUser){
+        currentUser = delegate.currentUser;
+    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
+        currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+    }
     loading = YES;
     self.leftMenuButton.imageInsets = UIEdgeInsetsMake(0, -8, 0, 0);
     self.tableView.rowHeight = 88;
-    self.searchDisplayController.searchResultsTableView.rowHeight = 88;
     
     screen = [UIScreen mainScreen].bounds;
     filteredProjects = [NSMutableArray array];
@@ -85,26 +90,24 @@
     [dateFormatter setDateStyle:NSDateFormatterLongStyle];
     self.navigationItem.title = [dateFormatter stringFromDate:now];
 
-    refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
-    [refreshControl setTintColor:[UIColor darkGrayColor]];
-    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
-    [self.tableView addSubview:refreshControl];
+    self.tableView.tableHeaderView = self.searchBar;
+    [self.tableView setContentOffset:CGPointMake(0, 44)];
     
-
+    if (currentUser.projects.count == 0){
+        [ProgressHUD show:@"Fetching projects..."];
+    } else {
+        NSLog(@"User has projects already. Draw tableview, then update. Dismiss the logging in overlay.");
+        [ProgressHUD dismiss];
+        //[self.tableView reloadData];
+    }
     [self loadProjects];
 
-    searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(activateSearch)];
-    self.navigationItem.rightBarButtonItem = searchButton;
+    refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
+    self.navigationItem.rightBarButtonItem = refreshButton;
     archiveButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Archived" style:UIBarButtonItemStylePlain target:self action:@selector(getArchived)];
-    if (IDIOM == IPAD){
-        [self.searchDisplayController.searchBar setBackgroundColor:[UIColor whiteColor]];
-    } else {
-       [self.searchDisplayController.searchBar setBackgroundColor:kDarkerGrayColor];
-    }
     
     //set the search bar tint color so you can see the cursor
-    for (id subview in [self.searchDisplayController.searchBar.subviews.firstObject subviews]){
+    /*for (id subview in [self.searchBar.subviews.firstObject subviews]){
         if ([subview isKindOfClass:[UITextField class]]){
             UITextField *searchTextField = (UITextField*)subview;
             [searchTextField setBackgroundColor:[UIColor clearColor]];
@@ -112,8 +115,9 @@
             [searchTextField setTintColor:[UIColor blackColor]];
             break;
         }
-    }
-    
+    }*/
+    [self.searchBar setPlaceholder:@"Search for projects..."];
+    [self.searchBar setSearchBarStyle:UISearchBarStyleMinimal];
     connectProjects = [NSMutableOrderedSet orderedSet];
     currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
 }
@@ -144,54 +148,20 @@
     }
 }
 
-- (void)activateSearch {
-    [self.searchDisplayController.searchBar becomeFirstResponder];
-    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-        searchFrame.origin.x = 0;
-        [self.searchDisplayController.searchBar setFrame:searchFrame];
-        [self.searchDisplayController.searchBar setAlpha:1.0];
-        CGRect tableFrame = self.tableView.frame;
-        tableFrame.origin.y += 44;
-        tableFrame.size.height += 44;
-        [self.tableView setFrame:tableFrame];
-    } completion:^(BOOL finished) {
-
-    }];
-}
-
-- (void)endSearch {
-    [UIView animateWithDuration:.6 delay:0 usingSpringWithDamping:.5 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-        searchFrame.origin.x = screenWidth();
-        [self.searchDisplayController.searchBar setFrame:searchFrame];
-        [self.searchDisplayController.searchBar setAlpha:0.0];
-        [self.tableView setFrame:CGRectMake(0, 0, screenWidth(), screenHeight())];
-    } completion:^(BOOL finished) {
-        
-    }];
-}
-
-- (void)handleRefresh:(id)sender {
+- (void)handleRefresh {
+    [ProgressHUD show:@"Refreshing..."];
     [self loadProjects];
 }
 
 - (void)loadProjects {
-    
-    if (currentUser.projects.count == 0)[ProgressHUD show:@"Fetching projects..."];
-    else [self.tableView reloadData];
-    
     [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"load projects response object: %@",responseObject);
+        //NSLog(@"load projects response object: %@",responseObject);
         [self updateProjects:[responseObject objectForKey:@"projects"]];
-        loading = NO;
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error while loading projects: %@",error.description);
         loading = NO;
         //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [ProgressHUD dismiss];
     }];
 }
@@ -223,7 +193,9 @@
             currentUser.projects = projectSet;
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 NSLog(@"What happened during dashboard save? %hhd %@",success, error);
+                loading = NO;
                 [self.tableView reloadData];
+                [ProgressHUD dismiss];
             }];
         }
     }
@@ -239,9 +211,7 @@
             }
             [item populateFromDictionary:itemDict];
         }
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [self.tableView reloadData];
-        }];
+        [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure loading connect items: %@",error.description);
     }];
@@ -277,7 +247,7 @@
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         //NSLog(@"Error while loading groups: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        
     }];
 }
 
@@ -322,7 +292,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (searching) {
         return 1;
     } else {
         return 5;
@@ -331,7 +301,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (tableView == self.searchDisplayController.searchResultsTableView) {
+    if (searching) {
         return filteredProjects.count;
     } else if (section == 0){
         return currentUser.projects.count;
@@ -360,7 +330,7 @@
 {
     if (indexPath.section == 0){
         Project *project;
-        if (tableView == self.searchDisplayController.searchResultsTableView){
+        if (searching && filteredProjects.count){
             project = [filteredProjects objectAtIndex:indexPath.row];
         } else {
             project = [currentUser.projects objectAtIndex:indexPath.row];
@@ -451,7 +421,7 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardGroupCell" owner:self options:nil] lastObject];
         }
         cell.accessoryType = UITableViewCellAccessoryNone;
-        [cell.textLabel setText:@"View Demo Projects"];
+        [cell.textLabel setText:@"View Demo Project(s)"];
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
         [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
@@ -514,7 +484,7 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        [ProgressHUD dismiss];
+        //[ProgressHUD dismiss];
     }
 }
 
@@ -557,8 +527,8 @@
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    //[self.navigationController setNavigationBarHidden:YES animated:YES];
-
+    searching = YES;
+    [self.searchBar setShowsCancelButton:YES animated:YES];
 }
 
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar {
@@ -566,14 +536,20 @@
 }
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-    [self endSearch];
+    [self doneEditing];
+    [self.tableView reloadData];
+}
+
+- (void)doneEditing {
+    searching = NO;
+    [self.view endEditing:YES];
+    [self.searchBar setShowsCancelButton:NO animated:YES];
 }
 
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (tableView == self.searchDisplayController.searchResultsTableView){
-        [self.searchDisplayController setActive:NO animated:NO];
+    if (searching && filteredProjects.count){
         Project *selectedProject = [filteredProjects objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"Project" sender:selectedProject];
     } else if (indexPath.section == 0) {
@@ -633,7 +609,7 @@
 
 - (void)goToProject:(UIButton*)button {
     Project *selectedProject;
-    if (self.searchDisplayController.isActive && filteredProjects.count > button.tag){
+    if (searching && filteredProjects.count > button.tag){
         selectedProject = [filteredProjects objectAtIndex:button.tag];
     } else if (currentUser.projects.count > button.tag) {
         selectedProject = [currentUser.projects objectAtIndex:button.tag];
@@ -644,7 +620,7 @@
         [self performSegueWithIdentifier:@"Project" sender:selectedProject];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to fetch this project. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [self handleRefresh:nil];
+        [self handleRefresh];
     }
 }
 
@@ -661,30 +637,13 @@
             [filteredProjects addObject:project];
         }
     }
+    [self.tableView reloadData];
 }
 
-- (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
-    [self endSearch];
-}
-
-#pragma mark UISearchDisplayController Delegate Methods
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
-{
-    [self filterContentForSearchText:searchString scope:nil];
-    
-    // Return YES to cause the search result table view to be reloaded.
+- (BOOL)searchBar:(UISearchBar *)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    NSString* newText = [searchBar.text stringByReplacingCharactersInRange:range withString:text];
+    [self filterContentForSearchText:newText scope:nil];
     return YES;
-}
-
-
-- (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchScope:(NSInteger)searchOption
-{
-    //[self filterContentForSearchText:[self.searchDisplayController.searchBar text] scope:
-    //[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:searchOption]];
-    
-    // Return YES to cause the search result table view to be reloaded.
-    return NO;
 }
 
 #pragma mark Intro Stuff
@@ -745,7 +704,7 @@
 
 - (void)slide3:(UITapGestureRecognizer*)sender {
     BHOverlayView *dashboard = [[BHOverlayView alloc] initWithFrame:screen];
-    NSString *text = @"\"View Demo Projects\" will show you some examples of how you can use the app.";
+    NSString *text = @"\"View Demo Project(s)\" will show you some examples of how you can use the app.";
     if (IDIOM == IPAD){
         [dashboard configureText:text atFrame:CGRectMake(screenWidth()/4, dashboardScreenshot.frame.origin.y + dashboardScreenshot.frame.size.height + 10, screenWidth()/2, 100)];
     } else {
@@ -799,6 +758,11 @@
             [overlayBackground removeFromSuperview];
         }];
     }];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [ProgressHUD dismiss];
 }
 
 @end

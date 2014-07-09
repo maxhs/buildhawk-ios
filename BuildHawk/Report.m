@@ -33,6 +33,7 @@
 @dynamic weatherIcon;
 @dynamic wind;
 @dynamic activities;
+@dynamic dailyActivities;
 @dynamic author;
 @dynamic notification;
 @dynamic photos;

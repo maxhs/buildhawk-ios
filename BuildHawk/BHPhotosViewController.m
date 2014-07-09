@@ -137,7 +137,7 @@
         NSString *sectionTitle = [_sectionTitles objectAtIndex:section];
         NSPredicate *testPredicate;
         if (self.documentsBool) {
-            testPredicate = [NSPredicate predicateWithFormat:@"folder like %@",sectionTitle];
+            testPredicate = [NSPredicate predicateWithFormat:@"folder.name like %@",sectionTitle];
         } else if (self.worklistsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"userName like %@",sectionTitle];
         } else if (self.reportsBool) {
