@@ -9,5 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface BHNotificationCell : UITableViewCell
-
+@property (weak, nonatomic) IBOutlet UILabel *notificationLabel;
+@property (weak, nonatomic) IBOutlet UILabel *timestampLabel;
 @end

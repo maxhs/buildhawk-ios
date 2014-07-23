@@ -38,6 +38,7 @@
     NSMutableArray *photosArray;
     BOOL emailBool;
     BOOL phoneBool;
+    BOOL textBool;
     BOOL saveToLibrary;
     BOOL shouldSave;
     NSString *mainPhoneNumber;
@@ -60,6 +61,8 @@
     UIView *overlayBackground;
     NSDateFormatter *formatter;
     BHDatePicker *_datePicker;
+    Reminder *_reminder;
+    CGFloat topInset;
 }
 
 @end
@@ -74,8 +77,7 @@
 {
     [super viewDidLoad];
     photosArray = [NSMutableArray array];
-    
-    self.tableView.backgroundColor = kLightestGrayColor;
+    self.tableView.backgroundColor = [UIColor whiteColor];
 
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         iPad = YES;
@@ -89,13 +91,14 @@
     self.navigationItem.rightBarButtonItem = saveButton;
     [Flurry logEvent:@"Viewing checklist item"];
 
-    [self loadItem];
+    [self loadItem:YES];
 
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendText:) name:@"SendText" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
@@ -108,21 +111,29 @@
     [formatter setDateStyle:NSDateFormatterShortStyle];
     [formatter setTimeStyle:NSDateFormatterShortStyle];
     
-    _selectButton.layer.borderColor = [UIColor colorWithWhite:1 alpha:.5].CGColor;
-    _selectButton.layer.borderWidth = .5f;
-    _selectButton.layer.cornerRadius = 2.f;
+    topInset = self.tableView.contentInset.top;
+    _selectButton.layer.borderColor = [UIColor colorWithWhite:1 alpha:.7].CGColor;
+    _selectButton.layer.borderWidth = 1.f;
+    _selectButton.layer.cornerRadius = 3.f;
     _selectButton.clipsToBounds = YES;
-    _cancelButton.layer.borderColor = [UIColor colorWithWhite:1 alpha:.5].CGColor;
-    _cancelButton.layer.borderWidth = .5f;
-    _cancelButton.layer.cornerRadius = 2.f;
+    _cancelButton.layer.borderColor = [UIColor colorWithWhite:1 alpha:.7].CGColor;
+    _cancelButton.layer.borderWidth = 1.f;
+    _cancelButton.layer.cornerRadius = 3.f;
     _cancelButton.clipsToBounds = YES;
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
 }
 
-- (void)loadItem{
+- (void)loadItem:(BOOL)shouldReload{
     [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
+        //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
         [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+        [_item.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+            if ([reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+                _reminder = reminder;
+                *stop = YES;
+            }
+        }];
+        if (shouldReload)[[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
         [self.tableView reloadData];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"failure getting checklist item: %@",error.description);
@@ -130,6 +141,9 @@
 }
 
 - (IBAction)cancelDatePicker{
+    self.navigationItem.rightBarButtonItem = saveButton;
+    self.navigationItem.hidesBackButton = NO;
+    
     [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         _datePickerContainer.transform = CGAffineTransformIdentity;
         self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
@@ -145,6 +159,10 @@
         _datePicker = [[BHDatePicker alloc] initWithFrame:CGRectMake(0, _cancelButton.frame.size.height + _cancelButton.frame.origin.y+24, _datePickerContainer.frame.size.width, 162)];
         [_datePickerContainer addSubview:_datePicker];
     }
+    
+    self.navigationItem.rightBarButtonItem = nil;
+    self.navigationItem.leftBarButtonItem = nil;
+    self.navigationItem.hidesBackButton = YES;
     
     if (overlayBackground == nil){
         overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
@@ -175,24 +193,23 @@
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
     }
     [parameters setObject:_item.identifier forKey:@"checklist_item_id"];
-    if (_item.project && ![_item.project.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        [parameters setObject:_item.project.identifier forKey:@"project_id"];
-    }
+    [parameters setObject:_item.project.identifier forKey:@"project_id"];
     [manager POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[date timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success creating a reminder: %@",responseObject);
-        Reminder *reminder = [Reminder MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"reminder"] objectForKey:@"id"]];
-        if (!reminder){
-            reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        NSLog(@"Success creating a reminder: %@",responseObject);
+        if ([responseObject objectForKey:@"failure"]){
+            NSLog(@"Failed to create checklist item: %@",responseObject);
+        } else {
+            if (!_reminder){
+                _reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [_reminder populateFromDictionary:[responseObject objectForKey:@"reminder"]];
+            [_item addReminder:_reminder];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
+            }];
         }
-        [reminder populateFromDictionary:[responseObject objectForKey:@"reminder"]];
-        [_item addReminder:reminder];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [self.tableView beginUpdates];
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
-        }];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        //NSLog(@"Error creating a checklist item reminder: %@",error.description);
+        NSLog(@"Error creating a checklist item reminder: %@",error.description);
     }];
 }
 
@@ -200,51 +217,51 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 7;
+    return 6;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     if (section == 1) return 3;
-    else if (section == 6) return _item.activities.count;
+    else if (section == 5) return _item.activities.count + 1;
     return 1;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 30;
+    return 50;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
-    return 30;
-}
-
-- (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 50)];
+    [headerView setBackgroundColor:kDarkerGrayColor];
+    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0,screenWidth(),50)];
+    [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [headerLabel setTextAlignment:NSTextAlignmentCenter];
+    [headerLabel setTextColor:[UIColor whiteColor]];
     switch (section) {
         case 0:
-            return _item.type;
+            [headerLabel setText:_item.type];
             break;
         case 1:
-            return @"Status";
+            [headerLabel setText:@"STATUS"];
             break;
         case 2:
-            return @"Photos";
+            [headerLabel setText:@"PHOTOS"];
             break;
         case 3:
-            return @"Reminders";
+            [headerLabel setText:@"REMINDERS"];
             break;
         case 4:
-            return @"Contact";
+            [headerLabel setText:@"CONTACT"];
             break;
         case 5:
-            return @"Comments";
-            break;
-        case 6:
-            return @"Activity";
+            [headerLabel setText:@"COMMENTS & ACTIVITY"];
             break;
         default:
-            return @"";
             break;
     }
+    [headerView addSubview:headerLabel];
+    return headerView;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -255,33 +272,38 @@
             messageCell = [[[NSBundle mainBundle] loadNibNamed:@"BHChecklistMessageCell" owner:self options:nil] lastObject];
         }
         [messageCell.messageTextView setText:_item.body];
-        [messageCell.messageTextView setFont:[UIFont fontWithName:kHelveticaNeueLight size:17]];
+        [messageCell.messageTextView setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
         
         return messageCell;
     } else if (indexPath.section == 1) {
         static NSString *CellIdentifier = @"ActionCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+        cell.backgroundColor = [UIColor whiteColor];
+        [cell.textLabel setTextColor:[UIColor blackColor]];
         UIView *selectecBackgroundColor = [[UIView alloc] init];
-        [selectecBackgroundColor setBackgroundColor:kDarkGrayColor];
+        [selectecBackgroundColor setBackgroundColor:kBlueColor];
         cell.selectedBackgroundView = selectecBackgroundColor;
         cell.textLabel.highlightedTextColor = [UIColor whiteColor];
         switch (indexPath.row) {
             case 0:
                 if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
-                    [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+                    cell.backgroundColor = kBlueColor;
+                    [cell.textLabel setTextColor:[UIColor whiteColor]];
                 }
                 [cell.textLabel setText:@"COMPLETED"];
                 break;
             case 1:
                 if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
-                    [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+                    cell.backgroundColor = kBlueColor;
+                    [cell.textLabel setTextColor:[UIColor whiteColor]];
                 }
                 [cell.textLabel setText:@"IN-PROGRESS"];
                 break;
             case 2:
                 if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
-                    [self.tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
+                    cell.backgroundColor = kBlueColor;
+                    [cell.textLabel setTextColor:[UIColor whiteColor]];
                 }
                 [cell.textLabel setText:@"NOT APPLICABLE"];
                 break;
@@ -289,7 +311,7 @@
             default:
                 break;
         }
-        [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:18]];
+        [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
         return cell;
     } else if (indexPath.section == 2) {
         BHListItemPhotoCell *photoCell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
@@ -309,15 +331,12 @@
         }
         [reminderCell.reminderButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
         
-        [reminderCell.reminderLabel setText:@"Set a reminder"];
-        for (Reminder *r in _item.reminders){
-            if ([r.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-                NSLog(@"Found a checklist item reminder for the current user");
-                Reminder *reminder = _item.reminders.lastObject;
-                [reminderCell.reminderLabel setText:[NSString stringWithFormat:@"Reminder: %@",[formatter stringFromDate:reminder.reminderDate]]];
-                break;
-            }
+        if (_reminder){
+            [reminderCell.reminderLabel setText:[NSString stringWithFormat:@"Reminder: %@",[formatter stringFromDate:_reminder.reminderDate]]];
+        } else {
+            [reminderCell.reminderLabel setText:@"Set a reminder"];
         }
+        
         return reminderCell;
     } else if (indexPath.section == 4) {
         BHItemContactCell *contactCell = [tableView dequeueReusableCellWithIdentifier:@"ContactCell"];
@@ -326,51 +345,41 @@
         }
         [contactCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
         [contactCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
-        [contactCell.textButton addTarget:self action:@selector(sendText) forControlEvents:UIControlEventTouchUpInside];
+        [contactCell.textButton addTarget:self action:@selector(textAction) forControlEvents:UIControlEventTouchUpInside];
+        
         if (iPad) {
             [contactCell.callButton setHidden:YES];
             contactCell.emailButton.transform = CGAffineTransformMakeTranslation(275, 0);
             contactCell.textButton.transform = CGAffineTransformMakeTranslation(173, 0);
         }
         return contactCell;
-    } else if (indexPath.section == 5) {
-        BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
-        if (addCommentCell == nil) {
-            addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
-        }
-        [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
-        addCommentTextView = addCommentCell.messageTextView;
-        addCommentTextView.delegate = self;
-        
-        [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
-        [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
-        addCommentCell.doneButton.layer.cornerRadius = 4.f;
-        addCommentCell.doneButton.clipsToBounds = YES;
-        doneButton = addCommentCell.doneButton;
-        return addCommentCell;
-    }/* else  if (indexPath.section == 6){
-        BHCommentCell *commentCell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell"];
-        if (commentCell == nil) {
-            commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
-        }
-        Comment *comment = [_item.comments objectAtIndex:indexPath.row];
-        [commentCell.messageTextView setText:comment.body];
-        if (comment.createdOnString.length){
-            [commentCell.timeLabel setText:comment.createdOnString];
+    } else {
+        if (indexPath.row == 0){
+            BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
+            if (addCommentCell == nil) {
+                addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
+            }
+            [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
+            addCommentTextView = addCommentCell.messageTextView;
+            addCommentTextView.delegate = self;
+            [addCommentTextView setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+            
+            [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
+            [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
+            addCommentCell.doneButton.layer.cornerRadius = 4.f;
+            addCommentCell.doneButton.clipsToBounds = YES;
+            doneButton = addCommentCell.doneButton;
+            return addCommentCell;
         } else {
-            [commentCell.timeLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
+            BHActivityCell *activityCell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+            if (activityCell == nil) {
+                activityCell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+            }
+            Activity *activity = _item.activities[indexPath.row-1];
+            [activityCell configureForActivity:activity];
+            [activityCell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
+            return activityCell;
         }
-        [commentCell.nameLabel setText:comment.user.fullname];
-        return commentCell;
-    }*/ else {
-        BHActivityCell *activityCell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
-        if (activityCell == nil) {
-            activityCell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
-        }
-        Activity *activity = _item.activities[indexPath.row];
-        [activityCell configureForActivity:activity];
-        [activityCell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
-        return activityCell;
     }
 }
 
@@ -395,11 +404,11 @@
     NSDictionary* keyboardInfo = [notification userInfo];
     NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameBeginUserInfoKey];
     CGFloat keyboardHeight = [keyboardFrameBegin CGRectValue].size.height;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(topInset, 0, keyboardHeight, 0);
 }
 
 -(void)willHideKeyboard:(NSNotification*)notification {
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(topInset, 0, 0, 0);
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
@@ -422,10 +431,9 @@
     }
 }
 
-
 -(void)textViewDidEndEditing:(UITextView *)textView {
     if ([textView.text isEqualToString:@""]) {
-        [textView setText:@"hey"];
+        [textView setText:kAddCommentPlaceholder];
         [textView setTextColor:[UIColor colorWithWhite:.75 alpha:1.0]];
     } else {
         [textView setTextColor:[UIColor blackColor]];
@@ -458,14 +466,19 @@
                 Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
                 NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_item.activities];
+                [set removeObjectAtIndex:set.count-1];
                 [set insertObject:activity atIndex:0];
-                _item.activities = set;
+                [_item setActivities:set];
+                
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:5];
                 
                 [self.tableView beginUpdates];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
                 
-                addCommentTextView.text = @"";
+                
+                addCommentTextView.text = kAddCommentPlaceholder;
+                addCommentTextView.textColor = [UIColor lightGrayColor];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"failure creating a comment: %@",error.description);
             }];
@@ -481,37 +494,40 @@
         doneButton.alpha = 0.0;
     }];
     self.navigationItem.rightBarButtonItem = saveButton;
-    [self.tableView setContentInset:UIEdgeInsetsMake(64, 0, 49, 0)];
 }
 
 - (void)callAction{
     emailBool = NO;
+    textBool = NO;
     phoneBool = YES;
-    callActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to call?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    [callActionSheet addButtonWithTitle:kUsers];
-    [callActionSheet addButtonWithTitle:kSubcontractors];
-    callActionSheet.cancelButtonIndex = [callActionSheet addButtonWithTitle:@"Cancel"];
-    [callActionSheet showInView:self.view];
+    [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
+}
+
+- (void)textAction{
+    emailBool = NO;
+    phoneBool = NO;
+    textBool = YES;
+    [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
 }
 
 - (void)emailAction {
     emailBool = YES;
     phoneBool = NO;
-    emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
-    [emailActionSheet addButtonWithTitle:kUsers];
-    [emailActionSheet addButtonWithTitle:kSubcontractors];
-    emailActionSheet.cancelButtonIndex = [emailActionSheet addButtonWithTitle:@"Cancel"];
-    [emailActionSheet showInView:self.view];
+    textBool = NO;
+    [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]) {
         BHPersonnelPickerViewController *vc = [segue destinationViewController];
+        [vc setProject:_project];
         if (phoneBool) {
             [vc setPhone:YES];
         } else if (emailBool) {
             [vc setEmail:YES];
+        } else if (textBool) {
+            [vc setText:YES];
         }
         //[vc setUsers:_project.users.mutableCopy];
     }
@@ -539,8 +555,8 @@
     NSString *destinationEmail = [notification.userInfo objectForKey:@"email"];
     if (destinationEmail && destinationEmail.length){
         if ([MFMailComposeViewController canSendMail]) {
+            [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
             MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
-            controller.navigationBar.barStyle = UIBarStyleBlack;
             controller.mailComposeDelegate = self;
             [controller setSubject:[NSString stringWithFormat:@"%@",_item.body]];
             [controller setToRecipients:@[destinationEmail]];
@@ -558,14 +574,16 @@
                         error:(NSError*)error;
 {
     if (result == MFMailComposeResultSent) {}
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void)sendText {
+- (void)sendText:(NSString*)phone {
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
     if ([MFMessageComposeViewController canSendText]){
         viewController.messageComposeDelegate = self;
-        [viewController setRecipients:nil];
+        [viewController setRecipients:@[phone]];
         [self presentViewController:viewController animated:YES completion:^{
             
         }];
@@ -581,6 +599,7 @@
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles: nil];
         [alert show];
     }
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -590,17 +609,12 @@
     removePhotoIdx = button.tag;
 }
 
-- (void)actionSheet:(UIActionSheet *)actionSheet didDismissWithButtonIndex:(NSInteger)buttonIndex
+- (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if (actionSheet == callActionSheet || actionSheet == emailActionSheet) {
         NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
-        if ([buttonTitle isEqualToString:@"Cancel"]) {
-            [callActionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
-            return;
-        } else if ([buttonTitle isEqualToString:kUsers]) {
-            [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
-        } else if ([buttonTitle isEqualToString:kSubcontractors]) {
-            [self performSegueWithIdentifier:@"SubPicker" sender:nil];
+        if ([buttonTitle isEqualToString:kUsers]) {
+            
         }
     }/* else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
         if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
@@ -622,17 +636,17 @@
     saveToLibrary = YES;
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         UIImagePickerController *vc = [[UIImagePickerController alloc] init];
-        [vc setModalPresentationStyle:UIModalPresentationFullScreen];
+        [vc setModalPresentationStyle:UIModalPresentationCurrentContext];
         [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
         [vc setDelegate:self];
-        [self presentViewController:vc animated:YES completion:nil];
+        [self presentViewController:vc animated:YES completion:NULL];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We're unable to access a camera on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-    [picker dismissViewControllerAnimated:YES completion:nil];
+    [self dismissViewControllerAnimated:YES completion:NULL];
     Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     [newPhoto setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [self saveImage:[self fixOrientation:newPhoto.image]];
@@ -650,28 +664,27 @@
 }
 
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
-    [self dismissViewControllerAnimated:YES completion:^{
-        for (id asset in assets) {
-            if (asset != nil) {
-                ALAssetRepresentation* representation = [asset defaultRepresentation];
-                
-                // Retrieve the image orientation from the ALAsset
-                UIImageOrientation orientation = UIImageOrientationUp;
-                NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
-                if (orientationValue != nil) {
-                    orientation = [orientationValue intValue];
-                }
-                
-                UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
-                                                     scale:[UIScreen mainScreen].scale orientation:orientation];
-                Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [newPhoto setImage:[self fixOrientation:image]];
-                [_item addPhoto:newPhoto];
-                [self saveImage:newPhoto.image];
+    [self dismissViewControllerAnimated:YES completion:NULL];
+    for (id asset in assets) {
+        if (asset != nil) {
+            ALAssetRepresentation* representation = [asset defaultRepresentation];
+            
+            // Retrieve the image orientation from the ALAsset
+            UIImageOrientation orientation = UIImageOrientationUp;
+            NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
+            if (orientationValue != nil) {
+                orientation = [orientationValue intValue];
             }
+            
+            UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
+                                                 scale:[UIScreen mainScreen].scale orientation:orientation];
+            Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [newPhoto setImage:[self fixOrientation:image]];
+            [_item addPhoto:newPhoto];
+            [self saveImage:newPhoto.image];
         }
-        [self redrawScrollView];
-    }];
+    }
+    [self redrawScrollView];
 }
 
 - (UIImage *)fixOrientation:(UIImage*)image {
@@ -826,20 +839,18 @@
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        
         if (_item.state){
+            // if we don't send a state, this will erase the checklist item's current state via the API
             [parameters setObject:_item.state forKey:@"state"];
         }
-    
+        
         [ProgressHUD show:@"Updating item..."];
         [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:@{@"checklist_item":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success updating checklist item %@",responseObject);
+            NSLog(@"Success updating checklist item %@",responseObject);
             [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-            NSLog(@"item expanded? %@ %@",_item.category.expanded, _item.category.phase.expanded);
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
-            [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-                NSLog(@"item expanded? %@ %@",_item.category.expanded, _item.category.phase.expanded);
-                NSLog(@"What happened during checklist item save? %hhd %@",success, error);
+            
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
                 [self.navigationController popViewControllerAnimated:YES];
                 [ProgressHUD dismiss];
             }];
@@ -897,8 +908,8 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    shouldSave = YES;
     if (indexPath.section == 1) {
+        shouldSave = YES;
         switch (indexPath.row) {
             case 0:
                 if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
@@ -906,7 +917,7 @@
                 } else {
                     _item.state = [NSNumber numberWithInteger:kItemCompleted];
                 }
-                [tableView reloadData];
+                [tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
                 break;
             case 1:
                 if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
@@ -914,7 +925,7 @@
                 } else {
                     [_item setState:[NSNumber numberWithInteger:kItemInProgress]];
                 }
-                [tableView reloadData];
+                [tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
                 break;
             case 2:
                 if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
@@ -922,24 +933,31 @@
                 } else {
                     [_item setState:[NSNumber numberWithInteger:kItemNotApplicable]];
                 }
-                [tableView reloadData];
+                [tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
                 break;
             default:
                 break;
         }
+    } else if (indexPath.section == 3){
+        if (_reminder){
+            
+        } else {
+            [self showDatePicker];
+        }
+        
     }
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 3) {
-        if (_item.reminders.count){
+        if (_reminder){
             return YES;
         } else {
             return NO;
         }
 
-    } else if (indexPath.section == 6) {
-        Activity *activity = [_item.activities objectAtIndex:indexPath.row];
+    } else if (indexPath.section == 5 && _item.activities.count && indexPath.row > 0) {
+        Activity *activity = _item.activities[indexPath.row - 1];
         if ([activity.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] && [activity.activityType isEqualToString:kComment]){
             return YES;
         } else {
@@ -965,12 +983,20 @@
     if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        Comment *comment = [_item.comments objectAtIndex:indexPathForDeletion.row];
-        if (![comment.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"successfully deleted comment: %@",responseObject);
-                [_item removeComment:comment];
-                
+        Activity *activity = _item.activities[indexPathForDeletion.row-1];
+        if ([activity.comment.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [_item removeActivity:activity];
+            [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            [self.tableView beginUpdates];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        } else {
+            [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,activity.comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"successfully deleted activity: %@",responseObject);
+                [_item removeActivity:activity];
+                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
                 [self.tableView beginUpdates];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
@@ -978,12 +1004,6 @@
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 //NSLog(@"Failed to delete comment: %@",error.description);
             }];
-        } else {
-            [_item removeComment:comment];
-            
-            [self.tableView beginUpdates];
-            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
         }
     }
 }
@@ -992,12 +1012,20 @@
     if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete reminders from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        Reminder *reminder = _item.reminders.lastObject;
-        if (![reminder.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [manager DELETE:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,reminder.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        if ([_reminder.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [_item removeReminder:_reminder];
+            [_reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            _reminder = nil;
+            
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        } else {
+            [manager DELETE:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,_reminder.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 NSLog(@"successfully delete reminder: %@",responseObject);
-                [_item removeReminder:reminder];
-                
+                [_item removeReminder:_reminder];
+                [_reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                _reminder = nil;
                 [self.tableView beginUpdates];
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
@@ -1005,12 +1033,6 @@
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"Failed to delete reminder: %@",error.description);
             }];
-        } else {
-            [_item removeReminder:reminder];
-            
-            [self.tableView beginUpdates];
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
         }
     }
 }
@@ -1019,6 +1041,7 @@
     if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self updateChecklistItem:NO];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+        [self loadItem:NO];
         [self.navigationController popViewControllerAnimated:YES];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Delete"]) {
         [self deleteComment];

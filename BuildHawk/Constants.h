@@ -15,6 +15,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define IPAD     UIUserInterfaceIdiomPad
 
 #define kApiBaseUrl @"https://www.buildhawk.com/api/v2"
+#define kBaseUrl @"https://www.buildhawk.com"
 #define kUrlScheme @"buildhawk"
 #define kFlurryKey @"VS4FQPRGGB5BXWWGGXSB"
 
@@ -40,6 +41,8 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 
 #define kChecklist @"Checklist"
 #define kWorklist @"Worklist"
+#define kTasks @"Tasks"
+#define kTask @"Task"
 #define kReports @"Reports"
 #define kDocuments @"Documents"
 #define kPhase @"Phase"
@@ -64,6 +67,10 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"
 #define kHelveticaNeueRegular @"HelveticaNeue-Regular"
 #define kHelveticaNeueLightItalic @"HelveticaNeue-LightItalic"
+#define kMyriadProRegular @"MyriadPro-Regular"
+#define kMyriadProLight @"MyriadPro-Light"
+#define kMyriadProSemibold @"MyriadPro-Semibold"
+#define kMyriadProIt @"MyriadPro-It"
 
 //User walkthrough
 #define kHasSeenDashboard @"hasSeenDashboard"
@@ -82,6 +89,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kComment @"Comment"
 #define kWorklistItem @"WorklistItem"
 #define kPhoto @"Photo"
+#define kReminder @"Reminder"
 
 //Colors
 #define kBackgroundFade 0.3f

@@ -9,5 +9,6 @@
 #import "Checklist.h"
 
 @interface Checklist (helper)
+- (void)populateFromDictionary:(NSDictionary *)dictionary;
 - (void)removePhase:(Phase *)phase;
 @end

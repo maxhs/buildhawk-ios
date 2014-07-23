@@ -18,11 +18,16 @@
 @interface BHAddPersonnelViewController () <UITextFieldDelegate> {
     UIBarButtonItem *createButton;
     UIBarButtonItem *doneButton;
+    UIBarButtonItem *nextButton;
+    UIBarButtonItem *previousButton;
     AFHTTPRequestOperationManager *manager;
     NSArray *peopleArray;
     UITextField *_firstNameTextField;
     UITextField *_lastNameTextField;
     UITextField *_companyNameTextField;
+    
+    NSString *email;
+    NSString *phone;
 }
 
 @end
@@ -40,24 +45,16 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.rowHeight = 60.f;
+    self.secondTableView.rowHeight = 60.f;
+    previousButton = [[UIBarButtonItem alloc] initWithTitle:@"Previous" style:UIBarButtonItemStylePlain target:self action:@selector(previous)];
+    nextButton = [[UIBarButtonItem alloc] initWithTitle:@"Next" style:UIBarButtonItemStylePlain target:self action:@selector(next)];
     createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(create)];
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
-    self.navigationItem.rightBarButtonItem = createButton;
+    self.navigationItem.rightBarButtonItem = nextButton;
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     [self registerForKeyboardNotifications];
     
-    
-    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 0)];
-    [headerView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
-    UILabel *explanatoryLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 10, screenWidth()-40, 70)];
-    [explanatoryLabel setTextColor:[UIColor darkGrayColor]];
-    [explanatoryLabel setText:@"Please enter the email/phone number of the person you'd like to add, or simply pull their info from your address book."];
-    [explanatoryLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
-    explanatoryLabel.numberOfLines = 0;
-    [headerView addSubview:explanatoryLabel];
-    self.tableView.tableHeaderView = headerView;
-    
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+    //[self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
     [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
 }
 
@@ -100,6 +97,107 @@
                      completion:nil];
 }
 
+- (void)next {
+    if (_emailTextField.text.length){
+        email = _emailTextField.text;
+    }
+    if (_phoneTextField.text.length){
+        phone = _phoneTextField.text;
+    }
+    
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (phone.length){
+        [parameters setObject:phone forKey:@"phone"];
+    } else if (email.length) {
+        [parameters setObject:email forKey:@"email"];
+    }
+    
+    if (_firstStepComplete){
+        [self moveForward];
+    } else if (parameters){
+        [ProgressHUD show:@"Searching..."];
+        [manager POST:[NSString stringWithFormat:@"%@/projects/%@/find_user",kApiBaseUrl,_project.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success finding user: %@",responseObject);
+            [ProgressHUD dismiss];
+            
+            if ([responseObject objectForKey:@"success"]){
+                [self moveForward];
+            } else {
+                if ([responseObject objectForKey:@"connect_user"]){
+                    
+                    ConnectUser *connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                    [connectUser populateFromDictionary:[responseObject objectForKey:@"connect_user"]];
+                    [self processConnectUser:connectUser];
+                    
+                } else {
+                    NSDictionary *userDict = [responseObject objectForKey:@"user"];
+                    User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+                    if (!user){
+                        user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                        [user populateFromDictionary:userDict];
+                    }
+                    
+                    if (_task){
+                        NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
+                        [assignees addObject:user];
+                        _task.assignees = assignees;
+                    } else if (_report) {
+                        ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                        reportUser.userId = user.identifier;
+                        reportUser.fullname = user.fullname;
+                        [_report addReportUser:reportUser];
+                    }
+                }
+                [self saveAndExit];
+                
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [ProgressHUD dismiss];
+            NSLog(@"Failed to find user: %@",error.description);
+        }];
+    }
+}
+
+- (void)moveForward {
+    self.navigationItem.hidesBackButton = YES;
+    self.navigationItem.leftBarButtonItem = previousButton;
+    self.navigationItem.rightBarButtonItem = createButton;
+    CGRect secondFrame = _secondTableView.frame;
+    secondFrame.origin.x = 0;
+    CGRect firstFrame = _tableView.frame;
+    firstFrame.origin.x = -screenWidth();
+    
+    [self.secondTableView reloadData];
+    
+    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [_secondTableView setFrame:secondFrame];
+        [_tableView setFrame:firstFrame];
+    } completion:^(BOOL finished) {
+        [_tableView setHidden:YES];
+        if (_firstStepComplete == NO){
+            _firstStepComplete = YES;
+        }
+    }];
+}
+
+- (void)previous {
+    [_tableView setHidden:NO];
+    self.navigationItem.hidesBackButton = NO;
+    self.navigationItem.leftBarButtonItem = nil;
+    self.navigationItem.rightBarButtonItem = nextButton;
+    CGRect secondFrame = _secondTableView.frame;
+    secondFrame.origin.x = screenWidth();
+    CGRect firstFrame = _tableView.frame;
+    firstFrame.origin.x = 0;
+    //[self.tableView reloadData];
+    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [_secondTableView setFrame:secondFrame];
+        [_tableView setFrame:firstFrame];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -110,20 +208,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    if (_firstStepComplete){
-        return 2;
-    } else {
-        return 1;
-    }
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 0){
-        return 3;
-    } else {
-        return 3;
-    }
+    return 4;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -135,7 +225,9 @@
     }
     cell.personnelTextField.delegate = self;
     [cell.personnelTextField setUserInteractionEnabled:YES];
-    if (indexPath.section == 0) {
+    
+    if (tableView == self.tableView){
+    
         switch (indexPath.row) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
@@ -163,23 +255,27 @@
                 [cell.imageView setImage:[UIImage imageNamed:@"phone"]];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 break;
-                
             default:
                 break;
         }
-    } else {
         
+    } else {
+        CGRect secondTableViewTextFieldFrame = cell.personnelTextField.frame;
+        secondTableViewTextFieldFrame.origin.x = 14;
+        secondTableViewTextFieldFrame.size.width = screenWidth()-20;
         switch (indexPath.row) {
             case 0:
             {
                 cell.personnelTextField.placeholder = @"First name..";
-                _firstNameTextField = cell.personnelTextField;
                 if (_firstName.length){
                     [_firstNameTextField setText:_firstName];
                 }
+                _firstNameTextField = cell.personnelTextField;
+                [_firstNameTextField setReturnKeyType:UIReturnKeyNext];
                 [_firstNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [_firstNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 [_firstNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
+                [_firstNameTextField setFrame:secondTableViewTextFieldFrame];
             }
                 break;
             case 1:
@@ -188,9 +284,11 @@
                     [_lastNameTextField setText:_lastName];
                 }
                 _lastNameTextField = cell.personnelTextField;
+                [_lastNameTextField setReturnKeyType:UIReturnKeyNext];
                 [_lastNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [_lastNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
                 [_lastNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
+                [_lastNameTextField setFrame:secondTableViewTextFieldFrame];
                 break;
             case 2:
                 cell.personnelTextField.placeholder = @"Company name (required)";
@@ -203,6 +301,31 @@
                 [_companyNameTextField setKeyboardType:UIKeyboardTypeDefault];
                 [_companyNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 [_companyNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
+                [_companyNameTextField setFrame:secondTableViewTextFieldFrame];
+                break;
+                
+            case 3:
+                if (phone.length > 0 && email.length == 0){
+                    cell.personnelTextField.placeholder = @"Email address";
+                    [_emailTextField setText:email];
+                    _emailTextField = cell.personnelTextField;
+                    [_emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
+                    [_emailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
+                    [_emailTextField setReturnKeyType:UIReturnKeyNext];
+                    [_emailTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+                    [cell.imageView setImage:[UIImage imageNamed:@"email"]];
+                    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                } else {
+                    cell.personnelTextField.placeholder = @"Phone number";
+                    [_phoneTextField setText:phone];
+                    _phoneTextField = cell.personnelTextField;
+                    [_phoneTextField setKeyboardType:UIKeyboardTypePhonePad];
+                    [_phoneTextField setReturnKeyType:UIReturnKeyNext];
+                    [_phoneTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+                    [cell.imageView setImage:[UIImage imageNamed:@"phone"]];
+                    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                }
+                
                 break;
                 
             default:
@@ -212,18 +335,13 @@
     return cell;
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 0){
-        return 100;
-    } else return 24;
-}
 
 - (void)create {
-    if (_companyNameTextField.text.length){
+    if (_companyNameTextField.text.length && (_emailTextField.text.length > 0 || _phoneTextField.text.length > 0)){
     
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         if (_company && ![_company.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [parameters setObject:_project.identifier forKey:@"company_id"];
+            [parameters setObject:_company.identifier forKey:@"company_id"];
         }
         if (_task && ![_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [parameters setObject:_task.identifier forKey:@"task_id"];
@@ -242,7 +360,12 @@
             [userParameters setObject:_emailTextField.text forKey:@"email"];
         }
         if (_phoneTextField.text.length){
-            [userParameters setObject:_phoneTextField.text forKey:@"phone"];
+            NSString *cleanPhone = [_phoneTextField.text stringByReplacingOccurrencesOfString:@"+" withString:@""];
+            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@"-" withString:@""];
+            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@"(" withString:@""];
+            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@")" withString:@""];
+            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@" " withString:@""];
+            [userParameters setObject:cleanPhone forKey:@"phone"];
         }
         if (_companyNameTextField.text.length){
             [userParameters setObject:_companyNameTextField.text forKey:@"company_name"];
@@ -256,29 +379,11 @@
                 ConnectUser *connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [connectUser populateFromDictionary:[responseObject objectForKey:@"connect_user"]];
                 
-                if (_task){
-                    NSString *alertMessage;
-                    if ([[responseObject objectForKey:@"connect_user"] objectForKey:@"email"] != [NSNull null]){
-                        alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've emailed them this task.";
-                    } else {
-                        alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've texted them this task.";
-                    }
-                    
-                    NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
-                    [assignees addObject:connectUser];
-                    _task.connectAssignees = assignees;
-                    
-                    [[[UIAlertView alloc] initWithTitle:@"BuildHawk Connect" message:alertMessage delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                } else if (_report){
-                    ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    reportUser.connectUserId = connectUser.identifier;
-                    reportUser.fullname = connectUser.fullname;
-                    [_report addReportUser:reportUser];
-                }
+                [self processConnectUser:connectUser];
                 
             } else {
                 NSDictionary *userDict = [responseObject objectForKey:@"user"];
-                User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"]];
+                User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!user){
                     user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [user populateFromDictionary:userDict];
@@ -296,36 +401,37 @@
                 }
             }
             
-            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [ProgressHUD dismiss];
-                if (_report){
-                    [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
-                        if ([vc isKindOfClass:[BHReportViewController class]]){
-                            [[(BHReportViewController*)vc reportTableView] reloadData];
-                            [self.navigationController popToViewController:vc animated:YES];
-                            *stop = YES;
-                        }
-                    }];
-                } else if (_task){
-                    [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
-                        if ([vc isKindOfClass:[BHTaskViewController class]]){
-                            [(BHTaskViewController*)vc setTask:_task];
-                            [(BHTaskViewController*)vc drawItem];
-                            [self.navigationController popToViewController:vc animated:YES];
-                            *stop = YES;
-                        }
-                    }];
-                } else {
-                    [self.navigationController popViewControllerAnimated:YES];
-                }
-            }];
+            [self saveAndExit];
             
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error creating a company sub: %@",error.description);
             [ProgressHUD dismiss];
+            [[[UIAlertView alloc] initWithTitle:@"Unable to connect" message:@"Something went wrong while trying to add personnel." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Company Needed" message:@"Please make sure you've specified a company for this contact." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
+}
+
+- (void)processConnectUser:(ConnectUser*)connectUser {
+    if (_task){
+        NSString *alertMessage;
+        if (connectUser.email.length){
+            alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've emailed them this task.";
+        } else {
+            alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've notified them about this task.";
+        }
+        
+        NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
+        [assignees addObject:connectUser];
+        _task.connectAssignees = assignees;
+        
+        [[[UIAlertView alloc] initWithTitle:@"BuildHawk Connect" message:alertMessage delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else if (_report){
+        ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        reportUser.connectUserId = connectUser.identifier;
+        reportUser.fullname = connectUser.fullname;
+        [_report addReportUser:reportUser];
     }
 }
 
@@ -341,7 +447,7 @@
         [contactInfoLabel setTextColor:[UIColor darkGrayColor]];
         [contactInfoLabel setText:@"CONTACT INFO"];
         [contactInfoLabel setTextAlignment:NSTextAlignmentCenter];
-        [contactInfoLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:15]];
+        [contactInfoLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
         contactInfoLabel.numberOfLines = 0;
         [headerView addSubview:contactInfoLabel];
         
@@ -384,7 +490,11 @@
         [vc setPeopleArray:peopleArray];
         [vc setCompany:_company];
         [vc setProject:_project];
-        [vc setTitle:[NSString stringWithFormat:@"%@",_company.name]];
+        if (_company.name.length){
+            [vc setTitle:[NSString stringWithFormat:@"%@",_company.name]];
+        } else {
+            [vc setTitle:@"Address Book"];
+        }
         if (_task){
             [vc setTask:_task];
         }
@@ -393,38 +503,66 @@
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     self.navigationItem.rightBarButtonItem = doneButton;
-    
-    if (textField == _companyNameTextField){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-    } else if (textField == _firstNameTextField){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-    } else if (textField == _lastNameTextField){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
-    }
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
-    if (textField == _emailTextField || textField == _phoneTextField){
-        if (textField.text.length && !_firstStepComplete){
-            _firstStepComplete = YES;
-            [self.tableView reloadData];
-        }
-    }
+    
 }
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
     if ([text isEqualToString:@"\n"]) {
         if (textField == _emailTextField || textField == _phoneTextField){
             [textField resignFirstResponder];
-            [_firstNameTextField becomeFirstResponder];
+            [self next];
+        } else if (textField == _firstNameTextField) {
+            [_lastNameTextField becomeFirstResponder];
+        } else if (textField == _lastNameTextField) {
+            if (_companyNameTextField.text.length == 0){
+                [_companyNameTextField becomeFirstResponder];
+            }
+        } else if (textField == _companyNameTextField) {
+            [self create];
         }
     }
     return YES;
 }
 
 - (void)doneEditing {
-    self.navigationItem.rightBarButtonItem = createButton;
+    if (_emailTextField.text.length || _phoneTextField.text.length){
+        [self next];
+        self.navigationItem.rightBarButtonItem = createButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = nextButton;
+    }
     [self.view endEditing:YES];
+}
+
+
+- (void)saveAndExit {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        [ProgressHUD dismiss];
+        if (_report){
+            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
+                if ([vc isKindOfClass:[BHReportViewController class]]){
+                    //[[(BHReportViewController*)vc reportTableView] reloadData];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
+                    [self.navigationController popToViewController:vc animated:YES];
+                    *stop = YES;
+                }
+            }];
+        } else if (_task){
+            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
+                if ([vc isKindOfClass:[BHTaskViewController class]]){
+                    [(BHTaskViewController*)vc setTask:_task];
+                    [(BHTaskViewController*)vc drawItem];
+                    [self.navigationController popToViewController:vc animated:YES];
+                    *stop = YES;
+                }
+            }];
+        } else {
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }];
 }
 
 @end

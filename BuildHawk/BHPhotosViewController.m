@@ -123,7 +123,7 @@
         return sortedByUser.count;
     } else if (sortByDate) {
         NSString *sectionTitle = [_dates objectAtIndex:section];
-        NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
+        NSPredicate *testPredicate = [NSPredicate predicateWithFormat:@"dateString like %@",sectionTitle];
         NSMutableArray *tempArray = [NSMutableArray array];
         for (Photo *photo in _photosArray){
             if([testPredicate evaluateWithObject:photo]) {
@@ -131,7 +131,8 @@
                 [browserArray addObject:photo];
             }
         }
-        [sectionArray addObject:tempArray];
+        NSArray *reversed = [[tempArray reverseObjectEnumerator] allObjects];
+        [sectionArray addObject:reversed];
         return tempArray.count;
     } else if (_sectionTitles.count){
         NSString *sectionTitle = [_sectionTitles objectAtIndex:section];
@@ -141,7 +142,7 @@
         } else if (self.worklistsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"userName like %@",sectionTitle];
         } else if (self.reportsBool) {
-            testPredicate = [NSPredicate predicateWithFormat:@"createdDate like %@",sectionTitle];
+            testPredicate = [NSPredicate predicateWithFormat:@"dateString like %@",sectionTitle];
         } else {
             testPredicate = [NSPredicate predicateWithFormat:@"photoPhase like %@",sectionTitle];
         }
@@ -207,16 +208,14 @@
         if (photo.caption.length) mwPhoto.caption = photo.caption;
     }
     
-    // Create browser
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    
-    // Set options
+
     if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]) {
         browser.displayTrashButton = NO;
     }
-    browser.displayActionButton = YES; // Show action button to allow sharing, copying, etc (defaults to YES)
-    browser.displayNavArrows = NO; // Whether to display left and right nav arrows on toolbar (defaults to NO)
-    browser.displaySelectionButtons = NO; // Whether selection buttons are shown on each image (defaults to NO)
+    browser.displayActionButton = YES;
+    browser.displayNavArrows = NO;
+    browser.displaySelectionButtons = NO;
     browser.zoomPhotosToFill = YES;
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;

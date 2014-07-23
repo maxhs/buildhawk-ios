@@ -52,8 +52,8 @@
 - (void)viewDidLoad {
     _project = [(BHTabBarViewController*)self.tabBarController project];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[_project name]];
-    [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+    [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
+    [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     if ([BHUtilities isIPhone5]) {
         iPhone5 = YES;
     } else {
@@ -75,7 +75,7 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
+    [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor blackColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
@@ -83,7 +83,8 @@
     [self loadPhotos];
 }
 
-- (void)handleRefresh:(id)sender {
+- (void)handleRefresh {
+    [ProgressHUD show:@"Refreshing..."];
     [self loadPhotos];
 }
 
@@ -95,17 +96,10 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    if (IDIOM == IPAD){
-        [UIView animateWithDuration:.25 animations:^{
-            self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
-            self.tabBarController.tabBar.alpha = 1.0;
-        }];
-    } else {
-        [UIView animateWithDuration:.25 animations:^{
-            self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
-            self.tabBarController.tabBar.alpha = 1.0;
-        }];
-    }
+    [UIView animateWithDuration:.25 animations:^{
+        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+        self.tabBarController.tabBar.alpha = 1.0;
+    }];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -121,9 +115,6 @@
         //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
         [_project parseDocuments:[responseObject objectForKey:@"photos"]];
         [self drawDocuments:_project.documents];
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        loading = NO;
-        if (photosArray.count == 0)[ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error getting photos: %@",error.description);
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
@@ -168,7 +159,13 @@
         if (photo.source.length && ![sourceArray containsObject:photo.source]) [sourceArray addObject:photo.source];
         if (photo.userName.length && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
     }
-    [self.tableView reloadData];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        NSLog(@"Saving documents: %hhd",success);
+        [self.tableView reloadData];
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        loading = NO;
+        [ProgressHUD dismiss];
+    }];
 }
 
 - (void)removePhoto:(NSNotification*)notification {
@@ -210,20 +207,26 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
 
-    cell.backgroundColor = kDarkerGrayColor;
-    cell.textLabel.numberOfLines = 0;
+    cell.backgroundColor = [UIColor whiteColor];
     cell.userInteractionEnabled = YES;
-    if (iPad) [cell.label setFont:[UIFont systemFontOfSize:18]];
+    if (iPad) {
+        [cell.bucketLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
+        [cell.countLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
+    } else {
+        [cell.bucketLabel setFont:[UIFont fontWithName:kMyriadProLight size:24]];
+        [cell.countLabel setFont:[UIFont fontWithName:kMyriadProLight size:16]];
+    }
     NSURL *imageUrl;
     switch (indexPath.row) {
         case 0:
+            [cell.bucketLabel setText:@"All"];
             if (photosArray.count == 1) {
-                [cell.label setText:@"All - 1 Item"];
+                [cell.countLabel setText:@"1 Item"];
             } else if (photosArray.count == 0) {
-                [cell.label setText:@"All - No items"];
+                [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             }
-            else [cell.label setText:[NSString stringWithFormat:@"All - %i Items",photosArray.count]];
+            else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",photosArray.count]];
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlLarge]];
             } else if (photosArray.count > 0) {
@@ -233,13 +236,14 @@
             }
             break;
         case 1:
+            [cell.bucketLabel setText:@"Project Docs"];
             if (documentsArray.count == 1) {
-                [cell.label setText:@"Project Docs - 1 Item"];
+                [cell.countLabel setText:@"1 Item"];
             } else if (documentsArray.count == 0) {
-                [cell.label setText:@"Project Docs - No items"];
+                [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             } else {
-                [cell.label setText:[NSString stringWithFormat:@"Project Docs - %i Items",documentsArray.count]];
+                [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",documentsArray.count]];
             }
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)documentsArray.lastObject urlLarge]];
@@ -250,13 +254,14 @@
             }
             break;
         case 2:
+            [cell.bucketLabel setText:@"Checklist Pictures"];
             if (checklistArray.count == 1) {
-                [cell.label setText:@"Checklist - 1 Item"];
+                [cell.countLabel setText:@"1 Item"];
             } else if (checklistArray.count == 0) {
-                [cell.label setText:@"Checklist - No items"];
+                [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             }
-            else [cell.label setText:[NSString stringWithFormat:@"Checklist - %i Items",checklistArray.count]];
+            else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",checklistArray.count]];
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)checklistArray.lastObject urlLarge]];
             } else if (checklistArray.count > 0) {
@@ -266,13 +271,14 @@
             }
             break;
         case 3:
+            [cell.bucketLabel setText:@"Task Pictures"];
             if (worklistArray.count == 1) {
-                [cell.label setText:@"Worklist - 1 Item"];
+                [cell.countLabel setText:@"1 Item"];
             } else if (worklistArray.count == 0) {
-                [cell.label setText:@"Worklist - No items"];
+                [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             }
-            else [cell.label setText:[NSString stringWithFormat:@"Worklist - %i Items",worklistArray.count]];
+            else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",worklistArray.count]];
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)worklistArray.lastObject urlLarge]];
             } else if (worklistArray.count > 0) {
@@ -282,12 +288,13 @@
             }
             break;
         case 4:
+            [cell.bucketLabel setText:@"Report Pictures"];
             if (reportsArray.count == 1) {
-                [cell.label setText:@"Reports - 1 Item"];
+                [cell.countLabel setText:@"1 Item"];
             } else if (reportsArray.count == 0) {
-                [cell.label setText:@"Reports - No items"];
+                [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
-            } else [cell.label setText:[NSString stringWithFormat:@"Reports - %i Items",reportsArray.count]];
+            } else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",reportsArray.count]];
             
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)reportsArray.lastObject urlLarge]];
@@ -301,20 +308,23 @@
             break;
     }
     if (imageUrl) {
-        cell.label.transform = CGAffineTransformIdentity;
+        cell.countLabel.transform = CGAffineTransformIdentity;
+        cell.bucketLabel.transform = CGAffineTransformIdentity;
         [cell.photoButton setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             [cell.photoButton setTag:0];
             cell.photoButton.userInteractionEnabled = NO;
             [UIView animateWithDuration:.25 animations:^{
                 [cell.photoButton setAlpha:1.0];
-                [cell.label setAlpha:1.0];
+                [cell.countLabel setAlpha:1.0];
+                [cell.bucketLabel setAlpha:1.0];
             }];
         }];
     } else {
         [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_256"] forState:UIControlStateNormal];
         
         [UIView animateWithDuration:.25 animations:^{
-            [cell.label setAlpha:1.0];
+            [cell.bucketLabel setAlpha:1.0];
+            [cell.countLabel setAlpha:1.0];
             [cell.photoButton setAlpha:1.0];
         }];
     }
@@ -454,7 +464,7 @@
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
-            NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
+            NSArray *sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
             [vc setSectionTitles:sortedArray];
             [vc setProject:_project];
             [vc setNumberOfSections:titleSet.count];
@@ -475,7 +485,7 @@
             }
             NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
-            NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
+            NSArray *sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
             [vc setSectionTitles:sortedArray];
             [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:worklistArray];
@@ -483,7 +493,7 @@
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
             [vc setProject:_project];
-            [vc setTitle:@"Worklist"];
+            [vc setTitle:@"Tasks"];
         }
             break;
         case 4:
@@ -491,11 +501,14 @@
             BHPhotosViewController *vc = [segue destinationViewController];
             NSMutableSet *titleSet = [NSMutableSet set];
             for (Photo *photo in reportsArray){
-                if (photo.dateString.length)[titleSet addObject:photo.dateString];
+                if (photo.dateString.length){
+                    [titleSet addObject:photo.dateString];
+                    if (![dateArray containsObject:photo.dateString]) [dateArray addObject:photo.dateString];
+                }
             }
-            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:YES];
+            NSSortDescriptor *valueDescriptor = [[NSSortDescriptor alloc] initWithKey:@"description" ascending:NO];
             NSArray *descriptors = [NSArray arrayWithObject:valueDescriptor];
-            NSArray * sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
+            NSArray *sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
             [vc setSectionTitles:sortedArray];
             [vc setNumberOfSections:titleSet.count];
             [vc setPhotosArray:reportsArray];
@@ -519,13 +532,6 @@
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     [ProgressHUD dismiss];
-    [self saveContext];
-}
-
-- (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"Saving documents to persistent store: %hhd %@",success, error);
-    }];
 }
 
 @end

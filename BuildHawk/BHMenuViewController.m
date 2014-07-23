@@ -19,6 +19,7 @@
 #import "Notification+helper.h"
 #import "BHSettingsViewController.h"
 #import <RESideMenu/RESideMenu.h>
+#import "BHLoginViewController.h"
 
 static NSString *callPlaceholder = @"Call";
 static NSString *emailPlaceholder = @"Email";
@@ -48,8 +49,10 @@ static NSString *textPlaceholder = @"Text Message";
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
     screen = [UIScreen mainScreen].bounds;
     
-    [self.logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
-    [self.logoutButton setBackgroundColor:kDarkGrayColor];
+    [_logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
+    [_logoutButton setBackgroundColor:kDarkGrayColor];
+    [_logoutButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    
     if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
     } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
@@ -58,7 +61,7 @@ static NSString *textPlaceholder = @"Text Message";
         iPad = YES;
     }
     if (!_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
@@ -76,9 +79,9 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)loadNotifications {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+    if (_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting messages: %@",responseObject);
+            //NSLog(@"Success getting messages: %@",responseObject);
             [self updateNotifications:[responseObject objectForKey:@"notifications"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error getting notifications: %@",error.description);
@@ -89,7 +92,7 @@ static NSString *textPlaceholder = @"Text Message";
 - (void)updateNotifications:(NSArray*)array {
     NSMutableOrderedSet *notifications = [NSMutableOrderedSet orderedSet];
     for (NSDictionary *dict in array){
-        Notification *notification = [Notification MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"]];
+        Notification *notification = [Notification MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!notification){
             notification = [Notification MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -103,13 +106,15 @@ static NSString *textPlaceholder = @"Text Message";
             [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
-    _currentUser.notifications = notifications;
-    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"Success saving notifications: %u",success);
-        [self.tableView beginUpdates];
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
-        [self.tableView endUpdates];
-    }];
+    if (_currentUser && ![_currentUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        _currentUser.notifications = notifications;
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            NSLog(@"Success saving notifications: %u",success);
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        }];
+    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -122,7 +127,13 @@ static NSString *textPlaceholder = @"Text Message";
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 2;
+    if (_currentUser){
+        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+        return 2;
+    } else {
+        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+        return 0;
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -137,15 +148,15 @@ static NSString *textPlaceholder = @"Text Message";
         static NSString *CellIdentifier = @"UserCell";
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(76, 32, cell.frame.size.width-80, 27)];
-        [nameLabel setText:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsFullName]];
+        [nameLabel setText:_currentUser.fullname];
         [nameLabel setBackgroundColor:[UIColor clearColor]];
-        [nameLabel setFont:[UIFont systemFontOfSize:19]];
+        [nameLabel setFont:[UIFont fontWithName:kMyriadProRegular size:19]];
         [nameLabel setTextColor:[UIColor whiteColor]];
         [nameLabel setNumberOfLines:0];
         
         UILabel *settingsLabel = [[UILabel alloc] initWithFrame:CGRectMake(76, 52, cell.frame.size.width-80, 27)];
         [settingsLabel setText:@"Tap to edit settings"];
-        [settingsLabel setFont:[UIFont italicSystemFontOfSize:15]];
+        [settingsLabel setFont:[UIFont fontWithName:kMyriadProIt size:16]];
         [settingsLabel setBackgroundColor:[UIColor clearColor]];
         [settingsLabel setTextColor:[UIColor whiteColor]];
         [settingsLabel setNumberOfLines:0];
@@ -174,9 +185,10 @@ static NSString *textPlaceholder = @"Text Message";
         }
         Notification *notification = [_currentUser.notifications objectAtIndex:indexPath.row];
         [cell.textLabel setText:notification.body];
+        [cell.detailTextLabel setText:[dateFormatter stringFromDate:notification.createdDate]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setBackgroundColor:[UIColor clearColor]];
-        [cell.detailTextLabel setText:[dateFormatter stringFromDate:notification.createdDate]];
+        
         return cell;
     }
 }
@@ -207,7 +219,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 1){
+    if (indexPath.section == 1 && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         return YES;
     } else {
         return NO;
@@ -250,7 +262,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (IBAction)logout {
-    [self cleanAndResetupDB];
+    //[self cleanAndResetupDB];
     
     //don't repeat the new user walkthroughs
     BOOL checklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist];
@@ -268,17 +280,20 @@ static NSString *textPlaceholder = @"Text Message";
     [[NSUserDefaults standardUserDefaults] setBool:reportState forKey:kHasSeenReports];
     [[NSUserDefaults standardUserDefaults] synchronize];
     
+    BHLoginViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"Login"];
+    [self.sideMenuViewController setContentViewController:[[UINavigationController alloc] initWithRootViewController:vc] animated:YES];
     [self.sideMenuViewController hideMenuViewController];
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate nav] popToRootViewControllerAnimated:YES];
+    [self.tableView reloadData];
     [ProgressHUD dismiss];
 }
 
 - (void)cleanAndResetupDB {
     NSError *error = nil;
-    NSURL *storeURL = [NSPersistentStore MR_urlForStoreName:@"BuildHawk"];
+    NSString *storeName = [(BHAppDelegate*)[UIApplication sharedApplication].delegate bundleName];
+    NSURL *storeURL = [NSPersistentStore MR_urlForStoreName:storeName];
     [MagicalRecord cleanUp];
     if([[NSFileManager defaultManager] removeItemAtURL:storeURL error:&error]){
-        [MagicalRecord setupCoreDataStackWithAutoMigratingSqliteStoreNamed:@"BuildHawk"];
+        [MagicalRecord setupAutoMigratingCoreDataStack];
     } else{
         NSLog(@"Error deleting persistent store description: %@ %@", error.description,storeURL);
     }

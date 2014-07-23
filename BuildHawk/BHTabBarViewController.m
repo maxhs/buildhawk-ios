@@ -32,8 +32,13 @@
     [super viewDidLoad];
     self.title = self.project.name;
     self.automaticallyAdjustsScrollViewInsets = YES;
-    self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
+    if (IDIOM == IPAD){
+        self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackgroundIPAD"];
+    } else {
+        self.tabBar.selectionIndicatorImage = [UIImage imageNamed:@"whiteTabBackground"];
+    }
     self.tabBar.clipsToBounds = YES;
+    self.navigationController.interactivePopGestureRecognizer.enabled = NO;
 }
 
 - (void)didReceiveMemoryWarning

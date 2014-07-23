@@ -53,7 +53,7 @@
         for (id userDict in [dictionary objectForKey:@"report_users"]){
             //NSLog(@"user dict from report users: %@",userDict);
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            ReportUser *reportUser = [ReportUser MR_findFirstWithPredicate:predicate];
+            ReportUser *reportUser = [ReportUser MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!reportUser){
                 reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -74,7 +74,7 @@
             //NSLog(@"sub dict from report subs: %@",subDict);
             if ([subDict objectForKey:@"company"] != [NSNull null]) {
                 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
-                ReportSub *reportSub = [ReportSub MR_findFirstWithPredicate:predicate];
+                ReportSub *reportSub = [ReportSub MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!reportSub){
                     reportSub = [ReportSub MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     reportSub.identifier = [subDict objectForKey:@"id"];
@@ -105,7 +105,7 @@
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!photo){
                 photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -125,7 +125,7 @@
         for (id topicDict in [dictionary objectForKey:@"report_topics"]){
             //NSLog(@"topic dict: %@",topicDict);
             NSPredicate *topicPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [topicDict objectForKey:@"id"]];
-            SafetyTopic *topic = [SafetyTopic MR_findFirstWithPredicate:topicPredicate];
+            SafetyTopic *topic = [SafetyTopic MR_findFirstWithPredicate:topicPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!topic){
                 topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -136,7 +136,7 @@
     }
     
     if ([dictionary objectForKey:@"author"] && [dictionary objectForKey:@"author"] != [NSNull null]) {
-        User *author = [User MR_findFirstByAttribute:@"identifier" withValue:[[dictionary objectForKey:@"author"] objectForKey:@"id"]];
+        User *author = [User MR_findFirstByAttribute:@"identifier" withValue:[[dictionary objectForKey:@"author"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!author){
             author = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -145,11 +145,11 @@
     }
     if ([dictionary objectForKey:@"activities"] && [dictionary objectForKey:@"activities"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
-        //NSLog(@"project activities %@",[dictionary objectForKey:@"activities"]);
+        //NSLog(@"report activities %@",[dictionary objectForKey:@"activities"]);
         for (id dict in [dictionary objectForKey:@"activities"]){
             if ([dict objectForKey:@"id"]){
-                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate];
+                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+                Activity *activity = [Activity MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!activity){
                     activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
@@ -159,7 +159,6 @@
         }
         for (Activity *activity in self.activities){
             if (![set containsObject:activity]){
-                NSLog(@"Deleting an activity that no longer exists.");
                 [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
@@ -170,9 +169,9 @@
         for (id dict in [dictionary objectForKey:@"daily_activities"]){
             if (dict != [NSNull null] && [dict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate];
+                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (activity){
-                
+                    
                 } else {
                     activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [activity populateFromDictionary:dict];

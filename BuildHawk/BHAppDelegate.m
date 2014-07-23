@@ -14,7 +14,6 @@
 #import "BHLoginViewController.h"
 #import "CoreData+MagicalRecord.h"
 #import "Flurry.h"
-#import "NSData+Conversion.h"
 #import <Crashlytics/Crashlytics.h>
 #import "SDWebImageManager.h"
 #import "UIImage+ImageEffects.h"
@@ -33,10 +32,15 @@
 
 @synthesize nav = _nav;
 @synthesize menu = _menu;
+@synthesize bundleName = _bundleName;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    [MagicalRecord setupCoreDataStackWithAutoMigratingSqliteStoreNamed:@"BuildHawk"];
+    [MagicalRecord setupAutoMigratingCoreDataStack];
+    [MagicalRecord shouldAutoCreateDefaultPersistentStoreCoordinator];
+    [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
+    
+    [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     [self customizeAppearance];
     
@@ -67,9 +71,20 @@
     }];
     _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
     //_manager.requestSerializer = [AFJSONRequestSerializer serializer];
+
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
+        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+    }
     
-    [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
-    _nav = (UINavigationController*)self.window.rootViewController;
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && _currentUser){
+        //head straight into the app
+        BHDashboardViewController *vc = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Dashboard"];
+        _nav = [[UINavigationController alloc] initWithRootViewController:vc];
+    } else {
+        //show the login UI
+        _nav = (UINavigationController*)self.window.rootViewController;
+    }
+    
     _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
     RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:_nav
                                                                     leftMenuViewController:_menu
@@ -82,7 +97,6 @@
     sideMenuViewController.contentViewShadowRadius = 12;
     sideMenuViewController.contentViewShadowEnabled = YES;*/
     self.window.rootViewController = sideMenuViewController;
-    
     self.window.backgroundColor = [UIColor blackColor];
     
     return YES;
@@ -90,39 +104,74 @@
 
 - (void)customizeAppearance {
     [self.window setTintColor:[UIColor blackColor]];
+    [self setToBuildHawkAppearances];
+    
+    
+    CGFloat tabFontSize;
+    if (IDIOM == IPAD){
+        tabFontSize = 17;
+    } else {
+        tabFontSize = 15;
+    }
+    [[UITabBarItem appearance] setTitleTextAttributes: @{
+                                                         NSForegroundColorAttributeName : [UIColor whiteColor],
+                                                         NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:tabFontSize],
+                                                         } forState:UIControlStateNormal];
+    [[UITabBarItem appearance] setTitleTextAttributes:@{
+                 NSForegroundColorAttributeName : [UIColor colorWithWhite:0 alpha:1],
+                            NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:tabFontSize],
+                                                        } forState:UIControlStateSelected];
+    
+    [[UITabBar appearance] setTintColor:[UIColor whiteColor]];
+    [[UITabBar appearance] setBarTintColor:[UIColor whiteColor]];
+    [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:0 alpha:1.0]];
+    [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
+    
+    [[UISwitch appearance] setOnTintColor:kBlueColor];
+    
+    [[UISegmentedControl appearance] setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:kMyriadProRegular size:15]} forState:UIControlStateNormal];
+    [[UISegmentedControl appearance] setContentPositionAdjustment:UIOffsetMake(0, 1) forSegmentType:UISegmentedControlSegmentAny barMetrics:UIBarMetricsDefault];
+    
+    /*for (NSString* family in [UIFont familyNames]){
+        NSLog(@"%@", family);
+        for (NSString* name in [UIFont fontNamesForFamilyName: family])
+            NSLog(@"  %@", name);
+    }*/
+}
+
+//the next two methods are so the damn message and mail navigation bars don't look like shit
+- (void)setDefaultAppearances {
+    [[UINavigationBar appearance] setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+    [[UINavigationBar appearance] setTitleTextAttributes:@{
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:22],
+                                                           NSForegroundColorAttributeName : [UIColor blackColor]
+                                                           }];
+    [[UIBarButtonItem appearance] setTitleTextAttributes:@{
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:16],
+                                                           NSForegroundColorAttributeName : [UIColor blackColor]
+                                                           } forState:UIControlStateNormal];
+    [[UIBarButtonItem appearance] setTintColor:[UIColor blackColor]];
+}
+
+- (void)setToBuildHawkAppearances{
     [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
     [[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont boldSystemFontOfSize:16],
-                         NSForegroundColorAttributeName : [UIColor whiteColor]
-                                    }];
-    
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:22],
+                                                           NSForegroundColorAttributeName : [UIColor whiteColor]
+                                                           }];
+    [[UINavigationBar appearance] setTitleVerticalPositionAdjustment:1.f forBarMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                    NSFontAttributeName : [UIFont systemFontOfSize:15],
-                                    NSForegroundColorAttributeName : [UIColor whiteColor]
-     } forState:UIControlStateNormal];
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:16],
+                                                           NSForegroundColorAttributeName : [UIColor whiteColor]
+                                                           } forState:UIControlStateNormal];
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
-    
+    [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0, 3) forBarMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
      setTitleTextAttributes:@{[UIColor blackColor]:NSForegroundColorAttributeName} forState:UIControlStateNormal];
     
-    /*[[UISearchBar appearance] setBackgroundImage:empty];
-    [[UISearchBar appearance] setSearchFieldBackgroundImage:[UIImage imageNamed:@"textField"]forState:UIControlStateNormal];*/
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]    setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
     
-    [[UITabBarItem appearance] setTitleTextAttributes: @{
-                    NSForegroundColorAttributeName : [UIColor whiteColor],
-                                NSFontAttributeName : [UIFont systemFontOfSize:13.0],
-    } forState:UIControlStateNormal];
-    [[UITabBarItem appearance] setTitleTextAttributes:@{
-                 NSForegroundColorAttributeName : [UIColor colorWithWhite:.2 alpha:1.0],
-                            NSFontAttributeName : [UIFont fontWithName:kHelveticaNeueMedium size:13],
-        } forState:UIControlStateSelected];
-    [[UITabBar appearance] setSelectionIndicatorImage:[UIImage imageNamed:@"whiteTabBackground"]];
-    [[UITabBar appearance] setTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
-    [[UISwitch appearance] setOnTintColor:kBlueColor];
 }
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav {
@@ -195,7 +244,7 @@
                     [_nav popToViewController:dashboard animated:NO];
                     [_manager GET:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl,[urlDict objectForKey:@"task_id"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                         //NSLog(@"success getting task: %@",responseObject);
-                        WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"worklist_item"] objectForKey:@"id"]];
+                        WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"worklist_item"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                         if (!item){
                             item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                         }

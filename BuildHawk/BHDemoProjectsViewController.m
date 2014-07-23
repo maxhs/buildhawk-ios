@@ -39,7 +39,7 @@
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     dashboardDetailDict = [NSMutableDictionary dictionary];
     phases = [NSMutableArray array];
-    demoProjects = [Project MR_findByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]].mutableCopy;
+    demoProjects = [Project MR_findByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES] inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     [self loadDemos];
     self.title = @"Demo Projects";
     [super viewDidLoad];
@@ -68,7 +68,7 @@
 }
 
 - (void)loadDemos {
-    [ProgressHUD show:@"Loading Demo Projects..."];
+    [ProgressHUD show:@"Loading demo projects..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"demo projects response object: %@",responseObject);
         [self updateProjects:[responseObject objectForKey:@"projects"]];
@@ -86,19 +86,16 @@
         Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!project) {
             project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            NSLog(@"Creating a new project for local storage: %@",project.name);
             [demoProjects addObject:project];
         }
         [project populateFromDictionary:obj];
     }
     
-    [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfWithCompletion:^(BOOL success, NSError *error) {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         NSLog(@"What happened during demo project save? %hhd %@",success, error);
         [self.tableView reloadData];
     }];
-
 }
-
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -109,10 +106,10 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
     }
-    [cell.titleLabel setText:[project name]];
+    [cell.nameLabel setText:[project name]];
     
     if (project.address.formattedAddress.length){
-        [cell.subtitleLabel setText:project.address.formattedAddress];
+        [cell.addressLabel setText:project.address.formattedAddress];
     }
     
     [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
@@ -121,9 +118,10 @@
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     
-    [cell.titleLabel setTextColor:kDarkGrayColor];
+    [cell.nameLabel setTextColor:kDarkGrayColor];
     [cell.archiveButton setTag:indexPath.row];
     [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
+    cell.scrollView.scrollEnabled = NO;
     return cell;
 }
 
@@ -178,6 +176,9 @@
 }
 
 - (void)archiveProject{
+    [archivedProject setDemo:[NSNumber numberWithBool:YES]];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    
     [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully archived the project: %@",responseObject);
         if ([responseObject objectForKey:@"user"]){
@@ -189,12 +190,16 @@
             [self.tableView reloadData];
         } else {
             NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:archivedProject] inSection:0];
-
+            NSLog(@"index path? %@",indexPath);
             [_currentUser.company removeProject:archivedProject];
-            
-            [self.tableView beginUpdates];
-            [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
+            [demoProjects removeObject:archivedProject];
+            if (demoProjects.count){
+                [self.tableView beginUpdates];
+                [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView endUpdates];
+            } else {
+                [self.navigationController popViewControllerAnimated:YES];
+            }
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

@@ -29,18 +29,27 @@
     }
     if ([dictionary objectForKey:@"project"] && [dictionary objectForKey:@"project"] != [NSNull null]) {
         NSDictionary *projectDict = [dictionary objectForKey:@"project"];
-        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
-        Project *project = [Project MR_findFirstWithPredicate:userPredicate];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
+        Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!project){
             project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [project populateFromDictionary:projectDict];
         self.project = project;
     }
+    if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"project_id"]];
+        Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!project){
+            project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        project.identifier = [dictionary objectForKey:@"project_id"];
+        self.project = project;
+    }
     
     if ([dictionary objectForKey:@"worklist_id"] && [dictionary objectForKey:@"worklist_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"worklist_id"]];
-        Worklist *worklist = [Worklist MR_findFirstWithPredicate:predicate];
+        Worklist *worklist = [Worklist MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!worklist){
             worklist = [Worklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -51,7 +60,7 @@
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
         NSDictionary *userDict = [dictionary objectForKey:@"user"];
         NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:userPredicate];
+        User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user){
             user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -63,7 +72,7 @@
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         NSDictionary *userDict = [dictionary objectForKey:@"assignee"];
         NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:userPredicate];
+        User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user){
             user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -73,16 +82,15 @@
         self.assignees = orderedUsers;
     }
     
-    if ([dictionary objectForKey:@"connect_users"] && [dictionary objectForKey:@"connect_users"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"connect_assignee"] && [dictionary objectForKey:@"connect_assignee"] != [NSNull null]) {
         NSMutableOrderedSet *connectUsers = [NSMutableOrderedSet orderedSet];
-        NSDictionary *connectUserDict = [dictionary objectForKey:@"connect_users"];
-        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [connectUserDict objectForKey:@"id"]];
-        ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate];
+        NSDictionary *userDict = [dictionary objectForKey:@"connect_assignee"];
+        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+        ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!connectUser){
             connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
-        [connectUser populateFromDictionary:connectUserDict];
-        //[connectUser assignWorklistItem:self];
+        [connectUser populateFromDictionary:userDict];
         [connectUsers addObject:connectUser];
         self.connectAssignees = connectUsers;
     }
@@ -92,7 +100,7 @@
         //NSLog(@"worklist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
-            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
+            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!comment){
                 comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -106,7 +114,7 @@
         NSMutableOrderedSet *orderedActivities = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"activities"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Activity *activity = [Activity MR_findFirstWithPredicate:predicate];
+            Activity *activity = [Activity MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!activity){
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -136,7 +144,7 @@
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!photo){
                 photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }

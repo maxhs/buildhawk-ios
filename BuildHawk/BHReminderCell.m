@@ -10,7 +10,13 @@
 #import "User+helper.h"
 #import "ChecklistItem.h"
 #import "WorklistItem.h"
+#import "BHAppDelegate.h"
 
+@interface BHReminderCell () {
+    CGFloat offsetAmount;
+}
+
+@end
 @implementation BHReminderCell
 @synthesize tapGesture = _tapGesture;
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
@@ -25,10 +31,15 @@
 - (void)awakeFromNib
 {
     // Initialization code
-    [_activeButton setBackgroundColor:[UIColor redColor]];
-    
+    [_deleteButton setBackgroundColor:[UIColor redColor]];
     [_reminderButton setBackgroundColor:[UIColor colorWithWhite:.925 alpha:1]];
-    [_reminderButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:14]];
+    [_reminderDatetimeLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_statusLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_reminderLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    
+    [_reminderButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    
     _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(swipeScrollView)];
     _tapGesture.numberOfTapsRequired = 1;
     [_scrollView addGestureRecognizer:_tapGesture];
@@ -44,13 +55,22 @@
 }
 
 - (void)configureForReminder:(Reminder*)reminder{
+
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-        [_scrollView setContentSize:CGSizeMake(screenWidth()*1.5, 80)];
+        if (IDIOM == IPAD){
+            offsetAmount = 160.f;
+        } else {
+            offsetAmount = screenWidth()/2;
+        }
     } else {
-        [_scrollView setContentSize:CGSizeMake(screenWidth()*1.25, 80)];
+        if (IDIOM == IPAD){
+            offsetAmount = 80.f;
+        } else {
+            offsetAmount = screenWidth()/4;
+        }
     }
+    [_scrollView setContentSize:CGSizeMake(screenWidth()+offsetAmount, 80)];
     
-    [_reminderDatetimeLabel setFont:[UIFont boldSystemFontOfSize:15]];
     if ([reminder.reminderDate compare:[NSDate date]] == NSOrderedAscending){
         [_reminderDatetimeLabel setTextColor:[UIColor redColor]];
         [_statusLabel setText:@"Past Due"];
@@ -64,7 +84,7 @@
     }
     
     if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:NO]]){
-        [_statusLabel setText:@"Hidden"];
+        [_statusLabel setText:@"Off"];
         [_statusLabel setTextColor:[UIColor lightGrayColor]];
     }
     
@@ -76,46 +96,48 @@
         [_reminderLabel setText:@""];
     }
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-        [_activeButton setHidden:NO];
+        [_deleteButton setHidden:NO];
         [_scrollView setScrollEnabled:YES];
         if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
-            [_activeButton setTitle:@"Hide" forState:UIControlStateNormal];
+            [_deleteButton setTitle:@"Remove" forState:UIControlStateNormal];
+            _deleteButton.titleLabel.numberOfLines = 0;
+            [_deleteButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
         } else {
-            [_activeButton setTitle:@"Enable" forState:UIControlStateNormal];
+            [_deleteButton setTitle:@"Enable" forState:UIControlStateNormal];
         }
     } else {
-        [_scrollView setScrollEnabled:NO];
-        [_activeButton setHidden:YES];
+        [_scrollView setScrollEnabled:YES];
+        [_deleteButton setHidden:YES];
     }
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     CGFloat x = scrollView.contentOffset.x;
-    CGRect hideFrame = _activeButton.frame;
-    hideFrame.origin.x = 400.f ;
-    [_activeButton setFrame:hideFrame];
+    CGRect hideFrame = _deleteButton.frame;
+    hideFrame.origin.x = screenWidth()+_deleteButton.frame.size.width;
+    [_deleteButton setFrame:hideFrame];
     
     CGRect reminderFrame = _reminderButton.frame;
-    reminderFrame.origin.x = 320.f ;
+    reminderFrame.origin.x = screenWidth();
     [_reminderButton setFrame:reminderFrame];
     
-    if (x == 160.f){
-        [_activeButton setUserInteractionEnabled:YES];
+    if (x == offsetAmount){
+        [_deleteButton setUserInteractionEnabled:YES];
         [_reminderButton setUserInteractionEnabled:YES];
-    } else if (_activeButton.userInteractionEnabled) {
-        [_activeButton setUserInteractionEnabled:NO];
+    } else if (_deleteButton.userInteractionEnabled) {
+        [_deleteButton setUserInteractionEnabled:NO];
         [_reminderButton setUserInteractionEnabled:NO];
     }
 }
 
 - (void)swipeScrollView {
-    if (_scrollView.contentOffset.x == 160.f){
+    if (_scrollView.contentOffset.x == offsetAmount){
         [_scrollView setContentOffset:CGPointZero animated:YES];
-        [_activeButton setUserInteractionEnabled:NO];
+        [_deleteButton setUserInteractionEnabled:NO];
         [_reminderButton setUserInteractionEnabled:NO];
     } else {
-        [_scrollView setContentOffset:CGPointMake(160.f, 0) animated:YES];
-        [_activeButton setUserInteractionEnabled:YES];
+        [_scrollView setContentOffset:CGPointMake(offsetAmount, 0) animated:YES];
+        [_deleteButton setUserInteractionEnabled:YES];
         [_reminderButton setUserInteractionEnabled:YES];
     }
 }

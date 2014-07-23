@@ -36,29 +36,42 @@
     [_alertLabel setBackgroundColor:[UIColor redColor]];
     [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
     _alertLabel.layer.cornerRadius = 11.f;
+    
+    if (IDIOM == IPAD) {
+        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
+        [_addressLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+    } else {
+        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
+        [_addressLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
+    }        
 }
 
 - (void)configureForProject:(Project*)project andUser:(User*)user {
-    [_titleLabel setText:[project name]];
+    [_projectButton setUserInteractionEnabled:YES];
+    [_progressButton setHidden:NO];
+    [_scrollView setUserInteractionEnabled:YES];
+    
+    [_nameLabel setText:[project name]];
     if (project.address.formattedAddress){
-        [_subtitleLabel setText:project.address.formattedAddress];
-        [_subtitleLabel sizeToFit];
+        [_addressLabel setText:project.address.formattedAddress];
+        [_addressLabel sizeToFit];
     } else {
         //[_subtitleLabel setText:project.company.name];
     }
     
     __block int reminderCount = 0;
-    [user.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if ([reminder.project.identifier isEqualToNumber:project.identifier] && [reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    [user.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+        if ([reminder.pastDueProject.identifier isEqualToNumber:project.identifier]){
             reminderCount ++;
         }
-        if (idx == user.reminders.count - 1 && reminderCount > 0){
-            [_alertLabel setText:[NSString stringWithFormat:@"%d",reminderCount]];
-            [UIView animateWithDuration:.3 animations:^{
-                [_alertLabel setAlpha:1.0];
-            }];
-        }
     }];
+    
+    if (reminderCount > 0){
+        [_alertLabel setText:[NSString stringWithFormat:@"%d",reminderCount]];
+        [UIView animateWithDuration:.3 animations:^{
+            [_alertLabel setAlpha:1.0];
+        }];
+    }
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {

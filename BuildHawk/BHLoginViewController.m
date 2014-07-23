@@ -36,7 +36,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
-@property (weak, nonatomic) IBOutlet UIView *logoContainerView;
+@property (weak, nonatomic) IBOutlet UIImageView *logoImageView;
 @property (weak, nonatomic) IBOutlet UIView *loginContainerView;
 @property (weak, nonatomic) IBOutlet UIButton *forgotPasswordButton;
 -(IBAction)loginTapped;
@@ -46,7 +46,6 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 @implementation BHLoginViewController
 
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -55,28 +54,43 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         iPhone5 = YES;
     } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone){
         iPhone5 = NO;
-        self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
-        self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
+        _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
     } else {
         iPad = YES;
     }
     [self textFieldTreatment:self.emailTextField];
     [self textFieldTreatment:self.passwordTextField];
     
-    [self.loginButton setTitleColor:[UIColor colorWithWhite:0 alpha:.2] forState:UIControlStateNormal];
-    [self.forgotPasswordButton setTitleColor:[UIColor colorWithWhite:0 alpha:.2] forState:UIControlStateNormal];
-    [self.loginButton setEnabled:NO];
-    self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
-    self.loginButton.layer.borderWidth = .5f;
-    self.loginButton.layer.cornerRadius = 3.f;
-    [self adjustLoginContainer];
-    demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES]];
+    [_loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    _loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
+    _loginButton.layer.borderWidth = .5f;
+    [_loginButton setEnabled:NO];
+    [_loginButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
+    
+    [_forgotPasswordButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [_forgotPasswordButton setTitle:@"FORGOT PASSWORD?" forState:UIControlStateNormal];
+    [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+
+    demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES] inContext:[NSManagedObjectContext MR_defaultContext]];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:YES];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault animated:YES];
     [self loadDemo];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    CGRect newLogoFrame = _logoImageView.frame;
+    newLogoFrame.origin.y = screenHeight()/4-_logoImageView.frame.size.height;
+    [UIView animateWithDuration:.8 delay:.15 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [_logoImageView setFrame:newLogoFrame];
+        [_loginContainerView setAlpha:1.0];
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 - (void)loadDemo {
@@ -95,7 +109,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     } else {
         projectSet = [NSMutableOrderedSet orderedSet];
         for (id obj in projectsArray) {
-            Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[obj objectForKey:@"id"]];
+            Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -103,22 +117,20 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             [projectSet addObject:project];
         }
 
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"What happened during login save? %hhd %@",success, error);
-            if (projectSet.count){
-                [demoButton setUserInteractionEnabled:YES];
-                [UIView animateWithDuration:.23 animations:^{
-                    [demoButton setAlpha:1.0];
-                }];
-            }
-        }];
+        if (projectSet.count){
+            [demoButton setUserInteractionEnabled:YES];
+            [UIView animateWithDuration:.23 animations:^{
+                [demoButton setAlpha:1.0];
+            }];
+        }
     }
 }
 
 - (void)drawDemoButton {
     demoButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [demoButton setFrame:CGRectMake(0, screenHeight()-44, screenWidth(), 44)];
-    [demoButton setTitle:@"View demo project" forState:UIControlStateNormal];
+    [demoButton.titleLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:17]];
+    [demoButton setTitle:@"VIEW DEMO PROJECT" forState:UIControlStateNormal];
     [demoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [demoButton setBackgroundColor:kBlueColor];
     [demoButton addTarget:self action:@selector(viewDemoProject) forControlEvents:UIControlEventTouchUpInside];
@@ -141,17 +153,10 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 - (void)textFieldTreatment:(UITextField*)textField {
     textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
     textField.layer.borderWidth = .5f;
-    textField.layer.cornerRadius = 0.f;
     UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 7, 20)];
     textField.leftView = paddingView;
     textField.leftViewMode = UITextFieldViewModeAlways;
-}
-
-- (void)adjustLoginContainer {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
-        [self.loginContainerView setAlpha:0.0];
-        [self login:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] andPassword:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]];
-    }
+    [textField setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
 }
 
 - (IBAction)loginTapped {
@@ -167,7 +172,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         } else {
             email = self.emailTextField.text;
         }
-        [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [[AFHTTPRequestOperationManager manager] POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success with forgot password: %@",responseObject);
             if ([responseObject objectForKey:@"failure"]){
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find an account for that email address." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -180,6 +185,11 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     } else {
         UIAlertView *forgotPasswordAlert = [[UIAlertView alloc] initWithTitle:@"Forgot Password?" message:@"Please enter your email address:" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
         forgotPasswordAlert.alertViewStyle = UIAlertViewStylePlainTextInput;
+        UITextField *alertTextField = [forgotPasswordAlert textFieldAtIndex:0];
+        [alertTextField setKeyboardType:UIKeyboardTypeEmailAddress];
+        [alertTextField setFont:[UIFont systemFontOfSize:17]];
+        [alertTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
+        [alertTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
         [forgotPasswordAlert show];
     }
 }
@@ -201,7 +211,12 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     if (email) [parameters setObject:email forKey:@"email"];
     if (password) [parameters setObject:password forKey:@"password"];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
-    [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    if (IDIOM == IPAD){
+        [parameters setObject:@2 forKey:@"device_type"];
+    } else {
+        [parameters setObject:@1 forKey:@"device_type"];
+    }
+    [[AFHTTPRequestOperationManager manager] POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -210,6 +225,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         }
         [user populateFromDictionary:[responseObject objectForKey:@"user"]];
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
+        [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
@@ -217,8 +233,8 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             [delegate.menu setCurrentUser:user];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];
             [UIView animateWithDuration:.3 animations:^{
-                self.loginContainerView.transform = CGAffineTransformIdentity;
-                self.logoContainerView.transform = CGAffineTransformIdentity;
+                _loginContainerView.transform = CGAffineTransformIdentity;
+                _logoImageView.transform = CGAffineTransformIdentity;
                 [self.view endEditing:YES];
             } completion:^(BOOL finished) {
                 [self.loginButton setUserInteractionEnabled:YES];
@@ -244,7 +260,6 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
         [ProgressHUD dismiss];
-        [self.loginContainerView setAlpha:1.0];
         [self.loginButton setUserInteractionEnabled:YES];
     }];
 }
@@ -277,13 +292,13 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         if (iPhone5){
-            self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -180);
-            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -190);
+            _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -130);
+            _logoImageView.transform = CGAffineTransformMakeTranslation(0, -60);
         } else if (iPad) {
             
         } else {
-            self.loginContainerView.transform = CGAffineTransformMakeTranslation(0, -286);
-            self.logoContainerView.transform = CGAffineTransformMakeTranslation(0, -220);
+            _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -226);
+            _logoImageView.transform = CGAffineTransformMakeTranslation(0, -180);
         }
     } completion:^(BOOL finished) {
         
@@ -314,9 +329,13 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     return YES;
 }
 
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
+}
+
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    [self.loginContainerView setAlpha:1.0];
     [demoButton removeFromSuperview];
 }
 

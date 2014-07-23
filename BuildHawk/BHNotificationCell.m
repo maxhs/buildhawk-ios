@@ -21,7 +21,8 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [self.textLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
+    [self.detailTextLabel setFont:[UIFont fontWithName:kMyriadProIt size:16]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

@@ -25,7 +25,7 @@
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            User *user = [User MR_findFirstWithPredicate:userPredicate];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!user){
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }

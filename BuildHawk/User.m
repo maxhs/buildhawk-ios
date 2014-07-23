@@ -52,6 +52,7 @@
 @dynamic notifications;
 @dynamic projects;
 @dynamic reminders;
+@dynamic pastDueReminders;
 @dynamic reports;
 @dynamic subcontractor;
 @dynamic worklistItems;

@@ -26,6 +26,11 @@
 
 - (void)awakeFromNib
 {
+    [_reportLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:19]];
+    [_authorLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_personnelLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_notesLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    
     [_separatorView setBackgroundColor:kSeparatorColor];
 }
 
@@ -37,7 +42,7 @@
 }
 
 - (void)configureReport:(Report *)report {
-    [_reportLabel setText:[NSString stringWithFormat:@"%@ Report - %@",report.type,report.dateString]];
+    [_reportLabel setText:[NSString stringWithFormat:@"%@ Report: %@",report.type,report.dateString]];
     if (report.author.fullname.length){
         [_authorLabel setText:[NSString stringWithFormat:@"Author: %@",report.author.fullname]];
     } else {
@@ -54,6 +59,12 @@
         [_notesLabel setText:@"Notes: N/A"];
     }
     if (report.photos.count > 0){
+        _photoButton.imageView.layer.cornerRadius = 2.0;
+        [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
+        [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+        _photoButton.imageView.layer.shouldRasterize = YES;
+        _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        
         [_photoButton setImageWithURL:[NSURL URLWithString:[(Photo*)report.photos.firstObject urlSmall]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             
         }];

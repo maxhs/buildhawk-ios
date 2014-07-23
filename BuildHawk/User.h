@@ -43,7 +43,8 @@
 @property (nonatomic, retain) NSOrderedSet *messages;
 @property (nonatomic, retain) NSOrderedSet *notifications;
 @property (nonatomic, retain) NSOrderedSet *projects;
-@property (nonatomic, retain) NSOrderedSet *reminders;
+@property (nonatomic, retain) NSMutableOrderedSet *reminders;
+@property (nonatomic, retain) NSMutableOrderedSet *pastDueReminders;
 @property (nonatomic, retain) NSOrderedSet *reports;
 @property (nonatomic, retain) NSOrderedSet *alternates;
 @property (nonatomic, retain) Subcontractor *subcontractor;

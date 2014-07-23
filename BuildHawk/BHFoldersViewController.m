@@ -32,8 +32,8 @@
 - (void)viewDidLoad
 {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
-    [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+    [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
+    [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
     if (IDIOM == IPAD) {
         self.tableView.rowHeight = 88.f;

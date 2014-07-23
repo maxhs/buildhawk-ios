@@ -7,10 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Project.h"
+#import "Project+helper.h"
 
 @interface BHArchivedViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (strong, nonatomic) NSMutableOrderedSet *archivedProjects;
+@property (strong, nonatomic) User *currentUser;
 
 @end

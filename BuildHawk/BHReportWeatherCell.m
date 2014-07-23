@@ -19,6 +19,18 @@
     return self;
 }
 
+- (void)awakeFromNib {
+    [_windLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_windTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_precipLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_precipTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_humidityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_humidityTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_tempLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_tempTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_dailySummaryTextView setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+}
+
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
 {
     [super setSelected:selected animated:animated];

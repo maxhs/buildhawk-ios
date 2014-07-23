@@ -93,7 +93,7 @@
 #ifdef DEBUG
         [self setShouldDeleteStoreOnModelMismatch:YES];
 #else
-        [self setShouldDeleteStoreOnModelMismatch:NO];
+        [self setShouldDeleteStoreOnModelMismatch:YES];
 #endif
     }
 }

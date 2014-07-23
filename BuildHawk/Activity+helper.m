@@ -32,7 +32,7 @@
     if ([dictionary objectForKey:@"checklist_item"] && [dictionary objectForKey:@"checklist_item"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"checklist_item"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate];
+        ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (item){
             [item update:dict];
         } else {
@@ -45,7 +45,7 @@
     if ([dictionary objectForKey:@"photo"] && [dictionary objectForKey:@"photo"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"photo"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        Photo *photo = [Photo MR_findFirstWithPredicate:predicate];
+        Photo *photo = [Photo MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (photo){
             [photo update:dict];
         } else {
@@ -57,7 +57,7 @@
     
     if ([dictionary objectForKey:@"checklist_id"] && [dictionary objectForKey:@"checklist_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"checklist_id"]];
-        Checklist *checklist = [Checklist MR_findFirstWithPredicate:predicate];
+        Checklist *checklist = [Checklist MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (checklist){
             self.checklist = checklist;
         }
@@ -65,15 +65,16 @@
     
     if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"project_id"]];
-        Project *project = [Project MR_findFirstWithPredicate:predicate];
+        Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (project){
             self.project = project;
         }
     }
+    
     if ([dictionary objectForKey:@"worklist_item"] && [dictionary objectForKey:@"worklist_item"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"worklist_item"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        WorklistItem *task = [WorklistItem MR_findFirstWithPredicate:predicate];
+        WorklistItem *task = [WorklistItem MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!task){
             task = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -82,7 +83,7 @@
     }
     if ([dictionary objectForKey:@"worklist_id"] && [dictionary objectForKey:@"worklist_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"worklist_id"]];
-        Worklist *worklist = [Worklist MR_findFirstWithPredicate:predicate];
+        Worklist *worklist = [Worklist MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (worklist){
             self.worklist = worklist;
         }
@@ -90,7 +91,7 @@
     if ([dictionary objectForKey:@"report"] && [dictionary objectForKey:@"report"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"report"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        Report *report = [Report MR_findFirstWithPredicate:predicate];
+        Report *report = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!report){
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -99,7 +100,7 @@
     }
     if ([dictionary objectForKey:@"comment"] && [dictionary objectForKey:@"comment"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[dictionary objectForKey:@"comment"] objectForKey:@"id" ]];
-        Comment *comment = [Comment MR_findFirstWithPredicate:predicate];
+        Comment *comment = [Comment MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (comment){
             [comment update:[dictionary objectForKey:@"comment"]];
         } else {
@@ -110,7 +111,7 @@
     }
     if ([dictionary objectForKey:@"user_id"] && [dictionary objectForKey:@"user_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"user_id"]];
-        User *user = [User MR_findFirstWithPredicate:predicate];
+        User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (user){
             self.user = user;
         }

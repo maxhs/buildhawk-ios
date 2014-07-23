@@ -16,8 +16,9 @@
 @property (nonatomic, retain) NSNumber * expanded;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * name;
+@property (nonatomic, retain) NSNumber * completedCount;
+@property (nonatomic, retain) NSNumber * notApplicableCount;
 @property (nonatomic, retain) NSNumber * orderIndex;
-@property (nonatomic, retain) NSString * progressPercentage;
 @property (nonatomic, retain) NSDate * completedDate;
 @property (nonatomic, retain) NSDate * milestoneDate;
 @property (nonatomic, retain) Phase *phase;

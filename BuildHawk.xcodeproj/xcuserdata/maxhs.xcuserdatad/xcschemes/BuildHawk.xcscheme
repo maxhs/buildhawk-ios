@@ -28,6 +28,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       buildConfiguration = "Debug">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F2D6A2C8196DFF99004A9742"
+               BuildableName = "BuildHawk TestTests.xctest"
+               BlueprintName = "BuildHawk TestTests"
+               ReferencedContainer = "container:BuildHawk.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference

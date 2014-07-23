@@ -8,10 +8,12 @@
 
 #import <UIKit/UIKit.h>
 #import <RESideMenu/RESideMenu.h>
+#import "User+helper.h"
 
 @interface BHDashboardViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
+@property (strong, nonatomic) User *currentUser;
 -(IBAction)revealMenu;
 
 @end

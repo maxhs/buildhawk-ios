@@ -13,7 +13,7 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *reminderDatetimeLabel;
 @property (weak, nonatomic) IBOutlet UILabel *reminderLabel;
-@property (weak, nonatomic) IBOutlet UIButton *activeButton;
+@property (weak, nonatomic) IBOutlet UIButton *deleteButton;
 @property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
 @property (weak, nonatomic) IBOutlet UIButton *reminderButton;
 @property (weak, nonatomic) IBOutlet UILabel *statusLabel;

@@ -126,11 +126,11 @@
         //hud.layer.borderColor = kDarkerGrayColor.CGColor;
         //hud.layer.borderWidth = 1.f;
 		hud.layer.masksToBounds = YES;
-		//-----------------------------------------------------------------------------------------------------------------------------------------
+        
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rotate:) name:UIDeviceOrientationDidChangeNotification object:nil];
 	}
 	if (hud.superview == nil) [window addSubview:hud];
-	//---------------------------------------------------------------------------------------------------------------------------------------------
+    
 	if (spinner == nil)
 	{
 		spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
@@ -138,17 +138,17 @@
 		spinner.hidesWhenStopped = YES;
 	}
 	if (spinner.superview == nil) [hud addSubview:spinner];
-	//---------------------------------------------------------------------------------------------------------------------------------------------
+    
 	if (image == nil)
 	{
 		image = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 20, 20)];
 	}
 	if (image.superview == nil) [hud addSubview:image];
-	//---------------------------------------------------------------------------------------------------------------------------------------------
+    
 	if (label == nil)
 	{
 		label = [[UILabel alloc] initWithFrame:CGRectZero];
-        label.font = [UIFont fontWithName:kHelveticaNeueLight size:17];
+        label.font = [UIFont fontWithName:kMyriadProLight size:23];
         label.shadowColor = [UIColor clearColor];
 		label.textColor = [UIColor blackColor];
 		label.backgroundColor = [UIColor clearColor];
@@ -157,31 +157,23 @@
 		label.numberOfLines = 0;
 	}
 	if (label.superview == nil) [hud addSubview:label];
-	//---------------------------------------------------------------------------------------------------------------------------------------------
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 - (void)hudDestroy
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
-	//---------------------------------------------------------------------------------------------------------------------------------------------
 	[label removeFromSuperview];	label = nil;
 	[image removeFromSuperview];	image = nil;
 	[spinner removeFromSuperview];	spinner = nil;
 	[hud removeFromSuperview];		hud = nil;
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 - (void)rotate:(NSNotification *)notification
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 {
 	[self hudOrient];
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 - (void)hudOrient
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 {
 	/*CGFloat rotate;
 	//---------------------------------------------------------------------------------------------------------------------------------------------
@@ -196,24 +188,45 @@
 	hud.transform = CGAffineTransformMakeRotation(rotate);*/
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 - (void)hudSize
-//-------------------------------------------------------------------------------------------------------------------------------------------------
 {
+    CGSize screen = [UIScreen mainScreen].bounds.size;
 	CGRect labelRect = CGRectZero;
 	CGFloat hudWidth = 140, hudHeight = 140;
-	//---------------------------------------------------------------------------------------------------------------------------------------------
+    
 	if (label.text != nil)
 	{
 		NSDictionary *attributes = @{NSFontAttributeName:label.font};
 		NSInteger options = NSStringDrawingUsesFontLeading | NSStringDrawingTruncatesLastVisibleLine | NSStringDrawingUsesLineFragmentOrigin;
-		labelRect = [label.text boundingRectWithSize:CGSizeMake(200, 300) options:options attributes:attributes context:NULL];
+		labelRect = [label.text boundingRectWithSize:CGSizeMake(200, 200) options:options attributes:attributes context:NULL];
 
-		labelRect.origin.x = 32;
-		labelRect.origin.y = 86;
-
-		hudWidth = labelRect.size.width + 64;
-		hudHeight = labelRect.size.height + 120;
+        if (IDIOM == IPAD){
+            labelRect.origin.x = 100;
+            labelRect.origin.y = 120;
+            hudWidth = labelRect.size.width + 200;
+            hudHeight = labelRect.size.height + 200;
+            
+            hud.center = CGPointMake(screen.width/2, screen.height/2);
+            hud.bounds = CGRectMake(0, 0, hudWidth, hudHeight);
+            CGFloat imagex = hudWidth/2;
+            CGFloat imagey = (label.text == nil) ? hudHeight/2 : 56;
+            image.center = CGPointMake(imagex, imagey);
+            spinner.center = CGPointMake(imagex, imagey+37);
+            label.frame = labelRect;
+        } else {
+            labelRect.origin.x = 60;
+            labelRect.origin.y = 102;
+            hudWidth = labelRect.size.width + 120;
+            hudHeight = labelRect.size.height + 157;
+            
+            hud.center = CGPointMake(screen.width/2, screen.height/2);
+            hud.bounds = CGRectMake(0, 0, hudWidth, hudHeight);
+            CGFloat imagex = hudWidth/2;
+            CGFloat imagey = (label.text == nil) ? hudHeight/2 : 56;
+            image.center = CGPointMake(imagex, imagey);
+            spinner.center = CGPointMake(imagex, imagey+7);
+            label.frame = labelRect;
+        }
 
 		if (hudWidth < 100)
 		{
@@ -223,17 +236,6 @@
             labelRect.size.height += 40;
 		}
 	}
-	//---------------------------------------------------------------------------------------------------------------------------------------------
-	CGSize screen = [UIScreen mainScreen].bounds.size;
-	//---------------------------------------------------------------------------------------------------------------------------------------------
-	hud.center = CGPointMake(screen.width/2, screen.height/2);
-	hud.bounds = CGRectMake(0, 0, hudWidth, hudHeight);
-	//---------------------------------------------------------------------------------------------------------------------------------------------
-	CGFloat imagex = hudWidth/2;
-	CGFloat imagey = (label.text == nil) ? hudHeight/2 : 56;
-	image.center = spinner.center = CGPointMake(imagex, imagey);
-	//---------------------------------------------------------------------------------------------------------------------------------------------
-	label.frame = labelRect;
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------

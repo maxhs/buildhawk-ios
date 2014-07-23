@@ -14,4 +14,12 @@
 - (void)removeNotification:(Notification*)notification;
 - (void)addNotification:(Notification*)notification;
 - (void)assignWorklistItem:(WorklistItem*)item;
+- (void)addReminder:(Reminder*)reminder;
+- (void)removeReminder:(Reminder*)reminder;
+- (void)addPastDueReminder:(Reminder*)reminder;
+- (void)removePastDueReminder:(Reminder*)reminder;
+- (void)archiveProject:(Project*)project;
+- (void)unarchiveProject:(Project*)project;
+- (void)addProject:(Project*)project;
+- (void)removeProject:(Project*)project;
 @end

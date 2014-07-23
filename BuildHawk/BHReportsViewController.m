@@ -25,8 +25,10 @@
     BOOL weekly;
     BOOL loading;
     NSMutableArray *_filteredReports;
-    UIBarButtonItem *addButton;
-    UIBarButtonItem *datePickerButton;
+    /*UIBarButtonItem *addButton;
+    UIBarButtonItem *datePickerButton;*/
+    UIBarButtonItem *sortButton;
+    UIBarButtonItem *hideSortButton;
     UIView *overlayBackground;
     UIImageView *reportsScreenshot;
     CGRect screen;
@@ -53,12 +55,21 @@
     self.tableView.rowHeight = 90;
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     
-    
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
+    /*addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
     datePickerButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"calendar"] style:UIBarButtonItemStylePlain target:self action:@selector(showDatePicker)];
-    datePickerButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -20);
-    addButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+    datePickerButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -22);
+    addButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, 0);*/
+    
+    if (IDIOM != IPAD){
+        sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStylePlain target:self action:@selector(showSort)];
+        hideSortButton = [[UIBarButtonItem alloc] initWithTitle:@"Select" style:UIBarButtonItemStylePlain target:self action:@selector(hideSort)];
+    }
+    [self sortButtonTreatment:_addReportButton];
+    [self sortButtonTreatment:_selectDateButton];
+    
+    [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
+    [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
     
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
@@ -67,23 +78,58 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReport:) name:@"ReloadReport" object:nil];
 }
 
+- (void)sortButtonTreatment:(UIButton*)button {
+    button.layer.borderColor = [UIColor blackColor].CGColor;
+    button.layer.borderWidth = 1.f;
+    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    button.layer.cornerRadius = 3.6f;
+    [button.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    button.clipsToBounds = YES;
+}
+
+- (void)showSort {
+    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        _segmentedControl.transform = CGAffineTransformMakeTranslation(-screenWidth(), 0);
+        _topActionContainer.transform = CGAffineTransformMakeTranslation(-screenWidth(), 0);
+        self.tabBarController.navigationItem.rightBarButtonItem = hideSortButton;
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+- (void)hideSort {
+    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        _segmentedControl.transform = CGAffineTransformIdentity;
+        _topActionContainer.transform = CGAffineTransformIdentity;
+        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-        [self slide1];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
-    } else if (project.reports.count == 0){
-        [ProgressHUD show:@"Fetching reports..."];
-    }
     [self loadReports];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [UIView animateWithDuration:.25 animations:^{
-        self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
-    }];
+    if (project.reports.count == 0){
+        
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
+            [ProgressHUD show:@"Fetching reports..."];
+        } else {
+            overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
+            [self slide1];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
+        }
+    }
+    //self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
+    if (IDIOM == IPAD){
+        self.tabBarController.navigationItem.rightBarButtonItem = nil;
+    } else {
+        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
+    }
 }
 
 - (void)reloadReport:(NSNotification*)notification {
@@ -106,6 +152,7 @@
 }
 
 - (void)handleRefresh {
+    [ProgressHUD show:@"Refreshing..."];
     [self loadReports];
 }
 
@@ -115,11 +162,13 @@
             if (daily){
                 [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
                 daily = NO;
+                [sortButton setTitle:@"Sort"];
                 [self.tableView reloadData];
             } else {
                 weekly = NO;
                 safety = NO;
                 daily = YES;
+                [sortButton setTitle:kDaily];
                 [self filter:kDaily];
             }
             
@@ -128,11 +177,13 @@
             if (safety){
                 [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
                 safety = NO;
+                [sortButton setTitle:@"Sort"];
                 [self.tableView reloadData];
             } else {
                 daily = NO;
                 weekly = NO;
                 safety = YES;
+                [sortButton setTitle:kSafety];
                 [self filter:kSafety];
             }
             
@@ -141,13 +192,16 @@
             if (weekly){
                 [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
                 weekly = NO;
+                [sortButton setTitle:@"Sort"];
                 [self.tableView reloadData];
             } else {
                 daily = NO;
                 safety = NO;
                 weekly = YES;
+                [sortButton setTitle:kWeekly];
                 [self filter:kWeekly];
             }
+            break;
             
         default:
             break;
@@ -170,7 +224,7 @@
 - (void)updateLocalReports:(NSArray*)array {
     NSMutableOrderedSet *reportSet = [NSMutableOrderedSet orderedSet];
     for (id obj in array) {
-        Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"]];
+        Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!report){
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -180,26 +234,34 @@
     for (Report *report in project.reports) {
         if (![reportSet containsObject:report]) {
             NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
+            [project removeReport:report];
             [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
     
-    //begin to update the UI
-    loading = NO;
-    if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-    [ProgressHUD dismiss];
-    
-    project.reports = reportSet;
-    if (safety) {
-        [self filter:kSafety];
-    } else if (weekly) {
-        [self filter:kWeekly];
-    } else if (daily) {
-        [self filter:kDaily];
-    } else {
-        [self.tableView beginUpdates];
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-        [self.tableView endUpdates];
+    if (self.isViewLoaded && self.view.window){
+        //save!
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            //begin to update the UI if the view is still visible
+            
+                loading = NO;
+                if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+                [ProgressHUD dismiss];
+                
+                project.reports = reportSet;
+                if (safety) {
+                    [self filter:kSafety];
+                } else if (weekly) {
+                    [self filter:kWeekly];
+                } else if (daily) {
+                    [self filter:kDaily];
+                } else {
+                    [self.tableView beginUpdates];
+                    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+                    [self.tableView endUpdates];
+                }
+            
+        }];
     }
 }
 
@@ -264,7 +326,7 @@
     UIButton *nothingButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [nothingButton setTitle:@"No reports..." forState:UIControlStateNormal];
     [nothingButton.titleLabel setNumberOfLines:0];
-    [nothingButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
+    [nothingButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
     nothingButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
     [nothingButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [nothingButton setBackgroundColor:[UIColor clearColor]];
@@ -402,6 +464,7 @@
             [formatter setDateFormat:@"MM/dd/yyyy"];
             newReport.dateString = [formatter stringFromDate:[NSDate date]];
             [vc setReport:newReport];
+            [vc setReports:project.reports.array.mutableCopy];
         }
     }
 }
@@ -504,17 +567,13 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
-    self.tabBarController.navigationItem.rightBarButtonItems = nil;
     [self cancelDatePicker];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    [self saveContext];
-}
-
-- (void)saveContext {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    [ProgressHUD dismiss];
+    self.tabBarController.navigationItem.rightBarButtonItems = nil;
 }
 
 @end

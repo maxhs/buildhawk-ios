@@ -24,7 +24,7 @@
         self.createdOnString = [BHUtilities parseDateTimeReturnString:[dictionary objectForKey:@"created_at"]];
     }
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"]!=[NSNull null]) {
-        User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[[dictionary objectForKey:@"user"] objectForKey:@"id"]];
+        User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[[dictionary objectForKey:@"user"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (user){
             self.user = user;
         } else {

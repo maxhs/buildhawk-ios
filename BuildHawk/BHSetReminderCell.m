@@ -21,7 +21,7 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [_reminderLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

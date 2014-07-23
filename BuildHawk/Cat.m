@@ -14,11 +14,12 @@
 @dynamic identifier;
 @dynamic name;
 @dynamic orderIndex;
-@dynamic progressPercentage;
 @dynamic phase;
 @dynamic items;
 @dynamic milestoneDate;
 @dynamic completedDate;
+@dynamic completedCount;
+@dynamic notApplicableCount;
 @synthesize completedItems;
 @synthesize activeItems;
 @synthesize inProgressItems;

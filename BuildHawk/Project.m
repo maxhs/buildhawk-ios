@@ -2,7 +2,7 @@
 //  Project.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 7/3/14.
+//  Created by Max Haines-Stiles on 7/17/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -12,6 +12,8 @@
 #import "Checklist.h"
 #import "ChecklistItem.h"
 #import "Company.h"
+#import "ConnectUser.h"
+#import "Folder.h"
 #import "Group.h"
 #import "Message.h"
 #import "Phase.h"
@@ -38,8 +40,10 @@
 @dynamic company;
 @dynamic companyArchives;
 @dynamic documents;
+@dynamic folders;
 @dynamic group;
 @dynamic messages;
+@dynamic pastDueReminders;
 @dynamic phases;
 @dynamic recentDocuments;
 @dynamic recentItems;
@@ -50,6 +54,8 @@
 @dynamic users;
 @dynamic worklist;
 @dynamic worklistItems;
-@dynamic folders;
+@dynamic connectUsers;
+
+@synthesize userConnectItems;
 
 @end

@@ -12,6 +12,9 @@
 @interface BHReportsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UIView *topActionContainer;
+@property (weak, nonatomic) IBOutlet UIButton *selectDateButton;
+@property (weak, nonatomic) IBOutlet UIButton *addReportButton;
 @property (weak, nonatomic) IBOutlet UISegmentedControl *segmentedControl;
 @property (weak, nonatomic) IBOutlet UIDatePicker *datePicker;
 @property (weak, nonatomic) IBOutlet UIView *datePickerContainer;

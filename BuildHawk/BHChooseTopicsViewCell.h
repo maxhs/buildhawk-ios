@@ -10,5 +10,4 @@
 
 @interface BHChooseTopicsViewCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIButton *chooseTopicsButton;
-- (void)configureCell;
 @end

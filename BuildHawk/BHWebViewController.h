@@ -12,4 +12,5 @@
 @interface BHWebViewController : UIViewController <UIWebViewDelegate>
 @property (weak, nonatomic) IBOutlet UIWebView *webView;
 @property (strong, nonatomic) Photo *photo;
+@property (strong, nonatomic) NSURL *url;
 @end

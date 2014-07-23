@@ -20,6 +20,8 @@
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) ChecklistItem *worklistItem;
 @property (nonatomic, retain) Project *project;
+@property (nonatomic, retain) Project *pastDueProject;
 @property (nonatomic, retain) User *user;
+@property (nonatomic, retain) User *pastDueUser;
 
 @end

@@ -25,7 +25,7 @@
     if ([dictionary objectForKey:@"user"] != [NSNull null]) {
         NSDictionary *userDict = [dictionary objectForKey:@"user"];
         NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:userPredicate];
+        User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user){
             user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }

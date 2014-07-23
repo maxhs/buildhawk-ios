@@ -46,7 +46,7 @@
     if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"folder"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        Folder *folder = [Folder MR_findFirstWithPredicate:predicate];
+        Folder *folder = [Folder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!folder){
             folder = [Folder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -81,7 +81,7 @@
     if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"folder"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        Folder *folder = [Folder MR_findFirstWithPredicate:predicate];
+        Folder *folder = [Folder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!folder){
             folder = [Folder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }

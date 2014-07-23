@@ -12,4 +12,5 @@
 
 @interface BHProjectSynopsisViewController : UITableViewController
 @property (strong, nonatomic) Project *project;
+@property (strong, nonatomic) User *currentUser;
 @end

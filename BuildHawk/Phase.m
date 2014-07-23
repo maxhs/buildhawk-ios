@@ -10,7 +10,8 @@
 
 @implementation Phase
 
-@dynamic completed;
+@dynamic completedCount;
+@dynamic notApplicableCount;
 @dynamic completedDate;
 @dynamic identifier;
 @dynamic itemCount;
@@ -18,7 +19,6 @@
 @dynamic name;
 @dynamic orderIndex;
 @dynamic progressCount;
-@dynamic progressPercentage;
 @dynamic checklist;
 @dynamic checklistItems;
 @dynamic project;

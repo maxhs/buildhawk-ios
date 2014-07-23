@@ -24,6 +24,15 @@
             self.fullname = [userDict objectForKey:@"full_name"];
         }
     }
+    if ([dictionary objectForKey:@"connect_user"] && [dictionary objectForKey:@"connect_user"] != [NSNull null]) {
+        NSDictionary *connectUserDict = [dictionary objectForKey:@"connect_user"];
+        if ([connectUserDict objectForKey:@"id"] && [connectUserDict objectForKey:@"id"] != [NSNull null]) {
+            self.connectUserId = [connectUserDict objectForKey:@"id"];
+        }
+        if ([connectUserDict objectForKey:@"full_name"] && [connectUserDict objectForKey:@"full_name"] != [NSNull null]) {
+            self.fullname = [connectUserDict objectForKey:@"full_name"];
+        }
+    }
     if ([dictionary objectForKey:@"hours"] && [dictionary objectForKey:@"hours"] != [NSNull null]) {
         self.hours = [dictionary objectForKey:@"hours"];
     }

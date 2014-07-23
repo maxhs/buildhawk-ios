@@ -19,6 +19,11 @@
     return self;
 }
 
+- (void)awakeFromNib {
+    [_itemLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
+    [_progressLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
+}
+
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
 {
     [super setSelected:selected animated:animated];

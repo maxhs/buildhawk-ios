@@ -23,6 +23,7 @@
 @property (strong, nonatomic) Report *report;
 @property BOOL phone;
 @property BOOL email;
+@property BOOL text;
 @property BOOL companyMode;
 
 @end

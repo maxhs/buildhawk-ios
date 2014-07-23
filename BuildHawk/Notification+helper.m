@@ -22,7 +22,7 @@
         self.notificationType = [dictionary objectForKey:@"notification_type"];
     }
     if ([dictionary objectForKey:@"user_id"] && [dictionary objectForKey:@"user_id"] != [NSNull null]) {
-        User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"user_id"]];
+        User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"user_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (user){
             self.user = user;
         }

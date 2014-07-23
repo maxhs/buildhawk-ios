@@ -12,7 +12,7 @@
 
 @implementation Reminder (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"project helper dictionary: %@",dictionary);
+    //NSLog(@"reminder helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
@@ -30,7 +30,7 @@
     if ([dictionary objectForKey:@"checklist_item"] && [dictionary objectForKey:@"checklist_item"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"checklist_item"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate];
+        ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (item){
             [item update:dict];
         } else {
@@ -39,16 +39,29 @@
         }
         self.checklistItem = item;
     }
+    
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
-        NSDictionary *userDict = [dictionary objectForKey:@"user"];
-        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:userPredicate];
-        if (!user){
-            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        if ([[[dictionary objectForKey:@"user"] objectForKey:@"id"] isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+            User *currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (currentUser){
+                if ([self.reminderDate compare:[NSDate date]] == NSOrderedAscending){
+                    [currentUser addPastDueReminder:self];
+                } else {
+                    [currentUser addReminder:self];
+                }
+            }
+            self.user = currentUser;
+        } else {
+            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[dictionary objectForKey:@"user"] objectForKey:@"id"]];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (user){
+                [user update:[dictionary objectForKey:@"user"]];
+            } else {
+                user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [user populateFromDictionary:[dictionary objectForKey:@"user"]];
+            }
+            self.user = user;
         }
-        [user populateFromDictionary:userDict];
-        
-        self.user = user;
     }
 }
 @end

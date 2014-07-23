@@ -106,12 +106,13 @@ typedef void(^RequestSuccess)(id result);
     
     if (!_task || [_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         _task = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(createItem)];
+        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(sendItem)];
         [self.navigationItem setRightBarButtonItem:createButton];
     } else {
+        //_task = [_task MR_inContext:[NSManagedObjectContext MR_defaultContext]];
         [self redrawScrollView];
         [self loadItem];
-        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateItem)];
+        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(sendItem)];
         [self.navigationItem setRightBarButtonItem:saveButton];
         
         if (IDIOM == IPAD && _task.user.fullname){
@@ -140,11 +141,15 @@ typedef void(^RequestSuccess)(id result);
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     
     [self drawItem];
-    
     [Flurry logEvent:@"Viewing task"];
 }
 
 - (void)drawItem {
+    [_locationButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+    [_assigneeButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+    [_completionButton.titleLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:19]];
+    [_itemTextView setFont:[UIFont fontWithName:kMyriadProRegular size:19]];
+    
     if (_task.body.length) {
         [self.itemTextView setText:_task.body];
     } else {
@@ -202,7 +207,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)loadItem {
     [manager GET:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl,_task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success getting task: %@",responseObject);
+        //NSLog(@"success getting task: %@",responseObject);
         [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
         [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
@@ -240,24 +245,11 @@ typedef void(^RequestSuccess)(id result);
         
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
+        [addCommentTextView setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
-    }/* else if (indexPath.section == 1) {
-        BHCommentCell *commentCell = [tableView dequeueReusableCellWithIdentifier:@"CommentCell"];
-        if (commentCell == nil) {
-            commentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHCommentCell" owner:self options:nil] lastObject];
-        }
-        Comment *comment = [_task.comments objectAtIndex:indexPath.row];
-        [commentCell.messageTextView setText:comment.body];
-        if (comment.createdOnString.length){
-            [commentCell.timeLabel setText:comment.createdOnString];
-        } else {
-            [commentCell.timeLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
-        }
-        [commentCell.nameLabel setText:comment.user.fullname];
-        return commentCell;
-    }*/ else {
+    } else {
         BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
@@ -335,18 +327,24 @@ typedef void(^RequestSuccess)(id result);
             NSDictionary *commentDict = @{@"worklist_item_id":_task.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 NSLog(@"success creating a comment for task: %@",responseObject);
+
+                
                 Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
                 NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_task.activities];
+                [set removeObjectAtIndex:set.count-1];
                 [set insertObject:activity atIndex:0];
-                _task.activities = set;
+                [_task setActivities:set];
+                
+                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:1];
                 
                 [self.tableView beginUpdates];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
                 
-                addCommentTextView.text = @"";
-                [addCommentTextView setTextColor:[UIColor lightGrayColor]];
+                addCommentTextView.text = kAddCommentPlaceholder;
+                addCommentTextView.textColor = [UIColor lightGrayColor];
+                
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"failure creating a comment for task: %@",error.description);
             }];
@@ -357,13 +355,25 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)assignTask:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
-    User *user = [info objectForKey:@"user"];
-    NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
-    _task.assignees = assigneeSet;
-    if (user.fullname.length){
-        [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
-    } else if (user.firstName.length){
-        [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
+    NSLog(@"info: %@",info);
+    if ([info objectForKey:@"user"]){
+        User *user = [info objectForKey:@"user"];
+        NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
+        _task.assignees = assigneeSet;
+        if (user.fullname.length){
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
+        } else if (user.firstName.length){
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
+        }
+    } else if ([info objectForKey:@"connect_user"]){
+        ConnectUser *connectUser = [info objectForKey:@"connect_user"];
+        NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:connectUser];
+        _task.connectAssignees = assigneeSet;
+        if (connectUser.fullname.length){
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",connectUser.fullname] forState:UIControlStateNormal];
+        } else if (connectUser.firstName.length){
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",connectUser.firstName] forState:UIControlStateNormal];
+        }
     }
 }
 
@@ -430,10 +440,8 @@ typedef void(^RequestSuccess)(id result);
         UIImagePickerController *vc = [[UIImagePickerController alloc] init];
         [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
         [vc setDelegate:self];
-        //[vc setModalPresentationStyle:UIModalPresentationCurrentContext];
-        [self presentViewController:vc animated:YES completion:^{
-            
-        }];
+        [vc setModalPresentationStyle:UIModalPresentationCurrentContext];
+        [self presentViewController:vc animated:YES completion:NULL];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We're unable to find a camera on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
@@ -536,7 +544,19 @@ typedef void(^RequestSuccess)(id result);
         [self saveToLibrary:image];
         if (![_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             NSData *imageData = UIImageJPEGRepresentation(image,1);
-            [manager POST:[NSString stringWithFormat:@"%@/worklist_items/photo",kApiBaseUrl] parameters:@{@"photo":@{@"worklist_item_id":_task.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":_project.identifier, @"source":kWorklist,@"mobile":[NSNumber numberWithBool:YES],@"company_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]}} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
+            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
+                [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+            }
+            if (_project && _project.identifier){
+                [photoParameters setObject:_project.identifier forKey:@"project_id"];
+            }
+            [photoParameters setObject:_task.identifier forKey:@"worklist_item_id"];
+            [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+            [photoParameters setObject:kWorklist forKey:@"source"];
+            [photoParameters setObject:[NSNumber numberWithBool:YES] forKey:@"mobile"];
+            
+            [manager POST:[NSString stringWithFormat:@"%@/worklist_items/photo",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
                 [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
             } success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"save task photo response object: %@",responseObject);
@@ -727,62 +747,30 @@ typedef void(^RequestSuccess)(id result);
     }
 }
 
--(void)updateItem {
+-(void)sendItem {
     if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else {
-        shouldSave = NO;
-        [ProgressHUD show:@"Updating task..."];
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        NSString *strippedLocationString;
-        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-            strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-            if (strippedLocationString.length) {
-                [parameters setObject:strippedLocationString forKey:@"location"];
-            }
-        }
-        if (_task.assignees.count){
-            User *assigneeUser = _task.assignees.firstObject;
-            if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
-        }
-
-        [parameters setObject:_task.identifier forKey:@"id"];
-        
-        if (self.itemTextView.text.length) {
-            [parameters setObject:self.itemTextView.text forKey:@"body"];
-        }
-        if ([_task.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
-            [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"completed"];
-            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
-        } else {
-            [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"completed"];
-        }
-        
-        [manager PATCH:[NSString stringWithFormat:@"%@/worklist_items/%@", kApiBaseUrl, _task.identifier] parameters:@{@"worklist_item":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success updating task: %@",responseObject);
-            [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
-            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [ProgressHUD dismiss];
-                [self.navigationController popViewControllerAnimated:YES];
-            }];
-            
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            [ProgressHUD dismiss];
-            NSLog(@"Failed to update task: %@",error.description);
-        }];
-    }
-}
-
--(void)createItem {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
-        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new taskss for a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if ([_itemTextView.text isEqualToString:itemPlaceholder] || _itemTextView.text.length == 0){
-        [[[UIAlertView alloc] initWithTitle:nil message:@"Please describe the new task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:nil message:@"Please describe your task before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         shouldSave = NO;
-        [ProgressHUD show:@"Adding task..."];
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        
+        BOOL isNew;
+        if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            isNew = YES;
+            [ProgressHUD show:@"Adding task..."];
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+        } else {
+            isNew = NO;
+            [ProgressHUD show:@"Updating task..."];
+        }
+        
+        if (_itemTextView.text && ![_itemTextView.text isEqualToString:itemPlaceholder]) {
+            [parameters setObject:_itemTextView.text forKey:@"body"];
+            [_task setBody:_itemTextView.text];
+        }
+        
         NSString *strippedLocationString;
         if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
             strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
@@ -794,28 +782,34 @@ typedef void(^RequestSuccess)(id result);
         } else {
             _task.location = nil;
         }
-        
+
         if (_task.assignees.count){
             User *assigneeUser = _task.assignees.firstObject;
-            if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
+            if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
+                [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
+            }
+        } else if (_task.connectAssignees.count){
+            ConnectUser *assigneeConnectUser = _task.connectAssignees.firstObject;
+            if (![assigneeConnectUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
+                [parameters setObject:assigneeConnectUser.identifier forKey:@"connect_assignee_id"];
+            }
         }
         
-        if (_itemTextView.text && ![_itemTextView.text isEqualToString:itemPlaceholder]) {
-            [parameters setObject:self.itemTextView.text forKey:@"body"];
-            [_task setBody:self.itemTextView.text];
+        if ([_task.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
+            [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"completed"];
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+        } else {
+            [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"completed"];
         }
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-
         NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:_task.photos];
-        [manager POST:[NSString stringWithFormat:@"%@/worklist_items", kApiBaseUrl] parameters:@{@"worklist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            
-            [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
-            _task.photos = photoSet;
-            
-            //this will cause the worklist view to insert the new item in its tableview through an NSNotification
-            [_project.worklist addWorklistItem:_task];
-            
-            if (![_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        
+        if (isNew){
+            [manager POST:[NSString stringWithFormat:@"%@/worklist_items", kApiBaseUrl] parameters:@{@"worklist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+                _task.photos = photoSet;
+                //this will cause the worklist view to insert the new item in its tableview through an NSNotification
+                [_project.worklist addWorklistItem:_task];
+                
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
                 [parameters setObject:_task.identifier forKey:@"worklist_item_id"];
                 [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"mobile"];
@@ -835,16 +829,29 @@ typedef void(^RequestSuccess)(id result);
                         NSLog(@"failure posting image to API: %@",error.description);
                     }];
                 }
-            }
-            
-            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [ProgressHUD dismiss];
-                [self.navigationController popViewControllerAnimated:YES];
+                
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                    [ProgressHUD dismiss];
+                    [self.navigationController popViewControllerAnimated:YES];
+                }];
+                
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                NSLog(@"Failed to create a task: %@",error.description);
             }];
-            
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failed to create a task: %@",error.description);
-        }];
+        } else {
+            [manager PATCH:[NSString stringWithFormat:@"%@/worklist_items/%@", kApiBaseUrl, _task.identifier] parameters:@{@"worklist_item":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"Success updating task: %@",responseObject);
+                [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                    [ProgressHUD dismiss];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
+                    [self.navigationController popViewControllerAnimated:YES];
+                }];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                [ProgressHUD dismiss];
+                NSLog(@"Failed to update task: %@",error.description);
+            }];
+        }
     }
 }
 
@@ -867,6 +874,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)text:(NSString*)phone {
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
     if ([MFMessageComposeViewController canSendText]){
         viewController.messageComposeDelegate = self;
@@ -876,6 +884,7 @@ typedef void(^RequestSuccess)(id result);
         }];
     }
 }
+
 
 - (IBAction)sendEmail:(id)sender {
     emailActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to email?" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles: nil];
@@ -898,10 +907,10 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)sendMail:(NSString*)destinationEmail {
     if ([MFMailComposeViewController canSendMail]) {
+        [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
         MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
-        controller.navigationBar.barStyle = UIBarStyleBlack;
         controller.mailComposeDelegate = self;
-        //[controller setSubject:@""];
+        [controller setSubject:[NSString stringWithFormat:@"%@ Task: \"%@\"",_project.name,_task.body]];
         [controller setToRecipients:@[destinationEmail]];
         if (controller) [self presentViewController:controller animated:YES completion:nil];
     } else {
@@ -914,6 +923,7 @@ typedef void(^RequestSuccess)(id result);
                         error:(NSError*)error;
 {
     if (result == MFMailComposeResultSent) {}
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -926,6 +936,7 @@ typedef void(^RequestSuccess)(id result);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send your message. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles: nil];
         [alert show];
     }
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -1039,12 +1050,10 @@ typedef void(^RequestSuccess)(id result);
             [self.locationButton setTitle:[[alertView textFieldAtIndex:0] text] forState:UIControlStateNormal];
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
-        if (_task.identifier && _task.identifier){
-            [self updateItem];
-        } else {
-            [self createItem];
-        }
+        [self sendItem];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+        [self loadItem];
+        [self drawItem];
         [self.navigationController popViewControllerAnimated:YES];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self takePhoto];

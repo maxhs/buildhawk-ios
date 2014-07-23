@@ -20,4 +20,6 @@
 - (void)addReport:(Report *)report;
 - (void)removeReport:(Report *)report;
 - (void)clearReports;
+- (void)addCompany:(Company *)company;
+- (void)removeCompany:(Company *)company;
 @end

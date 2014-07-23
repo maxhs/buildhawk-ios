@@ -20,7 +20,9 @@
 @dynamic checklistItem;
 @dynamic worklistItem;
 @dynamic project;
+@dynamic pastDueProject;
 @dynamic active;
 @dynamic user;
+@dynamic pastDueUser;
 
 @end

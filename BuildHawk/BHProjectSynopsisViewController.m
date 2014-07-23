@@ -35,18 +35,21 @@
 #import "Reminder+helper.h"
 #import "Address+helper.h"
 #import "BHReportViewController.h"
+#import "BHPastDueReminderCell.h"
+#import "BHMapViewController.h"
 
 @interface BHProjectSynopsisViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     AFHTTPRequestOperationManager *manager;
     UIScrollView *documentsScrollView;
-    BOOL iPad;
     CGRect screen;
     NSMutableArray *browserPhotos;
     UIView *overlayBackground;
     UIImageView *screenshotView;
     NSDateFormatter *formatter;
-    NSDateFormatter *reminderFormatter;
-    CGRect screenRect;
+    NSIndexPath *indexPathForReminderDeletion;
+    NSMutableOrderedSet *projectReminders;
+    NSMutableOrderedSet *pastDueProjectReminders;
+    UIBarButtonItem *refreshButton;
 }
 
 @end
@@ -54,33 +57,22 @@
 @implementation BHProjectSynopsisViewController
 
 @synthesize project = _project;
-
-- (id)initWithStyle:(UITableViewStyle)style
-{
-    self = [super initWithStyle:style];
-    if (self) {
-        // Custom initialization
-    }
-    return self;
-}
+@synthesize currentUser = _currentUser;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        iPad = YES;
-    }
-    screenRect = [[UIScreen mainScreen] applicationFrame];
+    
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = _project.name;
     screen = [UIScreen mainScreen].bounds;
-
+    
     UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 66)];
     [footerView setBackgroundColor:kDarkGrayColor];
     UIButton *goToProjectButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [goToProjectButton setTitle:@"Go to Project" forState:UIControlStateNormal];
     [goToProjectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [goToProjectButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:18]];
+    [goToProjectButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
     [goToProjectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     [footerView addSubview:goToProjectButton];
     [goToProjectButton setFrame:footerView.frame];
@@ -91,7 +83,17 @@
     formatter = [[NSDateFormatter alloc] init];
     [formatter setDateStyle:NSDateFormatterShortStyle];
     [formatter setTimeStyle:NSDateFormatterShortStyle];
+    
+    
+    refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
+    self.navigationItem.rightBarButtonItem = refreshButton;
 }
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self loadProject];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail]){
@@ -101,10 +103,43 @@
     }
 }
 
+- (void)handleRefresh {
+    [self loadProject];
+}
+
+- (void)loadProject {
+    [ProgressHUD show:@"Refreshing project..."];
+    [manager GET:[NSString stringWithFormat:@"%@/projects/%@/dash",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success getting project synopsis: %@",responseObject);
+        [_project populateFromDictionary:[responseObject objectForKey:@"project"]];
+        if (self.isViewLoaded && self.view.window){
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [self.tableView reloadData];
+                [ProgressHUD dismiss];
+            }];
+        }
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [ProgressHUD dismiss];
+        NSLog(@"Failed to get project synopsis: %@",error.description);
+    }];
+}
+
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
+    pastDueProjectReminders = [NSMutableOrderedSet orderedSet];
+    [_project.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+        if ([reminder.user.identifier isEqualToNumber:_currentUser.identifier]){
+            [pastDueProjectReminders addObject:reminder];
+        }
+    }];
+    projectReminders = [NSMutableOrderedSet orderedSet];
+    [_project.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+        if ([reminder.user.identifier isEqualToNumber:_currentUser.identifier]){
+            [projectReminders addObject:reminder];
+        }
+    }];
     return 8;
 }
 
@@ -112,14 +147,23 @@
 {
     switch (section) {
         case 0:
-            if (_project.reminders.count > 3){
-                return 3;
+        {
+            //limit the reminders to the three most recent
+            int reminderCount = 0;
+            if (projectReminders.count > 3){
+                reminderCount = 3;
             } else {
-                return _project.reminders.count;
+                reminderCount = projectReminders.count;
             }
+            if (pastDueProjectReminders.count){
+                return reminderCount + 1;
+            } else {
+                return reminderCount;
+            }
+        }
             break;
         case 1:
-            return [(NSArray*)_project.upcomingItems count];
+            return _project.upcomingItems.count;
             break;
         case 2:
             if (_project.activities.count > 3){
@@ -130,7 +174,7 @@
             
             break;
         case 3:
-            return [(NSArray*)_project.phases count];
+            return _project.phases.count;
             break;
         case 4:
             if (_project.checklist.activities.count > 3){
@@ -163,25 +207,63 @@
 {
     switch (indexPath.section) {
         case 0: {
-            BHReminderCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReminderCell"];
-            if (cell == nil) {
-                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReminderCell" owner:self options:nil] lastObject];
-            }
-            Reminder *reminder = _project.reminders[indexPath.row];
-            if ([reminder.reminderDate isEqualToDate:[NSDate dateWithTimeIntervalSince1970:0]]){
-                [cell.reminderDatetimeLabel setText:@""];
+            if (pastDueProjectReminders.count > 0){
+                if (indexPath.row == 0){
+                    BHPastDueReminderCell *cell = [tableView dequeueReusableCellWithIdentifier:@"PastDueReminderCell"];
+                    if (cell == nil) {
+                        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPastDueReminderCell" owner:self options:nil] lastObject];
+                    }
+                    [cell.textLabel setText:[NSString stringWithFormat:@"%d PAST DUE",pastDueProjectReminders.count]];
+                    [cell.textLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:16]];
+                    [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+                    [cell.textLabel setTextColor:[UIColor redColor]];
+                    cell.accessoryView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"redDisclosure"]];
+                    [cell setTintColor:[UIColor redColor]];
+                    return cell;
+                } else {
+                    BHReminderCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReminderCell"];
+                    if (cell == nil) {
+                        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReminderCell" owner:self options:nil] lastObject];
+                    }
+                    int row = indexPath.row - 1;
+                    Reminder *reminder = projectReminders[row];
+                    if ([reminder.reminderDate isEqualToDate:[NSDate dateWithTimeIntervalSince1970:0]]){
+                        [cell.reminderDatetimeLabel setText:@""];
+                    } else {
+                        [cell.reminderDatetimeLabel setText:[formatter stringFromDate:reminder.reminderDate]];
+                    }
+                    
+                    [cell configureForReminder:reminder];
+                    cell.reminderButton.tag = row;
+                    [cell.reminderButton addTarget:self action:@selector(goToReminder:) forControlEvents:UIControlEventTouchUpInside];
+                    cell.deleteButton.tag = row;
+                    [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:13]];
+                    [cell.deleteButton addTarget:self action:@selector(confirmDeleteReminder:) forControlEvents:UIControlEventTouchUpInside];
+                    
+                    return cell;
+                }
+                
             } else {
-                [cell.reminderDatetimeLabel setText:[formatter stringFromDate:reminder.reminderDate]];
+                BHReminderCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ReminderCell"];
+                if (cell == nil) {
+                    cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReminderCell" owner:self options:nil] lastObject];
+                }
+                Reminder *reminder = projectReminders[indexPath.row];
+                if ([reminder.reminderDate isEqualToDate:[NSDate dateWithTimeIntervalSince1970:0]]){
+                    [cell.reminderDatetimeLabel setText:@""];
+                } else {
+                    [cell.reminderDatetimeLabel setText:[formatter stringFromDate:reminder.reminderDate]];
+                }
+                
+                [cell configureForReminder:reminder];
+                cell.reminderButton.tag = indexPath.row;
+                [cell.reminderButton addTarget:self action:@selector(goToReminder:) forControlEvents:UIControlEventTouchUpInside];
+                cell.deleteButton.tag = indexPath.row;
+                [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:13]];
+                [cell.deleteButton addTarget:self action:@selector(confirmDeleteReminder:) forControlEvents:UIControlEventTouchUpInside];
+                
+                return cell;
             }
-            
-            [cell configureForReminder:reminder];
-            cell.reminderButton.tag = indexPath.row;
-            [cell.reminderButton addTarget:self action:@selector(goToReminder:) forControlEvents:UIControlEventTouchUpInside];
-            cell.activeButton.tag = indexPath.row;
-            [cell.activeButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:13]];
-            [cell.activeButton addTarget:self action:@selector(reminderButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-            
-            return cell;
         }
             break;
         case 1: {
@@ -315,7 +397,8 @@
             [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",_project.users.count]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
             cell.textLabel.numberOfLines = 0;
-            [cell.textLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+            [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:21]];
+            [cell.detailTextLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
             return cell;
         }
             break;
@@ -326,7 +409,19 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 5) return 110;
+    if (indexPath.section == 0){
+        //show the past due reminder row only if there past due reminders present
+        if (pastDueProjectReminders.count){
+            if (indexPath.row == 0){
+                return 50;
+            } else {
+                return 80;
+            }
+        } else {
+            return 80;
+        }
+    }
+    else if (indexPath.section == 5) return 110;
     else if (indexPath.section == 3) return 70;
     else return 80;
 }
@@ -334,15 +429,22 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 0:
-            if (_project.reminders.count){
-                return 40;
+            if (projectReminders.count || pastDueProjectReminders.count){
+                return 34;
             } else {
                 return 0;
             }
             break;
         case 1:
             if ([(NSArray*)_project.upcomingItems count]){
-                return 40;
+                return 34;
+            } else {
+                return 0;
+            }
+            break;
+        case 2:
+            if (_project.activities.count){
+                return 34;
             } else {
                 return 0;
             }
@@ -350,27 +452,27 @@
         
         case 4:
             if (_project.checklist.activities.count){
-                return 40;
+                return 34;
             } else {
                 return 0;
             }
             break;
         case 5:
             if (_project.recentDocuments.count){
-                return 40;
+                return 34;
             } else {
                 return 0;
             }
             break;
         case 6:
             if (_project.worklist.activities.count){
-                return 40;
+                return 34;
             } else {
                 return 0;
             }
             break;
         default:
-            return 40;
+            return 34;
             break;
     }
 }
@@ -378,23 +480,23 @@
 - (UIView *) tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     
     UIView* headerView;
-    if (section == 2 && _project.recentDocuments.count == 0) {
-        return nil;
+    if (section == 0 && _project.reminders.count == 0 && _project.pastDueReminders.count == 0) {
+        return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+    } else if (section == 2 && _project.recentDocuments.count == 0) {
+        return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
     } else if (section == 4 && [(NSArray*)_project.recentItems count] == 0) {
         return nil;
-    } else if (section == 3 && [(NSArray*)_project.upcomingItems count] == 0) {
-        return nil;
     } else {
-        headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenRect.size.width, 40.0)];
+        headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 34.0)];
     }
-    [headerView setBackgroundColor:kLighterGrayColor];
+    [headerView setBackgroundColor:kDarkerGrayColor];
     
     // Add the label
     UILabel *headerLabel;
-    headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screenRect.size.width, 40.0)];
+    headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screen.size.width, 34.0)];
     headerLabel.backgroundColor = [UIColor clearColor];
-    headerLabel.textColor = [UIColor darkGrayColor];
-    headerLabel.font = [UIFont systemFontOfSize:13];
+    headerLabel.textColor = [UIColor whiteColor];
+    headerLabel.font = [UIFont fontWithName:kMyriadProRegular size:16];
     headerLabel.numberOfLines = 0;
     headerLabel.textAlignment = NSTextAlignmentCenter;
     [headerView addSubview:headerLabel];
@@ -403,11 +505,11 @@
         case 0:
         {
             [headerLabel setText:@"REMINDERS"];
-            if (_project.reminders.count > 3){
+            if (projectReminders.count > 3){
                 UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
-                [allButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:12]];
-                [allButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-                [allButton setFrame:CGRectMake(screenRect.size.width-44, 0, 44, 44)];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:12]];
+                [allButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [allButton setFrame:CGRectMake(screen.size.width-44, 0, 44, 40)];
                 [allButton setTitle:@"ALL" forState:UIControlStateNormal];
                 [allButton addTarget:self action:@selector(loadReminders) forControlEvents:UIControlEventTouchUpInside];
                 [headerView addSubview:allButton];
@@ -417,25 +519,27 @@
         case 1:
         {
             [headerLabel setText:@"UPCOMING DEADLINES"];
-            UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [allButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:12]];
-            [allButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-            [allButton setFrame:CGRectMake(screenRect.size.width-44, 0, 44, 44)];
-            [allButton setTitle:@"ALL" forState:UIControlStateNormal];
-            [allButton addTarget:self action:@selector(loadDeadlines) forControlEvents:UIControlEventTouchUpInside];
-            [headerView addSubview:allButton];
+            if (_project.upcomingItems.count > 3){
+                UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:12]];
+                [allButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [allButton setFrame:CGRectMake(screen.size.width-44, 0, 44, 40)];
+                [allButton setTitle:@"ALL" forState:UIControlStateNormal];
+                [allButton addTarget:self action:@selector(showDeadlines) forControlEvents:UIControlEventTouchUpInside];
+                [headerView addSubview:allButton];
+            }
         }
             break;
         case 2:
         {
-            [headerLabel setText:@"OTHER ALERTS"];
+            [headerLabel setText:@"LATEST ACTIVITY"];
             if (_project.activities.count > 3){
                 UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
-                [allButton.titleLabel setFont:[UIFont fontWithName:kHelveticaNeueMedium size:12]];
-                [allButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-                [allButton setFrame:CGRectMake(screenRect.size.width-44, 0, 44, 44)];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:12]];
+                [allButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [allButton setFrame:CGRectMake(screen.size.width-44, 0, 44, 40)];
                 [allButton setTitle:@"ALL" forState:UIControlStateNormal];
-                [allButton addTarget:self action:@selector(loadActivities) forControlEvents:UIControlEventTouchUpInside];
+                [allButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
                 [headerView addSubview:allButton];
             }
         }
@@ -450,7 +554,7 @@
             [headerLabel setText:@"DOCUMENTS"];
             break;
         case 6:
-            [headerLabel setText:@"WORKLIST"];
+            [headerLabel setText:@"TASKS"];
             break;
         case 7:
             [headerLabel setText:@"SUMMARY"];
@@ -463,42 +567,54 @@
     return headerView;
 }
 
-- (void)reminderButtonTapped:(UIButton*)button{
-    Reminder *reminder = _project.reminders[button.tag];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
-        [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"active"];
-        [reminder setActive:[NSNumber numberWithBool:NO]];
+- (void)confirmDeleteReminder:(UIButton*)button {
+    [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to remove this reminder?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Yes",nil] show];
+    indexPathForReminderDeletion = [NSIndexPath indexPathForRow:button.tag inSection:0];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
+        [self deleteReminder];
     } else {
-        [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"active"];
-        [reminder setActive:[NSNumber numberWithBool:YES]];
+        indexPathForReminderDeletion = nil;
     }
-    
-    [self.tableView beginUpdates];
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-    [self.tableView endUpdates];
-    
-    [manager PATCH:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,reminder.identifier] parameters:@{@"reminder":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success updating reminder state: %@",responseObject);
-        [reminder populateFromDictionary:[responseObject objectForKey:@"reminder"]];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"Saving local copy of reminder: %u",success);
-        }];
+}
+
+- (void)deleteReminder {
+    Reminder *reminder = [projectReminders objectAtIndex:indexPathForReminderDeletion.row];
+    [manager DELETE:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,reminder.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success deleting this reminder: %@",responseObject);
+        
+        [projectReminders removeObject:reminder];
+        [_currentUser.reminders removeObject:reminder];
+        [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        
+        [self.tableView beginUpdates];
+        if (projectReminders.count){
+            [self.tableView deleteRowsAtIndexPaths:@[indexPathForReminderDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        } else {
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+        }
+        [self.tableView endUpdates];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failed to update remidner: %@",error.description);
+        NSLog(@"Failured deleting this reminder: %@",error.description);
     }];
 }
 
 - (void)loadReminders {
-    [self performSegueWithIdentifier:@"Alerts" sender:_project.reminders];
+    //load both active and past due reminders
+    NSMutableOrderedSet *combinedSet = [NSMutableOrderedSet orderedSetWithOrderedSet:pastDueProjectReminders];
+    [combinedSet unionOrderedSet:projectReminders];
+    [self performSegueWithIdentifier:@"Activities" sender:combinedSet];
 }
 
-- (void)loadDeadlines {
-    [self performSegueWithIdentifier:@"Alerts" sender:nil];
+- (void)showDeadlines {
+    [self performSegueWithIdentifier:@"Activities" sender:_project.upcomingItems];
 }
 
-- (void)loadActivities {
-    [self performSegueWithIdentifier:@"Alerts" sender:_project.activities];
+- (void)showActivities {
+    [self performSegueWithIdentifier:@"Activities" sender:_project.activities];
 }
 
 #pragma mark - Display events
@@ -581,7 +697,6 @@
     [browser showPreviousPhotoAnimated:YES];
 }
 
-
 - (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
     return browserPhotos.count;
 }
@@ -597,8 +712,20 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if (indexPath.section == 0){
-        BHReminderCell *cell = (BHReminderCell*)[self.tableView cellForRowAtIndexPath:indexPath];
-        [cell swipeScrollView];
+        if (pastDueProjectReminders.count){
+            if (indexPath.row == 0){
+                NSMutableOrderedSet *combinedSet = [NSMutableOrderedSet orderedSetWithOrderedSet:pastDueProjectReminders];
+                [combinedSet unionOrderedSet:projectReminders];
+                [self performSegueWithIdentifier:@"Activities" sender:combinedSet];
+            } else {
+                BHReminderCell *cell = (BHReminderCell*)[self.tableView cellForRowAtIndexPath:indexPath];
+                [cell swipeScrollView];
+            }
+        } else {
+            BHReminderCell *cell = (BHReminderCell*)[self.tableView cellForRowAtIndexPath:indexPath];
+            [cell swipeScrollView];
+        }
+        
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
     } else if (indexPath.section == 1){
         ChecklistItem *item = [_project.upcomingItems objectAtIndex:indexPath.row];
@@ -618,15 +745,28 @@
         [self performSegueWithIdentifier:@"Project" sender:indexPath];
     } else if (indexPath.section == 4){
         Activity *activity = [_project.checklist.activities objectAtIndex:indexPath.row];
+        NSLog(@"checklist item activity: %@",activity);
         [self performSegueWithIdentifier:@"ChecklistItem" sender:activity.checklistItem];
     } else if (indexPath.section == 6){
         Activity *activity = [_project.worklist.activities objectAtIndex:indexPath.row];
         [self performSegueWithIdentifier:@"WorklistItem" sender:activity.task];
+    } else if (indexPath.section == 7){
+        
+        BHMapViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"MapView"];
+        [vc setProject:_project];
+        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+        [self presentViewController:nav animated:YES completion:^{
+            
+        }];
+        /*if (_project.address.latitude && ![_project.address.longitude isEqualToNumber:[NSNumber numberWithInt:0]]){
+            NSURL *addressUrl = [NSURL URLWithString:[NSString stringWithFormat:@"http://maps.apple.com/?ll=%@,%@",_project.address.latitude,_project.address.longitude]];
+            [[UIApplication sharedApplication] openURL:addressUrl];
+        }*/
     }
 }
 
 - (void)goToReminder:(UIButton*)button{
-    Reminder *reminder = _project.reminders[button.tag];
+    Reminder *reminder = projectReminders[button.tag];
     if (reminder.checklistItem){
         [self performSegueWithIdentifier:@"ChecklistItem" sender:reminder.checklistItem];
     }
@@ -647,7 +787,6 @@
     } else if ([segue.identifier isEqualToString:@"ChecklistItem"]) {
         BHChecklistItemViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
-        NSLog(@"Should be setting item: %@",sender);
         if ([sender isKindOfClass:[ChecklistItem class]])
             [vc setItem:(ChecklistItem*)sender];
     } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
@@ -662,17 +801,21 @@
             [vc setReport:(Report*)sender];
         }
         [vc setProject:_project];
-    } else if ([segue.identifier isEqualToString:@"Alerts"]) {
+    } else if ([segue.identifier isEqualToString:@"Activities"]) {
         BHActivitiesViewController *vc = [segue destinationViewController];
+        [vc setProject:_project];
         NSOrderedSet *set;
         if ([sender isKindOfClass:[NSOrderedSet class]]){
             set = (NSOrderedSet*)sender;
             if ([set.firstObject isKindOfClass:[Activity class]]){
-                [vc setTitle:@"Other Alerts"];
+                [vc setTitle:@"Recent Activity"];
                 [vc setActivities:set];
             } else if ([set.firstObject isKindOfClass:[Reminder class]]){
                 [vc setTitle:@"Reminders"];
-                [vc setReminders:set];
+                [vc setReminders:set.mutableCopy];
+            } else {
+                [vc setTitle:@"Deadlines"];
+                [vc setDeadlineItems:_project.upcomingItems];
             }
         }
     }
@@ -688,7 +831,7 @@
 - (void)slide1 {
     BHOverlayView *phases = [[BHOverlayView alloc] initWithFrame:screen];
     NSString *text = @"The summary view shows a high-level breakdown for the project.";
-    if (iPad){
+    if (IDIOM == IPAD){
         screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"synopsisiPad"]];
         [screenshotView setFrame:CGRectMake(screenWidth()/2-355, 30, 710, 700)];
         [phases configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
@@ -766,7 +909,7 @@
             [sender.view removeFromSuperview];
             [screenshotView removeFromSuperview];
         }completion:^(BOOL finished) {
-            if (_project.recentDocuments.count > 0)[self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:2] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+            /*if (_project.recentDocuments.count > 0)[self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:5] atScrollPosition:UITableViewScrollPositionTop animated:YES];*/
             [overlayBackground removeFromSuperview];
         }];
     }];
@@ -778,6 +921,11 @@
     }completion:^(BOOL finished) {
         [overlayBackground removeFromSuperview];
     }];
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [ProgressHUD dismiss];
 }
 
 @end

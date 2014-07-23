@@ -56,8 +56,9 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     if (!_project) _project = [(BHTabBarViewController*)self.tabBarController project];
-    self.navigationItem.title = [NSString stringWithFormat:@"%@: Worklists",_project.name];
+    self.navigationItem.title = [NSString stringWithFormat:@"Tasks: %@",_project.name];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     self.tableView.rowHeight = 82;
     showActive = YES;
@@ -66,13 +67,10 @@
     showByLocation = NO;
     firstLoad = YES;
     
-    if (_connectMode){
-        [self.segmentedControl removeSegmentAtIndex:2 animated:NO];
-    }
+    addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createItem)];
     [self.segmentedControl setTintColor:kDarkGrayColor];
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     completedListItems = [NSMutableArray array];
     activeListItems = [NSMutableArray array];
     locationListItems = [NSMutableArray array];
@@ -84,20 +82,18 @@
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    [Flurry logEvent:@"Viewing worklist"];
-    addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createItem)];
+    [Flurry logEvent:@"Viewing task"];
     
     if (_connectMode){
+        _worklistItems = _project.userConnectItems.array.mutableCopy;
         [self drawWorklist];
     } else if ([_project.worklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        [ProgressHUD show:@"Getting Worklist..."];
+        [ProgressHUD show:@"Getting tasks..."];
         loading = YES;
         [self loadWorklist];
-        NSLog(@"project worklist is a placeholder, need to fetch the real thing");
     } else {
         loading = YES;
         _worklistItems = _project.worklist.worklistItems.array.mutableCopy;
-        NSLog(@"already have %d worklist items",_worklistItems.count);
         [self drawWorklist];
         [self loadWorklist];
     }
@@ -114,17 +110,6 @@
     [self performSegueWithIdentifier:@"CreateItem" sender:nil];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    
-    if (_connectMode){
-        
-    } else if (_project.worklist.worklistItems.count == 0){
-        NSLog(@"project worklist has no items in it. should be loading");
-        [self loadWorklist];
-    }
-}
-
 - (void)addTask:(NSNotification*)notification {
     WorklistItem *newItem = [notification.userInfo objectForKey:@"task"];
     [_worklistItems insertObject:newItem atIndex:0];
@@ -135,7 +120,7 @@
 - (void)reloadTask:(NSNotification*)notification {
     NSDictionary *userInfo = notification.userInfo;
     WorklistItem *notificationTask = [userInfo objectForKey:@"task"];
-    NSLog(@"notification task: %@",notificationTask);
+    //NSLog(@"notification task: %@",notificationTask);
     if ([notificationTask.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
         if (![completedListItems containsObject:notificationTask]){
             [completedListItems insertObject:notificationTask atIndex:0];
@@ -153,8 +138,20 @@
         if (![_worklistItems containsObject:notificationTask]){
             [_worklistItems addObject:notificationTask];
         }
-        
         [self filterActive];
+    }
+    
+    //add the location to the list of possible locations:
+    if (notificationTask.location.length){
+        [locationSet addObject:notificationTask.location];
+    }
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if (_connectMode && self.segmentedControl.numberOfSegments == 4){
+        [self.segmentedControl removeSegmentAtIndex:2 animated:NO];
+        self.navigationItem.rightBarButtonItem = nil;
     }
 }
 
@@ -165,7 +162,9 @@
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenWorklist];
     }
-    self.tabBarController.navigationItem.rightBarButtonItem = addButton;
+    if (!_connectMode){
+        self.tabBarController.navigationItem.rightBarButtonItem = addButton;
+    }
 }
 
 - (void)drawWorklist {
@@ -182,8 +181,12 @@
             if (item.location.length) {
                 [locationSet addObject:item.location];
             }
-            if (!_connectMode && item.assignees.count > 0) {
-                [assigneeSet addObject:item.assignees.firstObject];
+            if (!_connectMode) {
+                if (item.assignees.count > 0){
+                    [assigneeSet addObject:item.assignees.firstObject];
+                } else if (item.connectAssignees.count > 0){
+                    [assigneeSet addObject:item.connectAssignees.firstObject];
+                }
             }
         }
     }
@@ -200,7 +203,7 @@
     } else {
         [self.tableView reloadData];
     }
-    
+    [ProgressHUD dismiss];
     if (refreshControl.isRefreshing) [refreshControl endRefreshing];
 }
 
@@ -291,7 +294,42 @@
 
 - (void)handleRefresh {
     [ProgressHUD show:@"Refreshing..."];
-    [self loadWorklist];
+    if (_connectMode){
+        [self connectRefresh];
+    } else {
+        [self loadWorklist];
+    }
+}
+
+- (void)connectRefresh {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if ([(WorklistItem*)_worklistItems.firstObject project]){
+        [parameters setObject:[[(WorklistItem*)_worklistItems.firstObject project] identifier] forKey:@"project_id"];
+    }
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+    }
+        
+    [_worklistItems removeAllObjects];
+    [manager GET:[NSString stringWithFormat:@"%@/connect",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success with connect refresh: %@",responseObject);
+        
+        for (NSDictionary *dict in [responseObject objectForKey:@"worklist_items"]){
+            WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!item){
+                item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [item populateFromDictionary:dict];
+            [_worklistItems addObject:item];
+        }
+        [self drawWorklist];
+        [ProgressHUD dismiss];
+        if (refreshControl.isRefreshing)[refreshControl endRefreshing];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [ProgressHUD dismiss];
+        if (refreshControl.isRefreshing)[refreshControl endRefreshing];
+        NSLog(@"Failure with connect refresh: %@",error.description);
+    }];
 }
 
 - (void)filterLocation {
@@ -313,7 +351,11 @@
     if (assigneeSet.count){
         assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
         for (id assignee in assigneeSet) {
-            if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) [assigneeActionSheet addButtonWithTitle:[(User*)assignee fullname]];
+            if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) {
+                [assigneeActionSheet addButtonWithTitle:[(User*)assignee fullname]];
+            } else if ([assignee isKindOfClass:[ConnectUser class]]){
+                [assigneeActionSheet addButtonWithTitle:[(ConnectUser*)assignee fullname]];
+            }
         }
         assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
         if (self.tabBarController){
@@ -356,10 +398,11 @@
             if (buttonTitle.length){
                 NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",buttonTitle];
                 for (WorklistItem *item in _worklistItems){
-                    if (item.assignees.count){
-                        if([testForFullName evaluateWithObject:item.assignees.firstObject]) {
-                            [assigneeListItems addObject:item];
-                        }
+                    //testing both users and connect users since both have a "fullname" attribute
+                    if (item.assignees.count && [testForFullName evaluateWithObject:item.assignees.firstObject]){
+                        [assigneeListItems addObject:item];
+                    } else if (item.connectAssignees.count && [testForFullName evaluateWithObject:item.connectAssignees.firstObject]) {
+                        [assigneeListItems addObject:item];
                     }
                 }
             }
@@ -383,7 +426,7 @@
 
 - (void)loadWorklist {
     [manager GET:[NSString stringWithFormat:@"%@/worklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success loading worklist: %@",responseObject);
+        //NSLog(@"Success loading worklist: %@",responseObject);
         if ([responseObject objectForKey:@"punchlist"]){
             [self updateWorklist:[responseObject objectForKey:@"punchlist"]];
         } else if ([responseObject objectForKey:@"worklist"]) {
@@ -394,12 +437,11 @@
         [ProgressHUD dismiss];
         loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your worklist. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }];
 }
 
 - (void)updateWorklist:(NSDictionary*)dictionary {
-    Worklist *worklist = [Worklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"id"]];
+    Worklist *worklist = [Worklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
     if (!worklist){
         worklist = [Worklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     }
@@ -407,7 +449,7 @@
     if (_project.worklist.worklistItems.count > 0){
         for (WorklistItem *item in _project.worklist.worklistItems) {
             if (![worklist.worklistItems containsObject:item]) {
-                NSLog(@"deleting a task that no longer exists: %@",item.body);
+                NSLog(@"Deleting a task that no longer exists: %@",item.body);
                 [item MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
@@ -418,7 +460,12 @@
     }
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         NSLog(@"Worklist save: %hhd",success);
-        [self drawWorklist];
+        //only bother drawing if the view is loaded
+        if (self.isViewLoaded && self.view.window){
+            [self drawWorklist];
+        } else {
+            [ProgressHUD dismiss];
+        }
     }];
 }
 
@@ -431,104 +478,126 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (showCompleted) return completedListItems.count;
-    else if (showActive) {
-        return activeListItems.count;
+    if (_worklistItems.count > 0){
+        if (showCompleted) return completedListItems.count;
+        else if (showActive) {
+            return activeListItems.count;
+        }
+        else if (showByLocation) {
+            return locationListItems.count;
+        }
+        else if (showByAssignee) return assigneeListItems.count;
+        else return _worklistItems.count;
+    } else {
+        if (loading) return 0;
+        else return 1;
     }
-    else if (showByLocation) {
-        return locationListItems.count;
-    }
-    else if (showByAssignee) return assigneeListItems.count;
-    else return _worklistItems.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"TaskCell";
-    BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHTaskCell" owner:self options:nil] lastObject];
-    }
-    
-    WorklistItem *item = nil;
-    if (showCompleted) {
-        item = [completedListItems objectAtIndex:indexPath.row];
-    } else if (showActive) {
-        item = [activeListItems objectAtIndex:indexPath.row];
-    } else if (showByLocation) {
-        item = [locationListItems objectAtIndex:indexPath.row];
-    } else if (showByAssignee) {
-        item = [assigneeListItems objectAtIndex:indexPath.row];
-    } else {
-        item = [_worklistItems objectAtIndex:indexPath.row];
-    }
-    [cell.itemLabel setText:item.body];
-    [cell.itemLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:20]];
-    cell.itemLabel.numberOfLines = 0;
-
-    [cell.createdLabel setText:[dateFormatter stringFromDate:item.createdAt]];
-    [cell.createdLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
-    
-    if ([item.assignees.firstObject isKindOfClass:[User class]] && item.user){
-        User *assignee = item.assignees.firstObject;
-        [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,assignee.fullname]];
-        [cell.ownerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
-    } else if ([item.connectAssignees.firstObject isKindOfClass:[ConnectUser class]]){
-        ConnectUser *connectAssignee = item.connectAssignees.firstObject;
-        [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,connectAssignee.fullname]];
-        [cell.ownerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
-    } else if (item.user) {
-        [cell.ownerLabel setText:item.user.fullname];
-        [cell.ownerLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:14]];
-    } else {
-        [cell.ownerLabel setText:@""];
-    }
-    
-    //NSLog(@"item %@ photos: %d",item.body, item.photos.count);
-    if (item.photos.count) {
-        if ([(Photo*)[item.photos firstObject] image]){
-            [cell.photoButton setImage:[(Photo*)[item.photos firstObject] image] forState:UIControlStateNormal];
-        } else {
-            [cell.photoButton setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
+    if (_worklistItems.count > 0){
+        static NSString *CellIdentifier = @"TaskCell";
+        BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHTaskCell" owner:self options:nil] lastObject];
         }
+        
+        WorklistItem *item = nil;
+        if (showCompleted) {
+            item = [completedListItems objectAtIndex:indexPath.row];
+        } else if (showActive) {
+            item = [activeListItems objectAtIndex:indexPath.row];
+        } else if (showByLocation) {
+            item = [locationListItems objectAtIndex:indexPath.row];
+        } else if (showByAssignee) {
+            item = [assigneeListItems objectAtIndex:indexPath.row];
+        } else {
+            item = [_worklistItems objectAtIndex:indexPath.row];
+        }
+        
+        [cell.itemLabel setText:item.body];
+        [cell.createdLabel setText:[dateFormatter stringFromDate:item.createdAt]];
+        
+        if ([item.assignees.firstObject isKindOfClass:[User class]] && item.user){
+            User *assignee = item.assignees.firstObject;
+            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,assignee.fullname]];
+            
+        } else if ([item.connectAssignees.firstObject isKindOfClass:[ConnectUser class]]){
+            ConnectUser *connectAssignee = item.connectAssignees.firstObject;
+            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,connectAssignee.fullname]];
+        } else if (item.user) {
+            [cell.ownerLabel setText:item.user.fullname];
+        } else {
+            [cell.ownerLabel setText:@""];
+        }
+        
+        if (item.photos.count) {
+            if ([(Photo*)[item.photos firstObject] image]){
+                [cell.photoButton setImage:[(Photo*)[item.photos firstObject] image] forState:UIControlStateNormal];
+            } else {
+                [cell.photoButton setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
+            }
+        } else {
+            [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
+        }
+        [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
+        cell.photoButton.imageView.layer.cornerRadius = 2.0;
+        [cell.photoButton.imageView setBackgroundColor:[UIColor clearColor]];
+        [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+        cell.photoButton.imageView.layer.shouldRasterize = YES;
+        cell.photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        
+        //cell.photoButton.clipsToBounds = YES;
+        return cell;
     } else {
-        [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
+        UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:@"NothingCell"];
+        UIButton *nothingButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [nothingButton setTitle:@"No Tasks..." forState:UIControlStateNormal];
+        [nothingButton.titleLabel setNumberOfLines:0];
+        [nothingButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
+        nothingButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+        [nothingButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        [nothingButton setBackgroundColor:[UIColor clearColor]];
+        [cell addSubview:nothingButton];
+        [nothingButton setFrame:CGRectMake(0, 0, self.tableView.frame.size.width, self.tableView.frame.size.height-100)];
+        cell.backgroundView = [[UIView alloc] initWithFrame:cell.frame];
+        [cell.backgroundView setBackgroundColor:[UIColor clearColor]];
+        return cell;
     }
-    cell.photoButton.imageView.layer.cornerRadius = 2.0;
-    [cell.photoButton.imageView setBackgroundColor:[UIColor clearColor]];
-    [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
-    cell.photoButton.imageView.layer.shouldRasterize = YES;
-    cell.photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-    [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
-    cell.photoButton.clipsToBounds = YES;
-    return cell;
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
-        if (!loading)[ProgressHUD dismiss];
+        if (!loading && _worklistItems.count){
+            [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+            //[ProgressHUD dismiss];
+        }
     }
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    WorklistItem *item;
-    if (showCompleted) {
-        item = [completedListItems objectAtIndex:indexPath.row];
-    } else if (showActive) {
-        item = [activeListItems objectAtIndex:indexPath.row];
-    } else if (showByLocation) {
-        item = [locationListItems objectAtIndex:indexPath.row];
-    } else if (showByAssignee) {
-        item = [assigneeListItems objectAtIndex:indexPath.row];
-    } else {
-        item = [_worklistItems objectAtIndex:indexPath.row];
-    }
-    //ensure there's a signed in user and that the user is the owner of the current item/task
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-        return YES;
+    if (_worklistItems.count > 0){
+        WorklistItem *item;
+        if (showCompleted) {
+            item = [completedListItems objectAtIndex:indexPath.row];
+        } else if (showActive) {
+            item = [activeListItems objectAtIndex:indexPath.row];
+        } else if (showByLocation) {
+            item = [locationListItems objectAtIndex:indexPath.row];
+        } else if (showByAssignee) {
+            item = [assigneeListItems objectAtIndex:indexPath.row];
+        } else {
+            item = [_worklistItems objectAtIndex:indexPath.row];
+        }
+        //ensure there's a signed in user and that the user is the owner of the current item/task
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+            return YES;
+        } else {
+            return NO;
+        }
     } else {
         return NO;
     }
@@ -538,21 +607,22 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [self performSegueWithIdentifier:@"WorklistItem" sender:self];
+    if (_worklistItems.count){
+        [self performSegueWithIdentifier:@"WorklistItem" sender:self];
+    }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
+    BHTaskViewController *vc = segue.destinationViewController;
+    
+    [vc setProject:_project];
+    [vc setLocationSet:locationSet];
     
     if ([segue.identifier isEqualToString:@"CreateItem"]) {
-        BHTaskViewController *vc = segue.destinationViewController;
         [vc setTitle:@"New Task"];
-        [vc setProject:_project];
-        [vc setLocationSet:locationSet];
     } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
-        BHTaskViewController *vc = segue.destinationViewController;
-        [vc setProject:_project];
         WorklistItem *item;
         if (showActive && activeListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [activeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
@@ -565,9 +635,7 @@
         } else if (_worklistItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [_worklistItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
-    
         [vc setTask:item];
-        [vc setLocationSet:locationSet];
     }
 }
 
@@ -704,4 +772,9 @@
     }];
 }
 
+
+-(void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [ProgressHUD dismiss];
+}
 @end

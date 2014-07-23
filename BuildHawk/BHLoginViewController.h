@@ -9,5 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface BHLoginViewController : UIViewController
--(void)adjustLoginContainer;
+
 @end

@@ -31,8 +31,8 @@
     } else {
         self.tableView.rowHeight = 88.f;
     }
-    [self.view setBackgroundColor:[UIColor colorWithWhite:.875 alpha:1]];
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+    [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
+    [self.tableView setBackgroundColor:[UIColor colorWithWhite:.1 alpha:1]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
 }
@@ -72,17 +72,17 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
     Photo *photo = [_photosArray objectAtIndex:indexPath.row];
-    [cell.label setText:photo.name];
+    [cell.docLabel setText:photo.name];
     
     [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
     cell.photoButton.imageView.clipsToBounds = YES;
     cell.backgroundColor = kDarkerGrayColor;
-    cell.textLabel.numberOfLines = 0;
+    [cell.docLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
     cell.userInteractionEnabled = YES;
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     NSURL *imageUrl;
     if (IDIOM == IPAD){
-        [cell.label setFont:[UIFont systemFontOfSize:18]];
+        
         imageUrl = [NSURL URLWithString:photo.urlLarge];
     } else if (_photosArray.count > 0) {
         imageUrl = [NSURL URLWithString:photo.urlSmall];
@@ -91,20 +91,19 @@
     }
 
     if (imageUrl) {
-        cell.label.transform = CGAffineTransformIdentity;
+        cell.docLabel.transform = CGAffineTransformIdentity;
         [cell.photoButton setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
             [cell.photoButton setTag:0];
             cell.photoButton.userInteractionEnabled = NO;
             [UIView animateWithDuration:.25 animations:^{
                 [cell.photoButton setAlpha:1.0];
-                [cell.label setAlpha:1.0];
+                [cell.docLabel setAlpha:1.0];
             }];
         }];
     } else {
         [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_256"] forState:UIControlStateNormal];
-        
         [UIView animateWithDuration:.25 animations:^{
-            [cell.label setAlpha:1.0];
+            [cell.docLabel setAlpha:1.0];
             [cell.photoButton setAlpha:1.0];
         }];
     }

@@ -21,7 +21,13 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    if (IDIOM == IPAD) {
+        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
+        [_groupCountLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+    } else {
+        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
+        [_groupCountLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
+    }
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

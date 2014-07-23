@@ -12,15 +12,12 @@
 @implementation Cat (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary{
-    //NSLog(@"project helper dictionary: %@",dictionary);
+    //NSLog(@"cat helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
-    }
-    if ([dictionary objectForKey:@"progress_percentage"] && [dictionary objectForKey:@"progress_percentage"] != [NSNull null]) {
-        self.progressPercentage = [dictionary objectForKey:@"progress_percentage"];
     }
     if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
         self.orderIndex = [dictionary objectForKey:@"order_index"];
@@ -34,7 +31,7 @@
     if ([dictionary objectForKey:@"checklist_items"] && [dictionary objectForKey:@"checklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
-            ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
+            ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (item){
                 [item update:itemDict];
             } else {
@@ -44,6 +41,7 @@
             [items addObject:item];
         }
         self.items = items;
+        [self calculateProgress];
     }
 }
 
@@ -51,16 +49,13 @@
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"progress_percentage"] && [dictionary objectForKey:@"progress_percentage"] != [NSNull null]) {
-        self.progressPercentage = [dictionary objectForKey:@"progress_percentage"];
-    }
     if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
         self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
     if ([dictionary objectForKey:@"checklist_items"] && [dictionary objectForKey:@"checklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
-            ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"]];
+            ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (item){
                 [item update:itemDict];
             } else {
@@ -70,9 +65,29 @@
             [items addObject:item];
         }
         self.items = items;
+        [self calculateProgress];
     }
 }
 
+- (void)calculateProgress{
+    __block int completedCount = 0;
+    __block int notApplicableCount = 0;
+    [self.items enumerateObjectsUsingBlock:^(ChecklistItem *item, NSUInteger idx, BOOL *stop) {
+        switch (item.state.integerValue) {
+            case kItemCompleted:
+                completedCount ++;
+                break;
+            case kItemNotApplicable:
+                notApplicableCount ++;
+                break;
+            default:
+                break;
+        }
+    }];
+    self.completedCount = [NSNumber numberWithInteger:completedCount];
+    self.notApplicableCount = [NSNumber numberWithInteger:notApplicableCount];
+    //NSLog(@"cat %@ with %@ complete and %@ not applicable",self.name,self.completedCount,self.notApplicableCount);
+}
 
 - (void)removeItem:(ChecklistItem *)item{
     NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.items];

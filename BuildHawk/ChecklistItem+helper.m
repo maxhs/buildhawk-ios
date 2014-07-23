@@ -40,21 +40,26 @@
     }
     if ([dictionary objectForKey:@"critical_date"] && [dictionary objectForKey:@"critical_date"] != [NSNull null]) {
         self.criticalDate = [BHUtilities parseDate:[dictionary objectForKey:@"critical_date"]];
+    } else {
+        self.criticalDate = nil;
     }
     if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
         self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
+    } else {
+        self.completedDate = nil;
     }
+    
     if ([dictionary objectForKey:@"comments_count"] && [dictionary objectForKey:@"comments_count"] != [NSNull null]) {
         self.commentsCount = [dictionary objectForKey:@"comments_count"];
     }
     if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
-        Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"project_id"]];
+        Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"project_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (project){
             self.project = project;
         }
     }
     if ([dictionary objectForKey:@"checklist_id"] && [dictionary objectForKey:@"checklist_id"] != [NSNull null]) {
-        Checklist *checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"checklist_id"]];
+        Checklist *checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"checklist_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (checklist){
             self.checklist = checklist;
         }
@@ -64,7 +69,7 @@
         //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
-            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
+            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!comment){
                 comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -79,7 +84,7 @@
         //NSLog(@"checklist item reminders %@",[dictionary objectForKey:@"reminders"]);
         for (id dict in [dictionary objectForKey:@"reminders"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate];
+            Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!reminder){
                 reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -99,7 +104,7 @@
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!photo){
                 photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -118,7 +123,7 @@
         NSMutableOrderedSet *orderedActivities = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"activities"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Activity *activity = [Activity MR_findFirstWithPredicate:predicate];
+            Activity *activity = [Activity MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!activity){
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -168,7 +173,7 @@
         //NSLog(@"checklist item comments %@",[dictionary objectForKey:@"comments"]);
         for (id commentDict in [dictionary objectForKey:@"comments"]){
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
-            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate];
+            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (comment){
                 [comment update:commentDict];
             } else {
@@ -186,7 +191,7 @@
         //NSLog(@"checklist item reminders %@",[dictionary objectForKey:@"reminders"]);
         for (id dict in [dictionary objectForKey:@"reminders"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate];
+            Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!reminder){
                 reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -206,7 +211,7 @@
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (photo){
                 [photo update:photoDict];
             } else {
@@ -228,7 +233,7 @@
         NSMutableOrderedSet *orderedActivities = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"activities"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Activity *activity = [Activity MR_findFirstWithPredicate:predicate];
+            Activity *activity = [Activity MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!activity){
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }

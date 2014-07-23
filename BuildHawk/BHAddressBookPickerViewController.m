@@ -79,7 +79,6 @@
                 phone1 = [phone1 stringByReplacingOccurrencesOfString:@"(" withString:@""];
                 phone1 = [phone1 stringByReplacingOccurrencesOfString:@")" withString:@""];
                 [user setPhone:[phone1 stringByReplacingOccurrencesOfString:@" " withString:@""]];
-            
             }
             if (email) user.email = email;
             if (user.firstName.length || user.lastName.length || user.email.length)[_addressBookArray addObject:user];
@@ -127,11 +126,12 @@
             [cell.nameLabel setText:user.firstName];
         }
     }
-    
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+    [cell.nameLabel setFont:[UIFont systemFontOfSize:20]];
     [cell.emailLabel setText:user.email];
-    [cell.emailLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+    [cell.emailLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
     [cell.phoneLabel setText:user.phone];
-    [cell.phoneLabel setFont:[UIFont fontWithName:kHelveticaNeueLight size:16]];
+    [cell.phoneLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
     
     return cell;
 }

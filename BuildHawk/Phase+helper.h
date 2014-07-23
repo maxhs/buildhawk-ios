@@ -14,4 +14,5 @@
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)addCategory:(Cat *)category;
 - (void)removeCategory:(Cat *)category;
+- (void)calculateProgress;
 @end

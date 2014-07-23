@@ -11,6 +11,8 @@
 @interface BHPhotoPickerCell : UITableViewCell
 
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
-@property (weak, nonatomic) IBOutlet UILabel *label;
+@property (weak, nonatomic) IBOutlet UILabel *bucketLabel;
+@property (weak, nonatomic) IBOutlet UILabel *docLabel;
+@property (weak, nonatomic) IBOutlet UILabel *countLabel;
 
 @end

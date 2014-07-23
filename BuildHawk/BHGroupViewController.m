@@ -29,8 +29,13 @@
 {
     [super viewDidLoad];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    [self loadGroup];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    self.tableView.rowHeight = 88;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self loadGroup];
 }
 
 - (void)didReceiveMemoryWarning
@@ -40,17 +45,16 @@
 }
 
 - (void)loadGroup {
-    [ProgressHUD show:@"Fetching Group Projects..."];
+    [ProgressHUD show:@"Fetching project groups..."];
     [manager GET:[NSString stringWithFormat:@"%@/groups/%@",kApiBaseUrl,_group.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success getting group: %@",responseObject);
         if ([responseObject objectForKey:@"group"] && [responseObject objectForKey:@"group"] != [NSNull null]){
-            _group = [Group MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"group"] objectForKey:@"id"]];
+            _group = [Group MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"group"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!_group){
                 _group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [_group populateWithDict:[responseObject objectForKey:@"group"]];
         }
-        NSLog(@"group projects: %d",_group.projects.count);
         
         [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
@@ -84,30 +88,17 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
     }
-    [cell.titleLabel setText:[project name]];
-    
-    if (project.address.formattedAddress.length){
-        [cell.subtitleLabel setText:project.address.formattedAddress];
-    } else {
-        //[cell.subtitleLabel setText:project.company.name];
-    }
+    [cell configureForProject:project andUser:_currentUser];
     
     [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
-    [cell.progressButton setTag:indexPath.row];
-    [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
-    
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     
-    [cell.titleLabel setTextColor:kDarkGrayColor];
+    [cell.nameLabel setTextColor:kDarkGrayColor];
     [cell.archiveButton setTag:indexPath.row];
     [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
     return cell;
 
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 88;
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
@@ -119,8 +110,9 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    Project *selectedProject = [_group.projects objectAtIndex:indexPath.row];
-    [self performSegueWithIdentifier:@"Project" sender:selectedProject];
+    NSLog(@"going to project detail");
+    Project *selectedProject = _group.projects[indexPath.row];
+    [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
@@ -138,11 +130,6 @@
 - (void)goToProject:(UIButton*)button {
     Project *selectedProject = [_group.projects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
-}
-
-- (void)goToProjectDetail:(UIButton*)button {
-    Project *selectedProject = [_group.projects objectAtIndex:button.tag];
-    [self performSegueWithIdentifier:@"GroupDetail" sender:selectedProject];
 }
 
 - (void)confirmArchive:(UIButton*)button{

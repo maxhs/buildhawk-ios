@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13D65" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="vTw-MH-BEh">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="5056" systemVersion="13E28" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="vTw-MH-BEh">
     <dependencies>
         <deployment defaultVersion="1792" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
@@ -10,11 +10,11 @@
             <objects>
                 <viewController storyboardIdentifier="Activities" id="Wmp-U5-gTo" customClass="BHActivitiesViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="4BE-GV-gz1">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="rZF-xx-0hi">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
@@ -28,6 +28,9 @@
                     <navigationItem key="navigationItem" id="WhX-Pz-WP8"/>
                     <connections>
                         <outlet property="tableView" destination="rZF-xx-0hi" id="efZ-fa-1jB"/>
+                        <segue destination="Afz-sP-qEO" kind="push" identifier="ChecklistItem" id="xbn-MH-Kf9"/>
+                        <segue destination="3" kind="push" identifier="Report" id="3vv-Tr-RXj"/>
+                        <segue destination="qOL-i6-UJU" kind="push" identifier="Task" id="5Do-X8-bCk"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="icN-9d-B4w" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -195,13 +198,13 @@
         <!--Checklist View Controller - First-->
         <scene sceneID="11">
             <objects>
-                <viewController storyboardIdentifier="Checklist" title="First" id="2" customClass="BHChecklistViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Checklist" title="First" automaticallyAdjustsScrollViewInsets="NO" id="2" customClass="BHChecklistViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="16">
                         <rect key="frame" x="0.0" y="64" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="7vC-tQ-QbH">
-                                <rect key="frame" x="0.0" y="36" width="320" height="468"/>
+                                <rect key="frame" x="0.0" y="43" width="320" height="461"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
@@ -211,7 +214,7 @@
                                     <outlet property="delegate" destination="2" id="AWm-gT-Ofv"/>
                                 </connections>
                             </tableView>
-                            <searchBar contentMode="redraw" barStyle="blackTranslucent" searchBarStyle="minimal" id="b7E-dN-LAd" customClass="BHSearchBar">
+                            <searchBar contentMode="redraw" id="b7E-dN-LAd" customClass="BHSearchBar">
                                 <rect key="frame" x="320" y="0.0" width="320" height="44"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -221,7 +224,7 @@
                                 </connections>
                             </searchBar>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="s5c-1f-kMS" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="6" y="8" width="308" height="29"/>
+                                <rect key="frame" x="6" y="14" width="308" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
                                     <segment title="Active"/>
@@ -260,11 +263,11 @@
             <objects>
                 <viewController storyboardIdentifier="Tasks" id="r0E-CY-Oux" customClass="BHTasksViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="kLe-aJ-dPq">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <segmentedControl opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bordered" selectedSegmentIndex="0" id="7ee-9b-fVh" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="6" y="8" width="308" height="29"/>
+                                <rect key="frame" x="6" y="14" width="308" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <segments>
@@ -276,11 +279,21 @@
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </segmentedControl>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="m4i-vh-i8d">
-                                <rect key="frame" x="0.0" y="37" width="320" height="467"/>
+                                <rect key="frame" x="0.0" y="43" width="320" height="525"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
-                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <inset key="contentInset" minX="0.0" minY="8" maxX="0.0" maxY="49"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="8" maxX="0.0" maxY="49"/>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="NothingCell" id="J2B-Sd-Ygn">
+                                        <rect key="frame" x="0.0" y="22" width="320" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="J2B-Sd-Ygn" id="be5-Tn-HOF">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
                                 <connections>
                                     <outlet property="dataSource" destination="r0E-CY-Oux" id="aFn-uu-Q0j"/>
                                     <outlet property="delegate" destination="r0E-CY-Oux" id="OqD-92-f80"/>
@@ -312,24 +325,25 @@
             <objects>
                 <viewController storyboardIdentifier="Task" id="qOL-i6-UJU" customClass="BHTaskViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="VkX-Qb-T3A">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" allowsSelection="NO" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="B6E-EN-Awr">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="216"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="JbP-Vp-LgM">
-                                    <rect key="frame" x="0.0" y="0.0" width="320" height="420"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="320" height="481"/>
                                     <autoresizingMask key="autoresizingMask" heightSizable="YES" flexibleMaxY="YES"/>
                                     <subviews>
-                                        <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Task..." id="ozM-yr-VWl">
+                                        <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" directionalLockEnabled="YES" text="Task..." id="ozM-yr-VWl">
                                             <rect key="frame" x="0.0" y="0.0" width="210" height="100"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"/>
                                             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <inset key="contentInset" minX="4" minY="0.0" maxX="8" maxY="0.0"/>
+                                            <inset key="contentInset" minX="6" minY="4" maxX="8" maxY="0.0"/>
+                                            <inset key="scrollIndicatorInsets" minX="6" minY="4" maxX="0.0" maxY="0.0"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                             <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done"/>
                                             <connections>
@@ -514,6 +528,35 @@
             </objects>
             <point key="canvasLocation" x="2613" y="1336"/>
         </scene>
+        <!--Companies View Controller-->
+        <scene sceneID="21F-0o-EtY">
+            <objects>
+                <viewController storyboardIdentifier="Companies" id="pQi-8g-39N" customClass="BHCompaniesViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="kvt-e5-BAy">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="zr1-WF-aBb">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="pQi-8g-39N" id="1oh-ch-Fvs"/>
+                                    <outlet property="delegate" destination="pQi-8g-39N" id="P5f-9k-nUo"/>
+                                </connections>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                    <nil key="simulatedStatusBarMetrics"/>
+                    <connections>
+                        <outlet property="tableView" destination="zr1-WF-aBb" id="S2c-Xh-RiE"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="AxG-my-qWt" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3000" y="1336"/>
+        </scene>
         <!--Reports View Controller - Reports-->
         <scene sceneID="tdm-A1-qCW">
             <objects>
@@ -523,7 +566,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="PFD-Cw-6rY" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="6" y="8" width="308" height="29"/>
+                                <rect key="frame" x="326" y="14" width="308" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <segments>
@@ -534,11 +577,11 @@
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                             </segmentedControl>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="VS0-1K-JbD">
-                                <rect key="frame" x="0.0" y="37" width="320" height="467"/>
+                                <rect key="frame" x="0.0" y="43" width="320" height="461"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
-                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                <inset key="contentInset" minX="0.0" minY="10" maxX="0.0" maxY="49"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="10" maxX="0.0" maxY="49"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="none" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="NothingCell" id="5Di-BD-EYe">
                                         <rect key="frame" x="0.0" y="22" width="320" height="44"/>
@@ -613,17 +656,45 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
+                            <view contentMode="scaleToFill" id="621-Uv-4G7">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Kt7-zE-7AT" userLabel="Select Date Button">
+                                        <rect key="frame" x="7" y="14" width="150" height="29"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <state key="normal" title="Select Date">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </state>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JK1-PH-bCO" userLabel="Add Report Button">
+                                        <rect key="frame" x="163" y="14" width="150" height="29"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <state key="normal" title="New Report">
+                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </state>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="GpF-2H-fqz"/>
                     <connections>
+                        <outlet property="addReportButton" destination="JK1-PH-bCO" id="Lh0-9j-5gK"/>
                         <outlet property="cancelButton" destination="4p6-Ts-TtX" id="bwr-os-UVY"/>
                         <outlet property="datePicker" destination="HUc-Qx-jRB" id="IqO-NQ-dl5"/>
                         <outlet property="datePickerContainer" destination="xYv-KN-aiE" id="EfY-fq-dNM"/>
                         <outlet property="segmentedControl" destination="PFD-Cw-6rY" id="sj0-UY-evu"/>
                         <outlet property="selectButton" destination="TPb-MC-wNV" id="idc-vW-BtS"/>
+                        <outlet property="selectDateButton" destination="Kt7-zE-7AT" id="b97-MH-gVn"/>
                         <outlet property="tableView" destination="VS0-1K-JbD" id="zG2-xV-ePg"/>
+                        <outlet property="topActionContainer" destination="621-Uv-4G7" id="Wtb-tJ-B2e"/>
                         <segue destination="3" kind="push" identifier="Report" id="7to-sF-Hdh"/>
                     </connections>
                 </viewController>
@@ -763,11 +834,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="Personnel" wantsFullScreenLayout="YES" id="xov-V5-hTJ" customClass="BHPersonnelPickerViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="ELC-mH-5hJ">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="aOr-LH-myY">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -776,13 +847,6 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                     <outlet property="delegate" destination="xov-V5-hTJ" id="IKm-J5-KPl"/>
                                 </connections>
                             </tableView>
-                            <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="COG-xP-z3V">
-                                <rect key="frame" x="160" y="0.0" width="160" height="44"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                            </button>
                             <searchBar contentMode="redraw" searchBarStyle="minimal" id="nWQ-2d-Hf8">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -796,7 +860,6 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                     </view>
                     <navigationItem key="navigationItem" id="zva-XL-2eS"/>
                     <connections>
-                        <outlet property="addressBookButton" destination="COG-xP-z3V" id="6yo-Do-pY0"/>
                         <outlet property="searchBar" destination="nWQ-2d-Hf8" id="MmJ-wb-AXz"/>
                         <outlet property="tableView" destination="aOr-LH-myY" id="Lph-jY-cXk"/>
                         <segue destination="byk-VE-9sT" kind="push" identifier="AddPersonnel" id="6hz-Ht-Raa"/>
@@ -812,11 +875,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="AddPersonnel" id="byk-VE-9sT" customClass="BHAddPersonnelViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="bee-HK-1zK">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="1S5-50-u39">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="216"/>
@@ -826,11 +889,23 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                     <outlet property="delegate" destination="byk-VE-9sT" id="lV6-8M-w4q"/>
                                 </connections>
                             </tableView>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="owC-AA-2qn">
+                                <rect key="frame" x="320" y="0.0" width="320" height="568"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="216"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="216"/>
+                                <connections>
+                                    <outlet property="dataSource" destination="byk-VE-9sT" id="8cb-Jq-4kk"/>
+                                    <outlet property="delegate" destination="byk-VE-9sT" id="5Hh-4s-IyM"/>
+                                </connections>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="VFA-s2-Iao"/>
                     <connections>
+                        <outlet property="secondTableView" destination="owC-AA-2qn" id="2GU-la-WaW"/>
                         <outlet property="tableView" destination="1S5-50-u39" id="CBQ-83-MLM"/>
                         <segue destination="6Zr-Fy-AcW" kind="push" identifier="AddressBook" id="r38-ht-gCd"/>
                     </connections>
@@ -844,11 +919,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="AddressBook" id="6Zr-Fy-AcW" customClass="BHAddressBookPickerViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="ElU-4r-jPv">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="TN5-xn-Rdo">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
@@ -883,22 +958,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="Login" id="YSk-d2-LcY" customClass="BHLoginViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="tE6-Cd-HPV">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" id="Oby-5M-iB8">
-                                <rect key="frame" x="0.0" y="194" width="320" height="130"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="logo.png" id="2Qz-AI-Qq7">
-                                        <rect key="frame" x="37" y="49" width="246" height="32"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                    </imageView>
-                                </subviews>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
-                            <view contentMode="scaleToFill" id="0pQ-iG-APx">
-                                <rect key="frame" x="0.0" y="300" width="320" height="222"/>
+                            <view alpha="0.0" contentMode="scaleToFill" id="0pQ-iG-APx">
+                                <rect key="frame" x="0.0" y="260" width="320" height="240"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your email" minimumFontSize="17" id="EK6-57-ZkH">
@@ -924,10 +988,10 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </textField>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Nzu-Yg-ThW">
-                                        <rect key="frame" x="85" y="111" width="150" height="52"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <rect key="frame" x="14" y="124" width="292" height="44"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                        <state key="normal" title="Login">
+                                        <state key="normal" title="LOGIN">
                                             <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
@@ -939,7 +1003,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6YN-CS-NlG">
-                                        <rect key="frame" x="80" y="171" width="160" height="42"/>
+                                        <rect key="frame" x="80" y="186" width="160" height="42"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Forgot password?">
@@ -953,16 +1017,22 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="logo.png" id="2Qz-AI-Qq7">
+                                <rect key="frame" x="37" y="268" width="246" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="SWw-J9-MSa"/>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
+                    <nil key="simulatedTopBarMetrics"/>
                     <connections>
                         <outlet property="emailTextField" destination="EK6-57-ZkH" id="Ya7-ZB-wOQ"/>
                         <outlet property="forgotPasswordButton" destination="6YN-CS-NlG" id="08C-oH-2PD"/>
                         <outlet property="loginButton" destination="Nzu-Yg-ThW" id="92g-yg-gNy"/>
                         <outlet property="loginContainerView" destination="0pQ-iG-APx" id="JdB-rh-nWQ"/>
-                        <outlet property="logoContainerView" destination="Oby-5M-iB8" id="sg2-De-zQY"/>
+                        <outlet property="logoImageView" destination="2Qz-AI-Qq7" id="wjG-hn-PF5"/>
                         <outlet property="passwordTextField" destination="EQ4-0j-N6W" id="V5K-Rg-XAm"/>
                         <segue destination="hei-1C-lSF" kind="push" identifier="LoginSuccessful" id="fKG-7R-ch9"/>
                         <segue destination="4" kind="push" identifier="DemoProject" id="eDB-ws-svo"/>
@@ -977,7 +1047,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <tableViewController storyboardIdentifier="Synopsis" id="aNp-Zh-jY7" customClass="BHProjectSynopsisViewController" sceneMemberID="viewController">
                     <tableView key="view" opaque="NO" clipsSubviews="YES" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="OIE-JA-OV6">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <prototypes>
@@ -1033,7 +1103,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
                         <segue destination="4" kind="push" identifier="Project" id="Cv8-k3-7jn"/>
                         <segue destination="Afz-sP-qEO" kind="push" identifier="ChecklistItem" id="POr-kh-1ho"/>
                         <segue destination="qOL-i6-UJU" kind="push" identifier="WorklistItem" id="kFF-g5-AYt"/>
-                        <segue destination="Wmp-U5-gTo" kind="push" identifier="Alerts" id="b0v-8X-cch"/>
+                        <segue destination="Wmp-U5-gTo" kind="push" identifier="Activities" id="b0v-8X-cch"/>
                         <segue destination="3" kind="push" identifier="Report" id="egY-tO-dXX"/>
                     </connections>
                 </tableViewController>
@@ -1046,14 +1116,16 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="Dashboard" id="hei-1C-lSF" customClass="BHDashboardViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="Jvu-K6-e21">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="MSS-Fp-KsI">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="1"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="1"/>
                                 <connections>
                                     <outlet property="dataSource" destination="hei-1C-lSF" id="8Yy-TS-aeT"/>
                                     <outlet property="delegate" destination="hei-1C-lSF" id="3re-WI-Ezf"/>
@@ -1222,11 +1294,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="Archived" id="BJf-DW-Afh" customClass="BHArchivedViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="rEk-0m-9gK">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="KLk-ly-EO7">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
@@ -1252,11 +1324,11 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             <objects>
                 <viewController storyboardIdentifier="Group" id="oNc-NS-cxU" customClass="BHGroupViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="dOl-Np-3ko">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="sPu-dS-Cfc">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
@@ -1278,16 +1350,30 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
             </objects>
             <point key="canvasLocation" x="822" y="869"/>
         </scene>
+        <!--Map View Controller-->
+        <scene sceneID="dgx-nM-fyp">
+            <objects>
+                <viewController storyboardIdentifier="MapView" id="Xeu-gA-MIa" customClass="BHMapViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="IJs-XF-88I">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="bTS-s0-naL" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-400" y="-667"/>
+        </scene>
         <!--Demo Projects View Controller-->
         <scene sceneID="Vcd-Jd-b9o">
             <objects>
                 <viewController storyboardIdentifier="Demos" id="ytR-aD-IVu" customClass="BHDemoProjectsViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="pBm-ew-uIe">
-                        <rect key="frame" x="0.0" y="64" width="320" height="504"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="dQM-rM-svL">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <connections>
@@ -1574,14 +1660,14 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
+        <segue reference="eZr-X3-mJS"/>
         <segue reference="Uyg-Ck-Q13"/>
         <segue reference="vI7-Ml-H9J"/>
-        <segue reference="kFF-g5-AYt"/>
-        <segue reference="POr-kh-1ho"/>
-        <segue reference="Cv8-k3-7jn"/>
-        <segue reference="egY-tO-dXX"/>
+        <segue reference="Vim-B7-ekZ"/>
+        <segue reference="0zF-UE-phA"/>
+        <segue reference="7to-sF-Hdh"/>
+        <segue reference="BC4-fv-9Fr"/>
         <segue reference="c9h-8D-Hu8"/>
         <segue reference="yeJ-Wu-Oy1"/>
-        <segue reference="0zF-UE-phA"/>
     </inferredMetricsTieBreakers>
 </document>

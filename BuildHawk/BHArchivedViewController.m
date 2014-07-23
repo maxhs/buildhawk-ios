@@ -11,23 +11,62 @@
 #import "BHTabBarViewController.h"
 #import "Address.h"
 #import "Company.h"
+#import "User+helper.h"
+#import "BHAppDelegate.h"
+#import <RESideMenu/RESideMenu.h>
+#import "BHDashboardViewController.h"
 
 @interface BHArchivedViewController (){
     Project *archivedProject;
     AFHTTPRequestOperationManager *manager;
+    UIBarButtonItem *backButton;
+    BOOL loading;
 }
 @end
 
 @implementation BHArchivedViewController
-@synthesize archivedProjects = _archivedProjects;
+@synthesize currentUser = _currentUser;
 
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    if (!manager) manager = [AFHTTPRequestOperationManager manager];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
+    backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    self.navigationItem.leftBarButtonItem = backButton;
+    loading = YES;
+    [self loadArchived];
+}
+
+- (void)loadArchived {
+    [ProgressHUD show:@"Loading archived projects..."];
+    [manager GET:[NSString stringWithFormat:@"%@/projects/archived",kApiBaseUrl] parameters:@{@"user_id":_currentUser.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success fetching archived projects: %@",responseObject);
+        NSMutableOrderedSet *archivedProjectSet = [NSMutableOrderedSet orderedSet];
+        for (NSDictionary *projectDict in [responseObject objectForKey:@"projects"]){
+            Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[projectDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (project){
+                [project update:projectDict];
+            } else {
+                project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [project populateFromDictionary:projectDict];
+            [archivedProjectSet addObject:project];
+        }
+        _currentUser.archivedProjects = archivedProjectSet;
+        loading = NO;
+        [self.tableView reloadData];
+        [ProgressHUD dismiss];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failed to get archived projects: %@",error.description);
+        [ProgressHUD dismiss];
+    }];
+}
+
+- (void)back {
+    [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+        
+    }];
 }
 
 - (void)didReceiveMemoryWarning
@@ -45,49 +84,73 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _archivedProjects.count;
+    if (!loading && _currentUser.archivedProjects.count == 0){
+        return 1;
+    } else {
+        return _currentUser.archivedProjects.count;
+    }
 }
-
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"ArchivedCell";
-    Project *project = [_archivedProjects objectAtIndex:indexPath.row];
-    BHArchivedProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHArchivedProjectCell" owner:self options:nil] lastObject];
-    }
-    [cell.titleLabel setText:[project name]];
-    
-    if (project.address.formattedAddress.length){
-        [cell.subtitleLabel setText:project.address.formattedAddress];
+    if (_currentUser.archivedProjects.count == 0){
+        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NothingCell"];
+        [cell.textLabel setText:@"No archived projects..."];
+        [cell.textLabel setTextColor:[UIColor lightGrayColor]];
+        [cell.textLabel setFont:[UIFont italicSystemFontOfSize:17]];
+        [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
+        return cell;
     } else {
-        [cell.subtitleLabel setText:project.company.name];
+        static NSString *CellIdentifier = @"ArchivedCell";
+        Project *project = [_currentUser.archivedProjects objectAtIndex:indexPath.row];
+        BHArchivedProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHArchivedProjectCell" owner:self options:nil] lastObject];
+        }
+        [cell.titleLabel setText:[project name]];
+        
+        if (project.address.formattedAddress.length){
+            [cell.subtitleLabel setText:project.address.formattedAddress];
+        } else {
+            [cell.subtitleLabel setText:project.company.name];
+        }
+        
+        [cell.projectButton setTag:indexPath.row];
+        [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.titleLabel setTextColor:kDarkGrayColor];
+        [cell.unarchiveButton setTag:indexPath.row];
+        [cell.unarchiveButton addTarget:self action:@selector(confirmUnarchive:) forControlEvents:UIControlEventTouchUpInside];
+        return cell;
     }
-    
-    [cell.projectButton setTag:indexPath.row];
-    [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
-    [cell.titleLabel setTextColor:kDarkGrayColor];
-    [cell.unarchiveButton setTag:indexPath.row];
-    [cell.unarchiveButton addTarget:self action:@selector(confirmUnarchive:) forControlEvents:UIControlEventTouchUpInside];
-    return cell;
 }
 
 - (void)confirmUnarchive:(UIButton*)button {
     [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to make this project active?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Activate", nil] show];
-    archivedProject = [_archivedProjects objectAtIndex:button.tag];
+    archivedProject = [_currentUser.archivedProjects objectAtIndex:button.tag];
 }
 
 - (void)unarchiveProject{
     [manager POST:[NSString stringWithFormat:@"%@/projects/%@/unarchive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully unarchived the project: %@",responseObject);
-        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_archivedProjects indexOfObject:archivedProject] inSection:0];
-        [_archivedProjects removeObject:archivedProject];
-        if (_archivedProjects.count == 0) [self.navigationController popViewControllerAnimated:YES];
-        else{
+        [_currentUser unarchiveProject:archivedProject];
+        [_currentUser addProject:archivedProject];
+        if (_currentUser.archivedProjects.count == 0) {
+            //run down the view hierarchy to find the Dashboard vc and reload the tableview.
+            if ([self.presentingViewController isKindOfClass:[RESideMenu class]]){
+                [[(UINavigationController*)[(RESideMenu*)self.presentingViewController contentViewController] viewControllers] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+                    if ([obj isKindOfClass:[BHDashboardViewController class]]){
+                        [[(BHDashboardViewController*)obj tableView] reloadData];
+                        *stop = YES;
+                    }
+                }];
+            }
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+                
+            }];
+        } else{
             [self.tableView beginUpdates];
-            [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -121,17 +184,17 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    Project *selectedProject = [_archivedProjects objectAtIndex:button.tag];
+    Project *selectedProject = [_currentUser.archivedProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"ArchivedProject" sender:selectedProject];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
-    if ([segue.identifier isEqualToString:@"Project"]) {
+    if ([segue.identifier isEqualToString:@"ArchivedProject"]) {
         Project *project = (Project*)sender;
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
-        //[vc setUser:savedUser];
+        [vc setUser:_currentUser];
     }
 }
 

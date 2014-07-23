@@ -14,7 +14,8 @@
 
 @interface Phase : NSManagedObject
 
-@property (nonatomic, retain) NSNumber * completed;
+@property (nonatomic, retain) NSNumber * completedCount;
+@property (nonatomic, retain) NSNumber * notApplicableCount;
 @property (nonatomic, retain) NSDate * completedDate;
 @property (nonatomic, retain) NSNumber * expanded;
 @property (nonatomic, retain) NSNumber * identifier;
@@ -23,7 +24,6 @@
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSNumber * orderIndex;
 @property (nonatomic, retain) NSNumber * progressCount;
-@property (nonatomic, retain) NSString * progressPercentage;
 @property (nonatomic, retain) Checklist *checklist;
 @property (nonatomic, retain) NSOrderedSet *checklistItems;
 @property (nonatomic, retain) Project *project;

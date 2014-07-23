@@ -24,9 +24,9 @@
     if ([dictionary objectForKey:@"projects"] != [NSNull null]) {
         NSMutableOrderedSet *orderedProjects = [NSMutableOrderedSet orderedSet];
         for (id projectDict in [dictionary objectForKey:@"projects"]){
-            NSLog(@"project dict: %@",projectDict);
+            //NSLog(@"project dict: %@",projectDict);
             NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
-            Project *project = [Project MR_findFirstWithPredicate:projectPredicate];
+            Project *project = [Project MR_findFirstWithPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }

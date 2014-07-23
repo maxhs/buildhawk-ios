@@ -15,6 +15,7 @@
 @interface Checklist : NSManagedObject
 
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSOrderedSet *phases;
 @property (nonatomic, retain) NSOrderedSet *items;
 @property (nonatomic, retain) NSOrderedSet *activities;

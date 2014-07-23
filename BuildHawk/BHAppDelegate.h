@@ -17,8 +17,11 @@
 @property (strong, nonatomic) UINavigationController *nav;
 @property (strong, nonatomic) BHMenuViewController *menu;
 @property (strong, nonatomic) User *currentUser;
+@property (strong, nonatomic) NSString *bundleName;
 @property BOOL connected;
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav;
 - (void)offlineNotification;
+- (void)setDefaultAppearances;
+- (void)setToBuildHawkAppearances;
 @end

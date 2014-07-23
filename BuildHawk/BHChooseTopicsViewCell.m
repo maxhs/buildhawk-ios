@@ -21,7 +21,8 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [_chooseTopicsButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_chooseTopicsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
@@ -29,21 +30,6 @@
     [super setSelected:selected animated:animated];
 
     // Configure the view for the selected state
-}
-
-- (void)configureCell {
-    [_chooseTopicsButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    /*self.chooseTopicsButton.layer.cornerRadius = 8.f;
-    [self.chooseTopicsButton setBackgroundColor:kDarkerGrayColor];
-    [self.chooseTopicsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    self.chooseTopicsButton.layer.borderColor = kDarkerGrayColor.CGColor;
-    self.chooseTopicsButton.layer.borderWidth = .5f;
-    self.chooseTopicsButton.layer.shadowColor = [UIColor darkGrayColor].CGColor;
-    self.chooseTopicsButton.layer.shadowOpacity =  1.f;
-    self.chooseTopicsButton.layer.shadowRadius = 2.f;
-    self.chooseTopicsButton.layer.shadowOffset = CGSizeMake(0, 0);
-    self.chooseTopicsButton.layer.shouldRasterize = YES;
-    self.chooseTopicsButton.layer.rasterizationScale = [UIScreen mainScreen].scale;*/
 }
 
 @end

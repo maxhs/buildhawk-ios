@@ -7,11 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Project+helper.h"
 
 @interface BHActivitiesViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
+@property (strong, nonatomic) Project *project;
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) NSOrderedSet *activities;
-@property (strong, nonatomic) NSOrderedSet *reminders;
+@property (strong, nonatomic) NSMutableOrderedSet *reminders;
+@property (strong, nonatomic) NSOrderedSet *deadlineItems;
 
 @end

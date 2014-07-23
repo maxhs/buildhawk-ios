@@ -19,6 +19,12 @@
     return self;
 }
 
+- (void)awakeFromNib {
+    [_itemLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:19]];
+    [_createdLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_ownerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+}
+
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
 {
     [super setSelected:selected animated:animated];

@@ -11,6 +11,7 @@
 @implementation Checklist
 
 @dynamic identifier;
+@dynamic name;
 @dynamic phases;
 @dynamic items;
 @dynamic activities;

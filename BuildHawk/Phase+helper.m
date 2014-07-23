@@ -7,6 +7,7 @@
 //
 
 #import "Phase+helper.h"
+#import "Checklist+helper.h"
 #import "Phase.h"
 
 @implementation Phase (helper)
@@ -19,14 +20,17 @@
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
-        self.completed = [dictionary objectForKey:@"completed_count"];
+    if ([dictionary objectForKey:@"checklist_id"] && [dictionary objectForKey:@"checklist_id"] != [NSNull null]) {
+        Checklist *checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"checklist_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!checklist){
+            checklist = [Checklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            checklist.identifier = [dictionary objectForKey:@"checklist_id"];
+        }
+        self.checklist = checklist;
     }
+    
     if ([dictionary objectForKey:@"item_count"] && [dictionary objectForKey:@"item_count"] != [NSNull null]) {
         self.itemCount = [dictionary objectForKey:@"item_count"];
-    }
-    if ([dictionary objectForKey:@"progress_percentage"] && [dictionary objectForKey:@"progress_percentage"] != [NSNull null]) {
-        self.progressPercentage = [dictionary objectForKey:@"progress_percentage"];
     }
     if ([dictionary objectForKey:@"progress_count"] && [dictionary objectForKey:@"progress_count"] != [NSNull null]) {
         self.progressCount = [dictionary objectForKey:@"progress_count"];
@@ -37,15 +41,21 @@
     if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"milestone_date"] doubleValue];
         self.milestoneDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    } else {
+        self.milestoneDate = nil;
     }
+    
     if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    } else {
+        self.completedDate = nil;
     }
+    
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
-            Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"]];
+            Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (category){
                 [category update:categoryDict];
             } else {
@@ -55,6 +65,7 @@
             [categories addObject:category];
         }
         self.categories = categories;
+        [self calculateProgress];
     }
 }
 
@@ -63,14 +74,8 @@
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
-        self.completed = [dictionary objectForKey:@"completed_count"];
-    }
     if ([dictionary objectForKey:@"item_count"] && [dictionary objectForKey:@"item_count"] != [NSNull null]) {
         self.itemCount = [dictionary objectForKey:@"item_count"];
-    }
-    if ([dictionary objectForKey:@"progress_percentage"] && [dictionary objectForKey:@"progress_percentage"] != [NSNull null]) {
-        self.progressPercentage = [dictionary objectForKey:@"progress_percentage"];
     }
     if ([dictionary objectForKey:@"progress_count"] && [dictionary objectForKey:@"progress_count"] != [NSNull null]) {
         self.progressCount = [dictionary objectForKey:@"progress_count"];
@@ -87,7 +92,7 @@
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
-            Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"]];
+            Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (category){
                 [category update:categoryDict];
             } else {
@@ -98,9 +103,21 @@
             [categories addObject:category];
         }
         self.categories = categories;
+        [self calculateProgress];
     }
 }
 
+- (void)calculateProgress{
+    __block int completedCount = 0;
+    __block int notApplicableCount = 0;
+    [self.categories enumerateObjectsUsingBlock:^(Cat *category, NSUInteger idx, BOOL *stop) {
+        completedCount += category.completedCount.intValue;
+        notApplicableCount += category.notApplicableCount.intValue;
+    }];
+    self.completedCount = [NSNumber numberWithInteger:completedCount];
+    self.notApplicableCount = [NSNumber numberWithInteger:notApplicableCount];
+    //NSLog(@"phase %@ with %@ complete and %@ not applicable",self.name,self.completedCount,self.notApplicableCount);
+}
 
 - (void)addCategory:(Cat *)category{
     NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.categories];

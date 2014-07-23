@@ -13,6 +13,13 @@
 #import "Report+helper.h"
 #import "Folder+helper.h"
 
+@interface BHActivityCell () {
+    CGFloat origX;
+    CGFloat origWidth;
+}
+
+@end
+
 @implementation BHActivityCell
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
@@ -26,7 +33,11 @@
 
 - (void)awakeFromNib
 {
+    [_activityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    [_timestampLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
+    origWidth = _activityLabel.frame.size.width;
+    origX = _activityLabel.frame.origin.x;
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
@@ -37,28 +48,44 @@
 }
 
 - (void)configureForActivity:(Activity*)activity {
+    [self.imageView setImage:nil];
     if ([activity.activityType isEqualToString:kComment]) {
         [_activityLabel setText:[NSString stringWithFormat:@"%@ - %@",activity.body,activity.comment.user.fullname]];
     } else {
         [_activityLabel setText:activity.body];
     }
+    CGRect frame = _activityLabel.frame;
+    frame.origin.x = 10;
+    frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
+    [_activityLabel setFrame:frame];
 }
 
 - (void)configureActivityForSynopsis:(Activity *)activity {
+    
+    CGRect frame = _activityLabel.frame;
+    frame.origin.x = origX;
+    frame.size.width = origWidth;
+    [_activityLabel setFrame:frame];
+    
     if ([activity.activityType isEqualToString:kComment]) {
+        [self.imageView setImage:[UIImage imageNamed:@"miniChat_black"]];
         NSString *activityObject;
         if (activity.task){
             if (activity.task.body.length > 25){
                 activityObject = [[activity.task.body substringToIndex:25] stringByAppendingString:@"..."];
-            } else {
+            } else if (activity.task.body.length) {
                 activityObject = activity.task.body;
+            } else {
+                activityObject = @"an unnamed item";
             }
         } else if (activity.checklistItem){
             
             if (activity.checklistItem.body.length > 25){
                 activityObject = [[activity.checklistItem.body substringToIndex:25] stringByAppendingString:@"..."];
-            } else {
+            } else if (activity.checklistItem.body.length) {
                 activityObject = activity.checklistItem.body;
+            } else {
+                activityObject = @"an unnamed item";
             }
         }
         [_activityLabel setText:[NSString stringWithFormat:@"%@ commented on \"%@\": %@.",activity.comment.user.fullname,activityObject,activity.body]];
@@ -89,11 +116,37 @@
         
         if ([activity.body rangeOfString:@"complete"].location != NSNotFound){
             if (activity.user && activity.user.fullname.length){
-                [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" was completed by %@.",activityObject,activity.user.fullname]];
+                if (activityObject.length == 0){
+                    [_activityLabel setText:[NSString stringWithFormat:@"An unnamed item was completed by %@.",activity.user.fullname]];
+                } else {
+                    [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" was completed by %@.",activityObject,activity.user.fullname]];
+                }
             } else {
                 [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" was completed.",activityObject]];
             }
             
+        } else if ([activity.body rangeOfString:@"complete"].location != NSNotFound){
+            NSString *status;
+            switch (activity.checklistItem.state.integerValue) {
+                case kItemCompleted:
+                    status = kcompleted;
+                    break;
+                case kItemInProgress:
+                    status = @"in progress";
+                    break;
+                case kItemNotApplicable:
+                    status = @"not applicable";
+                    break;
+                    
+                default:
+                    status = @"in progress";
+                    break;
+            }
+            if (activity.user && activity.user.fullname.length){
+                [_activityLabel setText:[NSString stringWithFormat:@"%@ updated the status for \"%@\" to %@.",activity.user.fullname,activityObject,status]];
+            } else {
+                [_activityLabel setText:[NSString stringWithFormat:@"The status for \"%@\" was updated to %@.",activityObject,status]];
+            }
         } else {
             [_activityLabel setText:activity.body];
         }
@@ -107,9 +160,17 @@
         }
         
         if ([activity.body rangeOfString:@"complete"].location != NSNotFound){
-            [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" was completed by %@.",activityObject,activity.user.fullname]];
+            if (activityObject.length > 0){
+                [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" was completed by %@.",activityObject,activity.user.fullname]];
+            } else {
+                [_activityLabel setText:[NSString stringWithFormat:@"An unnamed task was completed by %@.",activity.user.fullname]];
+            }
         } else {
-            [_activityLabel setText:[NSString stringWithFormat:@"%@ modified \"%@\".",activity.user.fullname,activityObject]];
+            if (activityObject.length > 0){
+                [_activityLabel setText:[NSString stringWithFormat:@"%@ modified \"%@\".",activity.user.fullname,activityObject]];
+            } else {
+                [_activityLabel setText:[NSString stringWithFormat:@"%@ modified an unnamed task.",activity.user.fullname]];
+            }
         }
     } else if ([activity.activityType isEqualToString:kPhoto]) {
         [self.imageView setImage:[UIImage imageNamed:@"documents"]];
@@ -118,6 +179,9 @@
         } else {
             [_activityLabel setText:activity.body];
         }
+    } else if ([activity.activityType isEqualToString:kReminder]) {
+        [self.imageView setImage:[UIImage imageNamed:@"reminders"]];
+        [_activityLabel setText:activity.body];
     } else {
         [_activityLabel setText:activity.body];
     }

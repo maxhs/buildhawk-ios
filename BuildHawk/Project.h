@@ -2,14 +2,14 @@
 //  Project.h
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 7/3/14.
+//  Created by Max Haines-Stiles on 7/17/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class Activity, Address, Checklist, ChecklistItem, Company, Group, Message, Phase, Photo, Reminder, Report, User, Worklist, WorklistItem;
+@class Activity, Address, Checklist, ChecklistItem, Company, ConnectUser, Folder, Group, Message, Phase, Photo, Reminder, Report, User, Worklist, WorklistItem;
 
 @interface Project : NSManagedObject
 
@@ -26,8 +26,10 @@
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) Company *companyArchives;
 @property (nonatomic, retain) NSOrderedSet *documents;
+@property (nonatomic, retain) NSOrderedSet *folders;
 @property (nonatomic, retain) Group *group;
 @property (nonatomic, retain) NSOrderedSet *messages;
+@property (nonatomic, retain) NSOrderedSet *pastDueReminders;
 @property (nonatomic, retain) NSOrderedSet *phases;
 @property (nonatomic, retain) NSOrderedSet *recentDocuments;
 @property (nonatomic, retain) NSOrderedSet *recentItems;
@@ -38,7 +40,8 @@
 @property (nonatomic, retain) NSOrderedSet *users;
 @property (nonatomic, retain) Worklist *worklist;
 @property (nonatomic, retain) NSOrderedSet *worklistItems;
-@property (nonatomic, retain) NSOrderedSet *folders;
+@property (nonatomic, retain) NSOrderedSet *connectUsers;
+@property (nonatomic, retain) NSMutableOrderedSet *userConnectItems;
 @end
 
 @interface Project (CoreDataGeneratedAccessors)
@@ -73,6 +76,16 @@
 - (void)removeDocumentsObject:(Photo *)value;
 - (void)addDocuments:(NSOrderedSet *)values;
 - (void)removeDocuments:(NSOrderedSet *)values;
+- (void)insertObject:(Folder *)value inFoldersAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromFoldersAtIndex:(NSUInteger)idx;
+- (void)insertFolders:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeFoldersAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInFoldersAtIndex:(NSUInteger)idx withObject:(Folder *)value;
+- (void)replaceFoldersAtIndexes:(NSIndexSet *)indexes withFolders:(NSArray *)values;
+- (void)addFoldersObject:(Folder *)value;
+- (void)removeFoldersObject:(Folder *)value;
+- (void)addFolders:(NSOrderedSet *)values;
+- (void)removeFolders:(NSOrderedSet *)values;
 - (void)insertObject:(Message *)value inMessagesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromMessagesAtIndex:(NSUInteger)idx;
 - (void)insertMessages:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
@@ -83,6 +96,16 @@
 - (void)removeMessagesObject:(Message *)value;
 - (void)addMessages:(NSOrderedSet *)values;
 - (void)removeMessages:(NSOrderedSet *)values;
+- (void)insertObject:(Reminder *)value inPastDueRemindersAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromPastDueRemindersAtIndex:(NSUInteger)idx;
+- (void)insertPastDueReminders:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removePastDueRemindersAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInPastDueRemindersAtIndex:(NSUInteger)idx withObject:(Reminder *)value;
+- (void)replacePastDueRemindersAtIndexes:(NSIndexSet *)indexes withPastDueReminders:(NSArray *)values;
+- (void)addPastDueRemindersObject:(Reminder *)value;
+- (void)removePastDueRemindersObject:(Reminder *)value;
+- (void)addPastDueReminders:(NSOrderedSet *)values;
+- (void)removePastDueReminders:(NSOrderedSet *)values;
 - (void)insertObject:(Phase *)value inPhasesAtIndex:(NSUInteger)idx;
 - (void)removeObjectFromPhasesAtIndex:(NSUInteger)idx;
 - (void)insertPhases:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
@@ -163,4 +186,14 @@
 - (void)removeWorklistItemsObject:(WorklistItem *)value;
 - (void)addWorklistItems:(NSOrderedSet *)values;
 - (void)removeWorklistItems:(NSOrderedSet *)values;
+- (void)insertObject:(ConnectUser *)value inConnectUsersAtIndex:(NSUInteger)idx;
+- (void)removeObjectFromConnectUsersAtIndex:(NSUInteger)idx;
+- (void)insertConnectUsers:(NSArray *)value atIndexes:(NSIndexSet *)indexes;
+- (void)removeConnectUsersAtIndexes:(NSIndexSet *)indexes;
+- (void)replaceObjectInConnectUsersAtIndex:(NSUInteger)idx withObject:(ConnectUser *)value;
+- (void)replaceConnectUsersAtIndexes:(NSIndexSet *)indexes withConnectUsers:(NSArray *)values;
+- (void)addConnectUsersObject:(ConnectUser *)value;
+- (void)removeConnectUsersObject:(ConnectUser *)value;
+- (void)addConnectUsers:(NSOrderedSet *)values;
+- (void)removeConnectUsers:(NSOrderedSet *)values;
 @end

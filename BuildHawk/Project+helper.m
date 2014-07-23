@@ -17,6 +17,7 @@
 #import "Activity+helper.h"
 #import "Report+helper.h"
 #import "Reminder+helper.h"
+#import "ConnectUser+helper.h"
 
 @implementation Project (helper)
 
@@ -30,19 +31,21 @@
     }
     if ([dictionary objectForKey:@"company"] && [dictionary objectForKey:@"company"] != [NSNull null]) {
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
-        Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"]];
+        Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!company){
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [company populateWithDict:companyDict];
         }
-        [company populateWithDict:companyDict];
+        
         self.company = company;
     }
     
-    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
-        self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
-    }
     if ([dictionary objectForKey:@"core"] && [dictionary objectForKey:@"core"] != [NSNull null]) {
         self.demo = [NSNumber numberWithBool:[[dictionary objectForKey:@"core"] boolValue]];
+    }
+    
+    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
+        self.active = [dictionary objectForKey:@"active"];
     }
     
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
@@ -50,17 +53,42 @@
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            User *user = [User MR_findFirstWithPredicate:userPredicate];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (user){
                 [user update:userDict];
             } else {
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [user populateFromDictionary:userDict];
             }
-            
             [orderedUsers addObject:user];
         }
+        for (User *user in self.connectUsers){
+            if (![orderedUsers containsObject:user]){
+                NSLog(@"Deleting a project user that no longer exists: %@",user.fullname);
+                [user MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
         self.users = orderedUsers;
+    }
+    if ([dictionary objectForKey:@"connect_users"] && [dictionary objectForKey:@"connect_users"] != [NSNull null]) {
+        //NSLog(@"project connect users: %@",[dictionary objectForKey:@"connect_users"]);
+        NSMutableOrderedSet *orderedConnectUsers = [NSMutableOrderedSet orderedSet];
+        for (id userDict in [dictionary objectForKey:@"connect_users"]){
+            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+            ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!connectUser){
+                connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [connectUser populateFromDictionary:userDict];
+            [orderedConnectUsers addObject:connectUser];
+        }
+        for (ConnectUser *connectUser in self.connectUsers){
+            if (![orderedConnectUsers containsObject:connectUser]){
+                NSLog(@"Deleting a connect user that no longer exists: %@",connectUser.fullname);
+                [connectUser MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+        self.connectUsers = orderedConnectUsers;
     }
     
     if ([dictionary objectForKey:@"companies"] && [dictionary objectForKey:@"companies"] != [NSNull null]) {
@@ -68,7 +96,7 @@
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"companies"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Company *company = [Company MR_findFirstWithPredicate:predicate];
+            Company *company = [Company MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!company){
                 company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -80,7 +108,7 @@
     
     if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]) {
         NSDictionary *addressDict = [dictionary objectForKey:@"address"];
-        Address *address = [Address MR_findFirstByAttribute:@"identifier" withValue:[addressDict objectForKey:@"id"]];
+        Address *address = [Address MR_findFirstByAttribute:@"identifier" withValue:[addressDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!address) {
             address = [Address MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -89,7 +117,7 @@
     }
     if ([dictionary objectForKey:@"project_group"] && [dictionary objectForKey:@"project_group"] != [NSNull null]) {
         NSDictionary *groupDict = [dictionary objectForKey:@"project_group"];
-        Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"]];
+        Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!group) {
             group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -107,7 +135,7 @@
         for (id photoDict in [dictionary objectForKey:@"recent_documents"]){
             if ([photoDict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
                     [photo update:photoDict];
                 } else {
@@ -133,7 +161,7 @@
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             if ([photoDict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
                     [photo update:photoDict];
                 } else {
@@ -152,7 +180,7 @@
             if ([phaseDict objectForKey:@"id"]){
                 NSPredicate *phasePredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [phaseDict objectForKey:@"id"]];
                 //on the api, we're actually callign a category a "phase"
-                Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate];
+                Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (phase){
                     [phase populateFromDictionary:phaseDict];
                 } else {
@@ -166,12 +194,12 @@
         self.phases = tmpPhases;
     }
     if ([dictionary objectForKey:@"upcoming_items"] && [dictionary objectForKey:@"upcoming_items"] != [NSNull null]) {
-        NSMutableOrderedSet *tmpUpcoming = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.upcomingItems];
+        NSMutableOrderedSet *tmpUpcoming = [NSMutableOrderedSet orderedSet];
         for (id itemDict in [dictionary objectForKey:@"upcoming_items"]){
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
                 //on the api, we're actually callign a category a "phase"
-                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate];
+                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (item){
                     [item populateFromDictionary:itemDict];
                 } else {
@@ -182,6 +210,7 @@
                 [tmpUpcoming addObject:item];
             }
         }
+        
         self.upcomingItems = tmpUpcoming;
     }
     if ([dictionary objectForKey:@"recently_completed"] && [dictionary objectForKey:@"recently_completed"] != [NSNull null]) {
@@ -189,7 +218,7 @@
         for (id itemDict in [dictionary objectForKey:@"recently_completed"]){
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate];
+                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (item){
                     [item populateFromDictionary:itemDict];
                 } else {
@@ -203,13 +232,13 @@
         self.recentItems = tmpRecent;
     }
     
-    if ([dictionary objectForKey:@"activities"] && [dictionary objectForKey:@"activities"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"recent_activities"] && [dictionary objectForKey:@"recent_activities"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
         //NSLog(@"project activities %@",[dictionary objectForKey:@"activities"]);
-        for (id dict in [dictionary objectForKey:@"activities"]){
+        for (id dict in [dictionary objectForKey:@"recent_activities"]){
             if ([dict objectForKey:@"id"]){
-                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate];
+                NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+                Activity *activity = [Activity MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!activity){
                     activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
@@ -228,24 +257,30 @@
     
     if ([dictionary objectForKey:@"reminders"] && [dictionary objectForKey:@"reminders"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        NSMutableOrderedSet *pastDueSet = [NSMutableOrderedSet orderedSet];
         //NSLog(@"project reminders %@",[dictionary objectForKey:@"reminders"]);
         for (id dict in [dictionary objectForKey:@"reminders"]){
             if ([dict objectForKey:@"id"]){
                 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-                Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate];
+                Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!reminder){
                     reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
                 [reminder populateFromDictionary:dict];
-                [set addObject:reminder];
+                if ([reminder.reminderDate compare:[NSDate date]] == NSOrderedAscending){
+                    [pastDueSet addObject:reminder];
+                } else {
+                    [set addObject:reminder];
+                }
             }
         }
         for (Reminder *reminder in self.reminders){
-            if (![set containsObject:reminder]){
+            if (![set containsObject:reminder] && ![pastDueSet containsObject:reminder]){
                 NSLog(@"Deleting a reminder that no longer exists.");
                 [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
+        self.pastDueReminders = pastDueSet;
         self.reminders = set;
     }
 }
@@ -257,7 +292,7 @@
     }
     if ([dictionary objectForKey:@"company"] && [dictionary objectForKey:@"company"] != [NSNull null]) {
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
-        Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"]];
+        Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (company){
             [company update:companyDict];
         } else {
@@ -273,7 +308,7 @@
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"companies"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-            Company *company = [Company MR_findFirstWithPredicate:predicate];
+            Company *company = [Company MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (company){
                 [company update:dict];
             } else {
@@ -286,11 +321,10 @@
     }
     
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
-        
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            User *user = [User MR_findFirstWithPredicate:userPredicate];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (user){
                 [user update:userDict];
             } else {
@@ -303,6 +337,21 @@
         self.users = orderedUsers;
     }
     
+    if ([dictionary objectForKey:@"connect_users"] && [dictionary objectForKey:@"connect_users"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedConnectUsers = [NSMutableOrderedSet orderedSet];
+        NSLog(@"project connect users: %@",[dictionary objectForKey:@"connect_users"]);
+        for (id userDict in [dictionary objectForKey:@"connect_users"]){
+            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+            ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!connectUser){
+                connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [connectUser populateFromDictionary:userDict];
+            [orderedConnectUsers addObject:connectUser];
+        }
+        self.connectUsers = orderedConnectUsers;
+    }
+    
     if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
         self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
     }
@@ -312,7 +361,7 @@
     
     if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]) {
         NSDictionary *addressDict = [dictionary objectForKey:@"address"];
-        Address *address = [Address MR_findFirstByAttribute:@"identifier" withValue:[addressDict objectForKey:@"id"]];
+        Address *address = [Address MR_findFirstByAttribute:@"identifier" withValue:[addressDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!address) {
             address = [Address MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -321,7 +370,7 @@
     }
     if ([dictionary objectForKey:@"project_group"] && [dictionary objectForKey:@"project_group"] != [NSNull null]) {
         NSDictionary *groupDict = [dictionary objectForKey:@"project_group"];
-        Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"]];
+        Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!group) {
             group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -339,7 +388,7 @@
         for (id photoDict in [dictionary objectForKey:@"recent_documents"]){
             if ([photoDict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
                     [photo update:photoDict];
                 } else {
@@ -366,7 +415,7 @@
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             if ([photoDict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate];
+                Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
                     [photo update:photoDict];
                 } else {
@@ -385,7 +434,7 @@
             if ([phaseDict objectForKey:@"id"]){
                 NSPredicate *phasePredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [phaseDict objectForKey:@"id"]];
                 //on the api, we're actually callign a category a "phase"
-                Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate];
+                Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (phase){
                     [phase populateFromDictionary:phaseDict];
                 } else {
@@ -399,12 +448,12 @@
         self.phases = tmpPhases;
     }
     if ([dictionary objectForKey:@"upcoming_items"] && [dictionary objectForKey:@"upcoming_items"] != [NSNull null]) {
-        NSMutableOrderedSet *tmpUpcoming = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.upcomingItems];
+        NSMutableOrderedSet *tmpUpcoming = [NSMutableOrderedSet orderedSet];
         for (id itemDict in [dictionary objectForKey:@"upcoming_items"]){
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
                 //on the api, we're actually callign a category a "phase"
-                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate];
+                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (item){
                     [item populateFromDictionary:itemDict];
                 } else {
@@ -422,7 +471,7 @@
         for (id itemDict in [dictionary objectForKey:@"recently_completed"]){
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate];
+                ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (item){
                     [item populateFromDictionary:itemDict];
                 } else {
@@ -442,7 +491,7 @@
         for (id dict in [dictionary objectForKey:@"activities"]){
             if ([dict objectForKey:@"id"]){
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate];
+                Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!activity){
                     activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
@@ -461,24 +510,30 @@
     
     if ([dictionary objectForKey:@"reminders"] && [dictionary objectForKey:@"reminders"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
+        NSMutableOrderedSet *pastDueSet = [NSMutableOrderedSet orderedSet];
         //NSLog(@"project reminders %@",[dictionary objectForKey:@"reminders"]);
         for (id dict in [dictionary objectForKey:@"reminders"]){
             if ([dict objectForKey:@"id"]){
                 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-                Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate];
+                Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!reminder){
                     reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 }
                 [reminder populateFromDictionary:dict];
-                [set addObject:reminder];
+                if ([reminder.reminderDate compare:[NSDate date]] == NSOrderedAscending){
+                    [pastDueSet addObject:reminder];
+                } else {
+                    [set addObject:reminder];
+                }
             }
         }
         for (Reminder *reminder in self.reminders){
-            if (![set containsObject:reminder]){
-                NSLog(@"Deleting an reminder that no longer exists.");
+            if (![set containsObject:reminder] && ![pastDueSet containsObject:reminder]){
+                NSLog(@"Deleting a reminder that no longer exists.");
                 [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
+        self.pastDueReminders = pastDueSet;
         self.reminders = set;
     }
 }
@@ -487,7 +542,7 @@
 - (void)parseDocuments:(NSArray *)array {
     NSMutableOrderedSet *photos = [NSMutableOrderedSet orderedSet];
     for (NSDictionary *photoDict in array){
-        Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"]];
+        Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!photo){
             photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
@@ -513,6 +568,7 @@
     [set removeObject:photo];
     self.documents = set;
 }
+
 -(void)addReport:(Report *)report {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reports];
     [set addObject:report];
@@ -530,5 +586,15 @@
     }
 }
 
+-(void)addCompany:(Company *)company {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.companies];
+    [set addObject:company];
+    self.companies = set;
+}
+-(void)removeCompany:(Company *)company {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.companies];
+    [set removeObject:company];
+    self.companies = set;
+}
 
 @end

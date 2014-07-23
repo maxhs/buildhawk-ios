@@ -11,5 +11,4 @@
 @interface BHReportPersonnelCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIButton *choosePersonnelButton;
 @property (weak, nonatomic) IBOutlet UIButton *prefillButton;
-- (void)configureCell;
 @end

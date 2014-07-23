@@ -8,12 +8,15 @@
 
 #import "BHWebViewController.h"
 
-@interface BHWebViewController ()
+@interface BHWebViewController () {
+    UIBarButtonItem *xButton;
+}
 
 @end
 
 @implementation BHWebViewController
 
+@synthesize url = _url;
 @synthesize photo = _photo;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -28,7 +31,17 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	[self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:_photo.original]]];
+    if (_photo){
+        [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:_photo.original]]];
+    } else if (_url) {
+        xButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(dismiss)];
+        self.navigationItem.leftBarButtonItem = xButton;
+        [self.webView loadRequest:[NSURLRequest requestWithURL:_url]];
+    }
+}
+
+- (void)dismiss {
+    [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
 - (void)webViewDidStartLoad:(UIWebView *)webView {

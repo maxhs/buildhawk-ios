@@ -23,7 +23,7 @@
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            User *user = [User MR_findFirstWithPredicate:userPredicate];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!user){
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -43,7 +43,7 @@
         NSMutableOrderedSet *orderedSubcontractors = [NSMutableOrderedSet orderedSet];
         for (id subDict in [dictionary objectForKey:@"subcontractors"]){
             NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
-            Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:subPredicate];
+            Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:subPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!subcontractor){
                 subcontractor = [Subcontractor MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -68,7 +68,7 @@
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
         for (id userDict in [dictionary objectForKey:@"users"]){
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            User *user = [User MR_findFirstWithPredicate:userPredicate];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!user){
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
@@ -88,7 +88,7 @@
         NSMutableOrderedSet *orderedSubcontractors = [NSMutableOrderedSet orderedSet];
         for (id subDict in [dictionary objectForKey:@"subcontractors"]){
             NSPredicate *subPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [subDict objectForKey:@"id"]];
-            Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:subPredicate];
+            Subcontractor *subcontractor = [Subcontractor MR_findFirstWithPredicate:subPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!subcontractor){
                 subcontractor = [Subcontractor MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
