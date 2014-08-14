@@ -26,6 +26,7 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) NSSet *locationSet;
+@property BOOL connectMode;
 -(IBAction)completionTapped;
 -(IBAction)takePhoto;
 -(IBAction)choosePhoto;

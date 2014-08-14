@@ -33,7 +33,7 @@
 {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"DeletePhoto" object:nil];
     [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    [self.tableView setBackgroundColor:[UIColor whiteColor]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
     if (IDIOM == IPAD) {
         self.tableView.rowHeight = 88.f;
@@ -76,8 +76,8 @@
         titleString = [NSString stringWithFormat:@"%@ - %i items",key,array.count];
     }
     [cell.textLabel setText:titleString];
-    if(IDIOM == IPAD) [cell.textLabel setFont:[UIFont systemFontOfSize:19]];
-    else [cell.textLabel setFont:[UIFont systemFontOfSize:18]];
+    if (IDIOM == IPAD) [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:21]];
+    else [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:19]];
     return cell;
     /*static NSString *CellIdentifier = @"PhotoPickerCell";
     BHPhotoPickerCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];

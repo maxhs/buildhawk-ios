@@ -24,19 +24,7 @@
         [project populateFromDictionary:[dictionary objectForKey:@"project"]];
         self.project = project;
     }
-    if ([dictionary objectForKey:@"punchlist_items"] && [dictionary objectForKey:@"punchlist_items"] != [NSNull null]) {
-        NSMutableOrderedSet *worklistItems = [NSMutableOrderedSet orderedSet];
-        for (id itemDict in [dictionary objectForKey:@"punchlist_items"]){
 
-            WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (!item){
-                item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-            [item populateFromDictionary:itemDict];
-            [worklistItems addObject:item];
-        }
-        self.worklistItems = worklistItems;
-    }
     if ([dictionary objectForKey:@"worklist_items"] && [dictionary objectForKey:@"worklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *worklistItems = [NSMutableOrderedSet orderedSet];
         for (id itemDict in [dictionary objectForKey:@"worklist_items"]){

@@ -76,7 +76,7 @@
     //collapse all the phases/rows
     if (_checklist){
         for (Cat *category in _checklist.phases){
-            category.expanded = [NSNumber numberWithBool:NO];
+            category.expanded = @NO;
         }
     }
     
@@ -175,7 +175,7 @@
         //use indexPathToExpand row here because the indexPath is pulled from the detail view progress section
         if (!loading){
             Phase *phase = [_checklist.phases objectAtIndex:indexPathToExpand.row];
-            phase.expanded = [NSNumber numberWithBool:YES];
+            phase.expanded = @YES;
             [rowDictionary setObject:phase.categories.mutableCopy forKey:[NSString stringWithFormat:@"%d",indexPathToExpand.row]];
             [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:[_checklist.phases indexOfObject:phase]] atScrollPosition:UITableViewScrollPositionTop animated:YES];
             [self.tableView reloadData];
@@ -255,7 +255,7 @@
                 [phase.activeCategories addObject:category];
             } else {
                 //condense the phase
-                phase.expanded = [NSNumber numberWithBool:NO];
+                phase.expanded = @NO;
             }
         }
         if (phase.activeCategories.count > 0) {
@@ -288,7 +288,7 @@
                 [phase.inProgressCategories addObject:category];
             } else {
                 //condense the phase
-                phase.expanded = [NSNumber numberWithBool:NO];
+                phase.expanded = @NO;
             }
             
         }
@@ -321,7 +321,7 @@
                 [phase.completedCategories addObject:category];
             } else {
                 //condense the phase
-                phase.expanded = [NSNumber numberWithBool:NO];
+                phase.expanded = @NO;
             }
         }
         if (phase.completedCategories.count > 0) {
@@ -403,10 +403,10 @@
     if (tableView == self.searchDisplayController.searchResultsTableView) return filteredItems.count;
     else if (completed){
         Phase *phase = [_checklist.completedPhases objectAtIndex:section];
-        if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([phase.expanded isEqualToNumber:@YES]){
             int count = phase.completedCategories.count + 1;
             for (Cat *category in phase.completedCategories){
-                if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                if ([category.expanded isEqualToNumber:@YES]){
                     count += category.completedItems.count;
                 }
             }
@@ -416,10 +416,10 @@
         }
     } else if (active){
         Phase *phase = [_checklist.activePhases objectAtIndex:section];
-        if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([phase.expanded isEqualToNumber:@YES]){
             int count = phase.activeCategories.count + 1;
             for (Cat *category in phase.activeCategories){
-                if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                if ([category.expanded isEqualToNumber:@YES]){
                     count += category.activeItems.count;
                 }
             }
@@ -429,10 +429,10 @@
         }
     } else if (inProgress){
         Phase *phase = [_checklist.inProgressPhases objectAtIndex:section];
-        if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([phase.expanded isEqualToNumber:@YES]){
             int count = phase.inProgressCategories.count + 1;
             for (Cat *category in phase.inProgressCategories){
-                if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                if ([category.expanded isEqualToNumber:@YES]){
                     count += category.inProgressItems.count;
                 }
             }
@@ -443,11 +443,11 @@
     } else {
         Phase *phase = [_checklist.phases objectAtIndex:section];
         
-        if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([phase.expanded isEqualToNumber:@YES]){
             
             int count = phase.categories.count + 1;
             for (Cat *category in phase.categories){
-                if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                if ([category.expanded isEqualToNumber:@YES]){
                     count += category.items.count;
                 }
             }
@@ -532,7 +532,7 @@
             cell.accessoryView = progressLabel;
             [cell setBackgroundColor:[UIColor whiteColor]];
             
-        } else if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        } else if ([phase.expanded isEqualToNumber:@YES]){
             
             //add a border
             cell.layer.borderWidth = .5f;

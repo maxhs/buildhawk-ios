@@ -61,10 +61,14 @@
 @synthesize currentUser = _currentUser;
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
+    
     self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     
-    [super viewDidLoad];
+    //only ask for push notifications when a user has successfully logged in
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
+    
     [self.view setBackgroundColor:kDarkerGrayColor];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
@@ -259,7 +263,7 @@
 
 - (void)loadGroups {
     [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"load groups response object: %@",responseObject);
+        //NSLog(@"load groups response object: %@",responseObject);
         if ([responseObject objectForKey:@"groups"]){
             NSMutableOrderedSet *groups = [NSMutableOrderedSet orderedSet];
             for (NSDictionary *groupDict in [responseObject objectForKey:@"groups"]) {

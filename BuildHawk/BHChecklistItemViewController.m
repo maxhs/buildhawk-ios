@@ -756,7 +756,7 @@
 }
 
 - (void)saveImage:(UIImage*)image {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ![_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ![_project.demo isEqualToNumber:@YES]){
         [self savePostToLibrary:image];
         NSData *imageData = UIImageJPEGRepresentation(image, 1);
         NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
@@ -769,7 +769,7 @@
         [photoParameters setObject:_item.identifier forKey:@"checklist_item_id"];
         [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
         [photoParameters setObject:kChecklist forKey:@"source"];
-        [photoParameters setObject:[NSNumber numberWithBool:YES] forKey:@"mobile"];
+        [photoParameters setObject:@YES forKey:@"mobile"];
         
         [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
@@ -835,7 +835,7 @@
 }
 
 - (void)updateChecklistItem:(BOOL)stayHere {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
@@ -880,7 +880,7 @@
     }
     
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    if (_project.demo == [NSNumber numberWithBool:YES]) {
+    if (_project.demo == @YES) {
         browser.displayTrashButton = NO;
     }
     browser.displayActionButton = YES;
@@ -980,7 +980,7 @@
 }
 
 - (void)deleteComment {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         Activity *activity = _item.activities[indexPathForDeletion.row-1];
@@ -1009,7 +1009,7 @@
 }
 
 - (void)deleteReminder {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete reminders from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if ([_reminder.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
@@ -1051,7 +1051,7 @@
 }
 
 - (void)back {
-    if (shouldSave && [_project.demo isEqualToNumber:[NSNumber numberWithBool:NO]]) {
+    if (shouldSave && [_project.demo isEqualToNumber:@NO]) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self.navigationController popViewControllerAnimated:YES];

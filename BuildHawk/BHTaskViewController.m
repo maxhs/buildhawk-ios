@@ -560,10 +560,7 @@ typedef void(^RequestSuccess)(id result);
                 [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
             } success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"save task photo response object: %@",responseObject);
-                if ([responseObject objectForKey:@"punchlist_item"]){
-                    [_task populateFromDictionary:[responseObject objectForKey:@"punchlist_item"]];
-                    //[_project.worklist replaceWorklistItem:_task];
-                } else if ([responseObject objectForKey:@"worklist_item"]){
+                if ([responseObject objectForKey:@"worklist_item"]){
                     [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
                     //[_project.worklist replaceWorklistItem:_task];
                 }
@@ -714,28 +711,36 @@ typedef void(^RequestSuccess)(id result);
 }
 
 -(IBAction)assigneeButtonTapped{
-    shouldSave = YES;
-    if (_task.assignees.count || _task.connectAssignees.count){
-        assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this task:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-        [assigneeActionSheet addButtonWithTitle:@"Reassign"];
-        assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
-        assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
-        [assigneeActionSheet showInView:self.view];
+    if (_connectMode){
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's assignee." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
+        shouldSave = YES;
+        if (_task.assignees.count || _task.connectAssignees.count){
+            assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this task:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+            [assigneeActionSheet addButtonWithTitle:@"Reassign"];
+            assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
+            assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
+            [assigneeActionSheet showInView:self.view];
+        } else {
+            [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
+        }
     }
 }
 
 -(IBAction)locationButtonTapped{
-    shouldSave = YES;
-    locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-    for (NSString *location in locationSet.allObjects) {
-        [locationActionSheet addButtonWithTitle:location];
+    if (_connectMode){
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's location." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        shouldSave = YES;
+        locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+        for (NSString *location in locationSet.allObjects) {
+            [locationActionSheet addButtonWithTitle:location];
+        }
+        [locationActionSheet addButtonWithTitle:kAddOther];
+        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder])locationActionSheet.destructiveButtonIndex = [locationActionSheet addButtonWithTitle:@"Remove location"];
+        locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
+        [locationActionSheet showInView:self.view];
     }
-    [locationActionSheet addButtonWithTitle:kAddOther];
-    if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder])locationActionSheet.destructiveButtonIndex = [locationActionSheet addButtonWithTitle:@"Remove location"];
-    locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
-    [locationActionSheet showInView:self.view];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {

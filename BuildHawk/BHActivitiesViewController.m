@@ -105,16 +105,16 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSynopsisCell" owner:self options:nil] lastObject];
         }
         ChecklistItem *checklistItem = [_deadlineItems objectAtIndex:indexPath.row];
-        [cell.textLabel setText:checklistItem.body];
+        [cell.deadlineTextLabel setText:checklistItem.body];
         if (checklistItem.criticalDate) {
-            [cell.deadlineLabel setText:[NSString stringWithFormat:@"Deadline: %@",[formatter stringFromDate:checklistItem.criticalDate]]];
-            [cell.deadlineLabel setTextColor:[UIColor blackColor]];
+            [cell.deadlineTimeLabel setText:[NSString stringWithFormat:@"Deadline: %@",[formatter stringFromDate:checklistItem.criticalDate]]];
+            [cell.deadlineTimeLabel setTextColor:[UIColor blackColor]];
         } else {
-            [cell.deadlineLabel setText:@"No critical date listed"];
-            [cell.deadlineLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.deadlineTimeLabel setText:@"No critical date listed"];
+            [cell.deadlineTimeLabel setTextColor:[UIColor lightGrayColor]];
         }
         if ([checklistItem.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
-            [cell.textLabel setTextColor:[UIColor lightGrayColor]];
+            [cell.deadlineTextLabel setTextColor:[UIColor lightGrayColor]];
         }
         if ([[checklistItem type] isEqualToString:@"Com"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
@@ -123,8 +123,7 @@
         } else {
             [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
         }
-        cell.textLabel.numberOfLines = 0;
-        [cell.textLabel setFont:[UIFont systemFontOfSize:16]];
+        cell.deadlineTextLabel.numberOfLines = 0;
         return cell;
     }
 }

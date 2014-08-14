@@ -223,8 +223,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 if (max.length > 4){
                     max = [max substringToIndex:4];
                 }
-                [tableView.report setHumidity:[NSString stringWithFormat:@"%.1f%%", [[dailyData objectForKey:@"humidity"] floatValue]*100]];
-                [tableView.report setPrecip:[NSString stringWithFormat:@"%.1f%%", [[dailyData objectForKey:@"precipProbability"] floatValue]*100]];
+                [tableView.report setHumidity:[NSString stringWithFormat:@"%.0f%%", [[dailyData objectForKey:@"humidity"] floatValue]*100]];
+                [tableView.report setPrecip:[NSString stringWithFormat:@"%.0f%%", [[dailyData objectForKey:@"precipProbability"] floatValue]*100]];
                 [tableView.report setTemp:[NSString stringWithFormat:@"%@° / %@°",min,max]];
                 [tableView.report setWeatherIcon:[dailyData objectForKey:@"icon"]];
                 [tableView.report setWeather:[dailyData objectForKey:@"summary"]];

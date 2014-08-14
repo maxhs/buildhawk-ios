@@ -9,5 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface BHSynopsisCell : UITableViewCell
-@property (weak, nonatomic) IBOutlet UILabel *deadlineLabel;
+@property (weak, nonatomic) IBOutlet UILabel *deadlineTextLabel;
+@property (weak, nonatomic) IBOutlet UILabel *deadlineTimeLabel;
 @end

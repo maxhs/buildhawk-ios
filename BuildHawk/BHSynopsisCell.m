@@ -21,7 +21,8 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [_deadlineTextLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    [_deadlineTimeLabel setFont:[UIFont fontWithName:kMyriadProIt size:16]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

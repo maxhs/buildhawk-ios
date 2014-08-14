@@ -24,8 +24,8 @@
 		F203966917D3E052001CFF61 /* checklists@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966117D3E052001CFF61 /* checklists@2x.png */; };
 		F203966A17D3E052001CFF61 /* documents.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966217D3E052001CFF61 /* documents.png */; };
 		F203966B17D3E052001CFF61 /* documents@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966317D3E052001CFF61 /* documents@2x.png */; };
-		F203966C17D3E052001CFF61 /* punchlists.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966417D3E052001CFF61 /* punchlists.png */; };
-		F203966D17D3E052001CFF61 /* punchlists@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966517D3E052001CFF61 /* punchlists@2x.png */; };
+		F203966C17D3E052001CFF61 /* tasks.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966417D3E052001CFF61 /* tasks.png */; };
+		F203966D17D3E052001CFF61 /* tasks@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966517D3E052001CFF61 /* tasks@2x.png */; };
 		F203966E17D3E052001CFF61 /* reports.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966617D3E052001CFF61 /* reports.png */; };
 		F203966F17D3E052001CFF61 /* reports@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F203966717D3E052001CFF61 /* reports@2x.png */; };
 		F203967217D3E1E8001CFF61 /* BHTabBarViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F203967117D3E1E8001CFF61 /* BHTabBarViewController.m */; };
@@ -147,6 +147,7 @@
 		F26537091948D1CF00E21EB4 /* ReportUser.m in Sources */ = {isa = PBXBuildFile; fileRef = F26537081948D1CF00E21EB4 /* ReportUser.m */; };
 		F2653718194B420600E21EB4 /* Message.m in Sources */ = {isa = PBXBuildFile; fileRef = F2653717194B420600E21EB4 /* Message.m */; };
 		F265371B194B421100E21EB4 /* Message+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F265371A194B421100E21EB4 /* Message+helper.m */; };
+		F26D84C21980C92700494149 /* NSString+EmailAddresses.m in Sources */ = {isa = PBXBuildFile; fileRef = F26D84C11980C92700494149 /* NSString+EmailAddresses.m */; };
 		F26F955D19073DAC0022F968 /* Company.m in Sources */ = {isa = PBXBuildFile; fileRef = F26F955C19073DAC0022F968 /* Company.m */; };
 		F2730F09194FC68100AA9FF7 /* ChecklistItem.m in Sources */ = {isa = PBXBuildFile; fileRef = F2730F08194FC68100AA9FF7 /* ChecklistItem.m */; };
 		F277D46118D4DBA400028ACD /* BHDashboardGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F277D46018D4DBA400028ACD /* BHDashboardGroupCell.m */; };
@@ -416,8 +417,8 @@
 		F203966117D3E052001CFF61 /* checklists@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "checklists@2x.png"; sourceTree = "<group>"; };
 		F203966217D3E052001CFF61 /* documents.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = documents.png; sourceTree = "<group>"; };
 		F203966317D3E052001CFF61 /* documents@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "documents@2x.png"; sourceTree = "<group>"; };
-		F203966417D3E052001CFF61 /* punchlists.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = punchlists.png; sourceTree = "<group>"; };
-		F203966517D3E052001CFF61 /* punchlists@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "punchlists@2x.png"; sourceTree = "<group>"; };
+		F203966417D3E052001CFF61 /* tasks.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tasks.png; sourceTree = "<group>"; };
+		F203966517D3E052001CFF61 /* tasks@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "tasks@2x.png"; sourceTree = "<group>"; };
 		F203966617D3E052001CFF61 /* reports.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = reports.png; sourceTree = "<group>"; };
 		F203966717D3E052001CFF61 /* reports@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@2x.png"; sourceTree = "<group>"; };
 		F203967017D3E1E8001CFF61 /* BHTabBarViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHTabBarViewController.h; sourceTree = "<group>"; };
@@ -584,6 +585,8 @@
 		F2653717194B420600E21EB4 /* Message.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Message.m; sourceTree = "<group>"; };
 		F2653719194B421100E21EB4 /* Message+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Message+helper.h"; sourceTree = "<group>"; };
 		F265371A194B421100E21EB4 /* Message+helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Message+helper.m"; sourceTree = "<group>"; };
+		F26D84C01980C92700494149 /* NSString+EmailAddresses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+EmailAddresses.h"; sourceTree = "<group>"; };
+		F26D84C11980C92700494149 /* NSString+EmailAddresses.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+EmailAddresses.m"; sourceTree = "<group>"; };
 		F26F955B19073DAC0022F968 /* Company.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Company.h; sourceTree = "<group>"; };
 		F26F955C19073DAC0022F968 /* Company.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Company.m; sourceTree = "<group>"; };
 		F2730F07194FC68100AA9FF7 /* ChecklistItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChecklistItem.h; sourceTree = "<group>"; };
@@ -990,6 +993,8 @@
 			children = (
 				F2EA2636190ED38800EEF2CC /* UIImage+ImageEffects.h */,
 				F2EA2637190ED38800EEF2CC /* UIImage+ImageEffects.m */,
+				F26D84C01980C92700494149 /* NSString+EmailAddresses.h */,
+				F26D84C11980C92700494149 /* NSString+EmailAddresses.m */,
 				F25699D81908EFB300ED9032 /* ProgressHUD.h */,
 				F25699D91908EFB300ED9032 /* ProgressHUD.m */,
 				F2FAE3A618F4DCA2005E582B /* SDWebImage */,
@@ -1518,8 +1523,8 @@
 				F203966117D3E052001CFF61 /* checklists@2x.png */,
 				F203966217D3E052001CFF61 /* documents.png */,
 				F203966317D3E052001CFF61 /* documents@2x.png */,
-				F203966417D3E052001CFF61 /* punchlists.png */,
-				F203966517D3E052001CFF61 /* punchlists@2x.png */,
+				F203966417D3E052001CFF61 /* tasks.png */,
+				F203966517D3E052001CFF61 /* tasks@2x.png */,
 				F203966617D3E052001CFF61 /* reports.png */,
 				F203966717D3E052001CFF61 /* reports@2x.png */,
 				F203964D17D3CDD9001CFF61 /* empty.png */,
@@ -1893,7 +1898,7 @@
 				F21F6EC2193100C2003BC323 /* reportiPad@2x.png in Resources */,
 				F203966B17D3E052001CFF61 /* documents@2x.png in Resources */,
 				F24D8497197E0C5F005E2EDF /* MyriadPro-Semibold.otf in Resources */,
-				F203966C17D3E052001CFF61 /* punchlists.png in Resources */,
+				F203966C17D3E052001CFF61 /* tasks.png in Resources */,
 				F28F9A3A18A34D5C000A46D4 /* BuildHawk_app_icon_29.png in Resources */,
 				F29EF2E91815BE1B00F737B7 /* navBarBackground@2x.png in Resources */,
 				F21F6EB61930FB82003BC323 /* Default-iPad@2x.png in Resources */,
@@ -1902,7 +1907,7 @@
 				F29EF2E81815BE1B00F737B7 /* navBarBackground.png in Resources */,
 				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
 				F2C4455D196B69710079AF62 /* phone.png in Resources */,
-				F203966D17D3E052001CFF61 /* punchlists@2x.png in Resources */,
+				F203966D17D3E052001CFF61 /* tasks@2x.png in Resources */,
 				F2E41EF619421AD5006C7583 /* calendar@2x.png in Resources */,
 				F2FAE45018F5B01D005E582B /* BHArchivedProjectCell.xib in Resources */,
 				F226815D186B699A00D78BDD /* backArrow@2x.png in Resources */,
@@ -2100,6 +2105,7 @@
 				F252F5E8193FFF7F00515471 /* Group+helper.m in Sources */,
 				F2FAE40118F4DCA2005E582B /* PSTCollectionViewController.m in Sources */,
 				F2C44522196601880079AF62 /* Alternate+helper.m in Sources */,
+				F26D84C21980C92700494149 /* NSString+EmailAddresses.m in Sources */,
 				F25EDA9F195C8981009C4386 /* Reminder+helper.m in Sources */,
 				F2139D7A1939736600EE5C96 /* BHReportPhotoScrollView.m in Sources */,
 				F2D8400F191C097700592F3D /* Checklist.m in Sources */,

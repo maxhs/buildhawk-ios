@@ -36,7 +36,9 @@
     [_activityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
     [_timestampLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
-    origWidth = _activityLabel.frame.size.width;
+    if (IDIOM != IPAD){
+        origWidth = _activityLabel.frame.size.width;
+    }
     origX = _activityLabel.frame.origin.x;
 }
 
@@ -56,7 +58,9 @@
     }
     CGRect frame = _activityLabel.frame;
     frame.origin.x = 10;
-    frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
+    if (IDIOM != IPAD){
+        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
+    }
     [_activityLabel setFrame:frame];
 }
 
@@ -64,7 +68,9 @@
     
     CGRect frame = _activityLabel.frame;
     frame.origin.x = origX;
-    frame.size.width = origWidth;
+    if (IDIOM != IPAD){
+        frame.size.width = origWidth;
+    }
     [_activityLabel setFrame:frame];
     
     if ([activity.activityType isEqualToString:kComment]) {
@@ -151,7 +157,7 @@
             [_activityLabel setText:activity.body];
         }
     } else if ([activity.activityType isEqualToString:kWorklistItem]) {
-        [self.imageView setImage:[UIImage imageNamed:@"punchlists"]];
+        [self.imageView setImage:[UIImage imageNamed:@"tasks"]];
         NSString *activityObject;
         if (activity.task.body.length > 25){
             activityObject = [[activity.task.body substringToIndex:25] stringByAppendingString:@"..."];

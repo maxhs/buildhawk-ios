@@ -302,7 +302,7 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="Tasks" image="punchlists.png" id="hhI-1E-3s4"/>
+                    <tabBarItem key="tabBarItem" title="Tasks" image="tasks.png" id="hhI-1E-3s4"/>
                     <navigationItem key="navigationItem" id="Krt-xN-hwL">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="6uZ-if-abY">
                             <connections>
@@ -1649,7 +1649,7 @@ AQABAAEAAQAB//+dkAEA//+PgAAE//+dkAEI//+dkAEMUERUAFBTVABQV1QAUFBUAAAAAAEAAAABA
         <image name="logo.png" width="246" height="32"/>
         <image name="mailButton.png" width="97" height="70"/>
         <image name="menu.png" width="34" height="34"/>
-        <image name="punchlists.png" width="26" height="22"/>
+        <image name="tasks.png" width="26" height="22"/>
         <image name="reports.png" width="23" height="23"/>
         <image name="textButton.png" width="97" height="70"/>
         <image name="wideButton.png" width="300" height="70"/>

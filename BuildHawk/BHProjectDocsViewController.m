@@ -32,7 +32,7 @@
         self.tableView.rowHeight = 88.f;
     }
     [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:.1 alpha:1]];
+    [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
 }

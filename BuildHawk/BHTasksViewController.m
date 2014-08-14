@@ -427,9 +427,7 @@
 - (void)loadWorklist {
     [manager GET:[NSString stringWithFormat:@"%@/worklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading worklist: %@",responseObject);
-        if ([responseObject objectForKey:@"punchlist"]){
-            [self updateWorklist:[responseObject objectForKey:@"punchlist"]];
-        } else if ([responseObject objectForKey:@"worklist"]) {
+        if ([responseObject objectForKey:@"worklist"]) {
             [self updateWorklist:[responseObject objectForKey:@"worklist"]];
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -636,6 +634,11 @@
             item = [_worklistItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
         [vc setTask:item];
+        if (_connectMode){
+            [vc setConnectMode:YES];
+        } else {
+            [vc setConnectMode:NO];
+        }
     }
 }
 

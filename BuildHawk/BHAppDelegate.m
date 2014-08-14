@@ -41,7 +41,6 @@
     [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
     
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
-    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     [self customizeAppearance];
     
     [Flurry setCrashReportingEnabled:YES];
