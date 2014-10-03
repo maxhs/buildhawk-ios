@@ -13,7 +13,7 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UITableView *secondTableView;
 @property (strong, nonatomic) Company *company;
-@property (strong, nonatomic) WorklistItem *task;
+@property (strong, nonatomic) Task *task;
 @property (strong, nonatomic) Report *report;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) NSString *firstName;

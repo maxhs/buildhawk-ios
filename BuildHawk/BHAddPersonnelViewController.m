@@ -12,7 +12,6 @@
 #import <AddressBook/AddressBook.h>
 #import "BHAddressBookPickerViewController.h"
 #import "BHReportViewController.h"
-#import "ConnectUser+helper.h"
 #import "BHTaskViewController.h"
 
 @interface BHAddPersonnelViewController () <UITextFieldDelegate> {
@@ -123,31 +122,25 @@
             if ([responseObject objectForKey:@"success"]){
                 [self moveForward];
             } else {
-                if ([responseObject objectForKey:@"connect_user"]){
-                    
-                    ConnectUser *connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    [connectUser populateFromDictionary:[responseObject objectForKey:@"connect_user"]];
-                    [self processConnectUser:connectUser];
-                    
-                } else {
-                    NSDictionary *userDict = [responseObject objectForKey:@"user"];
-                    User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-                    if (!user){
-                        user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                        [user populateFromDictionary:userDict];
-                    }
-                    
-                    if (_task){
-                        NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
-                        [assignees addObject:user];
-                        _task.assignees = assignees;
-                    } else if (_report) {
-                        ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                        reportUser.userId = user.identifier;
-                        reportUser.fullname = user.fullname;
-                        [_report addReportUser:reportUser];
-                    }
+                
+                NSDictionary *userDict = [responseObject objectForKey:@"user"];
+                User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+                if (!user){
+                    user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                    [user populateFromDictionary:userDict];
                 }
+                
+                if (_task){
+                    NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
+                    [assignees addObject:user];
+                    _task.assignees = assignees;
+                } else if (_report) {
+                    ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                    reportUser.userId = user.identifier;
+                    reportUser.fullname = user.fullname;
+                    [_report addReportUser:reportUser];
+                }
+                
                 [self saveAndExit];
                 
             }
@@ -231,13 +224,13 @@
         switch (indexPath.row) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
-                [cell.textLabel setFont:[UIFont systemFontOfSize:16]];
+                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
                 [cell.imageView setImage:[UIImage imageNamed:@"contacts"]];
                 [cell.personnelTextField setUserInteractionEnabled:NO];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 break;
             case 1:
-                cell.personnelTextField.placeholder = @"Email address";
+                cell.personnelTextField.placeholder = @"Or enter an email address";
                 _emailTextField = cell.personnelTextField;
                 [_emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 [_emailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
@@ -247,7 +240,7 @@
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 break;
             case 2:
-                cell.personnelTextField.placeholder = @"Phone number";
+                cell.personnelTextField.placeholder = @"And/or a phone number";
                 _phoneTextField = cell.personnelTextField;
                 [_phoneTextField setKeyboardType:UIKeyboardTypePhonePad];
                 [_phoneTextField setReturnKeyType:UIReturnKeyNext];
@@ -373,26 +366,33 @@
         [parameters setObject:userParameters forKey:@"user"];
         
         [manager POST:[NSString stringWithFormat:@"%@/projects/%@/add_user",kApiBaseUrl,_project.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"success creating a new project sub user: %@",responseObject);
-            if ([responseObject objectForKey:@"connect_user"]){
+            //NSLog(@"success creating a new project sub user: %@",responseObject);
+            if ([responseObject objectForKey:@"user"]){
                 
-                ConnectUser *connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [connectUser populateFromDictionary:[responseObject objectForKey:@"connect_user"]];
-                
-                [self processConnectUser:connectUser];
-                
-            } else {
                 NSDictionary *userDict = [responseObject objectForKey:@"user"];
                 User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!user){
                     user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    [user populateFromDictionary:userDict];
                 }
+                [user populateFromDictionary:userDict];
                 
                 if (_task){
                     NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
                     [assignees addObject:user];
                     _task.assignees = assignees;
+                    
+                    
+                    //Check if the user is active or not. If not, then they're a "connect user"
+                    if ([user.active isEqualToNumber:@NO]){
+                        NSString *alertMessage;
+                        if (user.email.length){
+                            alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've emailed them this task.";
+                        } else {
+                            alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've notified them about this task.";
+                        }
+                        [[[UIAlertView alloc] initWithTitle:@"BuildHawk Connect" message:alertMessage delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
+    
                 } else if (_report) {
                     ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     reportUser.userId = user.identifier;
@@ -410,28 +410,6 @@
         }];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Company Needed" message:@"Please make sure you've specified a company for this contact." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }
-}
-
-- (void)processConnectUser:(ConnectUser*)connectUser {
-    if (_task){
-        NSString *alertMessage;
-        if (connectUser.email.length){
-            alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've emailed them this task.";
-        } else {
-            alertMessage = @"The person you've selected doesn't currently use BuildHawk, but we've notified them about this task.";
-        }
-        
-        NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
-        [assignees addObject:connectUser];
-        _task.connectAssignees = assignees;
-        
-        [[[UIAlertView alloc] initWithTitle:@"BuildHawk Connect" message:alertMessage delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else if (_report){
-        ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        reportUser.connectUserId = connectUser.identifier;
-        reportUser.fullname = connectUser.fullname;
-        [_report addReportUser:reportUser];
     }
 }
 

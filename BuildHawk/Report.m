@@ -41,5 +41,6 @@
 @dynamic reportSubs;
 @dynamic reportUsers;
 @dynamic safetyTopics;
+@dynamic saved;
 
 @end

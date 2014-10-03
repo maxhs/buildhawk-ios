@@ -16,9 +16,9 @@
 @property (strong, nonatomic) NSArray *userNames;
 @property (strong, nonatomic) NSArray *dates;
 @property (strong, nonatomic) Project *project;
-@property int numberOfSections;
+@property NSInteger numberOfSections;
 @property BOOL documentsBool;
 @property BOOL checklistsBool;
 @property BOOL reportsBool;
-@property BOOL worklistsBool;
+@property BOOL tasklistsBool;
 @end

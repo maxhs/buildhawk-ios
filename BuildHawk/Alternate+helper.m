@@ -20,8 +20,8 @@
     if ([dictionary objectForKey:@"phone"] && [dictionary objectForKey:@"phone"] != [NSNull null]) {
         self.phone = [dictionary objectForKey:@"phone"];
     }
-    if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"created_date"] doubleValue];
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
 }

@@ -9,6 +9,7 @@
 #import "Phase+helper.h"
 #import "Checklist+helper.h"
 #import "Phase.h"
+#import "BHUtilities.h"
 
 @implementation Phase (helper)
 
@@ -57,7 +58,7 @@
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
             Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (category){
-                [category update:categoryDict];
+                [category updateFromDictionary:categoryDict];
             } else {
                 category = [Cat MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [category populateFromDictionary:categoryDict];
@@ -69,7 +70,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
 
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
@@ -94,7 +95,7 @@
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
             Cat *category = [Cat MR_findFirstByAttribute:@"identifier" withValue:[categoryDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (category){
-                [category update:categoryDict];
+                [category updateFromDictionary:categoryDict];
             } else {
                 category = [Cat MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [category populateFromDictionary:categoryDict];

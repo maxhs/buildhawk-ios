@@ -8,6 +8,7 @@
 
 #import "Comment+helper.h"
 #import "User+helper.h"
+#import "BHUtilities.h"
 
 @implementation Comment (helper)
 
@@ -35,7 +36,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"]!=[NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
     }

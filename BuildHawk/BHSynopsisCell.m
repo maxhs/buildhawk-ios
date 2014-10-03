@@ -21,6 +21,7 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     [_deadlineTextLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
     [_deadlineTimeLabel setFont:[UIFont fontWithName:kMyriadProIt size:16]];
 }

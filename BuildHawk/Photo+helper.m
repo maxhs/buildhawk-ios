@@ -65,7 +65,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }

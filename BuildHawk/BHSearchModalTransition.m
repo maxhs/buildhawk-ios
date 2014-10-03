@@ -16,8 +16,20 @@
 
 - (void)animateTransition:(id <UIViewControllerContextTransitioning>)transitionContext {
     // Grab the from and to view controllers from the context
-    UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+    UIViewController *fromViewController, *toViewController;
+    UIView *fromView,*toView;
+    fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+    toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f) {
+        // iOS 8 logic
+        fromView = [transitionContext viewForKey:UITransitionContextFromViewKey];
+        toView = [transitionContext viewForKey:UITransitionContextToViewKey];
+    } else {
+        // iOS 7 and below logic
+        fromView = fromViewController.view;
+        toView = toViewController.view;
+    }
     
     // Set our ending frame. We'll modify this later if we have to
     CGRect endFrame = CGRectMake(20, 80, screenWidth()-40, screenHeight()-160);
@@ -25,8 +37,8 @@
     if (self.presenting) {
         fromViewController.view.userInteractionEnabled = NO;
         
-        [transitionContext.containerView addSubview:fromViewController.view];
-        [transitionContext.containerView addSubview:toViewController.view];
+        [transitionContext.containerView addSubview:fromView];
+        [transitionContext.containerView addSubview:toView];
         
         CGRect fromFrame = fromViewController.view.frame;
         fromFrame.origin.y -= screenHeight();
@@ -49,8 +61,8 @@
     else {
         toViewController.view.userInteractionEnabled = YES;
         
-        [transitionContext.containerView addSubview:toViewController.view];
-        [transitionContext.containerView addSubview:fromViewController.view];
+        [transitionContext.containerView addSubview:toView];
+        [transitionContext.containerView addSubview:fromView];
         
         endFrame.origin.y += screenHeight();
         

@@ -9,16 +9,19 @@
 #import "BHMapViewController.h"
 #import "Address.h"
 
-@interface BHMapViewController () {
+@interface BHMapViewController () <CLLocationManagerDelegate, MKMapViewDelegate> {
     UIBarButtonItem *backButton;
     MKMapView *_mapView;
     MKPointAnnotation *annotation;
 }
 
+@property (strong, nonatomic) CLLocationManager *locationManager;
+
 @end
 
 @implementation BHMapViewController
 
+@synthesize locationManager = _locationManager;
 
 - (void)viewDidLoad
 {
@@ -27,7 +30,16 @@
     self.navigationItem.leftBarButtonItem = backButton;
     
     self.title = _project.name;
+    
+    _locationManager = [[CLLocationManager alloc] init];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        [_locationManager requestAlwaysAuthorization];
+        //[_locationManager requestWhenInUseAuthorization];
+    }
+    
     _mapView = [[MKMapView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    [_mapView setShowsUserLocation:YES];
+    
     [self.view addSubview:_mapView];
     CLLocationCoordinate2D location = CLLocationCoordinate2DMake([_project.address.latitude floatValue], [_project.address.longitude floatValue]);
     

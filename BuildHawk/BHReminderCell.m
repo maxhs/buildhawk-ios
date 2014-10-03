@@ -9,7 +9,7 @@
 #import "BHReminderCell.h"
 #import "User+helper.h"
 #import "ChecklistItem.h"
-#import "WorklistItem.h"
+#import "Task.h"
 #import "BHAppDelegate.h"
 
 @interface BHReminderCell () {
@@ -30,6 +30,7 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     // Initialization code
     [_deleteButton setBackgroundColor:[UIColor redColor]];
     [_reminderButton setBackgroundColor:[UIColor colorWithWhite:.925 alpha:1]];
@@ -77,28 +78,28 @@
         [_statusLabel setTextColor:[UIColor redColor]];
     } else {
         [_reminderDatetimeLabel setTextColor:[UIColor blackColor]];
-        if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([reminder.active isEqualToNumber:@YES]){
             [_statusLabel setText:@"Active"];
             [_statusLabel setTextColor:[UIColor blackColor]];
         }
     }
     
-    if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:NO]]){
+    if ([reminder.active isEqualToNumber:@NO]){
         [_statusLabel setText:@"Off"];
         [_statusLabel setTextColor:[UIColor lightGrayColor]];
     }
     
     if (reminder.checklistItem){
         [_reminderLabel setText:reminder.checklistItem.body];
-    } else if (reminder.worklistItem) {
-        [_reminderLabel setText:reminder.worklistItem.body];
+    } else if (reminder.task) {
+        [_reminderLabel setText:reminder.task.body];
     } else {
         [_reminderLabel setText:@""];
     }
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
         [_deleteButton setHidden:NO];
         [_scrollView setScrollEnabled:YES];
-        if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([reminder.active isEqualToNumber:@YES]){
             [_deleteButton setTitle:@"Remove" forState:UIControlStateNormal];
             _deleteButton.titleLabel.numberOfLines = 0;
             [_deleteButton.titleLabel setTextAlignment:NSTextAlignmentCenter];

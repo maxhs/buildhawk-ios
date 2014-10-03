@@ -33,4 +33,27 @@
         }
     }
 }
+
+- (void)updateWithDict:(NSDictionary *)dictionary {
+    //NSLog(@"safety topic dict: %@",dictionary);
+    
+    if ([dictionary objectForKey:@"title"] && [dictionary objectForKey:@"title"] != [NSNull null]) {
+        self.title = [dictionary objectForKey:@"title"];
+    }
+    if ([dictionary objectForKey:@"info"] && [dictionary objectForKey:@"info"] != [NSNull null]) {
+        self.info = [dictionary objectForKey:@"info"];
+    }
+    if ([dictionary objectForKey:@"safety_topic"] && [dictionary objectForKey:@"safety_topic"] != [NSNull null]) {
+        NSDictionary *topicDict = [dictionary objectForKey:@"safety_topic"];
+        if ([topicDict objectForKey:@"id"] != [NSNull null]) {
+            self.topicId = [topicDict objectForKey:@"id"];
+        }
+        if ([topicDict objectForKey:@"title"] != [NSNull null]) {
+            self.title = [topicDict objectForKey:@"title"];
+        }
+        if ([topicDict objectForKey:@"info"] != [NSNull null]) {
+            self.info = [topicDict objectForKey:@"info"];
+        }
+    }
+}
 @end

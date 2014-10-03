@@ -21,8 +21,10 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     [_chooseTopicsButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_chooseTopicsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    [_chooseTopicsButton setTitle:@"Add topic" forState:UIControlStateNormal];
+    [_chooseTopicsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

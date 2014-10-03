@@ -26,10 +26,11 @@
 
 - (void)awakeFromNib
 {
-    [_reportLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:19]];
-    [_authorLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
-    [_personnelLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
-    [_notesLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [super awakeFromNib];
+    [_reportLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
+    [_authorLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
     
     [_separatorView setBackgroundColor:kSeparatorColor];
 }
@@ -42,36 +43,44 @@
 }
 
 - (void)configureReport:(Report *)report {
-    [_reportLabel setText:[NSString stringWithFormat:@"%@ Report: %@",report.type,report.dateString]];
+    [_reportLabel setText:[NSString stringWithFormat:@"%@: %@",report.type,report.dateString]];
     if (report.author.fullname.length){
         [_authorLabel setText:[NSString stringWithFormat:@"Author: %@",report.author.fullname]];
     } else {
         [_authorLabel setText:@""];
     }
-    int count = report.reportUsers.count;
+    NSInteger count = report.reportUsers.count;
     for (ReportSub *reportSub in report.reportSubs){
         if (reportSub.count.intValue > 0) count += reportSub.count.intValue;
     }
-    [_personnelLabel setText:[NSString stringWithFormat:@"Personnel onsite: %i",count]];
+    [_personnelLabel setText:[NSString stringWithFormat:@"Personnel on-site: %li",(long)count]];
     if (report.body){
         [_notesLabel setText:[NSString stringWithFormat:@"Notes: %@",report.body]];
     } else {
         [_notesLabel setText:@"Notes: N/A"];
     }
     if (report.photos.count > 0){
+        _photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+        
         _photoButton.imageView.layer.cornerRadius = 2.0;
         [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
         [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         _photoButton.imageView.layer.shouldRasterize = YES;
         _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         
-        [_photoButton setImageWithURL:[NSURL URLWithString:[(Photo*)report.photos.firstObject urlSmall]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
-            
-        }];
+        Photo *firstPhoto = (Photo*)report.photos.firstObject;
+        if (firstPhoto.image) {
+            [_photoButton setImage:firstPhoto.image forState:UIControlStateNormal];
+        } else if (firstPhoto.urlSmall.length) {
+            [_photoButton sd_setImageWithURL:[NSURL URLWithString:firstPhoto.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+                
+            }];
+        }
         [_photoCountBubble setBackgroundColor:[UIColor whiteColor]];
         _photoCountBubble.layer.cornerRadius = _photoCountBubble.frame.size.height/2;
         _photoCountBubble.layer.backgroundColor = [UIColor clearColor].CGColor;
-        [_photoCountBubble setText:[NSString stringWithFormat:@"%i",[(NSArray*)report.photos count]]];
+        [_photoCountBubble setText:[NSString stringWithFormat:@"%lu",(unsigned long)report.photos.count]];
+        [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
         _photoCountBubble.hidden = NO;
     } else {
         _photoCountBubble.hidden = YES;

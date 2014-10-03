@@ -32,7 +32,28 @@
         for (id phaseDict in [dictionary objectForKey:@"phases"]) {
             Phase *phase = [Phase MR_findFirstByAttribute:@"identifier" withValue:[phaseDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (phase){
-                [phase update:phaseDict];
+                [phase updateFromDictionary:phaseDict];
+            } else {
+                phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [phase populateFromDictionary:phaseDict];
+            }
+            [phases addObject:phase];
+        }
+        self.phases = phases;
+    }
+}
+
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
+        self.name = [dictionary objectForKey:@"name"];
+    }
+
+    if ([dictionary objectForKey:@"phases"] && [dictionary objectForKey:@"phases"] != [NSNull null]) {
+        NSMutableOrderedSet *phases = [NSMutableOrderedSet orderedSet];
+        for (id phaseDict in [dictionary objectForKey:@"phases"]) {
+            Phase *phase = [Phase MR_findFirstByAttribute:@"identifier" withValue:[phaseDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (phase){
+                [phase updateFromDictionary:phaseDict];
             } else {
                 phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [phase populateFromDictionary:phaseDict];

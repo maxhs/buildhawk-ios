@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class ChecklistItem, WorklistItem, Report, User, Message;
+@class ChecklistItem, Task, Report, User, Message;
 
 @interface Notification : NSManagedObject
 
@@ -20,7 +20,7 @@
 @property (nonatomic, retain) NSDate * createdDate;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) Report *report;
-@property (nonatomic, retain) WorklistItem *worklistItem;
+@property (nonatomic, retain) Task *task;
 @property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Message *message;
 

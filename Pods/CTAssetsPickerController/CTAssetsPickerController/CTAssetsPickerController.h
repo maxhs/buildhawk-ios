@@ -36,15 +36,25 @@
 /**
  *  A controller that allows picking multiple photos and videos from user's photo library.
  */
-@interface CTAssetsPickerController : UINavigationController
+@interface CTAssetsPickerController : UIViewController
 
 /**
  *  The assets picker’s delegate object.
  */
-@property (nonatomic, weak) id <UINavigationControllerDelegate, CTAssetsPickerControllerDelegate> delegate;
+@property (nonatomic, weak) id <CTAssetsPickerControllerDelegate> delegate;
+
+/**
+ *  The assetsLibrary.
+ *
+ *  You can set your own custom assetsLibrary of the picker.
+ */
+@property (nonatomic, strong) ALAssetsLibrary *assetsLibrary;
 
 /**
  *  Set the `ALAssetsFilter` to filter the picker contents.
+ *
+ *  @see [- assetsPickerController:shouldShowAsset:]([CTAssetsPickerControllerDelegate assetsPickerController:shouldShowAsset:])
+ *  @see [- assetsPickerController:shouldEnableAsset:]([CTAssetsPickerControllerDelegate assetsPickerController:shouldEnableAsset:])
  */
 @property (nonatomic, strong) ALAssetsFilter *assetsFilter;
 
@@ -65,6 +75,21 @@
  */
 @property (nonatomic, assign) BOOL showsCancelButton;
 
+/**
+ *  Determines whether or not the number of assets is shown in the album list.
+ *
+ *  The number of assets is visible by default. To hide the number of assets, (e.g. implementing `shouldShowAsset` delegate method)
+ *  set this property’s value to `NO`.
+ */
+@property (nonatomic, assign) BOOL showsNumberOfAssets;
+
+/**
+ *  The navigation controller of the picker hierarchy. (read-only)
+ *
+ *  This property contains the child navigation controller of the picker.
+ */
+@property (nonatomic, readonly, strong) UINavigationController *navigationController;
+
 
 /**
  *  @name Managing Selections
@@ -74,6 +99,8 @@
  *  Selects an asset in the picker.
  *
  *  @param asset The asset to be selected.
+ *
+ *  @see deselectAsset:
  */
 - (void)selectAsset:(ALAsset *)asset;
 
@@ -81,6 +108,8 @@
  *  Deselects an asset in the picker.
  *
  *  @param asset The asset to be deselected.
+ *
+ *  @see selectAsset:
  */
 - (void)deselectAsset:(ALAsset *)asset;
 
@@ -112,6 +141,8 @@
  *
  *  @param picker The controller object managing the assets picker interface.
  *  @param assets An array containing picked `ALAsset` objects.
+ *
+ *  @see assetsPickerControllerDidCancel:
  */
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets;
 
@@ -121,6 +152,8 @@
  *  Tells the delegate that the user cancelled the pick operation.
  *
  *  @param picker The controller object managing the assets picker interface.
+ *
+ *  @see assetsPickerController:didFinishPickingAssets:
  */
 - (void)assetsPickerControllerDidCancel:(CTAssetsPickerController *)picker;
 
@@ -141,8 +174,39 @@
 
 
 /**
- *  @name Enabling Assets for Selection
+ *  @name Showing Content of Default Assets Group
  */
+
+/**
+ *  Ask the delegate if the specified assets group is the default assets group.
+ *
+ *  The picker initially shows the content of default assets group instead of a list of albums. By default,
+ *  there are no default assets groups.
+ *
+ *  @param picker The controller object managing the assets picker interface.
+ *  @param group  The assets group to be process.
+ *
+ *  @return `YES` if the assets group is the default assets group or `NO` if it is not.
+ */
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker isDefaultAssetsGroup:(ALAssetsGroup *)group;
+
+
+/**
+ *  @name Enabling Assets
+ */
+
+/**
+ *  Ask the delegate if the specified asset shoule be shown.
+ *
+ *  @param picker The controller object managing the assets picker interface.
+ *  @param asset  The asset to be shown.
+ *
+ *  @return `YES` if the asset should be shown or `NO` if it should not.
+ *
+ *  @see [assetsFilter]([CTAssetsPickerController assetsFilter])
+ *  @see assetsPickerController:shouldEnableAsset:
+ */
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldShowAsset:(ALAsset *)asset;
 
 /**
  *  Ask the delegate if the specified asset should be enabled for selection.
@@ -151,6 +215,9 @@
  *  @param asset  The asset to be enabled.
  *
  *  @return `YES` if the asset should be enabled or `NO` if it should not.
+ *
+ *  @see [assetsFilter]([CTAssetsPickerController assetsFilter])
+ *  @see assetsPickerController:shouldShowAsset:
  */
 - (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldEnableAsset:(ALAsset *)asset;
 
@@ -166,6 +233,8 @@
  *  @param asset  The asset to be selected.
  *
  *  @return `YES` if the asset should be selected or `NO` if it should not.
+ *
+ *  @see assetsPickerController:shouldDeselectAsset:
  */
 - (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset;
 
@@ -174,6 +243,8 @@
  *
  *  @param picker    The controller object managing the assets picker interface.
  *  @param indexPath The asset that was selected.
+ *
+ *  @see assetsPickerController:didDeselectAsset:
  */
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didSelectAsset:(ALAsset *)asset;
 
@@ -184,6 +255,8 @@
  *  @param asset  The asset to be deselected.
  *
  *  @return `YES` if the asset should be deselected or `NO` if it should not.
+ *
+ *  @see assetsPickerController:shouldSelectAsset:
  */
 - (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldDeselectAsset:(ALAsset *)asset;
 
@@ -192,6 +265,8 @@
  *
  *  @param picker    The controller object managing the assets picker interface.
  *  @param indexPath The asset that was deselected.
+ *
+ *  @see assetsPickerController:didSelectAsset:
  */
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didDeselectAsset:(ALAsset *)asset;
 
@@ -216,6 +291,8 @@
  *
  *  @param picker    The controller object managing the assets picker interface.
  *  @param indexPath The asset that was highlighted.
+ *
+ *  @see assetsPickerController:didUnhighlightAsset:
  */
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didHighlightAsset:(ALAsset *)asset;
 
@@ -225,6 +302,8 @@
  *
  *  @param picker    The controller object managing the assets picker interface.
  *  @param indexPath The asset that had its highlight removed.
+ *
+ *  @see assetsPickerController:didHighlightAsset:
  */
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didUnhighlightAsset:(ALAsset *)asset;
 

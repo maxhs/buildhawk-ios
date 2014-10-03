@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "Company.h"
 #import "Project.h"
-#import "WorklistItem.h"
+#import "Task.h"
 #import "Report+helper.h"
 
 @interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate>
@@ -19,7 +19,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *addressBookButton;
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) WorklistItem *task;
+@property (strong, nonatomic) Task *task;
 @property (strong, nonatomic) Report *report;
 @property BOOL phone;
 @property BOOL email;

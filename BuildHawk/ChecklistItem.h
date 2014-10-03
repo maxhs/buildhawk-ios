@@ -27,6 +27,7 @@ typedef NS_ENUM(NSInteger, ItemState) {
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSNumber * commentsCount;
 @property (nonatomic, retain) NSNumber * state;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) NSDate * completedDate;
 @property (nonatomic, retain) NSDate * criticalDate;
 @property (nonatomic, retain) NSNumber * identifier;

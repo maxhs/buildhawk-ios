@@ -1,45 +1,58 @@
 PODS:
-  - AFNetworking (2.2.4):
+  - AFNetworking (2.4.1):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
     - AFNetworking/UIKit
-  - AFNetworking/NSURLConnection (2.2.4):
+  - AFNetworking/NSURLConnection (2.4.1):
     - AFNetworking/Reachability
     - AFNetworking/Security
     - AFNetworking/Serialization
-  - AFNetworking/NSURLSession (2.2.4):
-    - AFNetworking/NSURLConnection
-  - AFNetworking/Reachability (2.2.4)
-  - AFNetworking/Security (2.2.4)
-  - AFNetworking/Serialization (2.2.4)
-  - AFNetworking/UIKit (2.2.4):
+  - AFNetworking/NSURLSession (2.4.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (2.4.1)
+  - AFNetworking/Security (2.4.1)
+  - AFNetworking/Serialization (2.4.1)
+  - AFNetworking/UIKit (2.4.1):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
-  - CTAssetsPickerController (2.2.2)
+  - CTAssetsPickerController (2.5.0)
   - LDProgressView (1.2.1)
   - MagicalRecord (2.2):
     - MagicalRecord/Core
   - MagicalRecord/Core (2.2)
   - Mixpanel (2.3.6)
+  - NewRelicAgent (3.406)
+  - PSTCollectionView (1.2.3)
   - RESideMenu (4.0.4)
+  - SDWebImage (3.7.1):
+    - SDWebImage/Core
+  - SDWebImage/Core (3.7.1)
 
 DEPENDENCIES:
   - AFNetworking
-  - CTAssetsPickerController (~> 2.2.0)
+  - CTAssetsPickerController
   - LDProgressView
   - MagicalRecord
   - Mixpanel
+  - NewRelicAgent
+  - PSTCollectionView
   - RESideMenu (~> 4.0.4)
+  - SDWebImage
 
 SPEC CHECKSUMS:
-  AFNetworking: ab63e259fe91eef4519b371ef0a4955af0e73e64
-  CTAssetsPickerController: e1247f76d97a129b75c4050990e75fd2eff7430f
+  AFNetworking: 0aabc6fae66d6e5d039eeb21c315843c7aae51ab
+  CTAssetsPickerController: 2403e9d91c278fd1c3e65f754c7857486595bc8b
   LDProgressView: e0ee70a7cd858ac8c04b319ef87854e7250fb357
   MagicalRecord: 2b471584fc9e3137f3d0a56967917baa4979e224
   Mixpanel: 9aba38257fc4d2777ab5db1afc55e22bdfd57a4a
+  NewRelicAgent: 13619cf818065d1b90845a3572bcd05f3987bedb
+  PSTCollectionView: d9f466e4554cc83260ca9bde7beb27f308e8fd76
   RESideMenu: af599feabe620b562667b91cb1abe3d961b01f08
+  SDWebImage: 116e88633b5b416ea0ca4b334a4ac59cf72dd38d
 
 COCOAPODS: 0.33.1

@@ -25,11 +25,16 @@
 
     // Configure the view for the selected state
 }
-- (void)configure{
+
+- (void)awakeFromNib {
+    [super awakeFromNib];
     _messageTextView.layer.cornerRadius = 2.f;
-    _messageTextView.layer.borderColor = [UIColor colorWithWhite:.83 alpha:1].CGColor;
+    _messageTextView.layer.borderColor = kLightGrayColor.CGColor;
     _messageTextView.layer.borderWidth = .5f;
     _messageTextView.clipsToBounds = YES;
+}
+
+- (void)configure{
     [_messageTextView setText:kAddCommentPlaceholder];
     [_doneButton setBackgroundColor:kSelectBlueColor];
     _doneButton.layer.cornerRadius = 3.f;

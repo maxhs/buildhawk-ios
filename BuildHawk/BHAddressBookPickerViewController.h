@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Subcontractor+helper.h"
-#import "WorklistItem.h"
+#import "Task.h"
 
 @interface BHAddressBookPickerViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
@@ -16,5 +16,5 @@
 @property (strong, nonatomic) NSArray *peopleArray;
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) WorklistItem *task;
+@property (strong, nonatomic) Task *task;
 @end

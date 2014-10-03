@@ -13,10 +13,10 @@
     #import <Foundation/Foundation.h>
     #import <MobileCoreServices/MobileCoreServices.h>
     #import <SystemConfiguration/SystemConfiguration.h>
-    #import "Constants.h"
-    #import "BHUtilities.h"
-    #import <CoreData+MagicalRecord.h>
+    #import <MagicalRecord/CoreData+MagicalRecord.h>
     #import <AFNetworking/AFHTTPRequestOperationManager.h>
     #import "ProgressHUD.h"
+    #import "Constants.h"
+    #import "UIFontDescriptor+MyriadPro.h"
     
 #endif

@@ -16,7 +16,7 @@
 #import "Project+helper.h"
 #import "SafetyTopic+helper.h"
 
-@interface BHReportsViewController () {
+@interface BHReportsViewController () <BHReportDelegate> {
     AFHTTPRequestOperationManager *manager;
     Project *project;
     UIRefreshControl *refreshControl;
@@ -40,6 +40,7 @@
 
 @implementation BHReportsViewController
 
+#pragma mark - Basic Setup
 - (void)viewDidLoad {
     [super viewDidLoad];
     
@@ -47,6 +48,7 @@
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     project = [(BHTabBarViewController*)self.tabBarController project];
     
+    //add refresh control and set up the tableView
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
     [refreshControl setTintColor:[UIColor darkGrayColor]];
@@ -55,27 +57,45 @@
     self.tableView.rowHeight = 90;
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     
+    //ensure there's some space in between the filters and the top of the tableview
+    self.tableView.contentInset = UIEdgeInsetsMake(6, 0, self.tabBarController.tabBar.frame.size.height, 0);
+    
+    //set up the segmented control and action button segments
     [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    /*addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(newReport)];
-    datePickerButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"calendar"] style:UIBarButtonItemStylePlain target:self action:@selector(showDatePicker)];
-    datePickerButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -22);
-    addButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, 0);*/
+    [self sortButtonTreatment:_addReportButton];
+    [self sortButtonTreatment:_selectDateButton];
+    [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
+    [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
     
     if (IDIOM != IPAD){
         sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStylePlain target:self action:@selector(showSort)];
         hideSortButton = [[UIBarButtonItem alloc] initWithTitle:@"Select" style:UIBarButtonItemStylePlain target:self action:@selector(hideSort)];
     }
-    [self sortButtonTreatment:_addReportButton];
-    [self sortButtonTreatment:_selectDateButton];
     
-    [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
-    [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
-    
+    //set up the date picker stuff
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReport:) name:@"ReloadReport" object:nil];
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:.87]];
+        
+    if (project.reports.count == 0){
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [ProgressHUD show:@"Fetching reports..."];
+            });
+        } else {
+            overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
+            [self slide1];
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
+        }
+    } else {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [ProgressHUD show:@"Updating reports..."];
+        });
+        
+    }
+    [self loadReports];
 }
 
 - (void)sortButtonTreatment:(UIButton*)button {
@@ -86,6 +106,134 @@
     [button.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
     button.clipsToBounds = YES;
 }
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    
+    //self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
+    if (IDIOM == IPAD){
+        self.tabBarController.navigationItem.rightBarButtonItem = nil;
+    } else {
+        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
+    }
+
+}
+
+#pragma mark - API
+
+- (void)loadReports {
+    loading = YES;
+    [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"project_id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success getting reports: %@",responseObject);
+        [self updateLocalReports:[responseObject objectForKey:@"reports"]];
+    
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error getting reports: %@",error.description);
+        [ProgressHUD dismiss];
+        loading = NO;
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        
+    }];
+}
+
+- (void)updateLocalReports:(NSArray*)array {
+    NSMutableOrderedSet *reportSet = [NSMutableOrderedSet orderedSet];
+    for (id obj in array) {
+        Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!report){
+            report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [report populateWithDict:obj];
+        } else {
+            if ([report.saved isEqualToNumber:@YES]){
+                [report updateWithDict:obj];
+            } else {
+                NSLog(@"Report %@ - %@ has unsaved local changes",report.type, report.dateString);
+            }
+            
+        }
+        
+        [reportSet addObject:report];
+    }
+    for (Report *report in project.reports) {
+        if (![reportSet containsObject:report]) {
+            NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
+            [project removeReport:report];
+            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+    }
+    project.reports = reportSet;
+    
+    //save!
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        
+        loading = NO;
+        
+        if (self.isViewLoaded && self.view.window){
+            if (safety) {
+                [self filter:kSafety];
+            } else if (weekly) {
+                [self filter:kWeekly];
+            } else if (daily) {
+                [self filter:kDaily];
+            } else {
+                //begin to update the UI if the view is still visible
+                [self.tableView beginUpdates];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationNone];
+                [self.tableView endUpdates];
+            }
+        }
+        
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        [ProgressHUD dismiss];
+        
+    }];
+}
+
+
+- (void)deleteReport{
+    [ProgressHUD show:@"Deleting..."];
+    Report *report;
+    if (daily || weekly || safety){
+        report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
+    } else {
+        report = [project.reports objectAtIndex:indexPathForDeletion.row];
+    }
+    [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //will return success = true if the report was found and deleted or success = false if the report was not found, e.g. if it had already been deleted on the server side.
+        //NSLog(@"Success deleting report: %@",responseObject);
+        
+        //remove the report from all data sources
+        [project removeReport:report];
+        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        if (safety || weekly || daily){
+            [_filteredReports removeObject:report];
+        }
+        
+        //update the UI
+        if (indexPathForDeletion && [self.tableView cellForRowAtIndexPath:indexPathForDeletion] != nil){
+            [self.tableView beginUpdates];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        } else {
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+        }
+        
+        [ProgressHUD dismiss];
+        indexPathForDeletion = nil;
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        //NSLog(@"Error deleting notification: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [ProgressHUD dismiss];
+        indexPathForDeletion = nil;
+    }];
+}
+
+- (void)handleRefresh {
+    [ProgressHUD show:@"Refreshing..."];
+    [self loadReports];
+}
+
+#pragma mark - Sorting & filtering
 
 - (void)showSort {
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -105,55 +253,6 @@
     } completion:^(BOOL finished) {
         
     }];
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    [self loadReports];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-    if (project.reports.count == 0){
-        
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
-            [ProgressHUD show:@"Fetching reports..."];
-        } else {
-            overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-            [self slide1];
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
-        }
-    }
-    //self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
-    if (IDIOM == IPAD){
-        self.tabBarController.navigationItem.rightBarButtonItem = nil;
-    } else {
-        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
-    }
-}
-
-- (void)reloadReport:(NSNotification*)notification {
-    NSLog(@"Should be reloading a report: %@",notification.userInfo);
-}
-
-- (void)loadReports {
-    loading = YES;
-    [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting reports: %@",responseObject);
-        [self updateLocalReports:[responseObject objectForKey:@"reports"]];
-    
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error getting reports: %@",error.description);
-        [ProgressHUD dismiss];
-        loading = NO;
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        
-    }];
-}
-
-- (void)handleRefresh {
-    [ProgressHUD show:@"Refreshing..."];
-    [self loadReports];
 }
 
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
@@ -221,50 +320,6 @@
     [self.tableView reloadData];
 }
 
-- (void)updateLocalReports:(NSArray*)array {
-    NSMutableOrderedSet *reportSet = [NSMutableOrderedSet orderedSet];
-    for (id obj in array) {
-        Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!report){
-            report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-        [report populateWithDict:obj];
-        [reportSet addObject:report];
-    }
-    for (Report *report in project.reports) {
-        if (![reportSet containsObject:report]) {
-            NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
-            [project removeReport:report];
-            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-    }
-    
-    if (self.isViewLoaded && self.view.window){
-        //save!
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            //begin to update the UI if the view is still visible
-            
-                loading = NO;
-                if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-                [ProgressHUD dismiss];
-                
-                project.reports = reportSet;
-                if (safety) {
-                    [self filter:kSafety];
-                } else if (weekly) {
-                    [self filter:kWeekly];
-                } else if (daily) {
-                    [self filter:kDaily];
-                } else {
-                    [self.tableView beginUpdates];
-                    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-                    [self.tableView endUpdates];
-                }
-            
-        }];
-    }
-}
-
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -297,10 +352,7 @@
 {
     static NSString *CellIdentifier = @"ReportCell";
     BHReportCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReportCell" owner:self options:nil] lastObject];
-    }
-  
+    
     if (weekly || safety || daily){
         if (_filteredReports.count){
             Report *report = [_filteredReports objectAtIndex:indexPath.row];
@@ -365,13 +417,12 @@
     }
     
     //ensure that there's a signed in user and ask whether they're the current author
-    if (report && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+    if (report && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([report.author.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
         return YES;
     }
     
     return NO;
 }
-
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
@@ -388,37 +439,6 @@
     }
 }
 
-- (void)deleteReport{
-    [ProgressHUD show:@"Deleting..."];
-    Report *report;
-    if (daily || weekly || safety){
-        report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
-    } else {
-        report = [project.reports objectAtIndex:indexPathForDeletion.row];
-    }
-    [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success deleting report: %@",responseObject);
-        
-        //remove the report from all data sources
-        [project removeReport:report];
-        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        if (safety || weekly || daily){
-            [_filteredReports removeObject:report];
-        }
-        //update the UI
-        [self.tableView beginUpdates];
-        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-        [self.tableView endUpdates];
-        [ProgressHUD dismiss];
-        indexPathForDeletion = nil;
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        //NSLog(@"Error deleting notification: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [ProgressHUD dismiss];
-        indexPathForDeletion = nil;
-    }];
-}
-
 - (void)newReport {
     if (daily){
         [self performSegueWithIdentifier:@"Report" sender:kDaily];
@@ -429,6 +449,21 @@
     } else {
         [[[UIActionSheet alloc] initWithTitle:@"Report Type:" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kDaily,kSafety,kWeekly, nil] showFromTabBar:self.tabBarController.tabBar];
     }
+}
+
+- (void)newReportCreated:(Report *)report {
+    //NSLog(@"delegate method: %@",report);
+    [project addReport:report];
+    
+    daily = NO;
+    weekly = NO;
+    safety = NO;
+    
+    /*[self.tableView beginUpdates];
+    [self.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
+    [self.tableView endUpdates];*/
+    
+    [self.tableView reloadData];
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -448,6 +483,8 @@
     
     if ([[segue identifier] isEqualToString:@"Report"]){
         BHReportViewController *vc = [segue destinationViewController];
+        vc.delegate = self;
+        
         [vc setProject:project];
         if (daily || safety || weekly){
             [vc setReports:_filteredReports];
@@ -464,7 +501,6 @@
             [formatter setDateFormat:@"MM/dd/yyyy"];
             newReport.dateString = [formatter stringFromDate:[NSDate date]];
             [vc setReport:newReport];
-            [vc setReports:project.reports.array.mutableCopy];
         }
     }
 }
@@ -537,7 +573,7 @@
         [reportsScreenshot setFrame:CGRectMake(screenWidth()/2-350, 40, 710, 700)];
         [navigation configureText:text atFrame:CGRectMake(screenWidth()/4, reportsScreenshot.frame.origin.y+reportsScreenshot.frame.size.height, screenWidth()/2, 100)];
     } else {
-        reportsScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"reportScreenshot"]];
+        reportsScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"reportsScreenshot"]];
         [reportsScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
         [navigation configureText:text atFrame:CGRectMake(20, reportsScreenshot.frame.origin.y+reportsScreenshot.frame.size.height, screenWidth()-40, 100)];
     }

@@ -29,5 +29,6 @@
 @dynamic upcomingItems;
 @dynamic activities;
 @dynamic reminders;
+@dynamic saved;
 
 @end

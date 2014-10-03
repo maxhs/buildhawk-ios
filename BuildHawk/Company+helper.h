@@ -10,8 +10,8 @@
 #import "Project+helper.h"
 
 @interface Company (helper)
-- (void) populateWithDict:(NSDictionary*)dictionary;
-- (void) update:(NSDictionary*)dictionary;
+- (void) populateFromDictionary:(NSDictionary*)dictionary;
+- (void) updateFromDictionary:(NSDictionary*)dictionary;
 - (void) addProject:(Project*)project;
 - (void) removeProject:(Project*)project;
 - (void)addUser:(User*)user;

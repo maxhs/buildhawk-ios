@@ -4,16 +4,17 @@ CTAssetsPickerController v2 released! It has newly re-design delegate methods, f
 
 ## Introduction
 
-CTAssetsPickerController is an iOS controller that allows picking multiple photos and videos from user's photo library. The usage and look-and-feel are just similar to UIImagePickerController. It uses **ARC** and requires **AssetsLibrary** framework.
+CTAssetsPickerController is an iOS controller that allows picking multiple photos and videos from user's photo library. The usage and look-and-feel are just similar to UIImagePickerController. It uses **ARC**. Requires **AssetsLibrary** and **MediaPlayer** frameworks.
 
 ![Screenshot](Screenshot.png "Screenshot")
 
 ## Features
 1. Picks multiple photos and videos across albums from user's library.
-2. Filters assets for picking only photos or videos.
-3. Provides delegate methods for customization.
-4. Achieves average 5x fps.
-5. Conforms UIAccessibility Protocol.
+2. Previews assets by long-press gesture.
+3. Filters assets for picking only photos or videos.
+4. Filters assets or albums by their properties.
+5. Achieves average 5x fps.
+6. Conforms UIAccessibility Protocol.
 
 
 ## What's new
@@ -33,7 +34,7 @@ Xcode 5 and iOS 7.
 ````bash
 $ edit Podfile
 platform :ios, '7.0'
-pod 'CTAssetsPickerController',  '~> 2.2.0'
+pod 'CTAssetsPickerController',  '~> 2.3.0'
 $ pod install
 ````
 * Use the Xcode workspace instead of the project.
@@ -44,7 +45,7 @@ $ pod install
 $ git submodule add http://github.com/chiunam/CTAssetsPickerController
 ````
 1. Drag `CTAssetsPickerController` folder in your project and add to your targets.
-2. Add `AssetsLibrary.framework`.
+2. Add `AssetsLibrary.framework` and `MediaPlayer.framework`.
 
 ## Simple Uses
 
@@ -66,14 +67,14 @@ picker.delegate = self;
 
 ### Implement didFinishPickingAssets delegate
 
-The delegate methods are responsible for dismissing the picker when the operation completes. To dismiss the picker, call the [dismissViewControllerAnimated:completion:](https://developer.apple.com/library/ios/documentation/uikit/reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instm/UIViewController/dismissViewControllerAnimated:completion:) method of the presenting controller responsible for displaying `CTAssetsPickerController` object. Please refer to the demo app.
+The delegate is responsible for dismissing the picker when the operation completes. To dismiss the picker, call the [dismissViewControllerAnimated:completion:](https://developer.apple.com/library/ios/documentation/uikit/reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instm/UIViewController/dismissViewControllerAnimated:completion:) method of the presenting controller responsible for displaying `CTAssetsPickerController` object. Please refer to the demo app.
 
 ```` objective-c
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets;
 // assets contains ALAsset objects.
 ````
 
-## Advanced Uses
+## Customization
 
 Customization can be done by setting properties or implementating delegate methods. This section describes common customizations. Please refer to the [documentation](#documentation) for the complete list of properties and delegate methods.
 
@@ -81,7 +82,7 @@ Customization can be done by setting properties or implementating delegate metho
 
 **Filter picker contents**
 
-Pick only photos or videos by creating an `ALAssetsFilter` and assigning it to `assetsFilter`.
+Pick only photos or videos by creating an `ALAssetsFilter` and assigning it to `assetsFilter`. If you need filtering by assets' properties, implement `shouldShowAsset` [delegate method](#delegate-methods).
 ```` objective-c
 picker.assetsFilter = [ALAssetsFilter allPhotos]; // Only pick photos.
 ````
@@ -91,6 +92,13 @@ picker.assetsFilter = [ALAssetsFilter allPhotos]; // Only pick photos.
 Hide cancel button if you present the picker in `UIPopoverController`.
 ```` objective-c
 picker.showsCancelButton = NO;
+````
+
+**Hide number of assets**
+
+Hide number of assets if you implement `shouldShowAsset` delegate method.
+```` objective-c
+picker.showsNumberOfAssets = NO;
 ````
 
 **Override picker's title**
@@ -120,6 +128,17 @@ Limit the number of assets to be picked.
 }
 ````
 
+**Hide assets**
+
+Show only certain assets.
+```` objective-c
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldShowAsset:(ALAsset *)asset
+{
+    // Show only assets with 640px width
+    return (asset.defaultRepresentation.dimensions.width == 640);
+}
+````
+
 **Disable assets**
 
 Enable only certain assets to be selected.
@@ -140,21 +159,32 @@ Enable only certain assets to be selected.
 }
 ````
 
+**Default album**
+
+You can show an album content (e.g. Camera Roll) initially instead of a list of albums by implementing the following delegate method. The default album must not returns `NO` in `shouldShowAssetsGroup`. 
+```` objective-c
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker isDefaultAssetsGroup:(ALAssetsGroup *)group
+{
+    // Set Camera Roll as default album and it will be shown initially.
+    return ([[group valueForProperty:ALAssetsGroupPropertyType] integerValue] == ALAssetsGroupSavedPhotos);    
+}
+````
+
+
 **Hide albums**
 
-Assets stored on iCloud (photo stream) may not be displayed and picked properly if they have not downloaded to the device. You may hide iCloud albums by implementing the following delegate.
+The picker shows all albums by default, including empty albums, iCloud albums and those synced with iTunes. You may hide albums by implementing the following delegate method.
 ```` objective-c
 - (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldShowAssetsGroup:(ALAssetsGroup *)group
 {
-    // Do not show photo stream
-    NSInteger type = [[group valueForProperty:ALAssetsGroupPropertyType] integerValue];
-    return (type != ALAssetsGroupPhotoStream);
+    // Do not show empty albums
+    return group.numberOfAssets > 0;
 }
 ````
 
 **Show alert on selection**
 
-Or show an alert when user try to select empty assets
+Assets stored on iCloud may not be displayed and picked properly if they have not downloaded to the device. You can show an alert when user try to select empty assets
 
 ```` objective-c
 - (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
@@ -176,9 +206,35 @@ Or show an alert when user try to select empty assets
 }
 ````
 
+### Apperance
+
+The first child view controller of the picker is a `UINavigationController`. You can access the navigation controller via the property `navigationContoller` and then customise its apperance.
+
+```` objective-c
+// Set navigation bar's tint color
+picker.navigationController.navigationBar.tintColor = ...
+
+// Set navigation bar's title attributes
+picker.navigationController.navigationBar.titleTextAttributes = ...
+
+````
+
+
 ### Notifications
 
 An `NSNotification` object named `CTAssetsPickerSelectedAssetsChangedNotification` will be sent when user select or deselect assets. You may add your observer to monitor the change of selection.
+
+## Bonus
+
+You may reuse the preview feature of the picker to view any assets. Just init a `CTAssetsPageViewController` with an array of assets and assign `pageIndex` property. Please refer to the demo app.
+
+```` objective-c
+NSArray *assets = @[asset1, asset2, asset3, ...];
+CTAssetsPageViewController *vc = [[CTAssetsPageViewController alloc] initWithAssets:assets];
+vc.pageIndex = assets.count - 1; // display the last asset 
+
+[self.navigationController pushViewController:vc animated:YES];
+````    
 
 
 ## Documentation
@@ -192,37 +248,36 @@ CTAssetsPickerController does not compress the picked photos and videos. You can
 For example, you can create `UIImage` from picked assets like this:-
 
 ```` objective-c
-    ALAssetRepresentation *representation = alAsset.defaultRepresentation;
+ALAssetRepresentation *representation = alAsset.defaultRepresentation;
 
-    UIImage *fullResolutionImage =
-    [UIImage imageWithCGImage:representation.fullResolutionImage
-                        scale:1.0f
-                  orientation:(UIImageOrientation)representation.orientation];
+UIImage *fullResolutionImage =
+[UIImage imageWithCGImage:representation.fullResolutionImage
+					scale:1.0f
+			  orientation:(UIImageOrientation)representation.orientation];
 ````
 
 and create `NSData` of picked vidoes:-
 
 ```` objective-c
-    ALAssetRepresentation *representation = alAsset.defaultRepresentation;
+ALAssetRepresentation *representation = alAsset.defaultRepresentation;
 
-    NSURL *url          = representation.url;
-    AVAsset *asset      = [AVURLAsset URLAssetWithURL:url options:nil];
+NSURL *url          = representation.url;
+AVAsset *asset      = [AVURLAsset URLAssetWithURL:url options:nil];
 
-    AVAssetExportSession *session =
-    [AVAssetExportSession exportSessionWithAsset:asset presetName:AVAssetExportPresetLowQuality];
+AVAssetExportSession *session =
+[AVAssetExportSession exportSessionWithAsset:asset presetName:AVAssetExportPresetLowQuality];
 
-    session.outputFileType  = AVFileTypeQuickTimeMovie;
-    session.outputURL       = VIDEO_EXPORTING_URL;
+session.outputFileType  = AVFileTypeQuickTimeMovie;
+session.outputURL       = VIDEO_EXPORTING_URL;
 
-    [session exportAsynchronouslyWithCompletionHandler:^{
+[session exportAsynchronouslyWithCompletionHandler:^{
 
-        if (session.status == AVAssetExportSessionStatusCompleted)
-        {
-            NSData *data    = [NSData dataWithContentsOfURL:session.outputURL];
-        }
+	if (session.status == AVAssetExportSessionStatusCompleted)
+	{
+		NSData *data    = [NSData dataWithContentsOfURL:session.outputURL];
+	}
 
-    }];
-
+}];
 ````
 Please refer the documentation of `ALAssetRepresentation` and `AVAssetExportSession`.
 

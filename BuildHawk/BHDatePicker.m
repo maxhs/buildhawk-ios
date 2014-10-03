@@ -56,7 +56,7 @@ typedef enum {
 
 - (void)commonInit {
     self.tintColor = [UIColor whiteColor];
-    self.font = [UIFont systemFontOfSize:21];
+    self.font = [UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0];
     self.calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     [self setLocale:[NSLocale currentLocale]];
     self.picker = [[UIPickerView alloc] initWithFrame:self.bounds];
@@ -308,7 +308,7 @@ typedef enum {
         } else if (value == 12){
             return [NSString stringWithFormat:@"Noon"];
         } else if (value > 12){
-            int val = value - 12;
+            NSInteger val = value - 12;
             return [NSString stringWithFormat:@"%li  pm", (long) val];
         } else {
             return [NSString stringWithFormat:@"%li  am", (long) value];

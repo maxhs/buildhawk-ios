@@ -9,7 +9,7 @@
 #import "BHActivityCell.h"
 #import "Comment+helper.h"
 #import "Activity+helper.h"
-#import "WorklistItem+helper.h"
+#import "Task+helper.h"
 #import "Report+helper.h"
 #import "Folder+helper.h"
 
@@ -33,6 +33,7 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     [_activityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
     [_timestampLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
@@ -156,7 +157,7 @@
         } else {
             [_activityLabel setText:activity.body];
         }
-    } else if ([activity.activityType isEqualToString:kWorklistItem]) {
+    } else if ([activity.activityType isEqualToString:kTask]) {
         [self.imageView setImage:[UIImage imageNamed:@"tasks"]];
         NSString *activityObject;
         if (activity.task.body.length > 25){

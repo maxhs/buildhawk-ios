@@ -21,7 +21,8 @@
 
 - (void)awakeFromNib
 {
-    [_progressPercentage setFont:[UIFont fontWithName:kMyriadProLight size:17]];
+    [super awakeFromNib];
+    [_progressPercentage setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

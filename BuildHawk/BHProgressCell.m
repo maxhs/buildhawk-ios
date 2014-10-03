@@ -20,6 +20,7 @@
 }
 
 - (void)awakeFromNib {
+    [super awakeFromNib];
     [_itemLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
     [_progressLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
 }

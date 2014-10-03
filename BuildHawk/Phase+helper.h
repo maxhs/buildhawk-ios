@@ -10,8 +10,8 @@
 #import "Cat+helper.h"
 
 @interface Phase (helper)
-- (void)update:(NSDictionary*)dictionary;
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)updateFromDictionary:(NSDictionary*)dictionary;
 - (void)addCategory:(Cat *)category;
 - (void)removeCategory:(Cat *)category;
 - (void)calculateProgress;

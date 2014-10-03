@@ -10,5 +10,6 @@
 
 @interface Checklist (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary;
+- (void)updateFromDictionary:(NSDictionary *)dictionary;
 - (void)removePhase:(Phase *)phase;
 @end

@@ -23,8 +23,8 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"reminder_date"] doubleValue];
         self.reminderDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
-    if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"created_date"] doubleValue];
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"checklist_item"] && [dictionary objectForKey:@"checklist_item"] != [NSNull null]) {
@@ -32,7 +32,7 @@
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
         ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (item){
-            [item update:dict];
+            [item updateFromDictionary:dict];
         } else {
             item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [item populateFromDictionary:dict];
@@ -41,7 +41,7 @@
     }
     
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
-        if ([[[dictionary objectForKey:@"user"] objectForKey:@"id"] isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[[dictionary objectForKey:@"user"] objectForKey:@"id"] isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
             User *currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (currentUser){
                 if ([self.reminderDate compare:[NSDate date]] == NSOrderedAscending){
@@ -55,7 +55,7 @@
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[dictionary objectForKey:@"user"] objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (user){
-                [user update:[dictionary objectForKey:@"user"]];
+                [user updateFromDictionary:[dictionary objectForKey:@"user"]];
             } else {
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [user populateFromDictionary:[dictionary objectForKey:@"user"]];

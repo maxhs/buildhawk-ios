@@ -18,6 +18,7 @@
 #import "BHPhotosViewController.h"
 #import "Flurry.h"
 #import "BHAppDelegate.h"
+#import "BHUtilities.h"
 
 @interface BHDocumentsViewController () <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate> {
     BOOL iPhone5;
@@ -36,7 +37,7 @@
     NSMutableArray *sourceArray;
     NSMutableArray *documentsArray;
     NSMutableArray *checklistArray;
-    NSMutableArray *worklistArray;
+    NSMutableArray *tasklistArray;
     NSMutableArray *reportsArray;
     NSMutableArray *browserPhotos;
     CGRect screen;
@@ -130,10 +131,10 @@
     } else {
         checklistArray = [NSMutableArray array];
     }
-    if (worklistArray) {
-        [worklistArray removeAllObjects];
+    if (tasklistArray) {
+        [tasklistArray removeAllObjects];
     } else {
-        worklistArray = [NSMutableArray array];
+        tasklistArray = [NSMutableArray array];
     }
     if (reportsArray) {
         [reportsArray removeAllObjects];
@@ -149,8 +150,8 @@
     for (Photo *photo in set.array) {
         if ([photo.source isEqualToString:kChecklist]) {
             [checklistArray addObject:photo];
-        } else if ([photo.source isEqualToString:kWorklist]) {
-            [worklistArray addObject:photo];
+        } else if ([photo.source isEqualToString:kTasklist]) {
+            [tasklistArray addObject:photo];
         } else if ([photo.source isEqualToString:kReports]){
             [reportsArray addObject:photo];
         } else if ([photo.source isEqualToString:kDocuments]){
@@ -160,7 +161,6 @@
         if (photo.userName.length && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
     }
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"Saving documents: %hhd",success);
         [self.tableView reloadData];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         loading = NO;
@@ -172,8 +172,8 @@
     [_project removePhoto:[notification.userInfo objectForKey:@"photo"]];
     if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kReports]){
         if (reportsArray.count) [reportsArray removeObject:[notification.userInfo objectForKey:@"photo"]];
-    } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kWorklist]){
-        if (worklistArray.count) [worklistArray removeObject:[notification.userInfo objectForKey:@"photo"]];
+    } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kTasklist]){
+        if (tasklistArray.count) [tasklistArray removeObject:[notification.userInfo objectForKey:@"photo"]];
     } else if ([[notification.userInfo objectForKey:@"type"] isEqualToString:kDocuments]){
         if (documentsArray.count) {
             [documentsArray removeObject:[notification.userInfo objectForKey:@"photo"]];
@@ -209,13 +209,14 @@
 
     cell.backgroundColor = [UIColor whiteColor];
     cell.userInteractionEnabled = YES;
-    if (iPad) {
-        [cell.bucketLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
-        [cell.countLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
+    
+    if (IDIOM == IPAD){
+        [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
     } else {
-        [cell.bucketLabel setFont:[UIFont fontWithName:kMyriadProLight size:24]];
-        [cell.countLabel setFont:[UIFont fontWithName:kMyriadProLight size:16]];
+        [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
     }
+    [cell.countLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    
     NSURL *imageUrl;
     switch (indexPath.row) {
         case 0:
@@ -226,7 +227,8 @@
                 [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             }
-            else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",photosArray.count]];
+            else [cell.countLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)
+                                           photosArray.count]];
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlLarge]];
             } else if (photosArray.count > 0) {
@@ -243,7 +245,7 @@
                 [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             } else {
-                [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",documentsArray.count]];
+                [cell.countLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)documentsArray.count]];
             }
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)documentsArray.lastObject urlLarge]];
@@ -261,7 +263,7 @@
                 [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             }
-            else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",checklistArray.count]];
+            else [cell.countLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)checklistArray.count]];
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)checklistArray.lastObject urlLarge]];
             } else if (checklistArray.count > 0) {
@@ -272,17 +274,17 @@
             break;
         case 3:
             [cell.bucketLabel setText:@"Task Pictures"];
-            if (worklistArray.count == 1) {
+            if (tasklistArray.count == 1) {
                 [cell.countLabel setText:@"1 Item"];
-            } else if (worklistArray.count == 0) {
+            } else if (tasklistArray.count == 0) {
                 [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
             }
-            else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",worklistArray.count]];
+            else [cell.countLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)tasklistArray.count]];
             if (iPad){
-                imageUrl = [NSURL URLWithString:[(Photo*)worklistArray.lastObject urlLarge]];
-            } else if (worklistArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(Photo*)worklistArray.lastObject urlSmall]];
+                imageUrl = [NSURL URLWithString:[(Photo*)tasklistArray.lastObject urlLarge]];
+            } else if (tasklistArray.count > 0) {
+                imageUrl = [NSURL URLWithString:[(Photo*)tasklistArray.lastObject urlSmall]];
             } else {
                 imageUrl = nil;
             }
@@ -294,7 +296,7 @@
             } else if (reportsArray.count == 0) {
                 [cell.countLabel setText:@"No documents"];
                 cell.userInteractionEnabled = NO;
-            } else [cell.countLabel setText:[NSString stringWithFormat:@"%i Items",reportsArray.count]];
+            } else [cell.countLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)reportsArray.count]];
             
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)reportsArray.lastObject urlLarge]];
@@ -310,7 +312,7 @@
     if (imageUrl) {
         cell.countLabel.transform = CGAffineTransformIdentity;
         cell.bucketLabel.transform = CGAffineTransformIdentity;
-        [cell.photoButton setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+        [cell.photoButton sd_setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL){
             [cell.photoButton setTag:0];
             cell.photoButton.userInteractionEnabled = NO;
             [UIView animateWithDuration:.25 animations:^{
@@ -479,7 +481,7 @@
         {
             BHPhotosViewController *vc = [segue destinationViewController];
             NSMutableSet *titleSet = [NSMutableSet set];
-            for (Photo *photo in worklistArray){
+            for (Photo *photo in tasklistArray){
                 if (photo.userName.length)[titleSet addObject:photo.userName];
                 if (photo.dateString.length && ![dateArray containsObject:photo.dateString]) [dateArray addObject:photo.dateString];
             }
@@ -488,8 +490,8 @@
             NSArray *sortedArray = [titleSet sortedArrayUsingDescriptors:descriptors];
             [vc setSectionTitles:sortedArray];
             [vc setNumberOfSections:titleSet.count];
-            [vc setPhotosArray:worklistArray];
-            [vc setWorklistsBool:YES];
+            [vc setPhotosArray:tasklistArray];
+            [vc setTasklistsBool:YES];
             [vc setUserNames:userArray];
             [vc setDates:dateArray];
             [vc setProject:_project];

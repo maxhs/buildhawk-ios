@@ -11,7 +11,7 @@
 
 @implementation Group (helper)
 
-- (void) populateWithDict:(NSDictionary*)dictionary {
+- (void)populateWithDictionary:(NSDictionary*)dictionary {
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
@@ -27,7 +27,9 @@
             //NSLog(@"project dict: %@",projectDict);
             NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
             Project *project = [Project MR_findFirstWithPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (!project){
+            if (project){
+                [project updateFromDictionary:projectDict];
+            } else {
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [project populateFromDictionary:projectDict];
@@ -43,6 +45,36 @@
         self.projects = orderedProjects;
     }
 }
+
+- (void)updateWithDictionary:(NSDictionary*)dictionary {
+    
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
+        self.name = [dictionary objectForKey:@"name"];
+    }
+    if ([dictionary objectForKey:@"projects_count"] && [dictionary objectForKey:@"projects_count"] != [NSNull null]) {
+        self.projectsCount = [dictionary objectForKey:@"projects_count"];
+    }
+    if ([dictionary objectForKey:@"projects"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedProjects = [NSMutableOrderedSet orderedSet];
+        for (id projectDict in [dictionary objectForKey:@"projects"]){
+            //NSLog(@"project dict: %@",projectDict);
+            NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
+            Project *project = [Project MR_findFirstWithPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (project){
+                [project updateFromDictionary:projectDict];
+            } else {
+                project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                 [project populateFromDictionary:projectDict];
+            }
+           
+            [orderedProjects addObject:project];
+        }
+        
+        self.projects = orderedProjects;
+    }
+}
+
+
 -(void)addProject:(Project *)project {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.projects];
     [set addObject:project];

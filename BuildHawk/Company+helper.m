@@ -11,7 +11,7 @@
 #import "User+helper.h"
 
 @implementation Company (helper)
-- (void)populateWithDict:(NSDictionary *)dictionary {
+- (void)populateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"company dict: %@",dictionary);
     if ([dictionary objectForKey:@"id"]) {
         self.identifier = [dictionary objectForKey:@"id"];
@@ -60,7 +60,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }

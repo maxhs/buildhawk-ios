@@ -9,7 +9,8 @@
 #import "Group.h"
 
 @interface Group (helper)
-- (void) populateWithDict:(NSDictionary*)dictionary;
+- (void) populateWithDictionary:(NSDictionary*)dictionary;
+- (void) updateWithDictionary:(NSDictionary*)dictionary;
 - (void) addProject:(Project*)project;
 - (void) removeProject:(Project*)project;
 @end

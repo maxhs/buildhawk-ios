@@ -1,9 +1,11 @@
 platform :ios, '7.0'
+inhibit_all_warnings!
 pod 'AFNetworking'
 pod 'MagicalRecord'
 pod 'LDProgressView'
-pod 'CTAssetsPickerController',  '~> 2.2.0'
+pod 'CTAssetsPickerController'
 pod 'Mixpanel'
+pod 'SDWebImage'
+pod 'NewRelicAgent'
+pod 'PSTCollectionView'
 pod 'RESideMenu', '~> 4.0.4'
-
-link_with 'BuildHawk'

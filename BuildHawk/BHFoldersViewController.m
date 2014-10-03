@@ -73,7 +73,7 @@
     if (array.count == 1){
         titleString = [NSString stringWithFormat:@"%@ - 1 item",key];
     } else {
-        titleString = [NSString stringWithFormat:@"%@ - %i items",key,array.count];
+        titleString = [NSString stringWithFormat:@"%@ - %lu items",key,(unsigned long)array.count];
     }
     [cell.textLabel setText:titleString];
     if (IDIOM == IPAD) [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:21]];

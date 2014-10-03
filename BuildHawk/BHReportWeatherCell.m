@@ -20,6 +20,7 @@
 }
 
 - (void)awakeFromNib {
+    [super awakeFromNib];
     [_windLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
     [_windTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
     [_precipLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];

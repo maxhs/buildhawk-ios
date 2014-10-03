@@ -7,7 +7,7 @@
 //
 
 #import "User+helper.h"
-#import "WorklistItem+helper.h"
+#import "Task+helper.h"
 #import "Company+helper.h"
 #import "Alternate+helper.h"
 
@@ -41,12 +41,19 @@
     }
     if ([dictionary objectForKey:@"phone"] && [dictionary objectForKey:@"phone"] != [NSNull null]) {
         self.phone = [dictionary objectForKey:@"phone"];
+    } else {
+        self.phone = @"";
     }
     if ([dictionary objectForKey:@"formatted_phone"] && [dictionary objectForKey:@"formatted_phone"] != [NSNull null]) {
         self.formattedPhone = [dictionary objectForKey:@"formatted_phone"];
+    } else {
+        self.formattedPhone = @"";
     }
     if ([dictionary objectForKey:@"email"] && [dictionary objectForKey:@"email"] != [NSNull null]) {
         self.email = [dictionary objectForKey:@"email"];
+    }
+    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
+        self.active = [dictionary objectForKey:@"active"];
     }
     if ([dictionary objectForKey:@"admin"] && [dictionary objectForKey:@"admin"] != [NSNull null]) {
         self.admin = [dictionary objectForKey:@"admin"];
@@ -72,7 +79,7 @@
         Company *company = [Company MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!company){
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [company populateWithDict:companyDict];
+            [company populateFromDictionary:companyDict];
         }
         self.company = company;
     }
@@ -91,7 +98,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
 
     if ([dictionary objectForKey:@"full_name"] && [dictionary objectForKey:@"full_name"] != [NSNull null]) {
         self.fullname = [dictionary objectForKey:@"full_name"];
@@ -126,10 +133,10 @@
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [companyDict objectForKey:@"id"]];
         Company *company = [Company MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (company){
-            [company update:companyDict];
+            [company updateFromDictionary:companyDict];
         } else {
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [company populateWithDict:companyDict];
+            [company populateFromDictionary:companyDict];
         }
         self.company = company;
     }
@@ -146,10 +153,10 @@
     [notifications addObject:notification];
     self.notifications = notifications;
 }
-- (void)assignWorklistItem:(WorklistItem*)item {
-    NSMutableOrderedSet *orderedItems = [NSMutableOrderedSet orderedSetWithOrderedSet:self.assignedWorklistItems];
+- (void)assignTask:(Task*)item {
+    NSMutableOrderedSet *orderedItems = [NSMutableOrderedSet orderedSetWithOrderedSet:self.assignedTasks];
     [orderedItems addObject:item];
-    self.assignedWorklistItems = orderedItems;
+    self.assignedTasks = orderedItems;
 }
 
 - (void)addReminder:(Reminder*)reminder {
@@ -174,22 +181,23 @@
     self.pastDueReminders = pastDueReminders;
 }
 
-- (void)archiveProject:(Project *)project {
-    NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.archivedProjects];
+- (void)hideProject:(Project *)project {
+    NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.hiddenProjects];
     [set addObject:project];
-    self.archivedProjects = set;
+    self.hiddenProjects= set;
 }
-- (void)unarchiveProject:(Reminder *)project {
-    NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.archivedProjects];
+- (void)activateProject:(Project *)project {
+    NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.hiddenProjects];
     [set removeObject:project];
-    self.archivedProjects = set;
+    [self addProject:project];
+    self.hiddenProjects = set;
 }
-- (void)addProject:(Reminder *)project {
+- (void)addProject:(Project *)project {
     NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.projects];
     [set addObject:project];
     self.projects = set;
 }
-- (void)removeProject:(Reminder *)project {
+- (void)removeProject:(Project *)project {
     NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.projects];
     [set removeObject:project];
     self.projects = set;

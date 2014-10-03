@@ -10,5 +10,7 @@
 
 @interface ReportUser (helper)
 
-- (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)populateFromDict:(NSDictionary*)dictionary;
+- (void)updateFromDict:(NSDictionary*)dictionary;
+
 @end

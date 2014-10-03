@@ -20,9 +20,10 @@
 }
 
 - (void)awakeFromNib {
-    [_itemLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:19]];
-    [_createdLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
-    [_ownerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [super awakeFromNib];
+    [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
+    [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

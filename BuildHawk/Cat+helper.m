@@ -8,6 +8,7 @@
 
 #import "Cat+helper.h"
 #import "ChecklistItem+helper.h"
+#import "BHUtilities.h"
 
 @implementation Cat (helper)
 
@@ -33,7 +34,7 @@
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
             ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (item){
-                [item update:itemDict];
+                [item updateFromDictionary:itemDict];
             } else {
                 item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [item populateFromDictionary:itemDict];
@@ -45,7 +46,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary{
+- (void)updateFromDictionary:(NSDictionary *)dictionary{
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
@@ -57,7 +58,7 @@
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
             ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:[itemDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (item){
-                [item update:itemDict];
+                [item updateFromDictionary:itemDict];
             } else {
                 item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [item populateFromDictionary:itemDict];

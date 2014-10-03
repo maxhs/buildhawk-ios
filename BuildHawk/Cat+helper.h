@@ -10,7 +10,7 @@
 
 @interface Cat (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
-- (void)update:(NSDictionary*)dictionary;
+- (void)updateFromDictionary:(NSDictionary*)dictionary;
 - (void)calculateProgress;
 - (void)addItem:(ChecklistItem*)item;
 - (void)removeItem:(ChecklistItem*)item;

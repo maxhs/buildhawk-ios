@@ -17,7 +17,6 @@
 #import "Activity+helper.h"
 #import "Report+helper.h"
 #import "Reminder+helper.h"
-#import "ConnectUser+helper.h"
 
 @implementation Project (helper)
 
@@ -34,7 +33,7 @@
         Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!company){
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [company populateWithDict:companyDict];
+            [company populateFromDictionary:companyDict];
         }
         
         self.company = company;
@@ -48,6 +47,10 @@
         self.active = [dictionary objectForKey:@"active"];
     }
     
+    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
+        self.orderIndex = [dictionary objectForKey:@"order_index"];
+    }
+    
     if ([dictionary objectForKey:@"users"] && [dictionary objectForKey:@"users"] != [NSNull null]) {
         //NSLog(@"project users: %@",[dictionary objectForKey:@"users"]);
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
@@ -55,40 +58,20 @@
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (user){
-                [user update:userDict];
+                [user updateFromDictionary:userDict];
             } else {
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [user populateFromDictionary:userDict];
             }
             [orderedUsers addObject:user];
         }
-        for (User *user in self.connectUsers){
+        for (User *user in self.users){
             if (![orderedUsers containsObject:user]){
                 NSLog(@"Deleting a project user that no longer exists: %@",user.fullname);
                 [user MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
         self.users = orderedUsers;
-    }
-    if ([dictionary objectForKey:@"connect_users"] && [dictionary objectForKey:@"connect_users"] != [NSNull null]) {
-        //NSLog(@"project connect users: %@",[dictionary objectForKey:@"connect_users"]);
-        NSMutableOrderedSet *orderedConnectUsers = [NSMutableOrderedSet orderedSet];
-        for (id userDict in [dictionary objectForKey:@"connect_users"]){
-            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (!connectUser){
-                connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-            [connectUser populateFromDictionary:userDict];
-            [orderedConnectUsers addObject:connectUser];
-        }
-        for (ConnectUser *connectUser in self.connectUsers){
-            if (![orderedConnectUsers containsObject:connectUser]){
-                NSLog(@"Deleting a connect user that no longer exists: %@",connectUser.fullname);
-                [connectUser MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-        }
-        self.connectUsers = orderedConnectUsers;
     }
     
     if ([dictionary objectForKey:@"companies"] && [dictionary objectForKey:@"companies"] != [NSNull null]) {
@@ -100,7 +83,7 @@
             if (!company){
                 company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-            [company populateWithDict:dict];
+            [company populateFromDictionary:dict];
             [set addObject:company];
         }
         self.companies = set;
@@ -118,10 +101,13 @@
     if ([dictionary objectForKey:@"project_group"] && [dictionary objectForKey:@"project_group"] != [NSNull null]) {
         NSDictionary *groupDict = [dictionary objectForKey:@"project_group"];
         Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!group) {
+        if (group) {
+            [group updateWithDictionary:[dictionary objectForKey:@"project_group"]];
+        } else {
             group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+             [group populateWithDictionary:[dictionary objectForKey:@"project_group"]];
         }
-        [group populateWithDict:[dictionary objectForKey:@"project_group"]];
+       
         self.group = group;
     }
     
@@ -137,7 +123,7 @@
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
                 Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
-                    [photo update:photoDict];
+                    [photo updateFromDictionary:photoDict];
                 } else {
                     photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [photo populateFromDictionary:photoDict];
@@ -163,7 +149,7 @@
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
                 Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
-                    [photo update:photoDict];
+                    [photo updateFromDictionary:photoDict];
                 } else {
                     photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [photo populateFromDictionary:photoDict];
@@ -234,8 +220,9 @@
     
     if ([dictionary objectForKey:@"recent_activities"] && [dictionary objectForKey:@"recent_activities"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
-        //NSLog(@"project activities %@",[dictionary objectForKey:@"activities"]);
-        for (id dict in [dictionary objectForKey:@"recent_activities"]){
+        NSDictionary *recentDict = [dictionary objectForKey:@"recent_activities"];
+        //NSLog(@"project activities %@",recentDict);
+        for (id dict in recentDict){
             if ([dict objectForKey:@"id"]){
                 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
                 Activity *activity = [Activity MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -285,7 +272,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"update project dict: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
@@ -294,10 +281,10 @@
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
         Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (company){
-            [company update:companyDict];
+            [company updateFromDictionary:companyDict];
         } else {
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [company populateWithDict:companyDict];
+            [company populateFromDictionary:companyDict];
         }
         self.company = company;
     }
@@ -310,10 +297,10 @@
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
             Company *company = [Company MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (company){
-                [company update:dict];
+                [company updateFromDictionary:dict];
             } else {
                 company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [company populateWithDict:dict];
+                [company populateFromDictionary:dict];
             }
             [set addObject:company];
         }
@@ -326,7 +313,7 @@
             NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (user){
-                [user update:userDict];
+                [user updateFromDictionary:userDict];
             } else {
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [user populateFromDictionary:userDict];
@@ -335,21 +322,6 @@
             [orderedUsers addObject:user];
         }
         self.users = orderedUsers;
-    }
-    
-    if ([dictionary objectForKey:@"connect_users"] && [dictionary objectForKey:@"connect_users"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedConnectUsers = [NSMutableOrderedSet orderedSet];
-        NSLog(@"project connect users: %@",[dictionary objectForKey:@"connect_users"]);
-        for (id userDict in [dictionary objectForKey:@"connect_users"]){
-            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-            ConnectUser *connectUser = [ConnectUser MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (!connectUser){
-                connectUser = [ConnectUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-            [connectUser populateFromDictionary:userDict];
-            [orderedConnectUsers addObject:connectUser];
-        }
-        self.connectUsers = orderedConnectUsers;
     }
     
     if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
@@ -371,10 +343,13 @@
     if ([dictionary objectForKey:@"project_group"] && [dictionary objectForKey:@"project_group"] != [NSNull null]) {
         NSDictionary *groupDict = [dictionary objectForKey:@"project_group"];
         Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!group) {
+        if (group) {
+            [group updateWithDictionary:[dictionary objectForKey:@"project_group"]];
+        } else {
             group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [group populateWithDictionary:[dictionary objectForKey:@"project_group"]];
         }
-        [group populateWithDict:[dictionary objectForKey:@"project_group"]];
+        
         self.group = group;
     }
     
@@ -390,7 +365,7 @@
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
                 Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
-                    [photo update:photoDict];
+                    [photo updateFromDictionary:photoDict];
                 } else {
                     photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [photo populateFromDictionary:photoDict];
@@ -417,7 +392,7 @@
                 NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
                 Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (photo){
-                    [photo update:photoDict];
+                    [photo updateFromDictionary:photoDict];
                 } else {
                     photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [photo populateFromDictionary:photoDict];
@@ -543,7 +518,9 @@
     NSMutableOrderedSet *photos = [NSMutableOrderedSet orderedSet];
     for (NSDictionary *photoDict in array){
         Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!photo){
+        if (photo){
+            [photo updateFromDictionary:photoDict];
+        } else {
             photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [photo populateFromDictionary:photoDict];
@@ -571,7 +548,7 @@
 
 -(void)addReport:(Report *)report {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reports];
-    [set addObject:report];
+    [set insertObject:report atIndex:0];
     self.reports = set;
 }
 -(void)removeReport:(Report *)report {

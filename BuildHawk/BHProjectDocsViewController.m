@@ -92,7 +92,7 @@
 
     if (imageUrl) {
         cell.docLabel.transform = CGAffineTransformIdentity;
-        [cell.photoButton setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+        [cell.photoButton sd_setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
             [cell.photoButton setTag:0];
             cell.photoButton.userInteractionEnabled = NO;
             [UIView animateWithDuration:.25 animations:^{

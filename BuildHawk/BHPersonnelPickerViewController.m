@@ -15,7 +15,6 @@
 #import "ReportSub.h"
 #import "ReportUser.h"
 #import "Project+helper.h"
-#import "ConnectUser+helper.h"
 #import "BHChoosePersonnelCell.h"
 #import "BHAddPersonnelViewController.h"
 #import "BHSearchModalTransition.h"
@@ -76,14 +75,15 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [searchTextField setBackgroundColor:[UIColor clearColor]];
             [searchTextField setTextColor:[UIColor blackColor]];
             [searchTextField setTintColor:[UIColor blackColor]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [searchTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
             break;
         }
     }
     if (_companyMode){
-        self.searchBar.placeholder = @"Search for / Add a new company...";
+        self.searchBar.placeholder = @"Search for / add a new company...";
     } else {
-        self.searchBar.placeholder = @"Search for / Add personnel...";
+        self.searchBar.placeholder = @"Search for / add personnel...";
     }
     companySet = [NSMutableOrderedSet orderedSet];
     [self pinParentCompanyToTop];
@@ -122,11 +122,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [ProgressHUD show:@"Fetching personnel..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success loading project personnel: %@",responseObject);
-        [_project update:[responseObject objectForKey:@"project"]];
+        [_project updateFromDictionary:[responseObject objectForKey:@"project"]];
         loading = NO;
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"%u success with saving project subs",success);
+            //NSLog(@"%u success with saving project subs",success);
             [ProgressHUD dismiss];
             [self processPersonnel];
         }];
@@ -153,15 +153,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
         [user.company.projectUsers addObject:user];
         [companySet addObject:user.company];
-    }];
-    [_project.connectUsers enumerateObjectsUsingBlock:^(ConnectUser *connectUser, NSUInteger idx, BOOL *stop) {
-        if (!connectUser.company.projectUsers){
-            connectUser.company.projectUsers = [NSMutableOrderedSet orderedSet];
-        }
-        [connectUser.company.projectUsers addObject:connectUser];
-        if (connectUser.company){
-            [companySet addObject:connectUser.company];
-        }
     }];
     
     [self.tableView reloadData];
@@ -267,14 +258,14 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             if (_companyMode){
                 return companySet.count;
             } else {
-                if ([company.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                if ([company.expanded isEqualToNumber:@YES]){
                     return company.projectUsers.count + 2;
                 } else {
                     return 1;
                 }
             }
         } else {
-            if ([company.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+            if ([company.expanded isEqualToNumber:@YES]){
                 return company.projectUsers.count + 2;
             } else {
                 return 1;
@@ -298,7 +289,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.hoursLabel setText:@""];
             [cell.nameLabel setText:@""];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
-            [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             if (_companyMode){
                 Company *company;
                 if (filteredSubcontractors.count){
@@ -308,8 +301,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                         [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
                             if ([company.identifier isEqualToNumber:reportSub.companyId]){
                                 [cell.connectNameLabel setText:company.name];
-                                [cell.connectNameLabel setFont:[UIFont boldSystemFontOfSize:16]];
-                                [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel onsite",reportSub.count]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
+                                [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
                                 [cell.nameLabel setText:@""];
                                 *stop = YES;
                             }
@@ -318,7 +312,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                     
                     [cell.nameLabel setNumberOfLines:0];
                     [cell.nameLabel setTextColor:[UIColor blackColor]];
-                    [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
                 }
             
                 return cell;
@@ -327,6 +320,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 if (filteredUsers.count){
                     user = filteredUsers[indexPath.row];
                     [cell.connectNameLabel setText:user.fullname];
+                    [cell.connectNameLabel setTextColor:[UIColor blackColor]];
                     if (user.company.name.length){
                         NSAttributedString *companyString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"   (%@)",user.company.name] attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
                         NSMutableAttributedString *userString = [[NSMutableAttributedString alloc] initWithString:user.fullname];
@@ -339,6 +333,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                     } else if (user.phone.length) {
                         [cell.connectDetailLabel setText:user.phone];
                     }
+                    [cell.connectDetailLabel setTextColor:[UIColor lightGrayColor]];
                 }
                 //clear out the plain old boring name label
                 [cell.nameLabel setText:@""];
@@ -360,10 +355,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             }
             
             [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
-            [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             return cell;
         }
     } else {
+        //not searching
         static NSString *CellIdentifier = @"ReportCell";
         BHChoosePersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         if (cell == nil) {
@@ -393,8 +389,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
                 if ([company.identifier isEqualToNumber:reportSub.companyId]){
                     [cell.connectNameLabel setText:company.name];
-                    [cell.connectNameLabel setFont:[UIFont boldSystemFontOfSize:16]];
-                    [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel onsite",reportSub.count]];
+                    [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+                    [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
+                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
                     [cell.nameLabel setText:@""];
                     *stop = YES;
                 }
@@ -402,7 +399,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
-            [cell.nameLabel setFont:[UIFont systemFontOfSize:16]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             
         } else if (indexPath.row == 0){
             cell.backgroundColor = [UIColor whiteColor];
@@ -412,7 +409,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
             [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
-            [cell.nameLabel setFont:[UIFont boldSystemFontOfSize:16]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
         } else if (indexPath.row == company.projectUsers.count + 1){
             [cell.connectNameLabel setText:@""];
             [cell.connectDetailLabel setText:@""];
@@ -420,7 +417,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.nameLabel setText:[NSString stringWithFormat:@"\u2794 Add a contact to \"%@\"",company.name]];
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextAlignment:NSTextAlignmentCenter];
-            [cell.nameLabel setFont:[UIFont italicSystemFontOfSize:16]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProIt] size:0]];
             [cell.nameLabel setTextColor:[UIColor whiteColor]];
             cell.backgroundColor = kBlueColor;
             //add a border
@@ -434,8 +431,10 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             //this could be a user, or it could be a connect user
             User *user = company.projectUsers[indexPath.row-1];
             [cell.connectNameLabel setText:user.fullname];
+            [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [cell.connectNameLabel setTextColor:[UIColor whiteColor]];
             [cell.connectDetailLabel setTextColor:[UIColor whiteColor]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [cell.hoursLabel setTextColor:[UIColor whiteColor]];
             cell.backgroundColor = kLightBlueColor;
             if (user.company.name.length){
@@ -450,13 +449,14 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             } else if (user.phone.length) {
                 [cell.connectDetailLabel setText:user.phone];
             }
+            
             //clear out the plain old boring name label
             [cell.nameLabel setText:@""];
             if (_report){
                 [cell.hoursLabel setText:@""];
                 [_report.reportUsers enumerateObjectsUsingBlock:^(ReportUser *reportUser, NSUInteger idx, BOOL *stop) {
-                    if ([user.identifier isEqualToNumber:reportUser.userId] || [user.identifier isEqualToNumber:reportUser.connectUserId]){
-                        if (reportUser.hours.intValue == 1){
+                    if ([user.identifier isEqualToNumber:reportUser.userId]){
+                        if ([reportUser.hours isEqualToNumber:[NSNumber numberWithFloat:1.f]]){
                             [cell.hoursLabel setText:@"1 hour"];
                         } else {
                             [cell.hoursLabel setText:[NSString stringWithFormat:@"%@\nhours",reportUser.hours]];
@@ -534,7 +534,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         NSLog(@"Success adding a company to project companies: %@",responseObject);
         
         Company *company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [company populateWithDict:[responseObject objectForKey:@"company"]];
+        [company populateFromDictionary:[responseObject objectForKey:@"company"]];
         [_project addCompany:company];
         [companySet insertObject:company atIndex:0];
         [self endSearch];
@@ -567,7 +567,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (searching){
-        NSLog(@"did select while searching: %d %d, subcontractors: %d, users: %d",indexPath.section, indexPath.row,filteredSubcontractors.count, filteredUsers.count);
+        //id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
         if (indexPath.section == 1){
             if (_companyMode){
                 [self performSearch];
@@ -583,18 +583,45 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                     [self selectCompany];
                 }
             } else {
+                selectedUser = filteredUsers[indexPath.row];
+                
                 if (indexPath.row == filteredUsers.count){
-                    [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
-                } else {
-                    selectedUser = filteredUsers[indexPath.row];
-                    if (selectedUser){
-                        //NSLog(@"selected user: %@",selectedUser);
+                    
+                   [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
+                
+                } else if (self.phone) {
+                    
+                    if (selectedUser.phone.length) {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"PlaceCall" object:nil userInfo:@{@"number":selectedUser.phone}];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have a phone number on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
+                } else if (self.text) {
+                    if (selectedUser.phone.length) {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"SendText" object:nil userInfo:@{@"number":selectedUser.phone}];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have a phone number on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
+                } else if (self.email) {
+                    if (selectedUser.email.length) {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"SendEmail" object:nil userInfo:@{@"email":selectedUser.email}];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have an email address on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
+                } else  {
+                    
+                    if (selectedUser && _task){
                         if ([selectedUser isKindOfClass:[User class]]){
                             [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
-                        } else if ([selectedUser isKindOfClass:[ConnectUser class]]){
-                            [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"connect_user":selectedUser}];
                         }
                         [self.navigationController popViewControllerAnimated:YES];
+                    } else {
+                        
+                        [self selectUser];
+    
                     }
                 }
             }
@@ -603,10 +630,10 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     } else if (_task){
         selectedCompany = companySet[indexPath.section];
         if (indexPath.row == 0){
-            if ([selectedCompany.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
-                [selectedCompany setExpanded:[NSNumber numberWithBool:NO]];
+            if ([selectedCompany.expanded isEqualToNumber:@YES]){
+                [selectedCompany setExpanded:@NO];
             } else {
-                [selectedCompany setExpanded:[NSNumber numberWithBool:YES]];
+                [selectedCompany setExpanded:@YES];
             }
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationFade];
@@ -619,8 +646,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 //NSLog(@"selected user: %@",selectedUser);
                 if ([selectedUser isKindOfClass:[User class]]){
                     [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
-                } else if ([selectedUser isKindOfClass:[ConnectUser class]]){
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"connect_user":selectedUser}];
                 }
                 [self.navigationController popViewControllerAnimated:YES];
             }
@@ -636,15 +661,16 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             //not in company mode, but this tableview still focuses on companies with a tap to expand to see individual users
             selectedCompany = companySet[indexPath.section];
             if (indexPath.row == 0){
-                if ([selectedCompany.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
-                    [selectedCompany setExpanded:[NSNumber numberWithBool:NO]];
+                if ([selectedCompany.expanded isEqualToNumber:@YES]){
+                    [selectedCompany setExpanded:@NO];
                 } else {
-                    [selectedCompany setExpanded:[NSNumber numberWithBool:YES]];
+                    [selectedCompany setExpanded:@YES];
                 }
                 [self.tableView beginUpdates];
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
             } else if (indexPath.row == selectedCompany.projectUsers.count+1){
+                //"add a contact" row for this company
                 [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
             } else {
                 selectedUser = [selectedCompany.projectUsers objectAtIndex:indexPath.row-1];
@@ -656,49 +682,51 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         selectedCompany = companySet[indexPath.section];
         if (indexPath.row == 0){
 
-            if ([selectedCompany.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
-                [selectedCompany setExpanded:[NSNumber numberWithBool:NO]];
+            if ([selectedCompany.expanded isEqualToNumber:@YES]){
+                [selectedCompany setExpanded:@NO];
             } else {
-                [selectedCompany setExpanded:[NSNumber numberWithBool:YES]];
+                [selectedCompany setExpanded:@YES];
             }
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         } else {
-            selectedUser = selectedCompany.projectUsers[indexPath.row-1];
-            id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
-            if (self.phone) {
-                if (selectedUser.phone.length) {
-                    [self.navigationController popViewControllerAnimated:YES];
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"PlaceCall" object:nil userInfo:@{@"number":selectedUser.phone}];
-                } else {
-                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have a phone number on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                }
-            } else if (self.text) {
-                if (selectedUser.phone.length) {
-                    [self.navigationController popViewControllerAnimated:YES];
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"SendText" object:nil userInfo:@{@"number":selectedUser.phone}];
-                } else {
-                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have a phone number on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                }
-            } else if (self.email) {
-                if (selectedUser.email.length) {
-                    [self.navigationController popViewControllerAnimated:YES];
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"SendEmail" object:nil userInfo:@{@"email":selectedUser.email}];
-                } else {
-                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have an email address on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                }
-            } else if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
-                if (selectedUser){
-                    //NSLog(@"selected user: %@",selectedUser);
-                    if ([selectedUser isKindOfClass:[User class]]){
-                        [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
-                    } else if ([selectedUser isKindOfClass:[ConnectUser class]]) {
-                        [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"connect_user":selectedUser}];
+            //this is the "add a contact" row for each company
+            if (indexPath.row == selectedCompany.projectUsers.count+1){
+                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+            } else {
+                selectedUser = selectedCompany.projectUsers[indexPath.row-1];
+                id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
+                if (self.phone) {
+                    if (selectedUser.phone.length) {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"PlaceCall" object:nil userInfo:@{@"number":selectedUser.phone}];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have a phone number on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                     }
-                    
+                } else if (self.text) {
+                    if (selectedUser.phone.length) {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"SendText" object:nil userInfo:@{@"number":selectedUser.phone}];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have a phone number on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
+                } else if (self.email) {
+                    if (selectedUser.email.length) {
+                        [self.navigationController popViewControllerAnimated:YES];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"SendEmail" object:nil userInfo:@{@"email":selectedUser.email}];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have an email address on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
+                } else if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
+                    if (selectedUser){
+                        //NSLog(@"selected user: %@",selectedUser);
+                        if ([selectedUser isKindOfClass:[User class]]){
+                            [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
+                        }
+                    }
+                    [self.navigationController popViewControllerAnimated:YES];
                 }
-                [self.navigationController popViewControllerAnimated:YES];
             }
         }
     }
@@ -717,7 +745,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
     }
     if (select){
-        companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel onsite" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+        companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel on-site" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
         companyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
         [[companyAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
         [companyAlertView show];
@@ -737,7 +765,14 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
     }
     if (select){
-        userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+        if (!userAlertView){
+            userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+            userAlertView.delegate = self;
+        }
+        
+        //resign all other first responders, otherwise the keyboard may not come up properly because something else is mysteriously the first responder
+        [self.view endEditing:YES];
+        
         userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
         [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
         [userAlertView show];
@@ -753,7 +788,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
             [f setNumberStyle:NSNumberFormatterDecimalStyle];
             NSNumber *hours = [f numberFromString:[[userAlertView textFieldAtIndex:0] text]];
-            if (hours.intValue > 0){
+            if (hours.floatValue > 0.f){
                 [self selectReportUserWithCount:hours];
             }
         }
@@ -793,14 +828,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
         [self.navigationController popViewControllerAnimated:YES];
     }];
-    /*id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
-    if ([precedingVC isKindOfClass:[BHTaskViewController class]]){
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"WorklistPersonnel" object:nil userInfo:userInfo];
-    } else if ([precedingVC isKindOfClass:[BHChecklistItemViewController class]]) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ChecklistPersonnel" object:nil userInfo:userInfo];
-    } else {
-     
-    }*/
 }
 
 -(void)willShowKeyboard:(NSNotification*)notification {

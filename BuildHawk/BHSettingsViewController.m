@@ -19,6 +19,12 @@
     UIBarButtonItem *doneButton;
     NSIndexPath *alternateIndexPathForDeletion;
     UITextField *addAlternateTextField;
+    UITextField *firstNameTextField;
+    UITextField *lastNameTextField;
+    UITextField *emailTextField;
+    UITextField *phoneTextField;
+    CGFloat width;
+    CGFloat height;
 }
 
 @end
@@ -28,15 +34,36 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
+    
     backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;
-    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
+    doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
     
     currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     self.tableView.rowHeight = 60;
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    //content inset woes
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.navigationController.navigationBar.frame.size.height, 0);
+    
+    UILabel *footerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, width, 88)];
+    [footerLabel setText:[NSString stringWithFormat:@"VERSION: %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]]];
+    [footerLabel setTextAlignment:NSTextAlignmentCenter];
+    [footerLabel setBackgroundColor:[UIColor clearColor]];
+    [footerLabel setTextColor:[UIColor lightGrayColor]];
+    [footerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+    self.tableView.tableFooterView = footerLabel;
+    
+    [self registerForKeyboardNotifications];
 }
 
 - (void)didReceiveMemoryWarning
@@ -75,10 +102,9 @@
 {
     static NSString *CellIdentifier = @"SettingsCell";
     BHSettingsCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    if (cell == nil) {
-        cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSettingsCell" owner:self options:nil] lastObject];
-    }
-    [cell.textLabel setFont:[UIFont systemFontOfSize:15]];
+    
+    cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
     [cell.textField setText:@""];
     [cell.textField setPlaceholder:@""];
     [cell.textLabel setText:@""];
@@ -96,6 +122,8 @@
                 }
                 [cell.textField setPlaceholder:@"Your first name"];
                 [cell.textField setKeyboardType:UIKeyboardTypeDefault];
+                cell.textField.returnKeyType = UIReturnKeyNext;
+                firstNameTextField = cell.textField;
             }
                 break;
             case 1:
@@ -105,6 +133,8 @@
                 }
                 [cell.textField setKeyboardType:UIKeyboardTypeDefault];
                 [cell.textField setPlaceholder:@"Your last name"];
+                cell.textField.returnKeyType = UIReturnKeyNext;
+                lastNameTextField = cell.textField;
             }
                 break;
             case 2:
@@ -112,6 +142,8 @@
                 [cell.textField setText:currentUser.email];
                 [cell.textField setPlaceholder:@"Your email address"];
                 [cell.textField setKeyboardType:UIKeyboardTypeEmailAddress];
+                cell.textField.returnKeyType = UIReturnKeyNext;
+                emailTextField = cell.textField;
             }
                 break;
             case 3:
@@ -121,6 +153,8 @@
                 }
                 [cell.textField setKeyboardType:UIKeyboardTypePhonePad];
                 [cell.textField setPlaceholder:@"Your phone number"];
+                phoneTextField = cell.textField;
+                cell.textField.returnKeyType = UIReturnKeyDone;
             }
                 break;
                 
@@ -152,6 +186,7 @@
         settingsSwitch.tag = indexPath.row;
         [settingsSwitch addTarget:self action:@selector(switchFlipped:) forControlEvents:UIControlEventValueChanged];
         [cell.actionButton setHidden:YES];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         switch (indexPath.row) {
             case 0:
             {
@@ -184,22 +219,31 @@
     return 30;
 }
 
-- (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 30)];
+    [headerView setBackgroundColor:[UIColor clearColor]];
+    
+    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 3, width-10, 27)];
+    [headerLabel setTextColor:[UIColor lightGrayColor]];
+    [headerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
     switch (section) {
         case 0:
-            return @"Personal details";
+            headerLabel.text = @"Personal details".uppercaseString;
             break;
         case 1:
-            return @"Alternate contact information";
+            headerLabel.text = @"Alternate contact information".uppercaseString;
             break;
         case 2:
-            return @"Notification permissions";
+            headerLabel.text = @"Notification permissions".uppercaseString;
             break;
             
         default:
-            return @"";
+            headerLabel.text = @"";
             break;
     }
+    [headerView addSubview:headerLabel];
+    
+    return headerView;
 }
 
 - (void)switchFlipped:(UISwitch*)settingsSwitch {
@@ -247,6 +291,25 @@
     [parameters setObject:currentUser.emailPermissions forKey:@"email_permissions"];
     [parameters setObject:currentUser.textPermissions forKey:@"text_permissions"];
     [parameters setObject:currentUser.pushPermissions forKey:@"push_permissions"];
+    
+    if (![firstNameTextField.text isEqualToString:currentUser.firstName]){
+        [parameters setObject:firstNameTextField.text forKey:@"first_name"];
+    }
+    
+    if (![lastNameTextField.text isEqualToString:currentUser.lastName]){
+        [parameters setObject:lastNameTextField.text forKey:@"last_name"];
+    }
+    
+    if (![phoneTextField.text isEqualToString:currentUser.formattedPhone] && phoneTextField.text.length){
+        [parameters setObject:phoneTextField.text forKey:@"phone"];
+    }
+    
+    if (![emailTextField.text isEqualToString:currentUser.email] && emailTextField.text.length){
+        [parameters setObject:emailTextField.text forKey:@"email"];
+    }
+    
+    NSLog(@"user parameters: %@",parameters);
+    
     [manager PATCH:[NSString stringWithFormat:@"%@/users/%@",kApiBaseUrl,currentUser.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success updating user: %@",responseObject);
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
@@ -358,31 +421,62 @@
     }
 }
 
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
+    if ([text isEqualToString:@"\n"]) {
+        if (textField == firstNameTextField){
+            [lastNameTextField becomeFirstResponder];
+        } else if (textField == lastNameTextField){
+            [emailTextField becomeFirstResponder];
+        } else if (textField == emailTextField){
+            [phoneTextField becomeFirstResponder];
+        } else if (textField == phoneTextField){
+            [self doneEditing];
+        }
+    }
     return YES;
 }
-*/
 
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
+- (void)registerForKeyboardNotifications
 {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
 }
-*/
+
+- (void)keyboardWillShow:(NSNotification *)note
+{
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight+44, 0);
+                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight+44, 0);
+                     }
+                     completion:nil];
+}
+
+- (void)keyboardWillHide:(NSNotification *)note
+{
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                     }
+                     completion:nil];
+}
 
 @end

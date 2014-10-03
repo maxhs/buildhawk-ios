@@ -21,12 +21,11 @@
 #import "BHCommentCell.h"
 #import "BHTasksViewController.h"
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
-#import "WorklistItem+helper.h"
-#import "Worklist+helper.h"
+#import "Task+helper.h"
+#import "Tasklist+helper.h"
 #import "Comment+helper.h"
 #import "BHAppDelegate.h"
 #import "BHActivityCell.h"
-#import "ConnectUser+helper.h"
 
 static NSString *assigneePlaceholder = @"Assign task";
 static NSString *locationPlaceholder = @"Select location";
@@ -49,13 +48,12 @@ typedef void(^RequestSuccess)(id result);
     UIBarButtonItem *saveButton;
     UIBarButtonItem *createButton;
     UIAlertView *addOtherAlertView;
-    int photoIdx;
+    NSInteger photoIdx;
     NSMutableArray *browserPhotos;
     UITextView *addCommentTextView;
     NSDateFormatter *commentFormatter;
     UIButton *doneButton;
     ALAssetsLibrary *library;
-    BOOL shouldSave;
     NSIndexPath *indexPathForDeletion;
 }
 - (IBAction)assigneeButtonTapped;
@@ -97,7 +95,7 @@ typedef void(^RequestSuccess)(id result);
         self.libraryButton.transform = CGAffineTransformMakeTranslation(0, -34);
         self.locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
         self.assigneeButton.transform = CGAffineTransformMakeTranslation(0, -70);
-        self.scrollView.transform = CGAffineTransformMakeTranslation(0, -32);
+        self.photosScrollView.transform = CGAffineTransformMakeTranslation(0, -32);
     }
     
     commentFormatter = [[NSDateFormatter alloc] init];
@@ -105,7 +103,7 @@ typedef void(^RequestSuccess)(id result);
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
     if (!_task || [_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        _task = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        _task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(sendItem)];
         [self.navigationItem setRightBarButtonItem:createButton];
     } else {
@@ -131,24 +129,27 @@ typedef void(^RequestSuccess)(id result);
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
     
+    self.tableView.tableHeaderView = _taskContainerView;
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.navigationController.navigationBar.frame.size.height + [[UIApplication sharedApplication] statusBarFrame].size.height, 0);
+    
     self.itemTextView.delegate = self;
     [self.itemTextView setText:itemPlaceholder];
-    shouldSave = NO;
     
-    library = [[ALAssetsLibrary alloc]init];
+    library = [[ALAssetsLibrary alloc] init];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(assignTask:) name:@"AssignTask" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
+    [self registerForKeyboardNotifications];
     
     [self drawItem];
     [Flurry logEvent:@"Viewing task"];
 }
 
 - (void)drawItem {
-    [_locationButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
-    [_assigneeButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
-    [_completionButton.titleLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:19]];
-    [_itemTextView setFont:[UIFont fontWithName:kMyriadProRegular size:19]];
+    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:19]];
+    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
     
     if (_task.body.length) {
         [self.itemTextView setText:_task.body];
@@ -156,7 +157,7 @@ typedef void(^RequestSuccess)(id result);
         [self.itemTextView setTextColor:[UIColor lightGrayColor]];
     }
     [self.completionButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    if ([_task.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
+    if ([_task.completed isEqualToNumber:@YES]) {
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
@@ -171,17 +172,7 @@ typedef void(^RequestSuccess)(id result);
     } else {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     }
-    if (_task.connectAssignees.count) {
-        id assignee = _task.connectAssignees.firstObject;
-        if ([assignee isKindOfClass:[ConnectUser class]]){
-            ConnectUser *assigneeUser = assignee;
-            if (assigneeUser.fullname.length){
-                [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
-            } else if (assigneeUser.firstName.length){
-                [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.firstName] forState:UIControlStateNormal];
-            }
-        }
-    } else if (_task.assignees.count) {
+    if (_task.assignees.count) {
         id assignee = _task.assignees.firstObject;
         if ([assignee isKindOfClass:[User class]]){
             User *assigneeUser = assignee;
@@ -206,9 +197,9 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)loadItem {
-    [manager GET:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl,_task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,_task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success getting task: %@",responseObject);
-        [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+        [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
         [self.tableView beginUpdates];
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
         [self.tableView endUpdates];
@@ -245,7 +236,7 @@ typedef void(^RequestSuccess)(id result);
         
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
-        [addCommentTextView setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
@@ -266,7 +257,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
-    shouldSave = YES;
+    [_task setSaved:@NO];
     if ([textView.text isEqualToString:kAddCommentPlaceholder] || [textView.text isEqualToString:itemPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor blackColor]];
@@ -289,7 +280,7 @@ typedef void(^RequestSuccess)(id result);
         if (textView.text.length) {
             addCommentTextView = textView;
         } else {
-            shouldSave = NO;
+            [_task setSaved:@YES];
             [textView setText:kAddCommentPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
@@ -297,7 +288,7 @@ typedef void(^RequestSuccess)(id result);
         if (textView.text.length) {
             _task.body = textView.text;
         } else {
-            shouldSave = NO;
+            [_task setSaved:@YES];
             [textView setText:itemPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
@@ -319,16 +310,15 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)submitComment {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
             
-            NSDictionary *commentDict = @{@"worklist_item_id":_task.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
+            NSDictionary *commentDict = @{@"task_id":_task.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                NSLog(@"success creating a comment for task: %@",responseObject);
+                //NSLog(@"success creating a comment for task: %@",responseObject);
 
-                
                 Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
                 NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_task.activities];
@@ -365,36 +355,27 @@ typedef void(^RequestSuccess)(id result);
         } else if (user.firstName.length){
             [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
         }
-    } else if ([info objectForKey:@"connect_user"]){
-        ConnectUser *connectUser = [info objectForKey:@"connect_user"];
-        NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:connectUser];
-        _task.connectAssignees = assigneeSet;
-        if (connectUser.fullname.length){
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",connectUser.fullname] forState:UIControlStateNormal];
-        } else if (connectUser.firstName.length){
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",connectUser.firstName] forState:UIControlStateNormal];
-        }
     }
 }
 
 - (IBAction)completionTapped{
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        if ([_task.completed isEqualToNumber:[NSNumber numberWithBool:NO]]){
+        if ([_task.completed isEqualToNumber:@NO]){
             [_completionButton setBackgroundColor:kDarkGrayColor];
             [_completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [_completionButton setTitle:@"Completed" forState:UIControlStateNormal];
-            _task.completed = [NSNumber numberWithBool:YES];
+            _task.completed = @YES;
         } else {
             [_completionButton setBackgroundColor:[UIColor whiteColor]];
             [_completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
             [_completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
-            _task.completed = [NSNumber numberWithBool:NO];
+            _task.completed = @NO;
         }
     } completion:^(BOOL finished) {
-        if ([_task.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
+        if ([_task.completed isEqualToNumber:@YES]){
             [[[UIAlertView alloc] initWithTitle:@"Completion Photo" message:@"Can you take a photo of the completed task?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
         }
-        shouldSave = YES;
+        [_task setSaved:@NO];
     }];
 }
 
@@ -448,14 +429,14 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
-    [self.scrollView setAlpha:0.0];
+    [self.photosScrollView setAlpha:0.0];
     [self dismissViewControllerAnimated:YES completion:nil];
     Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     UIImage *image = [self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [newPhoto setImage:image];
     [_task addPhoto:newPhoto];
     [self redrawScrollView];
-    [self saveImage:image];
+    [self saveImage:image forPhoto:newPhoto];
 }
 
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
@@ -477,7 +458,7 @@ typedef void(^RequestSuccess)(id result);
                 [newPhoto setImage:[self fixOrientation:image]];
                 
                 [_task addPhoto:newPhoto];
-                [self saveImage:newPhoto.image];
+                [self saveImage:newPhoto.image forPhoto:newPhoto];
             }
         }
         [self redrawScrollView];
@@ -531,14 +512,14 @@ typedef void(^RequestSuccess)(id result);
                         }];
             }
             else {
-                NSLog(@"saved image failed.\nerror code %i\n%@", error.code, [error localizedDescription]);
+                NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
             }
         }];
     }
 }
 
-- (void)saveImage:(UIImage*)image {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+- (void)saveImage:(UIImage*)image forPhoto:(Photo*)photo {
+    if ([_project.demo isEqualToNumber:@YES]){
         
     } else {
         [self saveToLibrary:image];
@@ -551,18 +532,21 @@ typedef void(^RequestSuccess)(id result);
             if (_project && _project.identifier){
                 [photoParameters setObject:_project.identifier forKey:@"project_id"];
             }
-            [photoParameters setObject:_task.identifier forKey:@"worklist_item_id"];
+            [photoParameters setObject:_task.identifier forKey:@"task_id"];
             [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-            [photoParameters setObject:kWorklist forKey:@"source"];
-            [photoParameters setObject:[NSNumber numberWithBool:YES] forKey:@"mobile"];
+            [photoParameters setObject:kTasklist forKey:@"source"];
+            [photoParameters setObject:@YES forKey:@"mobile"];
             
-            [manager POST:[NSString stringWithFormat:@"%@/worklist_items/photo",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            //NSLog(@"photo parameters: %@",photoParameters);
+            [manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
                 [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
             } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"save task photo response object: %@",responseObject);
-                if ([responseObject objectForKey:@"worklist_item"]){
-                    [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
-                    //[_project.worklist replaceWorklistItem:_task];
+                NSLog(@"save task photo response object: %@",responseObject);
+                if ([responseObject objectForKey:@"task"]){
+                    [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        
+                    }];
                 }
                 
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -589,9 +573,9 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)redrawScrollView {
-    self.scrollView.delegate = self;
-    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    self.scrollView.showsHorizontalScrollIndicator=NO;
+    _photosScrollView.delegate = self;
+    [_photosScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    _photosScrollView.showsHorizontalScrollIndicator=NO;
 
     float imageSize;
     float space;
@@ -608,13 +592,11 @@ typedef void(^RequestSuccess)(id result);
 
     int index = 0;
     for (Photo *photo in _task.photos) {
+        /*
         __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [self.scrollView addSubview:imageButton];
-        [imageButton setFrame:CGRectMake(((space+imageSize)*index),4,imageSize, imageSize)];
-        
         if (photo.urlSmall.length){
             [imageButton setAlpha:0.0];
-            [imageButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType) {
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
                 [UIView animateWithDuration:.25 animations:^{
                     [imageButton setAlpha:1.0];
                 }];
@@ -625,6 +607,18 @@ typedef void(^RequestSuccess)(id result);
                 [imageButton setAlpha:1.0];
             }];
         }
+        */
+        UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        if (photo.image) {
+            [imageButton setImage:photo.image forState:UIControlStateNormal];
+        } else if (photo.urlSmall.length){
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+        } else if (photo.urlThumb.length){
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
+        }
+        
+        [_photosScrollView addSubview:imageButton];
+        [imageButton setFrame:CGRectMake(((space+imageSize)*index),4,imageSize, imageSize)];
         imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageButton.imageView.clipsToBounds = YES;
         imageButton.imageView.layer.cornerRadius = 2.0;
@@ -634,13 +628,14 @@ typedef void(^RequestSuccess)(id result);
         imageButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         [imageButton setTag:[_task.photos indexOfObject:photo]];
         [imageButton addTarget:self action:@selector(existingPhotoButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+        
         index++;
     }
     
     if (_task.photos.count > 0){
-        [self.view bringSubviewToFront:self.scrollView];
-        [self.scrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
-        if (self.scrollView.isHidden) [self.scrollView setHidden:NO];
+        [self.view bringSubviewToFront:self.photosScrollView];
+        [self.photosScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
+        if (self.photosScrollView.isHidden) [self.photosScrollView setHidden:NO];
         [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             if (IDIOM == IPAD) {
                 self.photoButton.transform = CGAffineTransformMakeTranslation(-302, 0);
@@ -658,10 +653,10 @@ typedef void(^RequestSuccess)(id result);
     }
     
     [UIView animateWithDuration:.3 delay:.7 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [self.scrollView setAlpha:1.0];
+        [self.photosScrollView setAlpha:1.0];
     } completion:^(BOOL finished) {
-        self.scrollView.layer.shouldRasterize = YES;
-        self.scrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        self.photosScrollView.layer.shouldRasterize = YES;
+        self.photosScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     }];
 
 }
@@ -683,7 +678,7 @@ typedef void(^RequestSuccess)(id result);
     }
 
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]) {
+    if ([_project.demo isEqualToNumber:@YES]) {
         browser.displayTrashButton = NO;
     }
     browser.displayActionButton = YES;
@@ -714,8 +709,8 @@ typedef void(^RequestSuccess)(id result);
     if (_connectMode){
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's assignee." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        shouldSave = YES;
-        if (_task.assignees.count || _task.connectAssignees.count){
+        [_task setSaved:NO];
+        if (_task.assignees.count){
             assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this task:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
             [assigneeActionSheet addButtonWithTitle:@"Reassign"];
             assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
@@ -731,7 +726,7 @@ typedef void(^RequestSuccess)(id result);
     if (_connectMode){
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's location." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        shouldSave = YES;
+        [_task setSaved:@NO];
         locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
         for (NSString *location in locationSet.allObjects) {
             [locationActionSheet addButtonWithTitle:location];
@@ -753,12 +748,12 @@ typedef void(^RequestSuccess)(id result);
 }
 
 -(void)sendItem {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if ([_itemTextView.text isEqualToString:itemPlaceholder] || _itemTextView.text.length == 0){
         [[[UIAlertView alloc] initWithTitle:nil message:@"Please describe your task before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        shouldSave = NO;
+        
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         
         BOOL isNew;
@@ -793,66 +788,76 @@ typedef void(^RequestSuccess)(id result);
             if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
                 [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
             }
-        } else if (_task.connectAssignees.count){
-            ConnectUser *assigneeConnectUser = _task.connectAssignees.firstObject;
-            if (![assigneeConnectUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
-                [parameters setObject:assigneeConnectUser.identifier forKey:@"connect_assignee_id"];
-            }
         }
         
-        if ([_task.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
-            [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"completed"];
+        if ([_task.completed isEqualToNumber:@YES]){
+            [parameters setObject:@YES forKey:@"completed"];
             [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
         } else {
-            [parameters setObject:[NSNumber numberWithBool:NO] forKey:@"completed"];
+            [parameters setObject:@NO forKey:@"completed"];
         }
         NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:_task.photos];
         
         if (isNew){
-            [manager POST:[NSString stringWithFormat:@"%@/worklist_items", kApiBaseUrl] parameters:@{@"worklist_item":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+            [manager POST:[NSString stringWithFormat:@"%@/tasks", kApiBaseUrl] parameters:@{@"task":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                
+                //NSLog(@"Success creating a task: %@",responseObject);
+                [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
+                [_task setSaved:@YES];
                 _task.photos = photoSet;
-                //this will cause the worklist view to insert the new item in its tableview through an NSNotification
-                [_project.worklist addWorklistItem:_task];
+                
+                //this will cause the tasklist view to insert the new item in its tableview through an NSNotification
+                [_project.tasklist addTask:_task];
+                
+                if (self.delegate && [self.delegate respondsToSelector:@selector(newTaskCreated:)]) {
+                    [self.delegate newTaskCreated:_task];
+                }
                 
                 NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-                [parameters setObject:_task.identifier forKey:@"worklist_item_id"];
-                [parameters setObject:[NSNumber numberWithBool:YES] forKey:@"mobile"];
+                [parameters setObject:_task.identifier forKey:@"task_id"];
+                [parameters setObject:@YES forKey:@"mobile"];
                 [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-                if (_project.identifier) [parameters setObject:_project.identifier forKey:@"project_id"];
-                [parameters setObject:kWorklist forKey:@"source"];
-                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])[parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+                if (_project.identifier)
+                    [parameters setObject:_project.identifier forKey:@"project_id"];
+                [parameters setObject:kTasklist forKey:@"source"];
+                
+                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])
+                    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
                 
                 for (Photo *photo in _task.photos){
                     NSData *imageData = UIImageJPEGRepresentation(photo.image, 1);
-                    [manager POST:[NSString stringWithFormat:@"%@/worklist_items/photo",kApiBaseUrl] parameters:@{@"photo":parameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                    [manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":parameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
                         [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
                     } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                        NSLog(@"Succes posting photo for new task");
-                        [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+                        //NSLog(@"Success posting photo for new task: %@",responseObject);
+                        [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                        NSLog(@"failure posting image to API: %@",error.description);
+                        NSLog(@"Failure posting new task image to API: %@",error.description);
                     }];
                 }
                 
                 [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    [ProgressHUD dismiss];
-                    [self.navigationController popViewControllerAnimated:YES];
+                    [ProgressHUD showSuccess:@"Task created"];
+                    [self dismiss];
                 }];
                 
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"Failed to create a task: %@",error.description);
+                [_task setSaved:@NO];
+                [ProgressHUD dismiss];
             }];
         } else {
-            [manager PATCH:[NSString stringWithFormat:@"%@/worklist_items/%@", kApiBaseUrl, _task.identifier] parameters:@{@"worklist_item":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            [manager PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, _task.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"Success updating task: %@",responseObject);
-                [_task populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+                [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
+                [_task setSaved:@YES];
                 [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    [ProgressHUD dismiss];
+                    [ProgressHUD showSuccess:@"Task Saved"];
                     [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
-                    [self.navigationController popViewControllerAnimated:YES];
+                    //[self dismiss];
                 }];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                [_task setSaved:@NO];
                 [ProgressHUD dismiss];
                 NSLog(@"Failed to update task: %@",error.description);
             }];
@@ -984,7 +989,6 @@ typedef void(^RequestSuccess)(id result);
     } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         if (buttonIndex == assigneeActionSheet.destructiveButtonIndex){
             _task.assignees = nil;
-            _task.connectAssignees = nil;
             [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
         }
     } else if (actionSheet == locationActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
@@ -1023,7 +1027,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)deleteComment {
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         Activity *activity = [_task.activities objectAtIndex:indexPathForDeletion.row];
@@ -1031,8 +1035,8 @@ typedef void(^RequestSuccess)(id result);
             [manager DELETE:[NSString stringWithFormat:@"%@/activities/%@",kApiBaseUrl,activity.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
                 [_task removeActivity:activity];
+                
                 [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-                shouldSave = NO;
                 
                 [self.tableView beginUpdates];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
@@ -1059,7 +1063,7 @@ typedef void(^RequestSuccess)(id result);
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self loadItem];
         [self drawItem];
-        [self.navigationController popViewControllerAnimated:YES];
+        [self dismiss];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self takePhoto];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]){
@@ -1068,8 +1072,59 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)back {
-    if (shouldSave && [_project.demo isEqualToNumber:[NSNumber numberWithBool:NO]]) {
+    if ([_task.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO]) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
+    } else {
+        [self dismiss];
+    }
+}
+
+- (void)registerForKeyboardNotifications
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWillShow:(NSNotification *)note
+{
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                     }
+                     completion:nil];
+}
+
+- (void)keyboardWillHide:(NSNotification *)note
+{
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                     }
+                     completion:nil];
+}
+
+- (void)dismiss {
+    if (self.navigationController.viewControllers.firstObject == self){
+        [self.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
     } else {
         [self.navigationController popViewControllerAnimated:YES];
     }

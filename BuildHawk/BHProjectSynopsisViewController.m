@@ -12,7 +12,7 @@
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "ChecklistItem.h"
 #import "Photo.h"
-#import "WorklistItem+helper.h"
+#import "Task+helper.h"
 #import "BHRecentDocumentCell.h"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
@@ -22,7 +22,6 @@
 #import "BHTaskViewController.h"
 #import "BHProgressCell.h"
 #import "BHOverlayView.h"
-#import <LDProgressView/LDProgressView.h>
 #import "BHAppDelegate.h"
 #import "User+helper.h"
 #import "Phase+helper.h"
@@ -31,7 +30,7 @@
 #import "BHReminderCell.h"
 #import "BHSynopsisCell.h"
 #import "BHActivitiesViewController.h"
-#import "Worklist+helper.h"
+#import "Tasklist+helper.h"
 #import "Reminder+helper.h"
 #import "Address+helper.h"
 #import "BHReportViewController.h"
@@ -39,6 +38,8 @@
 #import "BHMapViewController.h"
 
 @interface BHProjectSynopsisViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
+    BHAppDelegate *delegate;
+    User *_currentUser;
     AFHTTPRequestOperationManager *manager;
     UIScrollView *documentsScrollView;
     CGRect screen;
@@ -46,6 +47,7 @@
     UIView *overlayBackground;
     UIImageView *screenshotView;
     NSDateFormatter *formatter;
+    NSDateFormatter *deadlineFormatter;
     NSIndexPath *indexPathForReminderDeletion;
     NSMutableOrderedSet *projectReminders;
     NSMutableOrderedSet *pastDueProjectReminders;
@@ -57,36 +59,26 @@
 @implementation BHProjectSynopsisViewController
 
 @synthesize project = _project;
-@synthesize currentUser = _currentUser;
 
 - (void)viewDidLoad
 {
+    //set the _currentUser beofre viewDidLoad to ensure the tableView loads properly
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [delegate manager];
+    _currentUser = delegate.currentUser;
+    
     [super viewDidLoad];
     
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = _project.name;
     screen = [UIScreen mainScreen].bounds;
     
-    UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 66)];
-    [footerView setBackgroundColor:kDarkGrayColor];
-    UIButton *goToProjectButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [goToProjectButton setTitle:@"Go to Project" forState:UIControlStateNormal];
-    [goToProjectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [goToProjectButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
-    [goToProjectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
-    [footerView addSubview:goToProjectButton];
-    [goToProjectButton setFrame:footerView.frame];
-    self.tableView.tableFooterView = footerView;
-    
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
-    formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateStyle:NSDateFormatterShortStyle];
-    [formatter setTimeStyle:NSDateFormatterShortStyle];
-    
-    
     refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
     self.navigationItem.rightBarButtonItem = refreshButton;
+    
+    [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
+    [self setUpFooter];
+    [self setUpTimeFormatters];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -101,6 +93,28 @@
         [self slide1];
         [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboardDetail];
     }
+}
+
+- (void)setUpFooter{
+    UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 66)];
+    [footerView setBackgroundColor:kDarkGrayColor];
+    UIButton *goToProjectButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [goToProjectButton setTitle:@"Go to Project" forState:UIControlStateNormal];
+    [goToProjectButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [goToProjectButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+    [goToProjectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+    [footerView addSubview:goToProjectButton];
+    [goToProjectButton setFrame:footerView.frame];
+    self.tableView.tableFooterView = footerView;
+}
+
+- (void)setUpTimeFormatters {
+    formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateStyle:NSDateFormatterShortStyle];
+    [formatter setTimeStyle:NSDateFormatterShortStyle];
+
+    deadlineFormatter = [[NSDateFormatter alloc] init];
+    [deadlineFormatter setDateFormat:@"MMM, d\nh:mm a"];
 }
 
 - (void)handleRefresh {
@@ -149,7 +163,7 @@
         case 0:
         {
             //limit the reminders to the three most recent
-            int reminderCount = 0;
+            NSInteger reminderCount = 0;
             if (projectReminders.count > 3){
                 reminderCount = 3;
             } else {
@@ -188,10 +202,10 @@
             else return 0;
             break;
         case 6:
-            if (_project.worklist.activities.count > 3){
+            if (_project.tasklist.activities.count > 3){
                 return 3;
             } else {
-                return _project.worklist.activities.count;
+                return _project.tasklist.activities.count;
             }
             break;
         case 7:
@@ -213,7 +227,7 @@
                     if (cell == nil) {
                         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPastDueReminderCell" owner:self options:nil] lastObject];
                     }
-                    [cell.textLabel setText:[NSString stringWithFormat:@"%d PAST DUE",pastDueProjectReminders.count]];
+                    [cell.textLabel setText:[NSString stringWithFormat:@"%lu PAST DUE",(unsigned long)pastDueProjectReminders.count]];
                     [cell.textLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:16]];
                     [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
                     [cell.textLabel setTextColor:[UIColor redColor]];
@@ -225,7 +239,7 @@
                     if (cell == nil) {
                         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHReminderCell" owner:self options:nil] lastObject];
                     }
-                    int row = indexPath.row - 1;
+                    NSInteger row = indexPath.row - 1;
                     Reminder *reminder = projectReminders[row];
                     if ([reminder.reminderDate isEqualToDate:[NSDate dateWithTimeIntervalSince1970:0]]){
                         [cell.reminderDatetimeLabel setText:@""];
@@ -269,13 +283,11 @@
         case 1: {
             static NSString *CellIdentifier = @"ItemCell";
             BHSynopsisCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-            if (cell == nil){
-                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHSynopsisCell" owner:self options:nil] lastObject];
-            }
+            
             ChecklistItem *checklistItem = [_project.upcomingItems objectAtIndex:indexPath.row];
             [cell.deadlineTextLabel setText:checklistItem.body];
             if (checklistItem.criticalDate) {
-                [cell.deadlineTimeLabel setText:[NSString stringWithFormat:@"Deadline: %@",[formatter stringFromDate:checklistItem.criticalDate]]];
+                [cell.deadlineTimeLabel setText:[NSString stringWithFormat:@"Deadline:\n%@",[deadlineFormatter stringFromDate:checklistItem.criticalDate]]];
                 [cell.deadlineTimeLabel setTextColor:[UIColor blackColor]];
             } else {
                 [cell.deadlineTimeLabel setText:@"No critical date listed"];
@@ -312,20 +324,37 @@
         case 3: {
             BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
             [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
-            progressCell = [[[NSBundle mainBundle] loadNibNamed:@"BHProgressCell" owner:self options:nil] lastObject];
     
             Phase *phase = [_project.phases objectAtIndex:indexPath.row];
+            
             [progressCell.itemLabel setText:phase.name];
             CGFloat progress_count = [phase.progressCount floatValue];
             CGFloat all = [phase.itemCount floatValue];
             [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
+            
             LDProgressView *progressView;
-            if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-                progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(415, 25, 300, 16)];
-                progressCell.progressLabel.transform = CGAffineTransformMakeTranslation(140, 0);
-            } else {
-                progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(215, 25, 100, 16)];
+            // reuse the cell's ldprogress view, if it exists
+            for (UIView *view in progressCell.subviews){
+                if ([view isKindOfClass:[LDProgressView class]]){
+                    progressView = (LDProgressView*)view;
+                }
             }
+            
+            if (!progressView){
+                CGFloat progressBarHeight = 7.f;
+                if (IDIOM == IPAD) {
+                    progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(screen.size.width-320, progressCell.contentView.frame.size.height/2-progressBarHeight/2, 300, progressBarHeight)];
+                } else {
+                    progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(screen.size.width-105, progressCell.contentView.frame.size.height/2-progressBarHeight/2, 100, progressBarHeight)];
+                }
+                [progressCell addSubview:progressView];
+            }
+            
+            //reset the progress view back to 0, without animation, if it's already there
+            progressView.animate = @NO;
+            [progressView setProgress:0.f];
+            progressView.animate = @YES;
+            
             if (progress_count && all){
                 progressView.progress = (progress_count/all);
             } else {
@@ -334,8 +363,12 @@
             
             progressView.color = kBlueColor;
             progressView.showText = @NO;
+            
+            progressView.borderRadius = @1;
+            progressView.showBackground = @NO;
+            progressView.backgroundColor = [UIColor colorWithWhite:.87 alpha:1];
+            progressView.showBackgroundInnerShadow = @NO;
             progressView.type = LDProgressSolid;
-            [progressCell addSubview:progressView];
             
             progressCell.selectionStyle = UITableViewCellSelectionStyleNone;
             return progressCell;
@@ -378,7 +411,8 @@
             if (cell == nil) {
                 cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
             }
-            Activity *activity = [_project.worklist.activities objectAtIndex:indexPath.row];
+            Activity *activity = [_project.tasklist.activities objectAtIndex:indexPath.row];
+            NSLog(@"activity in section 6: %@",activity);
             [cell configureActivityForSynopsis:activity];
             [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -393,7 +427,7 @@
             } else if (_project.address){
                 [cell.textLabel setText:[NSString stringWithFormat:@"%@, %@, %@ %@",_project.address.street1,_project.address.city,_project.address.state,_project.address.zip]];
             }
-            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %u",_project.users.count]];
+            [cell.detailTextLabel setText:[NSString stringWithFormat:@"Number of personnel: %lu",(unsigned long)_project.users.count]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
             cell.textLabel.numberOfLines = 0;
             [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:21]];
@@ -464,7 +498,7 @@
             }
             break;
         case 6:
-            if (_project.worklist.activities.count){
+            if (_project.tasklist.activities.count){
                 return 34;
             } else {
                 return 0;
@@ -628,16 +662,29 @@
     CGRect photoRect = CGRectMake(5,5,100,100);
     for (Photo *photo in _project.recentDocuments) {
         if (index > 0) photoRect.origin.x += width;
-        __weak UIButton *eventButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [documentsScrollView addSubview:eventButton];
-        [eventButton setFrame:photoRect];
-        [eventButton setTag:index];
-        if (photo.urlSmall) [eventButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
-        else if (photo.urlThumb) [eventButton setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
-        [eventButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
-        eventButton.imageView.clipsToBounds = YES;
-        [eventButton addTarget:self action:@selector(showPhotos:) forControlEvents:UIControlEventTouchUpInside];
-        [eventButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+        
+        /*
+        __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        if (photo.urlSmall) [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+        else if (photo.urlThumb) [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
+        */
+        
+        UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        if (photo.image) {
+            [imageButton setImage:photo.image forState:UIControlStateNormal];
+        } else if (photo.urlSmall.length){
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+        } else if (photo.urlThumb.length){
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
+        }
+        
+        [imageButton setFrame:photoRect];
+        [imageButton setTag:index];
+        [imageButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
+        imageButton.imageView.clipsToBounds = YES;
+        [imageButton addTarget:self action:@selector(showPhotos:) forControlEvents:UIControlEventTouchUpInside];
+        [imageButton setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
+        [documentsScrollView addSubview:imageButton];
         index++;
     }
     [documentsScrollView setContentSize:CGSizeMake((_project.recentDocuments.count*105) + 5,documentsScrollView.frame.size.height)];
@@ -736,7 +783,7 @@
         } else if (activity.checklistItem) {
             [self performSegueWithIdentifier:@"ChecklistItem" sender:activity.checklistItem];
         } else if (activity.task) {
-            [self performSegueWithIdentifier:@"WorklistItem" sender:activity.task];
+            [self performSegueWithIdentifier:@"Task" sender:activity.task];
         } else if (activity.photo) {
             [self showPhotoDetail:activity.photo];
         }
@@ -747,8 +794,8 @@
         NSLog(@"checklist item activity: %@",activity);
         [self performSegueWithIdentifier:@"ChecklistItem" sender:activity.checklistItem];
     } else if (indexPath.section == 6){
-        Activity *activity = [_project.worklist.activities objectAtIndex:indexPath.row];
-        [self performSegueWithIdentifier:@"WorklistItem" sender:activity.task];
+        Activity *activity = [_project.tasklist.activities objectAtIndex:indexPath.row];
+        [self performSegueWithIdentifier:@"Task" sender:activity.task];
     } else if (indexPath.section == 7){
         
         BHMapViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"MapView"];
@@ -788,11 +835,11 @@
         [vc setProject:_project];
         if ([sender isKindOfClass:[ChecklistItem class]])
             [vc setItem:(ChecklistItem*)sender];
-    } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
+    } else if ([segue.identifier isEqualToString:@"Task"]) {
         BHTaskViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
-        if ([sender isKindOfClass:[WorklistItem class]]){
-            [vc setTask:(WorklistItem*)sender];
+        if ([sender isKindOfClass:[Task class]]){
+            [vc setTask:(Task*)sender];
         }
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];

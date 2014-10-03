@@ -9,8 +9,8 @@
 #import "BHTasksViewController.h"
 #import "BHTaskCell.h"
 #import "BHTaskViewController.h"
-#import "WorklistItem+helper.h"
-#import "Worklist+helper.h"
+#import "Task+helper.h"
+#import "Tasklist+helper.h"
 #import "Photo.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "UIButton+WebCache.h"
@@ -22,9 +22,8 @@
 #import "BHOverlayView.h"
 #import "Subcontractor.h"
 #import "Company.h"
-#import "ConnectUser+helper.h"
 
-@interface BHTasksViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate> {
+@interface BHTasksViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate, UIPopoverPresentationControllerDelegate, BHTaskDelegate> {
     NSDateFormatter *dateFormatter;
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *activeListItems;
@@ -44,23 +43,35 @@
     BOOL loading;
     UIBarButtonItem *addButton;
     UIView *overlayBackground;
-    UIImageView *worklistScreenshot;
+    UIImageView *tasklistScreenshot;
     NSInteger lastSegmentIndex;
     NSIndexPath *indexPathForDeletion;
+    UIAlertController *locationAlertController;
+    UIAlertController *assigneeAlertController;
 }
 @end
 
 @implementation BHTasksViewController
 @synthesize project = _project;
-@synthesize worklistItems = _worklistItems;
+@synthesize tasks = _tasks;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    if (!_project) _project = [(BHTabBarViewController*)self.tabBarController project];
+    
+    //set the project to be the tab bar project IF the project wasn't already set, i.e. if it was a buildhawk connect thing
+    if (!_project){
+        _project = [(BHTabBarViewController*)self.tabBarController project];
+    }
+    
+    //set the project title
     self.navigationItem.title = [NSString stringWithFormat:@"Tasks: %@",_project.name];
+    
+    //adjust the inset so that there's some space in between the segmented control (at the top) and the tab bar (at the bottom)
+    self.tableView.contentInset = UIEdgeInsetsMake(6, 0, self.tabBarController.tabBar.frame.size.height, 0);
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     self.tableView.rowHeight = 82;
+    
     showActive = YES;
     showCompleted = NO;
     showByAssignee = NO;
@@ -85,17 +96,17 @@
     [Flurry logEvent:@"Viewing task"];
     
     if (_connectMode){
-        _worklistItems = _project.userConnectItems.array.mutableCopy;
-        [self drawWorklist];
-    } else if ([_project.worklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        _tasks = _project.userConnectItems.array.mutableCopy;
+        [self drawTasklist];
+    } else if ([_project.tasklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         [ProgressHUD show:@"Getting tasks..."];
         loading = YES;
-        [self loadWorklist];
+        [self loadTasklist];
     } else {
         loading = YES;
-        _worklistItems = _project.worklist.worklistItems.array.mutableCopy;
-        [self drawWorklist];
-        [self loadWorklist];
+        _tasks = _project.tasklist.tasks.array.mutableCopy;
+        [self drawTasklist];
+        [self loadTasklist];
     }
     
     dateFormatter = [[NSDateFormatter alloc] init];
@@ -106,22 +117,41 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addTask:) name:@"AddTask" object:nil];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if (_connectMode && self.segmentedControl.numberOfSegments == 4){
+        [self.segmentedControl removeSegmentAtIndex:2 animated:NO];
+        self.navigationItem.rightBarButtonItem = nil;
+    }
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenTasklist]){
+        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
+        [self slide1];
+        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenTasklist];
+    }
+    if (!_connectMode){
+        self.tabBarController.navigationItem.rightBarButtonItem = addButton;
+    }
+}
+
 - (void)createItem {
     [self performSegueWithIdentifier:@"CreateItem" sender:nil];
 }
 
-- (void)addTask:(NSNotification*)notification {
-    WorklistItem *newItem = [notification.userInfo objectForKey:@"task"];
-    [_worklistItems insertObject:newItem atIndex:0];
+- (void)newTaskCreated:(Task *)newTask {
+    [_tasks insertObject:newTask atIndex:0];
     firstLoad = YES;
-    [self drawWorklist];
+    [self drawTasklist];
 }
 
 - (void)reloadTask:(NSNotification*)notification {
     NSDictionary *userInfo = notification.userInfo;
-    WorklistItem *notificationTask = [userInfo objectForKey:@"task"];
+    Task *notificationTask = [userInfo objectForKey:@"task"];
     //NSLog(@"notification task: %@",notificationTask);
-    if ([notificationTask.completed isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([notificationTask.completed isEqualToNumber:@YES]){
         if (![completedListItems containsObject:notificationTask]){
             [completedListItems insertObject:notificationTask atIndex:0];
         }
@@ -135,8 +165,8 @@
         [self resetSegments];
         showActive = YES;
         
-        if (![_worklistItems containsObject:notificationTask]){
-            [_worklistItems addObject:notificationTask];
+        if (![_tasks containsObject:notificationTask]){
+            [_tasks addObject:notificationTask];
         }
         [self filterActive];
     }
@@ -147,35 +177,15 @@
     }
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    if (_connectMode && self.segmentedControl.numberOfSegments == 4){
-        [self.segmentedControl removeSegmentAtIndex:2 animated:NO];
-        self.navigationItem.rightBarButtonItem = nil;
-    }
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenWorklist]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-        [self slide1];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenWorklist];
-    }
-    if (!_connectMode){
-        self.tabBarController.navigationItem.rightBarButtonItem = addButton;
-    }
-}
-
-- (void)drawWorklist {
-    if (_worklistItems.count > 0){
+- (void)drawTasklist {
+    if (_tasks.count > 0){
         [activeListItems removeAllObjects];
         [completedListItems removeAllObjects];
         [locationSet removeAllObjects];
         [assigneeSet removeAllObjects];
         
-        for (WorklistItem *item in _worklistItems){
-            if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
+        for (Task *item in _tasks){
+            if([item.completed isEqualToNumber:@NO]) {
                 [activeListItems addObject:item];
             }
             if (item.location.length) {
@@ -184,8 +194,6 @@
             if (!_connectMode) {
                 if (item.assignees.count > 0){
                     [assigneeSet addObject:item.assignees.firstObject];
-                } else if (item.connectAssignees.count > 0){
-                    [assigneeSet addObject:item.connectAssignees.firstObject];
                 }
             }
         }
@@ -207,11 +215,7 @@
     if (refreshControl.isRefreshing) [refreshControl endRefreshing];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+#pragma mark - Custom Segmented Control
 
 -(void)segmentedControlTapped:(UISegmentedControl*)sender {
     switch (sender.selectedSegmentIndex) {
@@ -297,32 +301,32 @@
     if (_connectMode){
         [self connectRefresh];
     } else {
-        [self loadWorklist];
+        [self loadTasklist];
     }
 }
 
 - (void)connectRefresh {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if ([(WorklistItem*)_worklistItems.firstObject project]){
-        [parameters setObject:[[(WorklistItem*)_worklistItems.firstObject project] identifier] forKey:@"project_id"];
+    if ([(Task*)_tasks.firstObject project]){
+        [parameters setObject:[[(Task*)_tasks.firstObject project] identifier] forKey:@"project_id"];
     }
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
     }
         
-    [_worklistItems removeAllObjects];
+    [_tasks removeAllObjects];
     [manager GET:[NSString stringWithFormat:@"%@/connect",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success with connect refresh: %@",responseObject);
         
-        for (NSDictionary *dict in [responseObject objectForKey:@"worklist_items"]){
-            WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        for (NSDictionary *dict in [responseObject objectForKey:@"tasks"]){
+            Task *item = [Task MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!item){
-                item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                item = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [item populateFromDictionary:dict];
-            [_worklistItems addObject:item];
+            [_tasks addObject:item];
         }
-        [self drawWorklist];
+        [self drawTasklist];
         [ProgressHUD dismiss];
         if (refreshControl.isRefreshing)[refreshControl endRefreshing];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -332,44 +336,112 @@
     }];
 }
 
+#pragma mark - Filters
 - (void)filterLocation {
     if (locationSet.allObjects.count){
-        locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-        for (NSString *location in locationSet.allObjects) {
-            [locationActionSheet addButtonWithTitle:location];
-        }
-        locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
-        if (self.tabBarController){
-            [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
+        // UIActionSheet is deprecated in iOS 8
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+            locationAlertController = [UIAlertController alertControllerWithTitle:@"Filter by location:" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+            
+            for (NSString *location in locationSet.allObjects) {
+                UIAlertAction *locationAction = [UIAlertAction actionWithTitle:location style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                    NSPredicate *testForLocation = [NSPredicate predicateWithFormat:@"location like %@",location];
+                    for (Task *item in _tasks)
+                        if([testForLocation evaluateWithObject:item])
+                            [locationListItems addObject:item];
+                    lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
+                    [self.tableView reloadData];
+                }];
+                
+                [locationAlertController addAction:locationAction];
+            }
+            
+            // set up the cancel action
+            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+                [self.segmentedControl setSelectedSegmentIndex:lastSegmentIndex];
+                [self segmentedControlTapped:self.segmentedControl];
+            }];
+            [locationAlertController addAction:cancel];
+            locationAlertController.popoverPresentationController.delegate = self;
+            [self presentViewController:locationAlertController animated:YES completion:nil];
         } else {
-            [locationActionSheet showInView:self.view];
+            locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+            for (NSString *location in locationSet.allObjects) {
+                [locationActionSheet addButtonWithTitle:location];
+            }
+            if (IDIOM != IPAD){
+                locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
+            }
+            if (self.tabBarController){
+                [locationActionSheet showFromTabBar:self.tabBarController.tabBar];
+            } else {
+                [locationActionSheet showInView:self.view];
+            }
         }
     }
 }
 
+// for the alert controller on iPad, which gets presented as a popover
+- (void)prepareForPopoverPresentation:(UIPopoverPresentationController *)popoverPresentationController {
+    popoverPresentationController.permittedArrowDirections = UIPopoverArrowDirectionAny;
+    [popoverPresentationController setSourceView:self.view];
+    [popoverPresentationController setSourceRect:self.segmentedControl.frame];
+}
+
 - (void)filterAssignee {
     if (assigneeSet.count){
-        assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-        for (id assignee in assigneeSet) {
-            if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) {
-                [assigneeActionSheet addButtonWithTitle:[(User*)assignee fullname]];
-            } else if ([assignee isKindOfClass:[ConnectUser class]]){
-                [assigneeActionSheet addButtonWithTitle:[(ConnectUser*)assignee fullname]];
+        // UIActionSheet is deprecated in iOS 8
+        if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+            assigneeAlertController = [UIAlertController alertControllerWithTitle:@"Filter by assignee:" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+            
+            for (id assignee in assigneeSet) {
+                if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) {
+                    NSString *assigneeName = [(User*)assignee fullname];
+                    UIAlertAction *assigneeAction = [UIAlertAction actionWithTitle:assigneeName style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                        
+                        NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",assigneeName];
+                        for (Task *task in _tasks)
+                            if (task.assignees.count && [testForFullName evaluateWithObject:task.assignees.firstObject])
+                                [assigneeListItems addObject:task];
+                        
+                        lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
+                        [self.tableView reloadData];
+                    }];
+                    
+                    [assigneeAlertController addAction:assigneeAction];
+                }
             }
-        }
-        assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
-        if (self.tabBarController){
-            [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
+            
+            // set up the cancel action
+            UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+                [self.segmentedControl setSelectedSegmentIndex:lastSegmentIndex];
+                [self segmentedControlTapped:self.segmentedControl];
+            }];
+            [assigneeAlertController addAction:cancel];
+            assigneeAlertController.popoverPresentationController.delegate = self;
+            [self presentViewController:assigneeAlertController animated:YES completion:nil];
         } else {
-            [assigneeActionSheet showInView:self.view];
+            
+            assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assignees" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+            for (id assignee in assigneeSet) {
+                if ([assignee isKindOfClass:[User class]] && [[(User*)assignee fullname] length]) {
+                    [assigneeActionSheet addButtonWithTitle:[(User*)assignee fullname]];
+                }
+            }
+            assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
+            if (self.tabBarController){
+                [assigneeActionSheet showFromTabBar:self.tabBarController.tabBar];
+            } else {
+                [assigneeActionSheet showInView:self.view];
+            }
         }
     }
 }
 
 - (void)filterActive {
     [activeListItems removeAllObjects];
-    for (WorklistItem *item in _worklistItems){
-        if([item.completed isEqualToNumber:[NSNumber numberWithBool:NO]]) {
+    for (Task *item in _tasks){
+        if([item.completed isEqualToNumber:@NO]) {
             [activeListItems addObject:item];
         }
     }
@@ -379,8 +451,8 @@
 
 - (void)filterCompleted {
     [completedListItems removeAllObjects];
-    for (WorklistItem *item in _worklistItems){
-        if([item.completed isEqualToNumber:[NSNumber numberWithBool:YES]]) {
+    for (Task *item in _tasks){
+        if([item.completed isEqualToNumber:@YES]) {
             [completedListItems addObject:item];
         }
     }
@@ -388,7 +460,10 @@
     lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
 }
 
+#pragma mark - UIActionSheet delegate stuff
+
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    
     if (actionSheet.cancelButtonIndex == buttonIndex){
         [self.segmentedControl setSelectedSegmentIndex:lastSegmentIndex];
         [self segmentedControlTapped:self.segmentedControl];
@@ -397,70 +472,66 @@
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             if (buttonTitle.length){
                 NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",buttonTitle];
-                for (WorklistItem *item in _worklistItems){
+                for (Task *task in _tasks)
                     //testing both users and connect users since both have a "fullname" attribute
-                    if (item.assignees.count && [testForFullName evaluateWithObject:item.assignees.firstObject]){
-                        [assigneeListItems addObject:item];
-                    } else if (item.connectAssignees.count && [testForFullName evaluateWithObject:item.connectAssignees.firstObject]) {
-                        [assigneeListItems addObject:item];
-                    }
-                }
+                    if (task.assignees.count && [testForFullName evaluateWithObject:task.assignees.firstObject])
+                        [assigneeListItems addObject:task];
+                        
             }
-            [self.tableView reloadData];
             lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
+            [self.tableView reloadData];
+            
         }
     } else if (actionSheet == locationActionSheet){
         if ([[actionSheet buttonTitleAtIndex:buttonIndex] length]) {
             NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
             NSPredicate *testForLocation = [NSPredicate predicateWithFormat:@"location like %@",buttonTitle];
-            for (WorklistItem *item in _worklistItems){
-                if([testForLocation evaluateWithObject:item]) {
+            for (Task *item in _tasks)
+                if([testForLocation evaluateWithObject:item])
                     [locationListItems addObject:item];
-                }
-            }
-            [self.tableView reloadData];
+    
             lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
+            [self.tableView reloadData];
         }
     }
 }
 
-- (void)loadWorklist {
-    [manager GET:[NSString stringWithFormat:@"%@/worklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success loading worklist: %@",responseObject);
-        if ([responseObject objectForKey:@"worklist"]) {
-            [self updateWorklist:[responseObject objectForKey:@"worklist"]];
+- (void)loadTasklist {
+    [manager GET:[NSString stringWithFormat:@"%@/tasklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success loading tasklist: %@",responseObject);
+        if ([responseObject objectForKey:@"tasklist"]) {
+            [self updateTasklist:[responseObject objectForKey:@"tasklist"]];
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error loading worklists: %@",error.description);
+        NSLog(@"Error loading tasklists: %@",error.description);
         [ProgressHUD dismiss];
         loading = NO;
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
     }];
 }
 
-- (void)updateWorklist:(NSDictionary*)dictionary {
-    Worklist *worklist = [Worklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-    if (!worklist){
-        worklist = [Worklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+- (void)updateTasklist:(NSDictionary*)dictionary {
+    Tasklist *tasklist = [Tasklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+    if (!tasklist){
+        tasklist = [Tasklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     }
-    [worklist populateFromDictionary:dictionary];
-    if (_project.worklist.worklistItems.count > 0){
-        for (WorklistItem *item in _project.worklist.worklistItems) {
-            if (![worklist.worklistItems containsObject:item]) {
+    [tasklist populateFromDictionary:dictionary];
+    if (_project.tasklist.tasks.count > 0){
+        for (Task *item in _project.tasklist.tasks) {
+            if (![tasklist.tasks containsObject:item]) {
                 NSLog(@"Deleting a task that no longer exists: %@",item.body);
                 [item MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
     }
     if (_project){
-        _project.worklist = worklist;
-        _worklistItems = worklist.worklistItems.array.mutableCopy;
+        _project.tasklist = tasklist;
+        _tasks = tasklist.tasks.array.mutableCopy;
     }
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"Worklist save: %hhd",success);
         //only bother drawing if the view is loaded
         if (self.isViewLoaded && self.view.window){
-            [self drawWorklist];
+            [self drawTasklist];
         } else {
             [ProgressHUD dismiss];
         }
@@ -476,16 +547,12 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (_worklistItems.count > 0){
+    if (_tasks.count > 0){
         if (showCompleted) return completedListItems.count;
-        else if (showActive) {
-            return activeListItems.count;
-        }
-        else if (showByLocation) {
-            return locationListItems.count;
-        }
+        else if (showActive) return activeListItems.count;
+        else if (showByLocation) return locationListItems.count;
         else if (showByAssignee) return assigneeListItems.count;
-        else return _worklistItems.count;
+        else return _tasks.count;
     } else {
         if (loading) return 0;
         else return 1;
@@ -494,14 +561,11 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (_worklistItems.count > 0){
+    if (_tasks.count > 0){
         static NSString *CellIdentifier = @"TaskCell";
         BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-        if (cell == nil) {
-            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHTaskCell" owner:self options:nil] lastObject];
-        }
-        
-        WorklistItem *item = nil;
+    
+        Task *item = nil;
         if (showCompleted) {
             item = [completedListItems objectAtIndex:indexPath.row];
         } else if (showActive) {
@@ -511,7 +575,7 @@
         } else if (showByAssignee) {
             item = [assigneeListItems objectAtIndex:indexPath.row];
         } else {
-            item = [_worklistItems objectAtIndex:indexPath.row];
+            item = [_tasks objectAtIndex:indexPath.row];
         }
         
         [cell.itemLabel setText:item.body];
@@ -521,9 +585,6 @@
             User *assignee = item.assignees.firstObject;
             [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,assignee.fullname]];
             
-        } else if ([item.connectAssignees.firstObject isKindOfClass:[ConnectUser class]]){
-            ConnectUser *connectAssignee = item.connectAssignees.firstObject;
-            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,connectAssignee.fullname]];
         } else if (item.user) {
             [cell.ownerLabel setText:item.user.fullname];
         } else {
@@ -534,7 +595,7 @@
             if ([(Photo*)[item.photos firstObject] image]){
                 [cell.photoButton setImage:[(Photo*)[item.photos firstObject] image] forState:UIControlStateNormal];
             } else {
-                [cell.photoButton setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
+                [cell.photoButton sd_setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
             }
         } else {
             [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
@@ -553,7 +614,7 @@
         UIButton *nothingButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [nothingButton setTitle:@"No Tasks..." forState:UIControlStateNormal];
         [nothingButton.titleLabel setNumberOfLines:0];
-        [nothingButton.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
+        [nothingButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
         nothingButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         [nothingButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         [nothingButton setBackgroundColor:[UIColor clearColor]];
@@ -569,7 +630,7 @@
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        if (!loading && _worklistItems.count){
+        if (!loading && _tasks.count){
             [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
             //[ProgressHUD dismiss];
         }
@@ -577,8 +638,8 @@
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (_worklistItems.count > 0){
-        WorklistItem *item;
+    if (_tasks.count > 0){
+        Task *item;
         if (showCompleted) {
             item = [completedListItems objectAtIndex:indexPath.row];
         } else if (showActive) {
@@ -588,10 +649,10 @@
         } else if (showByAssignee) {
             item = [assigneeListItems objectAtIndex:indexPath.row];
         } else {
-            item = [_worklistItems objectAtIndex:indexPath.row];
+            item = [_tasks objectAtIndex:indexPath.row];
         }
         //ensure there's a signed in user and that the user is the owner of the current item/task
-        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
             return YES;
         } else {
             return NO;
@@ -605,23 +666,26 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (_worklistItems.count){
-        [self performSegueWithIdentifier:@"WorklistItem" sender:self];
+    if (_tasks.count){
+        [self performSegueWithIdentifier:@"Task" sender:self];
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
+#pragma mark - Segue & Navigation stuff
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     BHTaskViewController *vc = segue.destinationViewController;
+    vc.delegate = self;
     
     [vc setProject:_project];
     [vc setLocationSet:locationSet];
     
     if ([segue.identifier isEqualToString:@"CreateItem"]) {
         [vc setTitle:@"New Task"];
-    } else if ([segue.identifier isEqualToString:@"WorklistItem"]) {
-        WorklistItem *item;
+    } else if ([segue.identifier isEqualToString:@"Task"]) {
+        Task *item;
         if (showActive && activeListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [activeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         } else if (showByLocation && locationListItems.count > self.tableView.indexPathForSelectedRow.row) {
@@ -630,8 +694,8 @@
             item = [assigneeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         } else if (showCompleted && completedListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [completedListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (_worklistItems.count > self.tableView.indexPathForSelectedRow.row) {
-            item = [_worklistItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
+        } else if (_tasks.count > self.tableView.indexPathForSelectedRow.row) {
+            item = [_tasks objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
         [vc setTask:item];
         if (_connectMode){
@@ -645,7 +709,8 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         indexPathForDeletion = indexPath;
-        [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to delete this task?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
+        Task *task = _tasks[indexPath.row];
+        [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:[NSString stringWithFormat:@"Are you sure you want to delete \"%@\"?",task.body] delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
     }
 }
 
@@ -659,22 +724,22 @@
 
 - (void)deleteItem{
     [ProgressHUD show:@"Deleting..."];
-    WorklistItem *item = [_project.worklist.worklistItems objectAtIndex:indexPathForDeletion.row];
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl, item.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    Task *task = [_tasks objectAtIndex:indexPathForDeletion.row];
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl, task.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if (showCompleted) {
-            [completedListItems removeObject:item];
+            [completedListItems removeObject:task];
         } else if (showActive) {
-            [activeListItems removeObject:item];
+            [activeListItems removeObject:task];
         } else if (showByLocation) {
-            [locationListItems removeObject:item];
+            [locationListItems removeObject:task];
         } else if (showByAssignee) {
-            [assigneeListItems removeObject:item];
-        } else {
-            [_worklistItems removeObject:item];
+            [assigneeListItems removeObject:task];
         }
         
-        [_project.worklist removeWorklistItem:item];
-        [item MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        //ensure that object is removed from datasource, then delete it from the local database
+        [_tasks removeObject:task];
+        [_project.tasklist removeTask:task];
+        [task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         
         //check if view is loaded first
         if (self.isViewLoaded && self.view.window) {
@@ -683,11 +748,11 @@
             [self.tableView endUpdates];
         }
         
-        NSLog(@"Success deleting task: %@",responseObject);
+        //NSLog(@"Success deleting task: %@",responseObject);
         [ProgressHUD dismiss];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this task. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        NSLog(@"Error deleting notification: %@",error.description);
+        NSLog(@"Failed to delete task: %@",error.description);
         [ProgressHUD dismiss];
     }];
 }
@@ -695,58 +760,58 @@
 #pragma mark Intro Stuff
 
 - (void)slide1 {
-    BHOverlayView *worklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    NSString *worklistText = @"The worklist is designed to be flexible: use it for anything from Requests for Information, to personal to-do list, to punch list items at the end of a job.";
+    BHOverlayView *tasklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    NSString *tasklistText = @"The tasklist is designed to be flexible: use it for anything from Requests for Information, to personal to-do list, to punch list items at the end of a job.";
     if (IDIOM == IPAD){
-        worklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"worklistiPad"]];
-        [worklistScreenshot setFrame:CGRectMake(29, 30, 710, 700)];
-        [worklist configureText:worklistText atFrame:CGRectMake(100, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
+        tasklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tasklistiPad"]];
+        [tasklistScreenshot setFrame:CGRectMake(29, 30, 710, 700)];
+        [tasklist configureText:tasklistText atFrame:CGRectMake(100, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
     } else {
-        worklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"worklistScreenshot"]];
-        [worklistScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
-        [worklist configureText:worklistText atFrame:CGRectMake(20, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height, screenWidth()-40, 140)];
+        tasklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tasklistScreenshot"]];
+        [tasklistScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
+        [tasklist configureText:tasklistText atFrame:CGRectMake(20, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height, screenWidth()-40, 140)];
     }
-    [worklistScreenshot setAlpha:0.0];
-    [overlayBackground addSubview:worklistScreenshot];
+    [tasklistScreenshot setAlpha:0.0];
+    [overlayBackground addSubview:tasklistScreenshot];
     
-    [worklist.tapGesture addTarget:self action:@selector(slide2:)];
-    [overlayBackground addSubview:worklist];
+    [tasklist.tapGesture addTarget:self action:@selector(slide2:)];
+    [overlayBackground addSubview:tasklist];
     
     [UIView animateWithDuration:.25 animations:^{
-        [worklist setAlpha:1.0];
-        [worklistScreenshot setAlpha:1.0];
+        [tasklist setAlpha:1.0];
+        [tasklistScreenshot setAlpha:1.0];
     }];
     
 }
 
 - (void)slide2:(UITapGestureRecognizer*)sender {
-    BHOverlayView *worklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    NSString *worklistText = @"Quickly filter items by status, location, or personnel assigned.";
+    BHOverlayView *tasklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    NSString *tasklistText = @"Quickly filter items by status, location, or personnel assigned.";
     if (IDIOM == IPAD){
-        [worklist configureText:worklistText atFrame:CGRectMake(100, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
+        [tasklist configureText:tasklistText atFrame:CGRectMake(100, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
     } else {
-        [worklist configureText:worklistText atFrame:CGRectMake(20, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
+        [tasklist configureText:tasklistText atFrame:CGRectMake(20, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
     }
-    [worklist.tapGesture addTarget:self action:@selector(slide3:)];
+    [tasklist.tapGesture addTarget:self action:@selector(slide3:)];
     
     [UIView animateWithDuration:.25 animations:^{
         [sender.view setAlpha:0.0];
     }completion:^(BOOL finished) {
         [sender.view removeFromSuperview];
-        [overlayBackground addSubview:worklist];
+        [overlayBackground addSubview:tasklist];
         [UIView animateWithDuration:.25 animations:^{
-            [worklist setAlpha:1.0];
+            [tasklist setAlpha:1.0];
         }];
     }];
 }
 
 - (void)slide3:(UITapGestureRecognizer*)sender {
     BHOverlayView *progress = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    NSString *worklistText = @"Click the \"+\" to add a new task, or tap any row to view, edit or mark an item complete.";
+    NSString *tasklistText = @"Click the \"+\" to add a new task, or tap any row to view, edit or mark an item complete.";
     if (IDIOM == IPAD){
-        [progress configureText:worklistText atFrame:CGRectMake(100, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
+        [progress configureText:tasklistText atFrame:CGRectMake(100, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
     } else {
-        [progress configureText:worklistText atFrame:CGRectMake(20, worklistScreenshot.frame.origin.y + worklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
+        [progress configureText:tasklistText atFrame:CGRectMake(20, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
     }
     [progress.tapGesture addTarget:self action:@selector(endIntro:)];
     
@@ -763,14 +828,14 @@
 
 - (void)endIntro:(UITapGestureRecognizer*)sender {
     [UIView animateWithDuration:.35 animations:^{
-        [worklistScreenshot setAlpha:0.0];
+        [tasklistScreenshot setAlpha:0.0];
         [sender.view setAlpha:0.0];
     }completion:^(BOOL finished) {
         [UIView animateWithDuration:.35 animations:^{
             [overlayBackground setAlpha:0.0];
         }completion:^(BOOL finished) {
             [overlayBackground removeFromSuperview];
-            [worklistScreenshot removeFromSuperview];
+            [tasklistScreenshot removeFromSuperview];
         }];
     }];
 }
@@ -779,5 +844,11 @@
 -(void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 @end

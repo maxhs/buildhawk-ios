@@ -20,12 +20,13 @@
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *recentChecklistItems;
     NSMutableArray *recentDocuments;
-    NSMutableArray *recentlyCompletedWorklistItems;
+    NSMutableArray *recentlyCompletedTasks;
     NSMutableArray *notifications;
     NSMutableArray *upcomingChecklistItems;
     NSMutableArray *phases;
     NSMutableDictionary *dashboardDetailDict;
-    Project *archivedProject;
+    Project *hiddenProject;
+    UIBarButtonItem *backButton;
 }
 
 @end
@@ -39,9 +40,13 @@
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     dashboardDetailDict = [NSMutableDictionary dictionary];
     phases = [NSMutableArray array];
-    demoProjects = [Project MR_findByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES] inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
+    demoProjects = [Project MR_findByAttribute:@"demo" withValue:@YES inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     [self loadDemos];
     self.title = @"Demo Projects";
+    
+    backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+    self.navigationItem.leftBarButtonItem = backButton;
+    
     [super viewDidLoad];
 }
 
@@ -92,7 +97,7 @@
     }
     
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        NSLog(@"What happened during demo project save? %hhd %@",success, error);
+        //NSLog(@"What happened during demo project save? %u %@",success, error);
         [self.tableView reloadData];
     }];
 }
@@ -119,8 +124,8 @@
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     
     [cell.nameLabel setTextColor:kDarkGrayColor];
-    [cell.archiveButton setTag:indexPath.row];
-    [cell.archiveButton addTarget:self action:@selector(confirmArchive:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.hideButton setTag:indexPath.row];
+    [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
     cell.scrollView.scrollEnabled = NO;
     return cell;
 }
@@ -152,47 +157,45 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    NSLog(@"should be going to project");
     Project *selectedProject = [demoProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
 }
 - (void)goToProjectDetail:(UIButton*)button {
-    NSLog(@"should be going to detail");
     Project *selectedProject = [demoProjects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"DashboardDetail" sender:selectedProject];
 }
 
-- (void)confirmArchive:(UIButton*)button{
-    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to archive this project? Once archived, a project can still be managed from the web, but will no longer be visible here." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Archive", nil] show];
-    archivedProject = [demoProjects objectAtIndex:button.tag];
+- (void)confirmHide:(UIButton*)button{
+    [[[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Once hidden, a project will no longer be visible from the dashboard." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Hide", nil] show];
+    hiddenProject = [demoProjects objectAtIndex:button.tag];
     BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:button.tag inSection:0]];
     [cell.scrollView setContentOffset:CGPointZero animated:YES];
 }
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Archive"]){
-        [self archiveProject];
+    if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Hide"]){
+        [self hideProject];
     }
 }
 
-- (void)archiveProject{
-    [archivedProject setDemo:[NSNumber numberWithBool:YES]];
+- (void)hideProject{
+    [hiddenProject setDemo:@YES];
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
     
-    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,archivedProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Successfully archived the project: %@",responseObject);
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Successfully hid the project: %@",responseObject);
         if ([responseObject objectForKey:@"user"]){
             [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"admin"] boolValue] forKey:kUserDefaultsAdmin];
             [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"company_admin"] boolValue] forKey:kUserDefaultsCompanyAdmin];
             [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"uber_admin"] boolValue] forKey:kUserDefaultsUberAdmin];
             [[NSUserDefaults standardUserDefaults] synchronize];
-            [[[UIAlertView alloc] initWithTitle:@"Unable to Archive" message:@"Only administrators can archive projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:@"Unable to Hide" message:@"Only administrators can hide projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             [self.tableView reloadData];
         } else {
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:archivedProject] inSection:0];
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:hiddenProject] inSection:0];
             NSLog(@"index path? %@",indexPath);
-            [_currentUser.company removeProject:archivedProject];
-            [demoProjects removeObject:archivedProject];
+            [_currentUser.company removeProject:hiddenProject];
+            [demoProjects removeObject:hiddenProject];
             if (demoProjects.count){
                 [self.tableView beginUpdates];
                 [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
@@ -203,8 +206,8 @@
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to archive this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        NSLog(@"Failed to archive the project: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to hide this project. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        NSLog(@"Failed to hide the project: %@",error.description);
     }];
 }
 
@@ -230,6 +233,12 @@
         BHProjectSynopsisViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     }
+}
+
+- (void)back {
+    [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+        
+    }];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

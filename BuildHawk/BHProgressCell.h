@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <LDProgressView/LDProgressView.h>
 
 @interface BHProgressCell : UITableViewCell
 

@@ -21,6 +21,7 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     if (IDIOM == IPAD) {
         [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
         [_groupCountLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];

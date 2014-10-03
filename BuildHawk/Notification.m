@@ -8,7 +8,7 @@
 
 #import "Notification.h"
 #import "ChecklistItem.h"
-#import "WorklistItem.h"
+#import "Task.h"
 #import "Report.h"
 
 
@@ -20,7 +20,7 @@
 @dynamic read;
 @dynamic checklistItem;
 @dynamic report;
-@dynamic worklistItem;
+@dynamic task;
 @dynamic user;
 @dynamic createdDate;
 @dynamic message;

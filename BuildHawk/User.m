@@ -16,7 +16,7 @@
 #import "Reminder.h"
 #import "Report.h"
 #import "Subcontractor.h"
-#import "WorklistItem.h"
+#import "Task.h"
 
 
 @implementation User
@@ -26,7 +26,8 @@
 @dynamic companyAdmin;
 @dynamic count;
 @dynamic coworkers;
-@dynamic demo;
+@dynamic active;
+@dynamic hidden;
 @dynamic email;
 @dynamic emailPermissions;
 @dynamic firstName;
@@ -44,8 +45,8 @@
 @dynamic textPermissions;
 @dynamic uberAdmin;
 @dynamic activities;
-@dynamic archivedProjects;
-@dynamic assignedWorklistItems;
+@dynamic hiddenProjects;
+@dynamic assignedTasks;
 @dynamic comments;
 @dynamic company;
 @dynamic messages;
@@ -55,7 +56,7 @@
 @dynamic pastDueReminders;
 @dynamic reports;
 @dynamic subcontractor;
-@dynamic worklistItems;
+@dynamic tasks;
 @dynamic alternates;
 
 @end

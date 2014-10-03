@@ -8,12 +8,17 @@
 
 #import "Notification+helper.h"
 #import "User.h"
+#import "Message+helper.h"
 
 @implementation Notification (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"project helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
+    }
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
+        self.createdDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"] != [NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
@@ -27,9 +32,14 @@
             self.user = user;
         }
     }
-    if ([dictionary objectForKey:@"created_date"] && [dictionary objectForKey:@"created_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"created_date"] doubleValue];
-        self.createdDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    if ([dictionary objectForKey:@"message"] && [dictionary objectForKey:@"message"] != [NSNull null]) {
+        NSDictionary *messageDict = [dictionary objectForKey:@"message"];
+        Message *message = [Message MR_findFirstByAttribute:@"identifier" withValue:[messageDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!message){
+            message = [Message MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        [message populateFromDictionary:messageDict];
+        self.message = message;
     }
 }
 @end

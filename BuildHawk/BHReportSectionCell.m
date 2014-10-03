@@ -19,6 +19,16 @@
     return self;
 }
 
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    _reportBodyTextView.layer.borderColor = kLightGrayColor.CGColor;
+    _reportBodyTextView.layer.borderWidth = .5f;
+    _reportBodyTextView.layer.cornerRadius = 2.f;
+    _reportBodyTextView.clipsToBounds = YES;
+    _labelBackgroundView.layer.borderColor = [UIColor darkGrayColor].CGColor;
+    _labelBackgroundView.layer.borderWidth = .5f;
+}
+
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
 {
     [super setSelected:selected animated:animated];
@@ -27,8 +37,7 @@
 }
 
 - (void)configureCell {
-    self.labelBackgroundView.layer.borderColor = [UIColor darkGrayColor].CGColor;
-    self.labelBackgroundView.layer.borderWidth = .5f;
+    
 }
 
 @end

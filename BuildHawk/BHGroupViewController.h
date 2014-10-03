@@ -13,5 +13,4 @@
 @interface BHGroupViewController : UIViewController <UITableViewDelegate, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) Group *group;
-@property (strong, nonatomic) User *currentUser;
 @end

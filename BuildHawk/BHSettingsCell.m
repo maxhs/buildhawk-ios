@@ -21,7 +21,9 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [super awakeFromNib];
+    [_textField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_actionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

@@ -62,6 +62,7 @@
         iPhone5 = NO;
     }
     [self.navigationController setNavigationBarHidden:NO];
+    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.tabBarController.tabBar.frame.size.height, 0);
     project = [(BHTabBarViewController*)self.tabBarController project];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     rowDictionary = [NSMutableDictionary dictionary];
@@ -117,44 +118,23 @@
         //}
     
         self.tabBarController.navigationItem.rightBarButtonItem = nil;
-    } completion:^(BOOL finished) {
-    }];
-}
-
-- (void)endSearch {
- 
-    [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         
-            CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-            searchFrame.origin.x = screenWidth();
-            [self.searchDisplayController.searchBar setFrame:searchFrame];
-            CGRect segmentedControlFrame = self.segmentedControl.frame;
-            segmentedControlFrame.origin.x = (screenWidth()-segmentedControlFrame.size.width)/2;
-            [self.segmentedControl setFrame:segmentedControlFrame];
-        
-        self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
     } completion:^(BOOL finished) {
         
     }];
 }
 
-- (void)reloadChecklistItem:(NSNotification*)notification {
-    ChecklistItem *item = [notification.userInfo objectForKey:@"item"];
-    //update the count inputs, with category before phase so that the changes propagate correctly
-    [item.category calculateProgress];
-    [item.category.phase calculateProgress];
-    //ensure the row stays expanded
-    [item.category setExpanded:@YES];
-    [item.category.phase setExpanded:@YES];
-    if (item.category.phase.orderIndex.intValue < self.tableView.numberOfSections){
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:item.category.phase.orderIndex.integerValue] withRowAnimation:UITableViewRowAnimationFade];
-    }
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:0]];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
-    //self.screenName = @"Checklist view controller";
+
     if (!_checklist){
         [self loadChecklist];
         [ProgressHUD show:@"Loading Checklist..."];
@@ -176,7 +156,7 @@
         if (!loading){
             Phase *phase = [_checklist.phases objectAtIndex:indexPathToExpand.row];
             phase.expanded = @YES;
-            [rowDictionary setObject:phase.categories.mutableCopy forKey:[NSString stringWithFormat:@"%d",indexPathToExpand.row]];
+            [rowDictionary setObject:phase.categories.mutableCopy forKey:[NSString stringWithFormat:@"%ld",(long)indexPathToExpand.row]];
             [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:[_checklist.phases indexOfObject:phase]] atScrollPosition:UITableViewScrollPositionTop animated:YES];
             [self.tableView reloadData];
             indexPathToExpand = nil;
@@ -239,7 +219,7 @@
     active = YES;
     _checklist.activePhases = [NSMutableArray array];
     NSPredicate *notComplete = [NSPredicate predicateWithFormat:@"state != %d",kItemCompleted];
-    NSPredicate *applicable = [NSPredicate predicateWithFormat:@"state != %d",kNotApplicable];
+    NSPredicate *applicable = [NSPredicate predicateWithFormat:@"state != %d",kItemNotApplicable];
     NSPredicate *testForActive = [NSCompoundPredicate andPredicateWithSubpredicates:@[notComplete,applicable]];
     for (Phase *phase in _checklist.phases){
         phase.activeCategories = [NSMutableArray array];
@@ -336,6 +316,8 @@
     [self loadChecklist];
 }
 
+#pragma mark - API call
+
 - (void)loadChecklist {
     loading = YES;
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
@@ -346,19 +328,24 @@
         //NSLog(@"checklist response: %@",[responseObject objectForKey:@"checklist"]);
         NSDictionary *checklistDict = [responseObject objectForKey:@"checklist"];
         _checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[checklistDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!_checklist){
+        if (_checklist){
+            //[_checklist updateFromDictionary:checklistDict];
+        } else {
             _checklist = [Checklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            
         }
         [_checklist populateFromDictionary:checklistDict];
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"Checklist save: %u",success);
             loading = NO;
-            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-            [ProgressHUD dismiss];
+            
             if (self.isViewLoaded && self.view.window){
                 [self.tableView reloadData];
             }
+            
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            [ProgressHUD dismiss];
+       
         }];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -367,16 +354,6 @@
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [ProgressHUD dismiss];
     }];
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:0]];
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-    
-    /*if (self.tableView.numberOfSections == 0){
-        [self.tableView reloadData];
-    }*/
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -404,7 +381,7 @@
     else if (completed){
         Phase *phase = [_checklist.completedPhases objectAtIndex:section];
         if ([phase.expanded isEqualToNumber:@YES]){
-            int count = phase.completedCategories.count + 1;
+            NSInteger count = phase.completedCategories.count + 1;
             for (Cat *category in phase.completedCategories){
                 if ([category.expanded isEqualToNumber:@YES]){
                     count += category.completedItems.count;
@@ -417,7 +394,7 @@
     } else if (active){
         Phase *phase = [_checklist.activePhases objectAtIndex:section];
         if ([phase.expanded isEqualToNumber:@YES]){
-            int count = phase.activeCategories.count + 1;
+            NSInteger count = phase.activeCategories.count + 1;
             for (Cat *category in phase.activeCategories){
                 if ([category.expanded isEqualToNumber:@YES]){
                     count += category.activeItems.count;
@@ -430,7 +407,7 @@
     } else if (inProgress){
         Phase *phase = [_checklist.inProgressPhases objectAtIndex:section];
         if ([phase.expanded isEqualToNumber:@YES]){
-            int count = phase.inProgressCategories.count + 1;
+            NSInteger count = phase.inProgressCategories.count + 1;
             for (Cat *category in phase.inProgressCategories){
                 if ([category.expanded isEqualToNumber:@YES]){
                     count += category.inProgressItems.count;
@@ -445,7 +422,7 @@
         
         if ([phase.expanded isEqualToNumber:@YES]){
             
-            int count = phase.categories.count + 1;
+            NSInteger count = phase.categories.count + 1;
             for (Cat *category in phase.categories){
                 if ([category.expanded isEqualToNumber:@YES]){
                     count += category.items.count;
@@ -476,7 +453,7 @@
         }
         
         cell.textLabel.numberOfLines = 5;
-        [cell.textLabel setFont:[UIFont fontWithName:kMyriadProLight size:19]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
         
         //set the image properly
         if ([item.type isEqualToString:@"Com"]) {
@@ -492,9 +469,8 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChecklistCell" owner:self options:nil] lastObject];
         }
-        [cell.mainLabel setFont:[UIFont fontWithName:kMyriadProLight size:30]];
+        [cell.mainLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
         [cell.mainLabel setNumberOfLines:5];
-        
         
         Phase *phase;
         if (completed){
@@ -511,25 +487,31 @@
             cell.level = [NSNumber numberWithInt:0];
             [cell.mainLabel setText:phase.name];
             if (completed){
-                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %i",phase.completedCategories.count]];
+                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %lu",(unsigned long)phase.completedCategories.count]];
             } else if (active){
-                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %i",phase.activeCategories.count]];
+                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %lu",(unsigned long)phase.activeCategories.count]];
             } else if (inProgress){
-                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %i",phase.inProgressCategories.count]];
+                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %lu",(unsigned long)phase.inProgressCategories.count]];
             } else {
-                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %i",phase.categories.count]];
+                [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %lu",(unsigned long)phase.categories.count]];
             }
-            [cell.detailLabel setFont:[UIFont fontWithName:kMyriadProLight size:19]];
+            [cell.detailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
             
+            //calculate the progress percentage
             float count = phase.completedCount.floatValue + phase.notApplicableCount.floatValue;
-            NSString *progressPercentage = [NSString stringWithFormat:@"%.1f%%",(count/phase.itemCount.integerValue)*100];
+            NSString *progressPercentage;
+            if ((count/phase.itemCount.floatValue)*100 == 100.f){
+                progressPercentage = @"100%";
+            } else if ((count/phase.itemCount.floatValue)*100 == 0.f){
+                progressPercentage = @"0%";
+            } else {
+                progressPercentage = [NSString stringWithFormat:@"%.1f%%",(count/phase.itemCount.floatValue)*100];
+            }
             [cell.progressPercentage setText:progressPercentage];
             [cell.progressPercentage setTextColor:[UIColor lightGrayColor]];
+            
+            //set up the rest of the view
             [cell.photoImageView setHidden:YES];
-            UILabel *progressLabel = [[UILabel alloc] init];
-            [progressLabel setTextColor:[UIColor lightGrayColor]];
-            [progressLabel setText:progressPercentage];
-            cell.accessoryView = progressLabel;
             [cell setBackgroundColor:[UIColor whiteColor]];
             
         } else if ([phase.expanded isEqualToNumber:@YES]){
@@ -538,36 +520,46 @@
             cell.layer.borderWidth = .5f;
             cell.layer.borderColor = [UIColor colorWithWhite:1 alpha:.2].CGColor;
             
-            NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+            NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
             if (openRows.count > indexPath.row-1){
                 id item = [openRows objectAtIndex:indexPath.row-1];
                 if (item && [item isKindOfClass:[Cat class]]){
                     Cat *category = (Cat*)item;
-                    [cell.mainLabel setFont:[UIFont fontWithName:kMyriadProLight size:25]];
+                    [cell.mainLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:25]];
                     [cell.mainLabel setTextColor:[UIColor whiteColor]];
                     [cell.mainLabel setText:[NSString stringWithFormat:@" %@",category.name]];
                     if (completed){
-                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.completedItems.count]];
+                        [cell.detailLabel setText:[NSString stringWithFormat:@" Items: %lu",(unsigned long)category.completedItems.count]];
                     } else if (active) {
-                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.activeItems.count]];
+                        [cell.detailLabel setText:[NSString stringWithFormat:@" Items: %lu",(unsigned long)category.activeItems.count]];
                     } else if (inProgress) {
-                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.inProgressItems.count]];
+                        [cell.detailLabel setText:[NSString stringWithFormat:@" Items: %lu",(unsigned long)category.inProgressItems.count]];
                     } else {
-                        [cell.detailLabel setText:[NSString stringWithFormat:@"  Items: %i",category.items.count]];
+                        [cell.detailLabel setText:[NSString stringWithFormat:@" Items: %lu",(unsigned long)category.items.count]];
                     }
-                    [cell.detailLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+                    [cell.detailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
                     [cell.detailLabel setTextColor:[UIColor whiteColor]];
-                    float count = category.completedCount.floatValue + category.notApplicableCount.floatValue;
-                    [cell.progressPercentage setText:[NSString stringWithFormat:@"%.1f%%",(count/category.items.count)*100]];
                     
+                    //calculate the progress percentage
+                    float count = category.completedCount.floatValue + category.notApplicableCount.floatValue;
+                    NSString *progressPercentage;
+                    if ((count/category.items.count)*100 == 100.f){
+                        progressPercentage = @"100%";
+                    } else if ((count/category.items.count)*100 == 0.f){
+                        progressPercentage = @"0%";
+                    } else {
+                        progressPercentage = [NSString stringWithFormat:@"%.1f%%",(count/category.items.count)*100];
+                    }
+                    [cell.progressPercentage setText:progressPercentage];
                     [cell.progressPercentage setTextColor:[UIColor whiteColor]];
+                    
                     [cell.photoImageView setHidden:YES];
                     cell.accessoryType = UITableViewCellAccessoryNone;
                     [cell setBackgroundColor:kLightBlueColor];
                 } else if (item) {
                     ChecklistItem *item = [openRows objectAtIndex:indexPath.row-1];
                     [cell.itemBody setText:item.body];
-                    [cell.itemBody setFont:[UIFont fontWithName:kMyriadProLight size:19]];
+                    [cell.itemBody setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
                     [cell.progressPercentage setText:@""];
                     [cell setBackgroundColor:kBlueColor];
                     
@@ -627,20 +619,6 @@
     else return itemRowHeight;
 }
 
--(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        [self.segmentedControl setAlpha:0.0];
-    }];
-}
-
-- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
-    [self endSearch];
-}
-- (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
-    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
-        [self.segmentedControl setAlpha:1.0];
-    }];
-}
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -660,8 +638,8 @@
         }
         
         if (indexPath.row == 0){
-            if ([phase.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
-                phase.expanded = [NSNumber numberWithBool:NO];
+            if ([phase.expanded isEqualToNumber:@YES]){
+                phase.expanded = @NO;
                 if (completed) {
                     for (Cat *category in phase.categories){
                         category.expanded = NO;
@@ -680,31 +658,32 @@
                     }
                 }
                 
-                [rowDictionary removeObjectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+                [rowDictionary removeObjectForKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
             } else {
-                phase.expanded = [NSNumber numberWithBool:YES];
+                phase.expanded = @YES;
                 if (completed) {
-                    [rowDictionary setObject:phase.completedCategories.mutableCopy forKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+                    [rowDictionary setObject:phase.completedCategories.mutableCopy forKey:[NSString stringWithFormat:@"%ld",(long)
+                                                                                           indexPath.section]];
                 } else if (active){
-                    [rowDictionary setObject:phase.activeCategories.mutableCopy forKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+                    [rowDictionary setObject:phase.activeCategories.mutableCopy forKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
                 } else if (inProgress){
-                    [rowDictionary setObject:phase.inProgressCategories.mutableCopy forKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+                    [rowDictionary setObject:phase.inProgressCategories.mutableCopy forKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
                 } else {
-                    [rowDictionary setObject:phase.categories.mutableCopy forKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+                    [rowDictionary setObject:phase.categories.mutableCopy forKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
                 }
             }
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationAutomatic];
             [self.tableView endUpdates];
         } else {
-            NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%d",indexPath.section]];
+            NSMutableOrderedSet *openRows = [rowDictionary objectForKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
             if (openRows.count > indexPath.row-1){
                 id item = [openRows objectAtIndex:indexPath.row-1];
                 if ([item isKindOfClass:[Cat class]]){
                     Cat *category = [openRows objectAtIndex:indexPath.row-1];
-                    if ([category.expanded isEqualToNumber:[NSNumber numberWithBool:YES]]){
+                    if ([category.expanded isEqualToNumber:@YES]){
                         NSMutableArray *deleteIndexPaths = [NSMutableArray array];
-                        int subIdx = [openRows indexOfObject:category];
+                        NSInteger subIdx = [openRows indexOfObject:category];
                         
                         NSMutableArray *deletionArray;
                         if (completed){
@@ -716,22 +695,22 @@
                         } else {
                             deletionArray = category.items.mutableCopy;
                         }
-                        for (int idx = subIdx; idx < (deletionArray.count+subIdx); idx ++){
+                        for (NSInteger idx = subIdx; idx < (deletionArray.count+subIdx); idx ++){
                             NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
                             [deleteIndexPaths addObject:newIndexPath];
                         }
                         
                         [openRows removeObjectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange([openRows indexOfObject:category]+1, deletionArray.count)]];
                         
-                        category.expanded = [NSNumber numberWithBool:NO];
+                        category.expanded = @NO;
                         
                         [self.tableView beginUpdates];
                         [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                         [self.tableView endUpdates];
                     } else {
-                        category.expanded = [NSNumber numberWithBool:YES];
+                        category.expanded = @YES;
                         NSMutableArray *newIndexPaths = [NSMutableArray array];
-                        int catIdx = [openRows indexOfObject:category];
+                        NSInteger catIdx = [openRows indexOfObject:category];
                         int itemIdx = 0;
                         NSArray *insertionArray;
                         if (completed) {
@@ -744,7 +723,7 @@
                             insertionArray = category.items.array;
                         }
                         
-                        for (int idx = catIdx; idx < (insertionArray.count+catIdx); idx ++){
+                        for (NSInteger idx = catIdx; idx < (insertionArray.count+catIdx); idx ++){
                             NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
                             [newIndexPaths addObject:newIndexPath];
                             [openRows insertObject:[insertionArray objectAtIndex:itemIdx] atIndex:idx+1];
@@ -773,17 +752,6 @@
     cell.selectedBackgroundView = selectedBackgroundView;
 }
 
-- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
-    [filteredItems removeAllObjects];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", searchText];
-
-    for (ChecklistItem *item in _checklist.items){
-        if([predicate evaluateWithObject:item.body]) {
-            [filteredItems addObject:item];
-        }
-    }
-}
-
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     return NO;
 }
@@ -792,7 +760,45 @@
     return UITableViewCellEditingStyleNone;
 }
 
-#pragma mark UISearchDisplayController Delegate Methods
+#pragma mark - Search stuff
+
+- (void)endSearch {
+    [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        
+        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+        searchFrame.origin.x = screenWidth();
+        [self.searchDisplayController.searchBar setFrame:searchFrame];
+        CGRect segmentedControlFrame = self.segmentedControl.frame;
+        segmentedControlFrame.origin.x = (screenWidth()-segmentedControlFrame.size.width)/2;
+        [self.segmentedControl setFrame:segmentedControlFrame];
+        
+        self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+- (void)reloadChecklistItem:(NSNotification*)notification {
+    //first ensure we actually have a checklist item
+    if ([notification.userInfo objectForKey:@"item"]){
+        ChecklistItem *item = [notification.userInfo objectForKey:@"item"];
+        
+        //update the count inputs, with category before phase so that the changes propagate correctly
+        [item.category calculateProgress];
+        [item.category.phase calculateProgress];
+        
+        //ensure the row stays expanded
+        [item.category setExpanded:@YES];
+        [item.category.phase setExpanded:@YES];
+        
+        //reload the tableview after checking to make sure the phase (i.e. section) really exists
+        if (item.category.phase.orderIndex.integerValue < self.tableView.numberOfSections){
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:item.category.phase.orderIndex.integerValue] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        }
+    }
+}
 
 - (BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
 {
@@ -811,6 +817,32 @@
     return NO;
 }
 
+- (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
+    [filteredItems removeAllObjects];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", searchText];
+    
+    for (ChecklistItem *item in _checklist.items){
+        if([predicate evaluateWithObject:item.body]) {
+            [filteredItems addObject:item];
+        }
+    }
+}
+
+-(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
+        [self.segmentedControl setAlpha:0.0];
+    }];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [self endSearch];
+}
+
+- (void)searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
+    [UIView animateWithDuration:UINavigationControllerHideShowBarDuration animations:^{
+        [self.segmentedControl setAlpha:1.0];
+    }];
+}
 
 #pragma mark Intro Stuff
 
@@ -846,7 +878,7 @@
     NSString *text = @"The first section is the checklist.\n\nSearch for specific items or use the filters to quickly prioritize.";
     if (IDIOM == IPAD){
         checklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"checklistiPad"]];
-        [checklistScreenshot setFrame:CGRectMake(screenWidth()/2-355, 26, 710, 505)];
+        [checklistScreenshot setFrame:CGRectMake(screenWidth()/2-355, 26, 710, 700)];
         [checklist configureText:text atFrame:CGRectMake(screenWidth()/4, checklistScreenshot.frame.size.height + checklistScreenshot.frame.origin.y, screenWidth()/2, 120)];
     } else {
         checklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"checklistScreenshot"]];
@@ -940,27 +972,27 @@
 
 - (void)condenseTableView {
     for (Phase *phase in _checklist.phases){
-        phase.expanded = [NSNumber numberWithBool:NO];
+        phase.expanded = @NO;
         for (Cat *category in phase.categories){
-            category.expanded = [NSNumber numberWithBool:NO];
+            category.expanded = @NO;
         }
     }
     for (Phase *phase in _checklist.completedPhases){
-        phase.expanded = [NSNumber numberWithBool:NO];
+        phase.expanded = @NO;
         for (Cat *category in phase.completedCategories){
-            category.expanded = [NSNumber numberWithBool:NO];
+            category.expanded = @NO;
         }
     }
     for (Phase *phase in _checklist.activePhases){
-        phase.expanded = [NSNumber numberWithBool:NO];
+        phase.expanded = @NO;
         for (Cat *category in phase.activeCategories){
-            category.expanded = [NSNumber numberWithBool:NO];
+            category.expanded = @NO;
         }
     }
     for (Phase *phase in _checklist.inProgressPhases){
-        phase.expanded = [NSNumber numberWithBool:NO];
+        phase.expanded = @NO;
         for (Cat *category in phase.inProgressCategories){
-            category.expanded = [NSNumber numberWithBool:NO];
+            category.expanded = @NO;
         }
     }
     [rowDictionary removeAllObjects];

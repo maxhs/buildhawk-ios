@@ -13,7 +13,7 @@
 @interface BHDashboardViewController : UIViewController
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
-@property (strong, nonatomic) User *currentUser;
+@property (strong, nonatomic) NSMutableArray *projects;
 -(IBAction)revealMenu;
 
 @end

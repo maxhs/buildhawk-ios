@@ -10,7 +10,7 @@
 #import "ChecklistItem.h"
 #import "Project.h"
 #import "Report.h"
-#import "WorklistItem.h"
+#import "Task.h"
 
 
 @implementation Photo
@@ -35,7 +35,7 @@
 @dynamic project;
 @dynamic recentDocuments;
 @dynamic report;
-@dynamic worklistItem;
+@dynamic task;
 @dynamic activities;
 
 @end

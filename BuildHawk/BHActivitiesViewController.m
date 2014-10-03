@@ -226,9 +226,9 @@
 /*- (void)reminderButtonTapped:(UIButton*)button{
     Reminder *reminder = _reminders[button.tag];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if ([reminder.active isEqualToNumber:[NSNumber numberWithBool:YES]]){
+    if ([reminder.active isEqualToNumber:@YES]){
         [parameters setObject:@NO forKey:@"active"];
-        [reminder setActive:[NSNumber numberWithBool:NO]];
+        [reminder setActive:@NO];
     } else {
         [parameters setObject:@YES forKey:@"active"];
         [reminder setActive:[NSNumber numberWithBool:YES]];
@@ -244,6 +244,7 @@
         NSLog(@"Failed to update reminder: %@",error.description);
     }];
 }*/
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"ChecklistItem"]){
         ChecklistItem *item = (ChecklistItem*)sender;
@@ -252,8 +253,8 @@
     } else if ([segue.identifier isEqualToString:@"Task"]) {
         BHTaskViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
-        if ([sender isKindOfClass:[WorklistItem class]]){
-            [vc setTask:(WorklistItem*)sender];
+        if ([sender isKindOfClass:[Task class]]){
+            [vc setTask:(Task*)sender];
         }
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];

@@ -13,8 +13,8 @@
 #import "Project.h"
 #import "Report.h"
 #import "User.h"
-#import "Worklist.h"
-#import "WorklistItem.h"
+#import "Tasklist.h"
+#import "Task.h"
 
 
 @implementation Activity
@@ -30,7 +30,7 @@
 @dynamic report;
 @dynamic task;
 @dynamic user;
-@dynamic worklist;
+@dynamic tasklist;
 @dynamic photo;
 
 @end

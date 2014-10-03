@@ -15,8 +15,9 @@
 #import "User+helper.h"
 #import <CoreData+MagicalRecord.h>
 #import <MessageUI/MessageUI.h>
-#import "BHNotificationCell.h"
+#import "BHMessageCell.h"
 #import "Notification+helper.h"
+#import "Message+helper.h"
 #import "BHSettingsViewController.h"
 #import <RESideMenu/RESideMenu.h>
 #import "BHLoginViewController.h"
@@ -26,6 +27,7 @@ static NSString *emailPlaceholder = @"Email";
 static NSString *textPlaceholder = @"Text Message";
 
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+    User *_currentUser;
     User *selectedCoworker;
     CGRect screen;
     BOOL iPhone5;
@@ -40,7 +42,6 @@ static NSString *textPlaceholder = @"Text Message";
 @end
 
 @implementation BHMenuViewController
-@synthesize currentUser = _currentUser;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -60,9 +61,12 @@ static NSString *textPlaceholder = @"Text Message";
     } else {
         iPad = YES;
     }
+    
+    _currentUser = [(BHAppDelegate*)[UIApplication sharedApplication].delegate currentUser];
     if (!_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
+    
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
     [dateFormatter setDateStyle:NSDateFormatterShortStyle];
@@ -70,6 +74,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)reloadUser {
+    _currentUser = [(BHAppDelegate*)[UIApplication sharedApplication].delegate currentUser];
     [self.tableView reloadData];
 }
 
@@ -102,14 +107,14 @@ static NSString *textPlaceholder = @"Text Message";
     
     for (Notification *notification in _currentUser.notifications) {
         if (![notifications containsObject:notification]) {
-            NSLog(@"Deleting a notification that no longer exists: %@",notification.body);
+            //NSLog(@"Deleting a notification that no longer exists: %@",notification.body);
             [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
     if (_currentUser && ![_currentUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         _currentUser.notifications = notifications;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"Success saving notifications: %u",success);
+            //NSLog(@"Success saving notifications: %u",success);
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
@@ -171,21 +176,22 @@ static NSString *textPlaceholder = @"Text Message";
         [cell addSubview:imageView];
         [cell addSubview:nameLabel];
         [cell addSubview:settingsLabel];
-        [imageView setImageWithURL:[NSURL URLWithString:_currentUser.photoUrlSmall]];
+        [imageView sd_setImageWithURL:[NSURL URLWithString:_currentUser.photoUrlSmall]];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setBackgroundColor:[UIColor clearColor]];
         
         return cell;
     } else {
-        static NSString *CellIdentifier = @"PermissionsCell";
-        BHNotificationCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+        static NSString *CellIdentifier = @"MessageCell";
+        BHMessageCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        if (cell == nil) {
-            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
-        }
+        
         Notification *notification = [_currentUser.notifications objectAtIndex:indexPath.row];
-        [cell.textLabel setText:notification.body];
-        [cell.detailTextLabel setText:[dateFormatter stringFromDate:notification.createdDate]];
+        if (notification.message.body.length){
+            [cell.notificationLabel setText:[NSString stringWithFormat:@"\"%@\"\n -%@",notification.message.body,[dateFormatter stringFromDate:notification.createdDate]]];
+        } else {
+            [cell.notificationLabel setText:@""];
+        }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setBackgroundColor:[UIColor clearColor]];
         
@@ -268,7 +274,7 @@ static NSString *textPlaceholder = @"Text Message";
     BOOL checklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist];
     BOOL dashboardDate = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard];
     BOOL summaryState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail];
-    BOOL worklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenWorklist];
+    BOOL tasklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenTasklist];
     BOOL reportState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports];
     NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
@@ -276,7 +282,7 @@ static NSString *textPlaceholder = @"Text Message";
     [[NSUserDefaults standardUserDefaults] setBool:checklistState forKey:kHasSeenChecklist];
     [[NSUserDefaults standardUserDefaults] setBool:dashboardDate forKey:kHasSeenDashboard];
     [[NSUserDefaults standardUserDefaults] setBool:summaryState forKey:kHasSeenDashboardDetail];
-    [[NSUserDefaults standardUserDefaults] setBool:worklistState forKey:kHasSeenWorklist];
+    [[NSUserDefaults standardUserDefaults] setBool:tasklistState forKey:kHasSeenTasklist];
     [[NSUserDefaults standardUserDefaults] setBool:reportState forKey:kHasSeenReports];
     [[NSUserDefaults standardUserDefaults] synchronize];
     

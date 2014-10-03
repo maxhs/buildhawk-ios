@@ -12,7 +12,6 @@
 #import "Checklist.h"
 #import "ChecklistItem.h"
 #import "Company.h"
-#import "ConnectUser.h"
 #import "Folder.h"
 #import "Group.h"
 #import "Message.h"
@@ -21,15 +20,15 @@
 #import "Reminder.h"
 #import "Report.h"
 #import "User.h"
-#import "Worklist.h"
-#import "WorklistItem.h"
-
+#import "Tasklist.h"
+#import "Task.h"
 
 @implementation Project
 
 @dynamic active;
 @dynamic demo;
 @dynamic identifier;
+@dynamic orderIndex;
 @dynamic name;
 @dynamic notifications;
 @dynamic progressPercentage;
@@ -38,7 +37,7 @@
 @dynamic checklist;
 @dynamic companies;
 @dynamic company;
-@dynamic companyArchives;
+@dynamic companyHidden;
 @dynamic documents;
 @dynamic folders;
 @dynamic group;
@@ -50,11 +49,10 @@
 @dynamic reminders;
 @dynamic reports;
 @dynamic upcomingItems;
-@dynamic userArchiver;
+@dynamic userHider;
 @dynamic users;
-@dynamic worklist;
-@dynamic worklistItems;
-@dynamic connectUsers;
+@dynamic tasklist;
+@dynamic tasks;
 
 @synthesize userConnectItems;
 

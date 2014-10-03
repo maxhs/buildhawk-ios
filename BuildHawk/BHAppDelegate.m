@@ -43,8 +43,10 @@
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [self customizeAppearance];
     
-    [Flurry setCrashReportingEnabled:YES];
-    [Flurry startSession:kFlurryKey];
+    //[NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
+    
+    //[Flurry setCrashReportingEnabled:YES];
+    //[Flurry startSession:kFlurryKey];
     
     // Optional: automatically send uncaught exceptions to Google Analytics.
     /*[GAI sharedInstance].trackUncaughtExceptions = YES;
@@ -69,13 +71,13 @@
         }
     }];
     _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
-    //_manager.requestSerializer = [AFJSONRequestSerializer serializer];
 
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && _currentUser){
+    //test to see whether we have a current user
+    if (_currentUser){
         //head straight into the app
         BHDashboardViewController *vc = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Dashboard"];
         _nav = [[UINavigationController alloc] initWithRootViewController:vc];
@@ -90,11 +92,6 @@
                                                                    rightMenuViewController:nil];
     sideMenuViewController.menuPreferredStatusBarStyle = 1; // UIStatusBarStyleLightContent
     sideMenuViewController.delegate = self;
-    /*sideMenuViewController.contentViewShadowColor = [UIColor blackColor];
-    sideMenuViewController.contentViewShadowOffset = CGSizeMake(0, 0);
-    sideMenuViewController.contentViewShadowOpacity = 0.6;
-    sideMenuViewController.contentViewShadowRadius = 12;
-    sideMenuViewController.contentViewShadowEnabled = YES;*/
     self.window.rootViewController = sideMenuViewController;
     self.window.backgroundColor = [UIColor blackColor];
     
@@ -113,7 +110,7 @@
         tabFontSize = 15;
     }
     [[UITabBarItem appearance] setTitleTextAttributes: @{
-                                                         NSForegroundColorAttributeName : [UIColor whiteColor],
+                                                         //NSForegroundColorAttributeName : [UIColor whiteColor],
                                                          NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:tabFontSize],
                                                          } forState:UIControlStateNormal];
     [[UITabBarItem appearance] setTitleTextAttributes:@{
@@ -121,9 +118,14 @@
                             NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:tabFontSize],
                                                         } forState:UIControlStateSelected];
     
-    [[UITabBar appearance] setTintColor:[UIColor whiteColor]];
-    [[UITabBar appearance] setBarTintColor:[UIColor whiteColor]];
-    [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:0 alpha:1.0]];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        [[UITabBar appearance] setTintColor:[UIColor whiteColor]];
+        [[UITabBar appearance] setBarTintColor:[UIColor whiteColor]];
+        [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:0 alpha:1.0]];
+    } else {
+        
+    }
+    
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
     
     [[UISwitch appearance] setOnTintColor:kBlueColor];
@@ -241,13 +243,13 @@
                 }
                 if (dashboard) {
                     [_nav popToViewController:dashboard animated:NO];
-                    [_manager GET:[NSString stringWithFormat:@"%@/worklist_items/%@",kApiBaseUrl,[urlDict objectForKey:@"task_id"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    [_manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,[urlDict objectForKey:@"task_id"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                         //NSLog(@"success getting task: %@",responseObject);
-                        WorklistItem *item = [WorklistItem MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"worklist_item"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+                        Task *item = [Task MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"task"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                         if (!item){
-                            item = [WorklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                            item = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                         }
-                        [item populateFromDictionary:[responseObject objectForKey:@"worklist_item"]];
+                        [item populateFromDictionary:[responseObject objectForKey:@"task"]];
                         BHTaskViewController *taskVC = [_nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
                         [taskVC setProject:item.project];
                         [taskVC setTask:item];
@@ -320,11 +322,30 @@ void uncaughtExceptionHandler(NSException *exception) {
     [Flurry logEvent:@"Did Receive Remote Notification"];
 }
 
+- (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
+    //NSLog(@"didRegisterUserNotificationSettings: %@",notificationSettings);
+    //NSLog(@"Current user notification cettings: %@",[[UIApplication sharedApplication] currentUserNotificationSettings]);
+}
+
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
     [Flurry logEvent:@"Registered For Remote Notifications"];
     [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
     [[NSUserDefaults standardUserDefaults] synchronize];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        if (IDIOM == IPAD){
+            [parameters setObject:@2 forKey:@"device_type"];
+        } else {
+            [parameters setObject:@1 forKey:@"device_type"];
+        }
+        [parameters setObject:deviceToken forKey:@"token"];
+        [_manager DELETE:[NSString stringWithFormat:@"%@/users/%@/remove_push_token",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success with removing push token: %@",responseObject);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failed to remove push token: %@",error.description);
+        }];
+    }
     //NSLog(@"device token: %@",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]);
 }
 

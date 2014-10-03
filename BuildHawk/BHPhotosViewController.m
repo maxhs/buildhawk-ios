@@ -139,7 +139,7 @@
         NSPredicate *testPredicate;
         if (self.documentsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"folder.name like %@",sectionTitle];
-        } else if (self.worklistsBool) {
+        } else if (self.tasklistsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"userName like %@",sectionTitle];
         } else if (self.reportsBool) {
             testPredicate = [NSPredicate predicateWithFormat:@"dateString like %@",sectionTitle];
@@ -210,7 +210,7 @@
     
     MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
 
-    if ([_project.demo isEqualToNumber:[NSNumber numberWithBool:YES]]) {
+    if ([_project.demo isEqualToNumber:@YES]) {
         browser.displayTrashButton = NO;
     }
     browser.displayActionButton = YES;

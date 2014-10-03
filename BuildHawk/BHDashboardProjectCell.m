@@ -31,19 +31,25 @@
 }
 
 - (void)awakeFromNib {
-    [_archiveButton setBackgroundColor:[UIColor redColor]];
+    [super awakeFromNib];
     [_scrollView setContentSize:CGSizeMake(screenWidth(), 88)];
     [_alertLabel setBackgroundColor:[UIColor redColor]];
     [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
     _alertLabel.layer.cornerRadius = 11.f;
     
     if (IDIOM == IPAD) {
-        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
-        [_addressLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        
     } else {
-        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
-        [_addressLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
-    }        
+        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    }
+    
+    [_addressLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    [_alertLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    
+    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    [_hideButton setBackgroundColor:[UIColor redColor]];
 }
 
 - (void)configureForProject:(Project*)project andUser:(User*)user {
@@ -61,7 +67,7 @@
     
     __block int reminderCount = 0;
     [user.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if ([reminder.pastDueProject.identifier isEqualToNumber:project.identifier]){
+        if (project.identifier && [reminder.pastDueProject.identifier isEqualToNumber:project.identifier]){
             reminderCount ++;
         }
     }];
@@ -76,9 +82,9 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView.contentOffset.x >= 88){
-        [_archiveButton setUserInteractionEnabled:YES];
+        [_hideButton setUserInteractionEnabled:YES];
     } else {
-        [_archiveButton setUserInteractionEnabled:NO];
+        [_hideButton setUserInteractionEnabled:NO];
     }
 }
 

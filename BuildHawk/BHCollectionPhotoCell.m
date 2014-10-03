@@ -32,7 +32,7 @@
 
 -(void)configureForPhoto:(Photo*)photo{
     [self.photoButton setBackgroundColor:[UIColor clearColor]];
-    [self.photoButton setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+    [self.photoButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
 }

@@ -21,6 +21,7 @@
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     [_reminderLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
 }
 

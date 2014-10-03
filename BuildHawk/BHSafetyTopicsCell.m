@@ -21,7 +21,8 @@
 
 - (void)awakeFromNib
 {
-    // Initialization code
+    [super awakeFromNib];
+    [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

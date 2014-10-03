@@ -127,11 +127,11 @@
         }
     }
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    [cell.nameLabel setFont:[UIFont systemFontOfSize:20]];
+    [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
     [cell.emailLabel setText:user.email];
-    [cell.emailLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
+    [cell.emailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
     [cell.phoneLabel setText:user.phone];
-    [cell.phoneLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
+    [cell.phoneLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
     
     return cell;
 }

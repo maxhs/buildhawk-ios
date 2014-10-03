@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
-@class ChecklistItem, Project, Report, WorklistItem, Folder;
+@class ChecklistItem, Project, Report, Task, Folder;
 
 @interface Photo : NSManagedObject
 
@@ -34,6 +34,6 @@
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) Project *recentDocuments;
 @property (nonatomic, retain) Report *report;
-@property (nonatomic, retain) WorklistItem *worklistItem;
+@property (nonatomic, retain) Task *task;
 
 @end

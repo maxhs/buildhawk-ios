@@ -71,7 +71,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [_forgotPasswordButton setTitle:@"FORGOT PASSWORD?" forState:UIControlStateNormal];
     [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
 
-    demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:[NSNumber numberWithBool:YES] inContext:[NSManagedObjectContext MR_defaultContext]];
+    demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:@YES inContext:[NSManagedObjectContext MR_defaultContext]];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
@@ -91,6 +91,9 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     } completion:^(BOOL finished) {
         
     }];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]){
+        [self login:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] andPassword:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]];
+    }
 }
 
 - (void)loadDemo {
@@ -187,7 +190,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         forgotPasswordAlert.alertViewStyle = UIAlertViewStylePlainTextInput;
         UITextField *alertTextField = [forgotPasswordAlert textFieldAtIndex:0];
         [alertTextField setKeyboardType:UIKeyboardTypeEmailAddress];
-        [alertTextField setFont:[UIFont systemFontOfSize:17]];
+        [alertTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [alertTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
         [alertTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
         [forgotPasswordAlert show];
@@ -227,10 +230,12 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
+        [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
+        [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [delegate.menu setCurrentUser:user];
+            delegate.currentUser = user;
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];
             [UIView animateWithDuration:.3 animations:^{
                 _loginContainerView.transform = CGAffineTransformIdentity;
@@ -296,6 +301,8 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             _logoImageView.transform = CGAffineTransformMakeTranslation(0, -60);
         } else if (iPad) {
             
+            //don't do a thing, the keyboard is already framed
+        
         } else {
             _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -226);
             _logoImageView.transform = CGAffineTransformMakeTranslation(0, -180);

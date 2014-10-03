@@ -10,4 +10,5 @@
 
 @interface ReportSub (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
+- (void)updateFromDictionary:(NSDictionary*)dictionary;
 @end

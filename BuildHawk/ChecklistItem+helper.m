@@ -14,6 +14,7 @@
 #import "Project+helper.h"
 #import "Activity+helper.h"
 #import "Reminder+helper.h"
+#import "BHUtilities.h"
 
 @implementation ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -105,10 +106,13 @@
         for (id photoDict in [dictionary objectForKey:@"photos"]){
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
             Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (!photo){
+            if (photo){
+                [photo updateFromDictionary:photoDict];
+            } else {
                 photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [photo populateFromDictionary:photoDict];
             }
-            [photo populateFromDictionary:photoDict];
+            
             [orderedPhotos addObject:photo];
         }
         for (Photo *photo in self.photos) {
@@ -139,7 +143,7 @@
     }
 }
 
-- (void)update:(NSDictionary *)dictionary {
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"] != [NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
     }
@@ -175,7 +179,7 @@
             NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
             Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (comment){
-                [comment update:commentDict];
+                [comment updateFromDictionary:commentDict];
             } else {
                 comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [comment populateFromDictionary:commentDict];
@@ -213,7 +217,7 @@
             NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
             Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (photo){
-                [photo update:photoDict];
+                [photo updateFromDictionary:photoDict];
             } else {
                 photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [photo populateFromDictionary:photoDict];

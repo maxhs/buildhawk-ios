@@ -18,6 +18,7 @@
 @property (nonatomic, retain) NSString * dateString;
 @property (nonatomic, retain) NSString * humidity;
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) id possibleTopics;
 @property (nonatomic, retain) NSString * precip;
 @property (nonatomic, retain) NSString * temp;

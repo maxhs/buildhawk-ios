@@ -15,7 +15,7 @@
 
 @implementation BHTabBarViewController
 
-@synthesize project, user;
+@synthesize project;
 @synthesize checklistIndexPath = _checklistIndexPath;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil

@@ -17,11 +17,10 @@
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSOrderedSet *users;
 @property (nonatomic, retain) NSOrderedSet *projects;
-@property (nonatomic, retain) NSOrderedSet *archivedProjects;
+@property (nonatomic, retain) NSOrderedSet *hiddenProjects;
 @property (nonatomic, retain) NSOrderedSet *subcontractors;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;
 @property (nonatomic, retain) NSOrderedSet *groups;
-@property (nonatomic, retain) NSOrderedSet *connectUsers;
 @property (nonatomic, retain) NSMutableOrderedSet *projectUsers;
 
 @property (nonatomic, retain) NSNumber *expanded;

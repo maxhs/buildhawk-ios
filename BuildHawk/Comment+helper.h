@@ -10,5 +10,5 @@
 
 @interface Comment (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
-- (void)update:(NSDictionary*)dictionary;
+- (void)updateFromDictionary:(NSDictionary*)dictionary;
 @end

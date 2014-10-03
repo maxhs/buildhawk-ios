@@ -51,7 +51,7 @@
         NSLog(@"Success adding a company to project companies: %@",responseObject);
         
         Company *company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [company populateWithDict:[responseObject objectForKey:@"company"]];
+        [company populateFromDictionary:[responseObject objectForKey:@"company"]];
         [_project addCompany:company];
      
         [[NSNotificationCenter defaultCenter] postNotificationName:@"AddCompany" object:nil userInfo:@{@"company":company}];
@@ -86,13 +86,13 @@
     }
     if (indexPath.row == _searchResults.count){
         [cell.textLabel setText:[NSString stringWithFormat:@"Add \"%@\"",_searchTerm]];
-        [cell.textLabel setFont:[UIFont italicSystemFontOfSize:16]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
     } else {
         
         NSDictionary *companyDict = _searchResults[indexPath.row];
         [cell.textLabel setText:[companyDict objectForKey:@"name"]];
-        [cell.textLabel setFont:[UIFont systemFontOfSize:16]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [cell.textLabel setTextColor:[UIColor blackColor]];
     }
     return cell;
@@ -109,7 +109,7 @@
             if (!company){
                 company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-            [company populateWithDict:companyDict];
+            [company populateFromDictionary:companyDict];
             [_project addCompany:company];
             [[NSNotificationCenter defaultCenter] postNotificationName:@"AddCompany" object:nil userInfo:@{@"company":company}];
             [self.presentingViewController dismissViewControllerAnimated:YES completion:^{

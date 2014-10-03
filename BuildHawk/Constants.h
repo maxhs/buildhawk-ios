@@ -40,7 +40,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kNotApplicable @"Not Applicable"
 
 #define kChecklist @"Checklist"
-#define kWorklist @"Worklist"
+#define kTasklist @"Tasklist"
 #define kTasks @"Tasks"
 #define kTask @"Task"
 #define kReports @"Reports"
@@ -75,7 +75,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 //User walkthrough
 #define kHasSeenDashboard @"hasSeenDashboard"
 #define kHasSeenDashboardDetail @"hasSeenDashboardDetail"
-#define kHasSeenWorklist @"hasSeenWorklist"
+#define kHasSeenTasklist @"hasSeenTasklist"
 #define kHasSeenReports @"hasSeenReports"
 #define kHasSeenChecklist @"hasSeenChecklist"
 
@@ -87,7 +87,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kReport @"Report"
 #define kChecklistItem @"ChecklistItem"
 #define kComment @"Comment"
-#define kWorklistItem @"WorklistItem"
+#define kTask @"Task"
 #define kPhoto @"Photo"
 #define kReminder @"Reminder"
 

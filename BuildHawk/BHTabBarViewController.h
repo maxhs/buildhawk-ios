@@ -12,6 +12,5 @@
 
 @interface BHTabBarViewController : UITabBarController <UITabBarDelegate, UITabBarControllerDelegate>
 @property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) User *user;
 @property (strong, nonatomic) NSIndexPath *checklistIndexPath;
 @end

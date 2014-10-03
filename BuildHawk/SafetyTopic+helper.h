@@ -9,5 +9,6 @@
 #import "SafetyTopic.h"
 
 @interface SafetyTopic (helper)
-- (void) populateWithDict:(NSDictionary*)dictionary;
+- (void)populateWithDict:(NSDictionary*)dictionary;
+- (void)updateWithDict:(NSDictionary*)dictionary;
 @end

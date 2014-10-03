@@ -17,11 +17,10 @@
 @dynamic identifier;
 @dynamic users;
 @dynamic projects;
-@dynamic archivedProjects;
+@dynamic hiddenProjects;
 @dynamic subcontractors;
 @dynamic safetyTopics;
 @dynamic groups;
-@dynamic connectUsers;
 
 @synthesize projectUsers;
 @synthesize expanded;

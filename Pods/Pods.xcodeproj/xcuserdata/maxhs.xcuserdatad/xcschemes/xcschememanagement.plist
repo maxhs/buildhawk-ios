@@ -8,85 +8,101 @@
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>2</integer>
 		</dict>
 		<key>Pods-CTAssetsPickerController.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>3</integer>
 		</dict>
 		<key>Pods-LDProgressView.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>4</integer>
 		</dict>
 		<key>Pods-MagicalRecord.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>5</integer>
 		</dict>
 		<key>Pods-Mixpanel.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>6</integer>
+		</dict>
+		<key>Pods-NewRelicAgent.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>Pods-PSTCollectionView.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
 		</dict>
 		<key>Pods-RESideMenu.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>7</integer>
+		</dict>
+		<key>Pods-SDWebImage.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
 		</dict>
 		<key>Pods.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
-			<key>orderHint</key>
-			<integer>1</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>190AFAF51B8249FD8F6FC95C</key>
+		<key>0A7834F3CAFF471FBC6221C2</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>6D82F1CA3A2F47A59B104F37</key>
+		<key>304D4B48491B4DED9B1F2DD6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>98B149E37F9A4D9494AE0A51</key>
+		<key>4FBBE9F7EABA433B85BF6231</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>9A393B4B4BF34B37B9971BAC</key>
+		<key>561BAB3B19704527A225B446</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>B3C09B169FD946C7A25D8AD5</key>
+		<key>AF7EDDA833384F3F95E8F50E</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>C1F379442FBA420F866349E7</key>
+		<key>B1FEB7DE36E64FFFBC4AEA6D</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>E323E487EB3E4269B89DA85A</key>
+		<key>B4D31B3DC0A04E3181018B20</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>C3C43242CD814232BEAE7B62</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>C9977A8A18C64413BF1120D7</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FE50CB63AC9947828D723385</key>
 		<dict>
 			<key>primary</key>
 			<true/>
