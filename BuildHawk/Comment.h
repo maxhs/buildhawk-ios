@@ -17,9 +17,10 @@
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSDate * createdAt;
-@property (nonatomic, retain) NSString * createdOnString;
+@property (nonatomic, retain) NSString * dateString;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) User *user;
+@property (nonatomic, retain) Comment *comment;
 @property (nonatomic, retain) Activity *activity;
 
 @end

@@ -20,19 +20,17 @@
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"]!=[NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
     }
-    if ([dictionary objectForKey:@"created_at"] && [dictionary objectForKey:@"created)at"]!=[NSNull null]) {
-        self.createdAt = [BHUtilities parseDate:[dictionary objectForKey:@"created_at"]];
-        self.createdOnString = [BHUtilities parseDateTimeReturnString:[dictionary objectForKey:@"created_at"]];
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"]!=[NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
+        self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
     if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"]!=[NSNull null]) {
         User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[[dictionary objectForKey:@"user"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (user){
-            self.user = user;
-        } else {
+        if (!user){
             user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [user populateFromDictionary:[dictionary objectForKey:@"user"]];
-            self.user = user;
         }
+        self.user = user;
     }
 }
 

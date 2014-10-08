@@ -12,10 +12,11 @@
 
 @dynamic identifier;
 @dynamic body;
-@dynamic createdOnString;
+@dynamic dateString;
 @dynamic checklistItem;
 @dynamic user;
 @dynamic createdAt;
 @dynamic activity;
+@dynamic comment;
 
 @end

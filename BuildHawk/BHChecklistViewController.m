@@ -99,31 +99,6 @@
 
 }
 
-- (void)activateSearch {
-    [self.searchDisplayController.searchBar becomeFirstResponder];
-    [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        /*if (IDIOM == IPAD){
-            CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-            searchFrame.origin.y = -0;
-            [self.searchDisplayController.searchBar setFrame:searchFrame];
-            [self.searchDisplayController.searchBar setAlpha:1.0];
-            [self.segmentedControl setAlpha:0.0];
-        } else {*/
-            CGRect searchFrame = self.searchDisplayController.searchBar.frame;
-            searchFrame.origin.x = 0;
-            [self.searchDisplayController.searchBar setFrame:searchFrame];
-            CGRect segmentedControlFrame = self.segmentedControl.frame;
-            segmentedControlFrame.origin.x = -screenWidth();
-            [self.segmentedControl setFrame:segmentedControlFrame];
-        //}
-    
-        self.tabBarController.navigationItem.rightBarButtonItem = nil;
-        
-    } completion:^(BOOL finished) {
-        
-    }];
-}
-
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:0]];
@@ -135,10 +110,12 @@
     [super viewDidAppear:animated];
     self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
 
-    if (!_checklist){
+    //ensure that the checklist is properly populated
+    if (!_checklist || ![(Phase*)_checklist.phases.firstObject categories].count){
         [self loadChecklist];
         [ProgressHUD show:@"Loading Checklist..."];
     }
+    
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist]){
         initialOverlayBackground = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), screenHeight()-49)];
         [initialOverlayBackground setAlpha:0.0];
@@ -761,6 +738,31 @@
 }
 
 #pragma mark - Search stuff
+
+- (void)activateSearch {
+    [self.searchDisplayController.searchBar becomeFirstResponder];
+    [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        /*if (IDIOM == IPAD){
+         CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+         searchFrame.origin.y = -0;
+         [self.searchDisplayController.searchBar setFrame:searchFrame];
+         [self.searchDisplayController.searchBar setAlpha:1.0];
+         [self.segmentedControl setAlpha:0.0];
+         } else {*/
+        CGRect searchFrame = self.searchDisplayController.searchBar.frame;
+        searchFrame.origin.x = 0;
+        [self.searchDisplayController.searchBar setFrame:searchFrame];
+        CGRect segmentedControlFrame = self.segmentedControl.frame;
+        segmentedControlFrame.origin.x = -screenWidth();
+        [self.segmentedControl setFrame:segmentedControlFrame];
+        //}
+        
+        self.tabBarController.navigationItem.rightBarButtonItem = nil;
+        
+    } completion:^(BOOL finished) {
+        
+    }];
+}
 
 - (void)endSearch {
     [UIView animateWithDuration:.65 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{

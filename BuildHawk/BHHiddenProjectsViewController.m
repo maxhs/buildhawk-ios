@@ -70,8 +70,19 @@
 }
 
 - (void)back {
+    
     [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
-        
+        if ([self.presentingViewController isKindOfClass:[RESideMenu class]]){
+            [[(UINavigationController*)[(RESideMenu*)self.presentingViewController contentViewController] viewControllers] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+                
+                //don't add the project to the dashboard projects list if it's in a group
+                if ([obj isKindOfClass:[BHDashboardViewController class]]){
+                    BHDashboardViewController *vc = (BHDashboardViewController*)obj;
+                    [vc loadProjects];
+                    *stop = YES;
+                }
+            }];
+        }
     }];
 }
 
@@ -151,7 +162,9 @@
         //run down the view hierarchy to find the Dashboard vc and reload the tableview.
         if ([self.presentingViewController isKindOfClass:[RESideMenu class]]){
             [[(UINavigationController*)[(RESideMenu*)self.presentingViewController contentViewController] viewControllers] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                if ([obj isKindOfClass:[BHDashboardViewController class]]){
+                
+                //don't add the project to the dashboard projects list if it's in a group
+                if ([obj isKindOfClass:[BHDashboardViewController class]] && !hiddenProject.group){
                     BHDashboardViewController *vc = (BHDashboardViewController*)obj;
                     [vc.projects addObject:hiddenProject];
                     [vc.tableView reloadData];

@@ -33,6 +33,7 @@
 @property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) Project *project;
+@property (nonatomic, retain) NSOrderedSet *comments;
 @property (nonatomic, retain) NSOrderedSet *reportSubs;
 @property (nonatomic, retain) NSOrderedSet *reportUsers;
 @property (nonatomic, retain) NSOrderedSet *safetyTopics;

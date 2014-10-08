@@ -36,9 +36,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    [MagicalRecord setupAutoMigratingCoreDataStack];
-    [MagicalRecord shouldAutoCreateDefaultPersistentStoreCoordinator];
     [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
+    [MagicalRecord setupAutoMigratingCoreDataStack];
     
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [self customizeAppearance];
@@ -85,6 +84,9 @@
         //show the login UI
         _nav = (UINavigationController*)self.window.rootViewController;
     }
+    
+    // set the delegate's logged in/logged out flag
+    [self updateLoggedInStatus];
     
     _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
     RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:_nav
@@ -138,6 +140,14 @@
         for (NSString* name in [UIFont fontNamesForFamilyName: family])
             NSLog(@"  %@", name);
     }*/
+}
+
+- (void)updateLoggedInStatus {
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        _loggedIn = YES;
+    } else {
+        _loggedIn = NO;
+    }
 }
 
 //the next two methods are so the damn message and mail navigation bars don't look like shit

@@ -8,21 +8,22 @@
 
 #import "Group+helper.h"
 #import "Project+helper.h"
+#import "BHAppDelegate.h"
 
 @implementation Group (helper)
 
 - (void)populateWithDictionary:(NSDictionary*)dictionary {
-    if ([dictionary objectForKey:@"id"]) {
+    NSLog(@"Populate group helper: %@",dictionary);
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"projects_count"] && [dictionary objectForKey:@"projects_count"] != [NSNull null]) {
-        self.projectsCount = [dictionary objectForKey:@"projects_count"];
-    }
-    if ([dictionary objectForKey:@"projects"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"projects"] && [dictionary objectForKey:@"projects"] != [NSNull null]) {
         NSMutableOrderedSet *orderedProjects = [NSMutableOrderedSet orderedSet];
+        BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+        
         for (id projectDict in [dictionary objectForKey:@"projects"]){
             //NSLog(@"project dict: %@",projectDict);
             NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
@@ -31,31 +32,28 @@
                 [project updateFromDictionary:projectDict];
             } else {
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [project populateFromDictionary:projectDict];
             }
-            [project populateFromDictionary:projectDict];
-            [orderedProjects addObject:project];
+            
+            //only add the project if it contains the current user, otherwise it means they haven't been assigned
+            if (delegate.currentUser && [project.users containsObject:delegate.currentUser]){
+                [orderedProjects addObject:project];
+            }
         }
-        /*for (Project *project in self.projects){
-            if (![orderedProjects containsObject:project]){
-                NSLog(@"deleting a project that no longer exists: %@",project.name);
-                [project MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-        }*/
         
         self.projects = orderedProjects;
     }
 }
 
 - (void)updateWithDictionary:(NSDictionary*)dictionary {
-    
+    NSLog(@"Update group helper: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
-    if ([dictionary objectForKey:@"projects_count"] && [dictionary objectForKey:@"projects_count"] != [NSNull null]) {
-        self.projectsCount = [dictionary objectForKey:@"projects_count"];
-    }
-    if ([dictionary objectForKey:@"projects"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"projects"] && [dictionary objectForKey:@"projects"] != [NSNull null]) {
         NSMutableOrderedSet *orderedProjects = [NSMutableOrderedSet orderedSet];
+        BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+        
         for (id projectDict in [dictionary objectForKey:@"projects"]){
             //NSLog(@"project dict: %@",projectDict);
             NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
@@ -67,7 +65,10 @@
                  [project populateFromDictionary:projectDict];
             }
            
-            [orderedProjects addObject:project];
+            //only add the project if it contains the current user, otherwise it means they haven't been assigned
+            if (delegate.currentUser && [project.users containsObject:delegate.currentUser]){
+                [orderedProjects addObject:project];
+            }
         }
         
         self.projects = orderedProjects;

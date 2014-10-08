@@ -81,10 +81,11 @@
     <entity name="Comment" representedClassName="Comment" syncable="YES">
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" syncable="YES"/>
-        <attribute name="createdOnString" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="dateString" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <relationship name="activity" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Activity" inverseName="comment" inverseEntity="Activity" syncable="YES"/>
         <relationship name="checklistItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChecklistItem" inverseName="comments" inverseEntity="ChecklistItem" syncable="YES"/>
+        <relationship name="report" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Report" inverseName="comments" inverseEntity="Report" syncable="YES"/>
         <relationship name="task" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Task" inverseName="comments" inverseEntity="Task" syncable="YES"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="comments" inverseEntity="User" syncable="YES"/>
     </entity>
@@ -108,7 +109,6 @@
     <entity name="Group" representedClassName="Group" syncable="YES">
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="projectsCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="company" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Company" inverseName="groups" inverseEntity="Company" syncable="YES"/>
         <relationship name="projects" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Project" inverseName="group" inverseEntity="Project" syncable="YES"/>
     </entity>
@@ -231,6 +231,7 @@
         <attribute name="wind" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="activities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="report" inverseEntity="Activity" syncable="YES"/>
         <relationship name="author" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="reports" inverseEntity="User" syncable="YES"/>
+        <relationship name="comments" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Comment" inverseName="report" inverseEntity="Comment" syncable="YES"/>
         <relationship name="dailyActivities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="dailyReport" inverseEntity="Activity" syncable="YES"/>
         <relationship name="notification" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Notification" inverseName="report" inverseEntity="Notification" syncable="YES"/>
         <relationship name="photos" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Photo" inverseName="report" inverseEntity="Photo" syncable="YES"/>
@@ -337,17 +338,17 @@
         <element name="Cat" positionX="54" positionY="189" width="128" height="178"/>
         <element name="Checklist" positionX="18" positionY="162" width="128" height="135"/>
         <element name="ChecklistItem" positionX="9" positionY="153" width="128" height="345"/>
-        <element name="Comment" positionX="27" positionY="153" width="128" height="165"/>
+        <element name="Comment" positionX="27" positionY="153" width="128" height="178"/>
         <element name="Company" positionX="0" positionY="0" width="128" height="180"/>
         <element name="Folder" positionX="36" positionY="162" width="128" height="103"/>
-        <element name="Group" positionX="27" positionY="153" width="128" height="118"/>
+        <element name="Group" positionX="27" positionY="153" width="128" height="105"/>
         <element name="Message" positionX="27" positionY="153" width="128" height="135"/>
         <element name="Notification" positionX="27" positionY="153" width="128" height="195"/>
         <element name="Phase" positionX="45" positionY="180" width="128" height="240"/>
         <element name="Photo" positionX="36" positionY="171" width="128" height="373"/>
         <element name="Project" positionX="0" positionY="0" width="128" height="478"/>
         <element name="Reminder" positionX="45" positionY="171" width="128" height="195"/>
-        <element name="Report" positionX="0" positionY="0" width="128" height="390"/>
+        <element name="Report" positionX="0" positionY="0" width="128" height="403"/>
         <element name="ReportSub" positionX="36" positionY="162" width="128" height="118"/>
         <element name="ReportUser" positionX="27" positionY="153" width="128" height="120"/>
         <element name="SafetyTopic" positionX="27" positionY="153" width="128" height="133"/>

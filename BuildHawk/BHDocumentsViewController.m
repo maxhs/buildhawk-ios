@@ -322,7 +322,7 @@
             }];
         }];
     } else {
-        [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_256"] forState:UIControlStateNormal];
+        [cell.photoButton setImage:[UIImage imageNamed:@"icon-256"] forState:UIControlStateNormal];
         
         [UIView animateWithDuration:.25 animations:^{
             [cell.bucketLabel setAlpha:1.0];

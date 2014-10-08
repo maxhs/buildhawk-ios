@@ -14,7 +14,6 @@
 @implementation Group
 
 @dynamic identifier;
-@dynamic projectsCount;
 @dynamic name;
 @dynamic company;
 @dynamic projects;

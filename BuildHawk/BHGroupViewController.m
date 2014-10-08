@@ -13,11 +13,10 @@
 #import "BHAppDelegate.h"
 #import "Address+helper.h"
 
-@interface BHGroupViewController () {
-    NSMutableArray *_projects;
+@interface BHGroupViewController () {    
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
-    CGRect screen;
+    NSMutableArray *_projects;
     Project *hiddenProject;
 }
 
@@ -40,12 +39,6 @@
     [self loadGroup];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
 - (void)loadGroup {
     [ProgressHUD show:@"Fetching project groups..."];
     [manager GET:[NSString stringWithFormat:@"%@/groups/%@",kApiBaseUrl,_group.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -56,8 +49,8 @@
                 [_group updateWithDictionary:[responseObject objectForKey:@"group"]];
             } else {
                 _group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [_group populateWithDictionary:[responseObject objectForKey:@"group"]];
             }
-            [_group populateWithDictionary:[responseObject objectForKey:@"group"]];
         }
         
         [self.tableView beginUpdates];
@@ -136,7 +129,7 @@
 }
 
 - (void)confirmHide:(UIButton*)button{
-    [[[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Once hidden, a project will no longer be visible on the dashboard." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Hide", nil] show];
+    [[[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Once hidden, a project will no longer be visible inside this group." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Hide", nil] show];
     hiddenProject = [_group.projects objectAtIndex:button.tag];
 }
 
@@ -144,8 +137,15 @@
     [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully hid the project: %@",responseObject);
         //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_group.projects indexOfObject:hiddenProject] inSection:0];
+        
         [_group removeProject:hiddenProject];
-        [self.tableView reloadData];
+        
+        if (_group.projects.count){
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+        } else {
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+        
         /*[self.tableView beginUpdates];
         [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
         [self.tableView endUpdates];*/
@@ -154,6 +154,8 @@
         NSLog(@"Failed to hide the project: %@",error.description);
     }];
 }
+
+#pragma mark - UIAlertView Delegate
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Hide"]){
@@ -164,5 +166,11 @@
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 @end

@@ -234,6 +234,9 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
+        //update the delegate's logged in / logged out flag
+        [delegate updateLoggedInStatus];
+        
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             delegate.currentUser = user;
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];

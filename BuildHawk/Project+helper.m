@@ -165,11 +165,8 @@
         for (id phaseDict in [dictionary objectForKey:@"phases"]){
             if ([phaseDict objectForKey:@"id"]){
                 NSPredicate *phasePredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [phaseDict objectForKey:@"id"]];
-                //on the api, we're actually callign a category a "phase"
                 Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-                if (phase){
-                    [phase populateFromDictionary:phaseDict];
-                } else {
+                if (!phase){
                     phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     phase.name = [phaseDict objectForKey:@"name"];
                 }
@@ -184,13 +181,9 @@
         for (id itemDict in [dictionary objectForKey:@"upcoming_items"]){
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-                //on the api, we're actually callign a category a "phase"
                 ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-                if (item){
-                    [item populateFromDictionary:itemDict];
-                } else {
+                if (!item){
                     item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    [item populateFromDictionary:itemDict];
                 }
                 [item populateFromDictionary:itemDict];
                 [tmpUpcoming addObject:item];
@@ -205,11 +198,8 @@
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
                 ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-                if (item){
-                    [item populateFromDictionary:itemDict];
-                } else {
+                if (!item){
                     item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    [item populateFromDictionary:itemDict];
                 }
                 [item populateFromDictionary:itemDict];
                 [tmpRecent addObject:item];

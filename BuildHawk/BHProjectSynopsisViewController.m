@@ -114,7 +114,7 @@
     [formatter setTimeStyle:NSDateFormatterShortStyle];
 
     deadlineFormatter = [[NSDateFormatter alloc] init];
-    [deadlineFormatter setDateFormat:@"MMM, d\nh:mm a"];
+    [deadlineFormatter setDateFormat:@"MMM, d"];
 }
 
 - (void)handleRefresh {
@@ -124,7 +124,7 @@
 - (void)loadProject {
     [ProgressHUD show:@"Refreshing project..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/%@/dash",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting project synopsis: %@",responseObject);
+        NSLog(@"Success getting project synopsis: %@",responseObject);
         [_project populateFromDictionary:[responseObject objectForKey:@"project"]];
         if (self.isViewLoaded && self.view.window){
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
@@ -317,7 +317,7 @@
             Activity *activity = [_project.activities objectAtIndex:indexPath.row];
             [cell configureActivityForSynopsis:activity];
             [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
-            
+            [cell.separatorView setHidden:YES];
             return cell;
         }
             break;
@@ -412,7 +412,6 @@
                 cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
             }
             Activity *activity = [_project.tasklist.activities objectAtIndex:indexPath.row];
-            NSLog(@"activity in section 6: %@",activity);
             [cell configureActivityForSynopsis:activity];
             [cell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -463,21 +462,21 @@
     switch (section) {
         case 0:
             if (projectReminders.count || pastDueProjectReminders.count){
-                return 34;
+                return 40;
             } else {
                 return 0;
             }
             break;
         case 1:
             if ([(NSArray*)_project.upcomingItems count]){
-                return 34;
+                return 40;
             } else {
                 return 0;
             }
             break;
         case 2:
             if (_project.activities.count){
-                return 34;
+                return 40;
             } else {
                 return 0;
             }
@@ -485,27 +484,27 @@
         
         case 4:
             if (_project.checklist.activities.count){
-                return 34;
+                return 40;
             } else {
                 return 0;
             }
             break;
         case 5:
             if (_project.recentDocuments.count){
-                return 34;
+                return 40;
             } else {
                 return 0;
             }
             break;
         case 6:
             if (_project.tasklist.activities.count){
-                return 34;
+                return 40;
             } else {
                 return 0;
             }
             break;
         default:
-            return 34;
+            return 40;
             break;
     }
 }
@@ -520,13 +519,13 @@
     } else if (section == 4 && [(NSArray*)_project.recentItems count] == 0) {
         return nil;
     } else {
-        headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 34.0)];
+        headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screen.size.width, 40)];
     }
     [headerView setBackgroundColor:kDarkerGrayColor];
     
     // Add the label
     UILabel *headerLabel;
-    headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screen.size.width, 34.0)];
+    headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screen.size.width, 40)];
     headerLabel.backgroundColor = [UIColor clearColor];
     headerLabel.textColor = [UIColor whiteColor];
     headerLabel.font = [UIFont fontWithName:kMyriadProRegular size:16];
@@ -791,7 +790,6 @@
         [self performSegueWithIdentifier:@"Project" sender:indexPath];
     } else if (indexPath.section == 4){
         Activity *activity = [_project.checklist.activities objectAtIndex:indexPath.row];
-        NSLog(@"checklist item activity: %@",activity);
         [self performSegueWithIdentifier:@"ChecklistItem" sender:activity.checklistItem];
     } else if (indexPath.section == 6){
         Activity *activity = [_project.tasklist.activities objectAtIndex:indexPath.row];

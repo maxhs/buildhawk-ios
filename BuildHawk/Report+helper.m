@@ -13,6 +13,7 @@
 #import "ReportSub+helper.h"
 #import "Activity+helper.h"
 #import "SafetyTopic+helper.h"
+#import "Comment+helper.h"
 #import "BHUtilities.h"
 
 @implementation Report (helper)
@@ -162,13 +163,12 @@
                 if (dict != [NSNull null] && [dict objectForKey:@"id"]){
                     NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
                     Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-                    if (activity){
-                        
-                    } else {
+                    if (!activity){
                         activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                         [activity populateFromDictionary:dict];
                     }
-                    [set addObject:activity];
+                    if (![activity.activityType isEqualToString:@"Comment"])
+                        [set addObject:activity];
                 }
             }
             self.dailyActivities = set;
@@ -185,7 +185,8 @@
                         activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     }
                     [activity populateFromDictionary:dict];
-                    [set addObject:activity];
+                    if (![activity.activityType isEqualToString:@"Comment"])
+                        [set addObject:activity];
                 }
             }
             for (Activity *activity in self.activities){
@@ -196,7 +197,19 @@
             self.activities = set;
         }
     }
-    
+    if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
+        for (id commentDict in [dictionary objectForKey:@"comments"]){
+            NSPredicate *commentPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [commentDict objectForKey:@"id"]];
+            Comment *comment = [Comment MR_findFirstWithPredicate:commentPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!comment){
+                comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [comment populateFromDictionary:commentDict];
+            [orderedComments addObject:comment];
+        }
+        self.comments = orderedComments;
+    }
 }
 
 - (void)updateWithDict:(NSDictionary *)dictionary {

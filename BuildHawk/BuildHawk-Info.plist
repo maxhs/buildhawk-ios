@@ -24,42 +24,9 @@
 	<key>CFBundleExecutable</key>
 	<string>${EXECUTABLE_NAME}</string>
 	<key>CFBundleIcons</key>
-	<dict>
-		<key>CFBundlePrimaryIcon</key>
-		<dict>
-			<key>CFBundleIconFiles</key>
-			<array>
-				<string>BuildHawk_app_icon_80</string>
-				<string>BuildHawk_app_icon_29</string>
-				<string>BuildHawk_app_icon_58</string>
-				<string>BuildHawk_app_icon_120</string>
-				<string>BuildHawk_app_icon_114</string>
-				<string>BuildHawk_app_icon_57</string>
-			</array>
-		</dict>
-	</dict>
+	<dict/>
 	<key>CFBundleIcons~ipad</key>
-	<dict>
-		<key>CFBundlePrimaryIcon</key>
-		<dict>
-			<key>CFBundleIconFiles</key>
-			<array>
-				<string>BuildHawk_app_icon_40</string>
-				<string>BuildHawk_app_icon_50</string>
-				<string>BuildHawk_app_icon_58</string>
-				<string>BuildHawk_app_icon_80</string>
-				<string>BuildHawk_app_icon_100</string>
-				<string>BuildHawk_app_icon_144</string>
-				<string>BuildHawk_app_icon_72</string>
-				<string>BuildHawk_app_icon_76</string>
-				<string>BuildHawk_app_icon_152</string>
-				<string>BuildHawk_app_icon_29</string>
-				<string>BuildHawk_app_icon_120</string>
-				<string>BuildHawk_app_icon_114</string>
-				<string>BuildHawk_app_icon_57</string>
-			</array>
-		</dict>
-	</dict>
+	<dict/>
 	<key>CFBundleIdentifier</key>
 	<string>com.buildhawk.test</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -91,25 +58,16 @@
 	<string>1.06</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>We use your location to determine proximity to relevant projects.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to determine proximity to relevant projects.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>MyriadPro-It.otf</string>
 		<string>MyriadPro-Light.otf</string>
 		<string>MyriadPro-Regular.otf</string>
 		<string>MyriadPro-Semibold.otf</string>
-	</array>
-	<key>UILaunchImages~ipad</key>
-	<array>
-		<dict>
-			<key>UILaunchImageMinimumOSVersion</key>
-			<string>7.0</string>
-			<key>UILaunchImageName</key>
-			<string>Default-iPad</string>
-			<key>UILaunchImageOrientation</key>
-			<string>Portrait</string>
-			<key>UILaunchImageSize</key>
-			<string>{768, 1024}</string>
-		</dict>
 	</array>
 	<key>UIMainStoryboardFile</key>
 	<string>MainStoryboard_iPhone</string>
@@ -153,9 +111,5 @@
 			</dict>
 		</dict>
 	</array>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We use your location to determine proximity to relevant projects.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We use your location to determine proximity to relevant projects.</string>
 </dict>
 </plist>

@@ -86,6 +86,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     NSMutableArray *reportActivities;
     Report *activereport;
     UIBarButtonItem *backButton;
+    BOOL activities;
+    UIButton *commentsButton;
+    UIButton *activityButton;
 }
 
 @end
@@ -750,77 +753,120 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             centerLabelOffset = width*.65;
         }
         
-            switch (section) {
-                case 0:
-                    [headerLabel setText:@"REPORT DETAILS"];
-                    break;
-                case 1:
-                    [headerLabel setText:@"WEATHER"];
-                    break;
-                case 2:
-                    [headerLabel setText:@"PERSONNEL"];
-                    break;
-                case 3:
-                {
-                    [headerLabel setText:@"PERSONNEL"];
-                    [headerLabel setFrame:CGRectMake(leftLabelOffset, 0, screenWidth()*2/3, 34)];
-                    [headerLabel setTextAlignment:NSTextAlignmentLeft];
-                    [headerLabel setBackgroundColor:[UIColor clearColor]];
-                    [headerLabel setTextColor:[UIColor lightGrayColor]];
-                    
-                    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerLabelOffset, 0, width*.4, 34)];
-                    [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
-                    [countLabel setText:@"# HOURS"];
-                    [countLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-                    [countLabel setTextColor:[UIColor lightGrayColor]];
-                    [countLabel setBackgroundColor:[UIColor whiteColor]];
-                    [headerView addSubview:countLabel];
+        switch (section) {
+            case 0:
+                [headerLabel setText:@"REPORT DETAILS"];
+                break;
+            case 1:
+                [headerLabel setText:@"WEATHER"];
+                break;
+            case 2:
+                [headerLabel setText:@"PERSONNEL"];
+                break;
+            case 3:
+            {
+                [headerLabel setText:@"PERSONNEL"];
+                [headerLabel setFrame:CGRectMake(leftLabelOffset, 0, screenWidth()*2/3, 34)];
+                [headerLabel setTextAlignment:NSTextAlignmentLeft];
+                [headerLabel setBackgroundColor:[UIColor clearColor]];
+                [headerLabel setTextColor:[UIColor lightGrayColor]];
+                
+                UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerLabelOffset, 0, width*.4, 34)];
+                [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
+                [countLabel setText:@"# HOURS"];
+                [countLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+                [countLabel setTextColor:[UIColor lightGrayColor]];
+                [countLabel setBackgroundColor:[UIColor whiteColor]];
+                [headerView addSubview:countLabel];
+            }
+                break;
+            case 4:
+            {
+                [headerLabel setText:@"COMPANIES"];
+                [headerLabel setFrame:CGRectMake(leftLabelOffset, 0, width*2/3, 34)];
+                [headerLabel setTextAlignment:NSTextAlignmentLeft];
+                [headerLabel setTextColor:[UIColor lightGrayColor]];
+                [headerLabel setBackgroundColor:[UIColor clearColor]];
+                
+                UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerLabelOffset, 0, width*.4, 34)];
+                [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
+                [countLabel setText:@"# ON SITE"];
+                [countLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+                [countLabel setTextColor:[UIColor lightGrayColor]];
+                [headerView addSubview:countLabel];
+            }
+                break;
+            case 5:
+                [headerLabel setText:@"SAFETY TOPICS COVERED"];
+                [headerView setFrame:CGRectMake(0, 0, 0, 0)];
+                break;
+            case 6:
+                [headerView setFrame:CGRectMake(0, 0, 0, 0)];
+                break;
+            case 7:
+                if ([tableView.report.type isEqualToString:kSafety]){
+                    [headerLabel setText:@"PHOTO OF SIGN IN CARD / GROUP"];
+                } else {
+                    [headerLabel setText:@"PHOTOS"];
                 }
-                    break;
-                case 4:
-                {
-                    [headerLabel setText:@"COMPANIES"];
-                    [headerLabel setFrame:CGRectMake(leftLabelOffset, 0, width*2/3, 34)];
-                    [headerLabel setTextAlignment:NSTextAlignmentLeft];
-                    [headerLabel setTextColor:[UIColor lightGrayColor]];
-                    [headerLabel setBackgroundColor:[UIColor clearColor]];
-                    
-                    UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerLabelOffset, 0, width*.4, 34)];
-                    [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
-                    [countLabel setText:@"# ON SITE"];
-                    [countLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-                    [countLabel setTextColor:[UIColor lightGrayColor]];
-                    [headerView addSubview:countLabel];
+                break;
+            case 8:
+                [headerLabel setText:@"NOTES"];
+                break;
+            case 9:
+                //[headerLabel setText:[NSString stringWithFormat:@"%@ ACTIVITY",_project.name.uppercaseString]];
+                activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
+                [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+                [activityButton setTitle:@"ACTIVITY" forState:UIControlStateNormal];
+                if (activities){
+                    [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                } else {
+                    [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
                 }
-                    break;
-                case 5:
-                    [headerLabel setText:@"SAFETY TOPICS COVERED"];
-                    [headerView setFrame:CGRectMake(0, 0, 0, 0)];
-                    break;
-                case 6:
-                    [headerView setFrame:CGRectMake(0, 0, 0, 0)];
-                    break;
-                case 7:
-                    if ([tableView.report.type isEqualToString:kSafety]){
-                        [headerLabel setText:@"PHOTO OF SIGN IN CARD / GROUP"];
-                    } else {
-                        [headerLabel setText:@"PHOTOS"];
-                    }
-                    break;
-                case 8:
-                    [headerLabel setText:@"NOTES"];
-                    break;
-                case 9:
-                    [headerLabel setText:[NSString stringWithFormat:@"%@ ACTIVITY",_project.name.uppercaseString]];
-                    break;
-                default:
-                    [headerLabel setText:@""];
-                    break;
+                [activityButton setFrame:CGRectMake(width/4-50, 0, 100, 40)];
+                [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
+                [headerView addSubview:activityButton];
+                
+                commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+                [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+                [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+                [commentsButton setTitle:@"COMMENTS" forState:UIControlStateNormal];
+                if (activities){
+                    [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+                } else {
+                    [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                }
+                
+                [commentsButton setFrame:CGRectMake(width*3/4-50, 0, 100, 40)];
+                [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
+                [headerView addSubview:commentsButton];
+
+                break;
+            default:
+                [headerLabel setText:@""];
+                break;
             }
         [headerView addSubview:headerLabel];
         return headerView;
     }
 }
+
+- (void)showActivities {
+    [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    activities = YES;
+    [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:9] withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (void)showComments {
+    [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    activities = NO;
+    [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:9] withRowAnimation:UITableViewRowAnimationFade];
+}
+
+#pragma mark - Date Picker
 
 - (IBAction)cancelDatePicker{
     [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{

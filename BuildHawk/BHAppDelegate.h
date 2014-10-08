@@ -19,9 +19,11 @@
 @property (strong, nonatomic) User *currentUser;
 @property (strong, nonatomic) NSString *bundleName;
 @property BOOL connected;
+@property BOOL loggedIn;
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav;
 - (void)offlineNotification;
+- (void)updateLoggedInStatus;
 - (void)setDefaultAppearances;
 - (void)setToBuildHawkAppearances;
 @end

@@ -27,9 +27,9 @@ static NSString *emailPlaceholder = @"Email";
 static NSString *textPlaceholder = @"Text Message";
 
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+    BHAppDelegate *delegate;
     User *_currentUser;
     User *selectedCoworker;
-    CGRect screen;
     BOOL iPhone5;
     BOOL iPad;
     NSDateFormatter *dateFormatter;
@@ -48,7 +48,7 @@ static NSString *textPlaceholder = @"Text Message";
     self.view.backgroundColor = kDarkGrayColor;
     self.tableView.backgroundColor = kDarkGrayColor;
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:.2 alpha:1.0]];
-    screen = [UIScreen mainScreen].bounds;
+    CGRect screen = [UIScreen mainScreen].bounds;
     
     [_logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
     [_logoutButton setBackgroundColor:kDarkGrayColor];
@@ -62,7 +62,8 @@ static NSString *textPlaceholder = @"Text Message";
         iPad = YES;
     }
     
-    _currentUser = [(BHAppDelegate*)[UIApplication sharedApplication].delegate currentUser];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    _currentUser = [delegate currentUser];
     if (!_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
@@ -84,7 +85,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)loadNotifications {
-    if (_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+    if (delegate.loggedIn){
         [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting messages: %@",responseObject);
             [self updateNotifications:[responseObject objectForKey:@"notifications"]];
@@ -268,7 +269,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (IBAction)logout {
-    //[self cleanAndResetupDB];
+    [self cleanAndResetDB];
     
     //don't repeat the new user walkthroughs
     BOOL checklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist];
@@ -285,7 +286,9 @@ static NSString *textPlaceholder = @"Text Message";
     [[NSUserDefaults standardUserDefaults] setBool:tasklistState forKey:kHasSeenTasklist];
     [[NSUserDefaults standardUserDefaults] setBool:reportState forKey:kHasSeenReports];
     [[NSUserDefaults standardUserDefaults] synchronize];
-    
+    NSLog(@"are we logged in before? %u",[(BHAppDelegate*)[UIApplication sharedApplication].delegate loggedIn]);
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate updateLoggedInStatus];
+    NSLog(@"are we logged in after? %u",[(BHAppDelegate*)[UIApplication sharedApplication].delegate loggedIn]);
     BHLoginViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"Login"];
     [self.sideMenuViewController setContentViewController:[[UINavigationController alloc] initWithRootViewController:vc] animated:YES];
     [self.sideMenuViewController hideMenuViewController];
@@ -293,10 +296,9 @@ static NSString *textPlaceholder = @"Text Message";
     [ProgressHUD dismiss];
 }
 
-- (void)cleanAndResetupDB {
+- (void)cleanAndResetDB {
     NSError *error = nil;
-    NSString *storeName = [(BHAppDelegate*)[UIApplication sharedApplication].delegate bundleName];
-    NSURL *storeURL = [NSPersistentStore MR_urlForStoreName:storeName];
+    NSURL *storeURL = [NSPersistentStore MR_urlForStoreName:[MagicalRecord defaultStoreName]];
     [MagicalRecord cleanUp];
     if([[NSFileManager defaultManager] removeItemAtURL:storeURL error:&error]){
         [MagicalRecord setupAutoMigratingCoreDataStack];

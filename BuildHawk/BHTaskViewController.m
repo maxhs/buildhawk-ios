@@ -47,6 +47,7 @@ typedef void(^RequestSuccess)(id result);
     UIActionSheet *textActionSheet;
     UIBarButtonItem *saveButton;
     UIBarButtonItem *createButton;
+    UIBarButtonItem *doneEditingButton;
     UIAlertView *addOtherAlertView;
     NSInteger photoIdx;
     NSMutableArray *browserPhotos;
@@ -55,12 +56,20 @@ typedef void(^RequestSuccess)(id result);
     UIButton *doneButton;
     ALAssetsLibrary *library;
     NSIndexPath *indexPathForDeletion;
+    UIButton *activityButton;
+    UIButton *commentsButton;
+    BOOL activities;
+    CGFloat width;
+    CGFloat height;
+    UIEdgeInsets originalInsets;
 }
+
 - (IBAction)assigneeButtonTapped;
 - (IBAction)locationButtonTapped;
 - (IBAction)placeText:(id)sender;
 - (IBAction)placeCall:(id)sender;
 - (IBAction)sendEmail:(id)sender;
+
 @end
 
 @implementation BHTaskViewController
@@ -98,6 +107,17 @@ typedef void(^RequestSuccess)(id result);
         self.photosScrollView.transform = CGAffineTransformMakeTranslation(0, -32);
     }
     
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
+    
+    //show activities for this task by default
+    activities = YES;
+    
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
@@ -129,20 +149,23 @@ typedef void(^RequestSuccess)(id result);
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
     
-    self.tableView.tableHeaderView = _taskContainerView;
-    self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.navigationController.navigationBar.frame.size.height + [[UIApplication sharedApplication] statusBarFrame].size.height, 0);
+    doneEditingButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
     
+    self.tableView.tableHeaderView = _taskContainerView;
+    originalInsets = UIEdgeInsetsMake(0, 0, self.navigationController.navigationBar.frame.size.height + [[UIApplication sharedApplication] statusBarFrame].size.height, 0);
+    self.tableView.contentInset = originalInsets;
+    
+    //basic setup
     self.itemTextView.delegate = self;
     [self.itemTextView setText:itemPlaceholder];
-    
     library = [[ALAssetsLibrary alloc] init];
+    [self drawItem];
+    [Flurry logEvent:@"Viewing task"];
     
+    //notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(assignTask:) name:@"AssignTask" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [self registerForKeyboardNotifications];
-    
-    [self drawItem];
-    [Flurry logEvent:@"Viewing task"];
 }
 
 - (void)drawItem {
@@ -185,10 +208,10 @@ typedef void(^RequestSuccess)(id result);
     }
 }
 
-- (void)shrinkButton:(UIButton*)button width:(int)width height:(int)height {
+- (void)shrinkButton:(UIButton*)button width:(int)buttonWidth height:(int)buttonHeight {
     CGRect buttonRect = button.frame;
-    buttonRect.size.height -= height;
-    buttonRect.size.width -= width;
+    buttonRect.size.height -= buttonHeight;
+    buttonRect.size.width -= buttonWidth;
     [button setFrame:buttonRect];
 }
 
@@ -201,7 +224,7 @@ typedef void(^RequestSuccess)(id result);
         //NSLog(@"success getting task: %@",responseObject);
         [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
         [self.tableView beginUpdates];
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
         [self.tableView endUpdates];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failed to load task: %@",error.description);
@@ -215,19 +238,18 @@ typedef void(^RequestSuccess)(id result);
     if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
     }
-    else return 2;
+    else return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (section == 0) return 1;
-    //else if (section == 1) return _task.comments.count;
-    else return _task.activities.count;
+    if (activities) return _task.activities.count;
+    else return _task.comments.count + 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (indexPath.section == 0) {
+    if (!activities && indexPath.row == 0) {
         BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
         if (addCommentCell == nil) {
             addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
@@ -240,7 +262,7 @@ typedef void(^RequestSuccess)(id result);
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneButton = addCommentCell.doneButton;
         return addCommentCell;
-    } else {
+    } else if (activities){
         BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
@@ -249,6 +271,15 @@ typedef void(^RequestSuccess)(id result);
         [cell configureForActivity:activity];
         [cell.timestampLabel setText:[commentFormatter stringFromDate:activity.createdDate]];
         return cell;
+    } else {
+        BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+        if (cell == nil) {
+            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+        }
+        Comment *comment = [_task.comments objectAtIndex:indexPath.row - 1];
+        [cell configureForComment:comment];
+        [cell.timestampLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
+        return cell;
     }
 }
 
@@ -256,6 +287,7 @@ typedef void(^RequestSuccess)(id result);
     return 80;
 }
 
+#pragma mark - UITextView delegate methods
 - (void)textViewDidBeginEditing:(UITextView *)textView {
     [_task setSaved:@NO];
     if ([textView.text isEqualToString:kAddCommentPlaceholder] || [textView.text isEqualToString:itemPlaceholder]) {
@@ -266,14 +298,13 @@ typedef void(^RequestSuccess)(id result);
     [UIView animateWithDuration:.25 animations:^{
         doneButton.alpha = 1.0;
     }];
-    UIBarButtonItem *cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
-    [cancelButton setTitle:@"Cancel"];
-    [[self navigationItem] setRightBarButtonItem:cancelButton];
+    
+    [[self navigationItem] setRightBarButtonItem:doneEditingButton];
+
     if (textView == addCommentTextView){
         [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     }
 }
-
 
 -(void)textViewDidEndEditing:(UITextView *)textView {
     if (textView == addCommentTextView){
@@ -309,43 +340,113 @@ typedef void(^RequestSuccess)(id result);
     return YES;
 }
 
+#pragma mark - Header & Comments Section
+
 - (void)submitComment {
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            
+            [ProgressHUD show:@"Adding comment..."];
             NSDictionary *commentDict = @{@"task_id":_task.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"success creating a comment for task: %@",responseObject);
 
-                Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
-                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_task.activities];
-                [set removeObjectAtIndex:set.count-1];
-                [set insertObject:activity atIndex:0];
-                [_task setActivities:set];
+                Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [comment populateFromDictionary:[responseObject objectForKey:@"comment"]];
+                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_task.comments];
+                [set insertObject:comment atIndex:0];
+                [_task setComments:set];
                 
-                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:0 inSection:1];
+                //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:0];
                 
                 [self.tableView beginUpdates];
-                [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+                //[self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
                 
                 addCommentTextView.text = kAddCommentPlaceholder;
                 addCommentTextView.textColor = [UIColor lightGrayColor];
                 
+                [ProgressHUD dismiss];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                NSLog(@"failure creating a comment for task: %@",error.description);
+                [ProgressHUD dismiss];
+                NSLog(@"Failure creating a comment for task: %@",error.description);
             }];
         }
     }
     [self doneEditing];
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 40;
+}
+
+- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
+    [headerView setBackgroundColor:kLightestGrayColor];
+    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
+    headerLabel.layer.cornerRadius = 3.f;
+    headerLabel.clipsToBounds = YES;
+    [headerLabel setBackgroundColor:[UIColor clearColor]];
+    [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    [headerLabel setTextAlignment:NSTextAlignmentCenter];
+    [headerLabel setTextColor:[UIColor darkGrayColor]];
+    
+    [headerLabel setText:@""];
+    
+    activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
+    [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    
+    NSString *activitiesTitle = _task.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_task.activities.count];
+    [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
+    
+    if (activities){
+        [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    } else {
+        [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    }
+    [activityButton setFrame:CGRectMake(width/4-50, 0, 100, 40)];
+    [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
+    [headerView addSubview:activityButton];
+    
+    commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+    [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+
+    NSString *commentsTitle = _task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_task.comments.count];
+    [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
+    if (activities){
+        [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    } else {
+        [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    }
+    
+    [commentsButton setFrame:CGRectMake(width*3/4-50, 0, 100, 40)];
+    [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
+    [headerView addSubview:commentsButton];
+
+    [headerView addSubview:headerLabel];
+    return headerView;
+}
+
+- (void)showActivities {
+    [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    activities = YES;
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+}
+
+- (void)showComments {
+    [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    activities = NO;
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+}
+
 - (void)assignTask:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
-    NSLog(@"info: %@",info);
     if ([info objectForKey:@"user"]){
         User *user = [info objectForKey:@"user"];
         NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
@@ -1007,9 +1108,10 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 1){
-        Activity *activity = _task.activities[indexPath.row];
-        if ([activity.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] && [activity.activityType isEqualToString:kComment]){
+    //only allow editing if the cell represents a comment and IS NOT the add comment row (i.e. the first row)
+    if (indexPath.section == 0 && !activities && indexPath.row != 0){
+        Comment *comment = _task.comments[indexPath.row - 1];
+        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsUberAdmin]){
             return YES;
         } else {
             return NO;
@@ -1030,22 +1132,24 @@ typedef void(^RequestSuccess)(id result);
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        Activity *activity = [_task.activities objectAtIndex:indexPathForDeletion.row];
-        if (![activity.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [manager DELETE:[NSString stringWithFormat:@"%@/activities/%@",kApiBaseUrl,activity.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        // the first row is actually the add comment text view, so make sure to take the correct one
+        Comment *comment = [_task.comments objectAtIndex:indexPathForDeletion.row - 1];
+        if (![comment.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
-                [_task removeActivity:activity];
+                [_task removeComment:comment];
                 
-                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                [comment MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 
                 [self.tableView beginUpdates];
-                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+                //[self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPathForDeletion.section] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 NSLog(@"Failed to delete activity: %@",error.description);
             }];
         } else {
-            [_task removeActivity:activity];
+            [_task removeComment:comment];
             [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
@@ -1097,6 +1201,9 @@ typedef void(^RequestSuccess)(id result);
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
     CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    if (!activities && _task.comments.count == 0){
+        keyboardHeight += 66.f;
+    }
     [UIView animateWithDuration:duration
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
@@ -1116,8 +1223,8 @@ typedef void(^RequestSuccess)(id result);
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                         self.tableView.contentInset = originalInsets;
+                         self.tableView.scrollIndicatorInsets = originalInsets;
                      }
                      completion:nil];
 }

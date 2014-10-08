@@ -42,5 +42,6 @@
 @dynamic reportUsers;
 @dynamic safetyTopics;
 @dynamic saved;
+@dynamic comments;
 
 @end

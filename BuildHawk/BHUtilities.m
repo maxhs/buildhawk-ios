@@ -10,29 +10,6 @@
 
 @implementation BHUtilities
 
-/*+ (NSMutableArray *)personnelFromJSONArray:(NSArray *) array {
-    NSMutableArray *personnel = [NSMutableArray arrayWithCapacity:array.count];
-    for (NSDictionary *dict in array) {
-        if ([dict objectForKey:@"user"]){
-            User *user = [[User alloc] initWithDictionary:[dict objectForKey:@"user"]];
-            [personnel addObject:user];
-        } else if ([dict objectForKey:@"full_name"]) {
-            User *user = [[User alloc] initWithDictionary:dict];
-            [personnel addObject:user];
-        } else if ([dict objectForKey:@"sub"]) {
-            Sub *sub = [[Sub alloc] :[dict objectForKey:@"sub"]];
-            if ([dict objectForKey:@"hours"] && [dict objectForKey:@"hours"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
-            if ([dict objectForKey:@"id"]) [sub setReportSubId:[dict objectForKey:@"id"]];
-            [personnel addObject:sub];
-        } else if ([dict objectForKey:@"count"]) {
-            Sub *sub = [[Sub alloc] initWithDictionary:dict];
-            if ([dict objectForKey:@"count"] && [dict objectForKey:@"count"] != [NSNull null]) [sub setCount:[[dict objectForKey:@"count"] stringValue]];
-            [personnel addObject:sub];
-        }
-    }
-    return personnel;
-}*/
-
 + (NSDate*)parseDate:(id)value {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
     [dateFormat setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];

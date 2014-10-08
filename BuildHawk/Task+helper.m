@@ -105,7 +105,8 @@
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [activity populateFromDictionary:dict];
-            [orderedActivities addObject:activity];
+            if (![activity.activityType isEqualToString:@"Comment"])
+                [orderedActivities addObject:activity];
         }
         for (Activity *activity in self.activities) {
             if (![orderedActivities containsObject:activity]){

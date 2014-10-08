@@ -14,7 +14,6 @@
 @interface Group : NSManagedObject
 
 @property (nonatomic, retain) NSNumber *identifier;
-@property (nonatomic, retain) NSNumber *projectsCount;
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) Company *company;
 @property (nonatomic, retain) NSOrderedSet *projects;

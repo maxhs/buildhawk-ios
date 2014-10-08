@@ -14,5 +14,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *timestampLabel;
 @property (weak, nonatomic) IBOutlet UIView *separatorView;
 - (void)configureForActivity:(Activity*)activity;
+- (void)configureForComment:(Comment*)comment;
 - (void)configureActivityForSynopsis:(Activity*)activity;
 @end

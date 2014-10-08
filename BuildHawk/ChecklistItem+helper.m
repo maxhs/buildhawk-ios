@@ -39,13 +39,16 @@
     if ([dictionary objectForKey:@"photos_count"] && [dictionary objectForKey:@"photos_count"] != [NSNull null]) {
         self.photosCount = [dictionary objectForKey:@"photos_count"];
     }
-    if ([dictionary objectForKey:@"critical_date"] && [dictionary objectForKey:@"critical_date"] != [NSNull null]) {
-        self.criticalDate = [BHUtilities parseDate:[dictionary objectForKey:@"critical_date"]];
+    
+    if ([dictionary objectForKey:@"critical_date_epoch_time"] && [dictionary objectForKey:@"critical_date_epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"critical_date_epoch_time"] doubleValue];
+        self.criticalDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     } else {
         self.criticalDate = nil;
     }
-    if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
-        self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
+    if ([dictionary objectForKey:@"completed_date_epoch_time"] && [dictionary objectForKey:@"completed_date_epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date_epoch_time"] doubleValue];
+        self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     } else {
         self.completedDate = nil;
     }
@@ -132,7 +135,8 @@
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [activity populateFromDictionary:dict];
-            [orderedActivities addObject:activity];
+            if (![activity.activityType isEqualToString:@"Comment"])
+                [orderedActivities addObject:activity];
         }
         for (Activity *activity in self.activities) {
             if (![orderedActivities containsObject:activity]){
@@ -161,14 +165,20 @@
     if ([dictionary objectForKey:@"photos_count"] && [dictionary objectForKey:@"photos_count"] != [NSNull null]) {
         self.photosCount = [dictionary objectForKey:@"photos_count"];
     }
-    if ([dictionary objectForKey:@"critical_date"] && [dictionary objectForKey:@"critical_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"critical_date"] doubleValue];
+    
+    if ([dictionary objectForKey:@"critical_date_epoch_time"] && [dictionary objectForKey:@"critical_date_epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"critical_date_epoch_time"] doubleValue];
         self.criticalDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    } else {
+        self.criticalDate = nil;
     }
-    if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date"] doubleValue];
+    if ([dictionary objectForKey:@"completed_date_epoch_time"] && [dictionary objectForKey:@"completed_date_epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"completed_date_epoch_time"] doubleValue];
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    } else {
+        self.completedDate = nil;
     }
+    
     if ([dictionary objectForKey:@"comments_count"] && [dictionary objectForKey:@"comments_count"] != [NSNull null]) {
         self.commentsCount = [dictionary objectForKey:@"comments_count"];
     }
@@ -242,7 +252,8 @@
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [activity populateFromDictionary:dict];
-            [orderedActivities addObject:activity];
+            if (![activity.activityType isEqualToString:@"Comment"])
+                [orderedActivities addObject:activity];
         }
         for (Activity *activity in self.activities) {
             if (![orderedActivities containsObject:activity]){

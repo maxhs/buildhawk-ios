@@ -29,6 +29,7 @@
 #import "BHSafetyTopicTransition.h"
 #import "BHWebViewController.h"
 #import "BHDashboardButtonCell.h"
+#import "BHTourViewController.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIAlertViewDelegate, UIViewControllerTransitioningDelegate> {
     CGRect searchContainerRect;
@@ -283,43 +284,45 @@
 }
 
 - (void)loadGroups {
-    loading = YES;
-    [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"load groups response object: %@",responseObject);
-        if ([responseObject objectForKey:@"groups"]){
-            NSMutableOrderedSet *groups = [NSMutableOrderedSet orderedSet];
-            for (NSDictionary *groupDict in [responseObject objectForKey:@"groups"]) {
-                Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-                if (group){
-                    [group updateWithDictionary:groupDict];
-                } else {
-                    group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    [group populateWithDictionary:groupDict];
+    if (delegate.loggedIn){
+        loading = YES;
+        [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"load groups response object: %@",responseObject);
+            if ([responseObject objectForKey:@"groups"]){
+                NSMutableOrderedSet *groups = [NSMutableOrderedSet orderedSet];
+                for (NSDictionary *groupDict in [responseObject objectForKey:@"groups"]) {
+                    Group *group = [Group MR_findFirstByAttribute:@"identifier" withValue:[groupDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+                    if (group){
+                        [group updateWithDictionary:groupDict];
+                    } else {
+                        group = [Group MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                        [group populateWithDictionary:groupDict];
+                    }
+                    
+                    [groups addObject:group];
                 }
-                
-                [groups addObject:group];
-            }
-            for (Group *group in _currentUser.company.groups) {
-                if (![groups containsObject:group]) {
-                    NSLog(@"Deleting a group that no longer exists: %@",group.name);
-                    [group MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                for (Group *group in _currentUser.company.groups) {
+                    if (![groups containsObject:group]) {
+                        NSLog(@"Deleting a group that no longer exists: %@",group.name);
+                        [group MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                    }
                 }
+                _currentUser.company.groups = groups;
+            } else {
+                _currentUser.company.groups = nil;
             }
-            _currentUser.company.groups = groups;
-        } else {
-            _currentUser.company.groups = nil;
-        }
+            
+            loading = NO;
+            //reloading the entire tableView here. No fancy section- or row-specific animations.
+            [self.tableView reloadData];
         
-        loading = NO;
-        //reloading the entire tableView here. No fancy section- or row-specific animations.
-        [self.tableView reloadData];
-    
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        loading = NO;
-        NSLog(@"Error while loading groups: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        
-    }];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            loading = NO;
+            NSLog(@"Error while loading groups: %@",error.description);
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your project groups. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            
+        }];
+    }
 }
 
 - (void)hideProjects:(NSArray*)projectsArray {
@@ -440,7 +443,7 @@
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         
         [cell.groupCountLabel setHidden:NO];
-        [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %@",group.projectsCount]];
+        [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %d",group.projects.count]];
         
         [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
         [cell.nameLabel setTextColor:kDarkGrayColor];
@@ -851,6 +854,16 @@
         }completion:^(BOOL finished) {
             [overlayBackground removeFromSuperview];
         }];
+    }];
+}
+
+- (void)firstPopover {
+    BHTourViewController *tour = [[BHTourViewController alloc] init];
+    tour.modalPresentationStyle = UIModalPresentationPopover;
+    //UIPresentationController *presentationController = [tour popoverPresentationController];
+    
+    [self presentViewController:tour animated:YES completion:^{
+        
     }];
 }
 
