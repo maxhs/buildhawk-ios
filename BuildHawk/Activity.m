@@ -2,7 +2,7 @@
 //  Activity.m
 //  BuildHawk
 //
-//  Created by Max Haines-Stiles on 7/3/14.
+//  Created by Max Haines-Stiles on 10/11/14.
 //  Copyright (c) 2014 BuildHawk. All rights reserved.
 //
 
@@ -10,11 +10,12 @@
 #import "Checklist.h"
 #import "ChecklistItem.h"
 #import "Comment.h"
+#import "Photo.h"
 #import "Project.h"
 #import "Report.h"
-#import "User.h"
-#import "Tasklist.h"
 #import "Task.h"
+#import "Tasklist.h"
+#import "User.h"
 
 
 @implementation Activity
@@ -26,11 +27,12 @@
 @dynamic checklist;
 @dynamic checklistItem;
 @dynamic comment;
+@dynamic dailyReport;
+@dynamic photo;
 @dynamic project;
 @dynamic report;
 @dynamic task;
-@dynamic user;
 @dynamic tasklist;
-@dynamic photo;
+@dynamic user;
 
 @end

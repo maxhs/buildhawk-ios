@@ -384,7 +384,7 @@ typedef void(^RequestSuccess)(id result);
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
-    [headerView setBackgroundColor:kLightestGrayColor];
+    [headerView setBackgroundColor:kDarkerGrayColor];
     UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
     headerLabel.layer.cornerRadius = 3.f;
     headerLabel.clipsToBounds = YES;
@@ -403,15 +403,18 @@ typedef void(^RequestSuccess)(id result);
     [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
     
     if (activities){
-        [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [activityButton setBackgroundColor:[UIColor clearColor]];
     } else {
         [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        [activityButton setBackgroundColor:[UIColor whiteColor]];
     }
-    [activityButton setFrame:CGRectMake(width/4-50, 0, 100, 40)];
+    [activityButton setFrame:CGRectMake(0, 0, width/2, 40)];
     [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
     [headerView addSubview:activityButton];
     
     commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    
     [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
     [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
 
@@ -419,11 +422,13 @@ typedef void(^RequestSuccess)(id result);
     [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
     if (activities){
         [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        [commentsButton setBackgroundColor:[UIColor whiteColor]];
     } else {
-        [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [commentsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [commentsButton setBackgroundColor:[UIColor clearColor]];
     }
     
-    [commentsButton setFrame:CGRectMake(width*3/4-50, 0, 100, 40)];
+    [commentsButton setFrame:CGRectMake(width/2, 0, width/2, 40)];
     [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
     [headerView addSubview:commentsButton];
 
@@ -432,15 +437,11 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)showActivities {
-    [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     activities = YES;
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
 }
 
-- (void)showComments {
-    [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+- (void)showComments {   
     activities = NO;
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
 }
@@ -905,10 +906,9 @@ typedef void(^RequestSuccess)(id result);
                 //NSLog(@"Success creating a task: %@",responseObject);
                 [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
                 [_task setSaved:@YES];
-                _task.photos = photoSet;
-                
-                //this will cause the tasklist view to insert the new item in its tableview through an NSNotification
-                [_project.tasklist addTask:_task];
+                for (Photo *photo in photoSet){
+                    photo.task = _task;
+                }
                 
                 if (self.delegate && [self.delegate respondsToSelector:@selector(newTaskCreated:)]) {
                     [self.delegate newTaskCreated:_task];

@@ -40,9 +40,7 @@
     if ([dictionary objectForKey:@"phase"] && [dictionary objectForKey:@"phase"] != [NSNull null]) {
         self.photoPhase = [dictionary objectForKey:@"phase"];
     }
-    if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
-        self.assignee = [dictionary objectForKey:@"assignee"];
-    }
+
     if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
         NSDictionary *dict = [dictionary objectForKey:@"folder"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
@@ -62,6 +60,10 @@
     if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+    if ([dictionary objectForKey:@"epoch_taken"] && [dictionary objectForKey:@"epoch_taken"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_taken"] doubleValue];
+        self.takenAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
 }
 

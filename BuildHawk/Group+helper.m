@@ -13,7 +13,7 @@
 @implementation Group (helper)
 
 - (void)populateWithDictionary:(NSDictionary*)dictionary {
-    NSLog(@"Populate group helper: %@",dictionary);
+    //NSLog(@"Populate group helper: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
@@ -36,7 +36,7 @@
             }
             
             //only add the project if it contains the current user, otherwise it means they haven't been assigned
-            if (delegate.currentUser && [project.users containsObject:delegate.currentUser]){
+            if (delegate.currentUser && [project.users containsObject:delegate.currentUser] && [project.hidden isEqualToNumber:@NO]){
                 [orderedProjects addObject:project];
             }
         }
@@ -46,7 +46,7 @@
 }
 
 - (void)updateWithDictionary:(NSDictionary*)dictionary {
-    NSLog(@"Update group helper: %@",dictionary);
+    //NSLog(@"Update group helper: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
@@ -66,7 +66,7 @@
             }
            
             //only add the project if it contains the current user, otherwise it means they haven't been assigned
-            if (delegate.currentUser && [project.users containsObject:delegate.currentUser]){
+            if (delegate.currentUser && [project.users containsObject:delegate.currentUser] && [project.hidden isEqualToNumber:@NO]){
                 [orderedProjects addObject:project];
             }
         }

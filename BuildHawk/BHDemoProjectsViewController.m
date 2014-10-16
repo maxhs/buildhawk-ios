@@ -17,6 +17,7 @@
 
 @interface BHDemoProjectsViewController () {
     NSMutableArray *demoProjects;
+    BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *recentChecklistItems;
     NSMutableArray *recentDocuments;
@@ -37,7 +38,8 @@
 - (void)viewDidLoad
 {
     demoProjects = [NSMutableArray array];
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [delegate manager];
     dashboardDetailDict = [NSMutableDictionary dictionary];
     phases = [NSMutableArray array];
     demoProjects = [Project MR_findByAttribute:@"demo" withValue:@YES inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
@@ -74,7 +76,11 @@
 
 - (void)loadDemos {
     [ProgressHUD show:@"Loading demo projects..."];
-    [manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    NSMutableDictionary *parameters;
+    if (delegate.loggedIn){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+    }
+    [manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"demo projects response object: %@",responseObject);
         [self updateProjects:[responseObject objectForKey:@"projects"]];
         [self loadDetailView];
@@ -126,7 +132,10 @@
     [cell.nameLabel setTextColor:kDarkGrayColor];
     [cell.hideButton setTag:indexPath.row];
     [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
-    cell.scrollView.scrollEnabled = NO;
+
+    //prevent the user from hiding demo projects, for now at least
+    [cell.scrollView setScrollEnabled:NO];
+    
     return cell;
 }
 
@@ -182,27 +191,20 @@
     [hiddenProject setDemo:@YES];
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
     
-    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/hide",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully hid the project: %@",responseObject);
-        if ([responseObject objectForKey:@"user"]){
-            [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"admin"] boolValue] forKey:kUserDefaultsAdmin];
-            [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"company_admin"] boolValue] forKey:kUserDefaultsCompanyAdmin];
-            [[NSUserDefaults standardUserDefaults] setBool:[[[responseObject objectForKey:@"user"] valueForKey:@"uber_admin"] boolValue] forKey:kUserDefaultsUberAdmin];
-            [[NSUserDefaults standardUserDefaults] synchronize];
-            [[[UIAlertView alloc] initWithTitle:@"Unable to Hide" message:@"Only administrators can hide projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            [self.tableView reloadData];
+        
+        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:hiddenProject] inSection:0];
+        [hiddenProject setHidden:@YES];
+        [_currentUser.company removeProject:hiddenProject];
+        [demoProjects removeObject:hiddenProject];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfAndWait];
+        if (demoProjects.count){
+            [self.tableView beginUpdates];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
         } else {
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[demoProjects indexOfObject:hiddenProject] inSection:0];
-            NSLog(@"index path? %@",indexPath);
-            [_currentUser.company removeProject:hiddenProject];
-            [demoProjects removeObject:hiddenProject];
-            if (demoProjects.count){
-                [self.tableView beginUpdates];
-                [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-                [self.tableView endUpdates];
-            } else {
-                [self.navigationController popViewControllerAnimated:YES];
-            }
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
         }
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {

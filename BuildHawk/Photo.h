@@ -13,9 +13,9 @@
 
 @interface Photo : NSManagedObject
 
-@property (nonatomic, retain) NSString * assignee;
 @property (nonatomic, retain) NSString * caption;
 @property (nonatomic, retain) NSDate * createdAt;
+@property (nonatomic, retain) NSDate * takenAt;
 @property (nonatomic, retain) NSString * dateString;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) id image;

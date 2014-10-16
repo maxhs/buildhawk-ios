@@ -435,6 +435,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.connectNameLabel setTextColor:[UIColor whiteColor]];
             [cell.connectDetailLabel setTextColor:[UIColor whiteColor]];
             [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [cell.hoursLabel setTextColor:[UIColor whiteColor]];
             cell.backgroundColor = kLightBlueColor;
             if (user.company.name.length){
@@ -767,7 +768,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     if (select){
         if (!userAlertView){
             userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
-            userAlertView.delegate = self;
         }
         
         //resign all other first responders, otherwise the keyboard may not come up properly because something else is mysteriously the first responder

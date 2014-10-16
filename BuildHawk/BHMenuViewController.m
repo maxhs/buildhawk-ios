@@ -85,7 +85,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)loadNotifications {
-    if (delegate.loggedIn){
+    if (delegate.loggedIn && _currentUser.managedObjectContext != nil){
         [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting messages: %@",responseObject);
             [self updateNotifications:[responseObject objectForKey:@"notifications"]];
@@ -177,7 +177,11 @@ static NSString *textPlaceholder = @"Text Message";
         [cell addSubview:imageView];
         [cell addSubview:nameLabel];
         [cell addSubview:settingsLabel];
-        [imageView sd_setImageWithURL:[NSURL URLWithString:_currentUser.photoUrlSmall]];
+        if (_currentUser.photoUrlSmall.length){
+            [imageView sd_setImageWithURL:[NSURL URLWithString:_currentUser.photoUrlSmall]];
+        } else {
+            [imageView setImage:[UIImage imageNamed:@"whiteIcon"]];
+        }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell setBackgroundColor:[UIColor clearColor]];
         
@@ -236,7 +240,7 @@ static NSString *textPlaceholder = @"Text Message";
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         indexPathForDeletion = indexPath;
-        [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to delete this notification?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to delete this message?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
     }
 }
 
@@ -286,9 +290,7 @@ static NSString *textPlaceholder = @"Text Message";
     [[NSUserDefaults standardUserDefaults] setBool:tasklistState forKey:kHasSeenTasklist];
     [[NSUserDefaults standardUserDefaults] setBool:reportState forKey:kHasSeenReports];
     [[NSUserDefaults standardUserDefaults] synchronize];
-    NSLog(@"are we logged in before? %u",[(BHAppDelegate*)[UIApplication sharedApplication].delegate loggedIn]);
     [(BHAppDelegate*)[UIApplication sharedApplication].delegate updateLoggedInStatus];
-    NSLog(@"are we logged in after? %u",[(BHAppDelegate*)[UIApplication sharedApplication].delegate loggedIn]);
     BHLoginViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"Login"];
     [self.sideMenuViewController setContentViewController:[[UINavigationController alloc] initWithRootViewController:vc] animated:YES];
     [self.sideMenuViewController hideMenuViewController];

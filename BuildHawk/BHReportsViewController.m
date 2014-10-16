@@ -25,8 +25,6 @@
     BOOL weekly;
     BOOL loading;
     NSMutableArray *_filteredReports;
-    /*UIBarButtonItem *addButton;
-    UIBarButtonItem *datePickerButton;*/
     UIBarButtonItem *sortButton;
     UIBarButtonItem *hideSortButton;
     UIView *overlayBackground;
@@ -77,7 +75,7 @@
     [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
-    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:.87]];
+    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
         
     if (project.reports.count == 0){
         if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
@@ -109,14 +107,11 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    
-    //self.tabBarController.navigationItem.rightBarButtonItems = @[addButton,datePickerButton];
     if (IDIOM == IPAD){
         self.tabBarController.navigationItem.rightBarButtonItem = nil;
     } else {
         self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
     }
-
 }
 
 #pragma mark - API
@@ -149,7 +144,6 @@
             } else {
                 NSLog(@"Report %@ - %@ has unsaved local changes",report.type, report.dateString);
             }
-            
         }
         
         [reportSet addObject:report];
@@ -453,17 +447,17 @@
 
 - (void)newReportCreated:(Report *)report {
     //NSLog(@"delegate method: %@",report);
-    [project addReport:report];
     
     daily = NO;
     weekly = NO;
     safety = NO;
     
-    /*[self.tableView beginUpdates];
-    [self.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationFade];
-    [self.tableView endUpdates];*/
+    [self.tableView beginUpdates];
+    [project addReport:report];
+    [self.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
+    [self.tableView endUpdates];
     
-    [self.tableView reloadData];
+    //[self.tableView reloadData];
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {

@@ -77,7 +77,9 @@
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [companyDict objectForKey:@"id"]];
         Company *company = [Company MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!company){
+        if (company){
+            [company updateFromDictionary:companyDict];
+        } else {
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [company populateFromDictionary:companyDict];
         }
@@ -120,9 +122,13 @@
     }
     if ([dictionary objectForKey:@"phone"] && [dictionary objectForKey:@"phone"] != [NSNull null]) {
         self.phone = [dictionary objectForKey:@"phone"];
+    } else {
+        self.phone = @"";
     }
     if ([dictionary objectForKey:@"formatted_phone"] && [dictionary objectForKey:@"formatted_phone"] != [NSNull null]) {
         self.formattedPhone = [dictionary objectForKey:@"formatted_phone"];
+    } else {
+        self.formattedPhone = @"";
     }
     if ([dictionary objectForKey:@"email"] && [dictionary objectForKey:@"email"] != [NSNull null]) {
         self.email = [dictionary objectForKey:@"email"];
@@ -139,6 +145,14 @@
             [company populateFromDictionary:companyDict];
         }
         self.company = company;
+    }
+}
+
+- (BOOL)anyAdmin {
+    if ([self.admin isEqualToNumber:@YES] || [self.companyAdmin isEqualToNumber:@YES] || [self.uberAdmin isEqualToNumber:@YES]){
+        return YES;
+    } else {
+        return NO;
     }
 }
 

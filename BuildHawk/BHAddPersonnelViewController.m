@@ -14,7 +14,7 @@
 #import "BHReportViewController.h"
 #import "BHTaskViewController.h"
 
-@interface BHAddPersonnelViewController () <UITextFieldDelegate> {
+@interface BHAddPersonnelViewController () <UITextFieldDelegate, UIAlertViewDelegate> {
     UIBarButtonItem *createButton;
     UIBarButtonItem *doneButton;
     UIBarButtonItem *nextButton;
@@ -24,9 +24,10 @@
     UITextField *_firstNameTextField;
     UITextField *_lastNameTextField;
     UITextField *_companyNameTextField;
-    
+    UIAlertView *userAlertView;
     NSString *email;
     NSString *phone;
+    ReportUser *selectedReportUser;
 }
 
 @end
@@ -57,44 +58,7 @@
     [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
 }
 
-- (void)registerForKeyboardNotifications
-{
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWillShow:)
-                                                 name:UIKeyboardWillShowNotification object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWillHide:)
-                                                 name:UIKeyboardWillHideNotification object:nil];
-}
-
-- (void)keyboardWillShow:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                     }
-                     completion:nil];
-}
-
-- (void)keyboardWillHide:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-
-                     }
-                     completion:nil];
-}
+#pragma mark - Navigation
 
 - (void)next {
     if (_emailTextField.text.length){
@@ -128,26 +92,58 @@
                 if (!user){
                     user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [user populateFromDictionary:userDict];
+                } else {
+                    [user updateFromDictionary:userDict];
                 }
                 
                 if (_task){
                     NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
                     [assignees addObject:user];
                     _task.assignees = assignees;
+                    [self saveAndExit];
                 } else if (_report) {
-                    ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    reportUser.userId = user.identifier;
-                    reportUser.fullname = user.fullname;
-                    [_report addReportUser:reportUser];
+                    selectedReportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                    selectedReportUser.userId = user.identifier;
+                    selectedReportUser.fullname = user.fullname;
+                    [self getHours];
                 }
-                
-                [self saveAndExit];
-                
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             [ProgressHUD dismiss];
             NSLog(@"Failed to find user: %@",error.description);
         }];
+    }
+}
+
+- (void)getHours {
+    userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
+    userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
+    [userAlertView show];
+}
+
+#pragma mark - UIAlertView Delegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView == userAlertView){
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
+            NSNumberFormatter * f = [[NSNumberFormatter alloc] init];
+            [f setNumberStyle:NSNumberFormatterDecimalStyle];
+            NSNumber *hours = [f numberFromString:[[userAlertView textFieldAtIndex:0] text]];
+            if (hours.floatValue > 0.f){
+                [self selectReportUserWithCount:hours];
+            }
+        }
+    }
+}
+
+- (void)selectReportUserWithCount:(NSNumber*)count {
+    if (selectedReportUser){
+        selectedReportUser.hours = count;
+        [_report addReportUser:selectedReportUser];
+        [self saveAndExit];
+    } else {
+        
     }
 }
 
@@ -191,10 +187,30 @@
     }];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)saveAndExit {
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        [ProgressHUD dismiss];
+        if (_report){
+            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
+                if ([vc isKindOfClass:[BHReportViewController class]]){
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
+                    [self.navigationController popToViewController:vc animated:YES];
+                    *stop = YES;
+                }
+            }];
+        } else if (_task){
+            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
+                if ([vc isKindOfClass:[BHTaskViewController class]]){
+                    [(BHTaskViewController*)vc setTask:_task];
+                    [(BHTaskViewController*)vc drawItem];
+                    [self.navigationController popToViewController:vc animated:YES];
+                    *stop = YES;
+                }
+            }];
+        } else {
+            [self.navigationController popViewControllerAnimated:YES];
+        }
+    }];
 }
 
 #pragma mark - Table view data source
@@ -327,7 +343,6 @@
     }
     return cell;
 }
-
 
 - (void)create {
     if (_companyNameTextField.text.length && (_emailTextField.text.length > 0 || _phoneTextField.text.length > 0)){
@@ -479,6 +494,8 @@
     }
 }
 
+#pragma mark - UITextField Delegate
+
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     self.navigationItem.rightBarButtonItem = doneButton;
 }
@@ -515,32 +532,50 @@
     [self.view endEditing:YES];
 }
 
-
-- (void)saveAndExit {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        [ProgressHUD dismiss];
-        if (_report){
-            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
-                if ([vc isKindOfClass:[BHReportViewController class]]){
-                    //[[(BHReportViewController*)vc reportTableView] reloadData];
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
-                    [self.navigationController popToViewController:vc animated:YES];
-                    *stop = YES;
-                }
-            }];
-        } else if (_task){
-            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
-                if ([vc isKindOfClass:[BHTaskViewController class]]){
-                    [(BHTaskViewController*)vc setTask:_task];
-                    [(BHTaskViewController*)vc drawItem];
-                    [self.navigationController popToViewController:vc animated:YES];
-                    *stop = YES;
-                }
-            }];
-        } else {
-            [self.navigationController popViewControllerAnimated:YES];
-        }
-    }];
+- (void)registerForKeyboardNotifications
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
 }
+
+- (void)keyboardWillShow:(NSNotification *)note
+{
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                     }
+                     completion:nil];
+}
+
+- (void)keyboardWillHide:(NSNotification *)note
+{
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         
+                     }
+                     completion:nil];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
 
 @end

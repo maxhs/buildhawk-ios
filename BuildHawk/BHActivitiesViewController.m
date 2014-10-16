@@ -92,9 +92,13 @@
         Reminder *reminder = _reminders[indexPath.row];
         [cell.reminderDatetimeLabel setText:[formatter stringFromDate:reminder.reminderDate]];
         [cell configureForReminder:reminder];
+        
+        //
         cell.reminderButton.tag = indexPath.row;
         [cell.reminderButton addTarget:self action:@selector(goToReminder:) forControlEvents:UIControlEventTouchUpInside];
-        cell.deleteButton.tag = indexPath.row;
+        
+        //set the delete button with the identifier as the tag
+        cell.deleteButton.tag = reminder.identifier.integerValue;
         [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
         [cell.deleteButton addTarget:self action:@selector(confirmDeleteReminder:) forControlEvents:UIControlEventTouchUpInside];
         return cell;
@@ -190,7 +194,9 @@
 
 - (void)confirmDeleteReminder:(UIButton*)button {
     [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to remove this reminder?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Yes",nil] show];
-    indexPathForReminderDeletion = [NSIndexPath indexPathForRow:button.tag inSection:0];
+    Reminder *reminderForDeletion = [Reminder MR_findFirstByAttribute:@"identifier" withValue:[NSNumber numberWithInteger:button.tag]];
+    NSInteger row = [_reminders indexOfObject:reminderForDeletion];
+    indexPathForReminderDeletion = [NSIndexPath indexPathForRow:row inSection:0];
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -207,17 +213,19 @@
         NSLog(@"Success deleting this reminder: %@",responseObject);
         
         [_reminders removeObject:reminder];
-        [_reminders removeObject:reminder];
         [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         
-        [self.tableView beginUpdates];
         if (_reminders.count){
+            [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForReminderDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
         } else {
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationNone];
+            [self.tableView endUpdates];
+            [self.navigationController popViewControllerAnimated:YES];
         }
-        [self.tableView endUpdates];
-        
+    
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failured deleting this reminder: %@",error.description);
     }];

@@ -57,6 +57,10 @@
         [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
         [self.tableView endUpdates];
         
+        //no rows/sections to reload, so we have to cancel the dismiss HUD manually
+        if (!_group.projects.count)
+            [ProgressHUD dismiss];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure getting dashboard: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:nil message:@"Something went wrong while fetching projects for this group. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -134,11 +138,13 @@
 }
 
 - (void)hideProject{
-    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/hide",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully hid the project: %@",responseObject);
         //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_group.projects indexOfObject:hiddenProject] inSection:0];
         
         [_group removeProject:hiddenProject];
+        [hiddenProject setHidden:@YES];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfAndWait];
         
         if (_group.projects.count){
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];

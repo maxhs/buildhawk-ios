@@ -10,4 +10,12 @@
 
 @interface BHSyncController : NSObject
 
+@property (strong, nonatomic) NSArray *tasks;
+@property (strong, nonatomic) NSArray *reports;
+@property (strong, nonatomic) NSArray *checklistItems;
+@property (strong, nonatomic) NSArray *photos;
+
++ (id)sharedController;
+- (void)syncAll;
+
 @end

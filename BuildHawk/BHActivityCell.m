@@ -79,7 +79,7 @@
 }
 
 - (void)configureActivityForSynopsis:(Activity *)activity {
-    
+    //NSLog(@"Configure for activity synopsis: %@",activity);
     CGRect frame = _activityLabel.frame;
     frame.origin.x = origX;
     if (IDIOM != IPAD){
@@ -99,6 +99,7 @@
                 activityObject = @"an unnamed item";
             }
         } else if (activity.checklistItem){
+            
             
             if (activity.checklistItem.body.length > 25){
                 activityObject = [[activity.checklistItem.body substringToIndex:25] stringByAppendingString:@"..."];

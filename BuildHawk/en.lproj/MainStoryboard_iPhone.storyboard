@@ -840,7 +840,7 @@
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" id="F0y-co-iUf">
-                                                            <rect key="frame" x="0.0" y="0.0" width="1280" height="400"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="1600" height="500"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="Vxe-0S-apT">
@@ -1080,14 +1080,14 @@
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <subviews>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="RFb-Ay-Ibt">
-                                                                    <rect key="frame" x="75" y="15" width="70" height="70"/>
+                                                                    <rect key="frame" x="75" y="14" width="70" height="70"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <state key="normal" backgroundImage="cameraButton.png">
                                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                                                     </state>
                                                                 </button>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="0MZ-cr-0Ts">
-                                                                    <rect key="frame" x="3" y="15" width="70" height="70"/>
+                                                                    <rect key="frame" x="3" y="14" width="70" height="70"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <state key="normal" backgroundImage="libraryButton.png">
                                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -1414,14 +1414,14 @@
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <subviews>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="hBS-b8-eZs">
-                                                                    <rect key="frame" x="75" y="15" width="70" height="70"/>
+                                                                    <rect key="frame" x="75" y="14" width="70" height="70"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <state key="normal" backgroundImage="cameraButton.png">
                                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                                                     </state>
                                                                 </button>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="VHf-Q6-9hb">
-                                                                    <rect key="frame" x="3" y="15" width="70" height="70"/>
+                                                                    <rect key="frame" x="3" y="14" width="70" height="70"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <state key="normal" backgroundImage="libraryButton.png">
                                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -1748,14 +1748,14 @@
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                             <subviews>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="RQD-Y4-mo2">
-                                                                    <rect key="frame" x="75" y="15" width="70" height="70"/>
+                                                                    <rect key="frame" x="75" y="14" width="70" height="70"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <state key="normal" backgroundImage="cameraButton.png">
                                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                                                     </state>
                                                                 </button>
                                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="2Ie-1M-A99">
-                                                                    <rect key="frame" x="3" y="15" width="70" height="70"/>
+                                                                    <rect key="frame" x="3" y="14" width="70" height="70"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <state key="normal" backgroundImage="libraryButton.png">
                                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -2686,6 +2686,52 @@
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="53"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="PhotoCell" rowHeight="100" id="cFy-m9-6jk" customClass="BHListItemPhotoCell">
+                                        <rect key="frame" x="0.0" y="55" width="320" height="54"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cFy-m9-6jk" id="8ae-bF-kam">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="53"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="RTD-Pc-YLr">
+                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="146"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <subviews>
+                                                        <view opaque="NO" contentMode="scaleToFill" id="ZnV-NA-tPL">
+                                                            <rect key="frame" x="85" y="0.0" width="154" height="100"/>
+                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                            <subviews>
+                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="eU1-42-jWB">
+                                                                    <rect key="frame" x="79" y="15" width="70" height="70"/>
+                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                    <state key="normal" image="cameraButton.png">
+                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                    </state>
+                                                                </button>
+                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="YiW-kv-NbE">
+                                                                    <rect key="frame" x="5" y="15" width="70" height="70"/>
+                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                    <state key="normal" image="libraryButton.png">
+                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                    </state>
+                                                                </button>
+                                                            </subviews>
+                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                        </view>
+                                                    </subviews>
+                                                    <connections>
+                                                        <outlet property="delegate" destination="cFy-m9-6jk" id="VwN-W9-reM"/>
+                                                    </connections>
+                                                </scrollView>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="buttonContainer" destination="ZnV-NA-tPL" id="K3C-pr-2e4"/>
+                                            <outlet property="choosePhotoButton" destination="YiW-kv-NbE" id="97K-Mb-QS9"/>
+                                            <outlet property="scrollView" destination="RTD-Pc-YLr" id="nOW-Hv-Hxy"/>
+                                            <outlet property="takePhotoButton" destination="eU1-42-jWB" id="aLV-jg-MiK"/>
+                                        </connections>
                                     </tableViewCell>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ContactCell" rowHeight="88" id="qYg-uT-zY0" customClass="BHItemContactCell">
                                         <rect key="frame" x="0.0" y="55" width="320" height="54"/>

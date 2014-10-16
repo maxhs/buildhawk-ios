@@ -272,7 +272,7 @@
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     self.navigationItem.rightBarButtonItem = doneButton;
     if (textField == addAlternateTextField){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:currentUser.alternates.count inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:currentUser.alternates.count inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     }
 }
 

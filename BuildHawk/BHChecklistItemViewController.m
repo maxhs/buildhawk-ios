@@ -185,12 +185,16 @@
             [headerLabel setText:_item.type];
             break;
         case 1:
-            if (_item.criticalDate){
+            
+            //temporarily hide the deadline section and just return nothing
+            return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+            
+            /*if (_item.criticalDate){
                 [headerLabel setText:@"DEADLINE"];
             } else {
                 //there's no critical date, so don't bother with a header
                 return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
-            }
+            }*/
             break;
         case 2:
             [headerLabel setText:@"STATUS"];
@@ -211,27 +215,34 @@
             activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
             [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
-            [activityButton setTitle:@"ACTIVITY" forState:UIControlStateNormal];
+            NSString *activitiesTitle = _item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_item.activities.count];
+            [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
             if (activities){
-                [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [activityButton setBackgroundColor:kDarkGrayColor];
             } else {
                 [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+                [activityButton setBackgroundColor:[UIColor whiteColor]];
             }
-            [activityButton setFrame:CGRectMake(width/4-50, 0, 100, 40)];
+            [activityButton setFrame:CGRectMake(0, 1, width/2, 38)];
             [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
+            
             [headerView addSubview:activityButton];
             
             commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
             [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
-            [commentsButton setTitle:@"COMMENTS" forState:UIControlStateNormal];
+            NSString *commentsTitle = _item.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_item.comments.count];
+            [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
             if (activities){
                 [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+                [commentsButton setBackgroundColor:[UIColor whiteColor]];
             } else {
-                [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+                [commentsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [commentsButton setBackgroundColor:kDarkGrayColor];
             }
             
-            [commentsButton setFrame:CGRectMake(width*3/4-50, 0, 100, 40)];
+            [commentsButton setFrame:CGRectMake(width/2, 1, width/2, 38)];
             [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
             [headerView addSubview:commentsButton];
             
@@ -245,15 +256,11 @@
 }
 
 - (void)showActivities {
-    [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     activities = YES;
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
 }
 
 - (void)showComments {
-    [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     activities = NO;
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
 }
@@ -262,9 +269,7 @@
 {
     if (indexPath.section == 0){
         BHChecklistItemBodyCell *bodyCell = [tableView dequeueReusableCellWithIdentifier:@"ChecklistItemBodyCell"];
-        if (bodyCell == nil) {
-            bodyCell = [[[NSBundle mainBundle] loadNibNamed:@"BHChecklistItemBodyCell" owner:self options:nil] lastObject];
-        }
+        
         [bodyCell.bodyTextView setText:_item.body];
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
         
@@ -277,6 +282,7 @@
         return bodyCell;
     } else if (indexPath.section == 1) {
         BHItemDeadlineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ItemDeadlineCell"];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [cell.deadlineLabel setTextColor:[UIColor blackColor]];
     
@@ -323,17 +329,18 @@
             default:
                 break;
         }
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
         return cell;
     } else if (indexPath.section == 3) {
         
         BHListItemPhotoCell *photoCell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
-        if (photoCell == nil) {
-            photoCell = [[[NSBundle mainBundle] loadNibNamed:@"BHListItemPhotoCell" owner:self options:nil] lastObject];
-        }
+        [photoCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         photoScrollView = photoCell.scrollView;
-        [self redrawScrollView];
         photoButtonContainer = photoCell.buttonContainer;
+        
+        if (_item.photos.count)
+            [self redrawScrollView];
+        
         [photoCell.takePhotoButton addTarget:self action:@selector(takePhoto) forControlEvents:UIControlEventTouchUpInside];
         [photoCell.choosePhotoButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
         return photoCell;
@@ -354,6 +361,7 @@
         return reminderCell;
     } else if (indexPath.section == 5) {
         BHItemContactCell *contactCell = [tableView dequeueReusableCellWithIdentifier:@"ContactCell"];
+        [contactCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
         [contactCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
         [contactCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
@@ -514,13 +522,10 @@
             [self.tableView reloadData];
             NSDictionary *commentDict = @{@"checklist_item_id":_item.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
             [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"success posting a new comment %@",responseObject);
-                Activity *activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [activity populateFromDictionary:[responseObject objectForKey:@"activity"]];
-                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_item.activities];
-                [set removeObjectAtIndex:set.count-1];
-                [set insertObject:activity atIndex:0];
-                [_item setActivities:set];
+                //NSLog(@"success posting a new comment: %@",responseObject);
+                Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [comment populateFromDictionary:[responseObject objectForKey:@"comment"]];
+                [_item addComment:comment];
                 
                 NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:6];
                 
@@ -528,11 +533,10 @@
                 [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
                 
-                
                 addCommentTextView.text = kAddCommentPlaceholder;
                 addCommentTextView.textColor = [UIColor lightGrayColor];
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                NSLog(@"failure creating a comment: %@",error.description);
+                NSLog(@"Failure creating a comment for this checklist item: %@",error.description);
             }];
         }
     }
@@ -630,10 +634,11 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-- (void)sendText:(NSString*)phone {
+- (void)sendText:(NSNotification*)notification {
+    NSString *phone = [notification.userInfo objectForKey:@"number"];
     [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
-    if ([MFMessageComposeViewController canSendText]){
+    if ([MFMessageComposeViewController canSendText] && phone && phone.length){
         viewController.messageComposeDelegate = self;
         [viewController setRecipients:@[phone]];
         [self presentViewController:viewController animated:YES completion:^{
@@ -836,7 +841,7 @@
 
 - (void)redrawScrollView {
     photoScrollView.delegate = self;
-    if (_item.photos.count) [photoScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [photoScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     photoScrollView.showsHorizontalScrollIndicator = NO;
     if (photoScrollView.isHidden) [photoScrollView setHidden:NO];
     float imageSize = 70.0;
@@ -1159,35 +1164,39 @@
 }
 
 - (void)setReminder:(NSDate*)date {
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-    }
-    [parameters setObject:_item.identifier forKey:@"checklist_item_id"];
-    [parameters setObject:_item.project.identifier forKey:@"project_id"];
-    [manager POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[date timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success creating a reminder: %@",responseObject);
-        if ([responseObject objectForKey:@"failure"]){
-            NSLog(@"Failed to create checklist item: %@",responseObject);
-        } else {
-            if (!_reminder){
-                _reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-            [_reminder populateFromDictionary:[responseObject objectForKey:@"reminder"]];
-            [_item addReminder:_reminder];
-            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
-            }];
+    if ([_project.demo isEqualToNumber:@YES]){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"Sorry, but we're unable to create reminders from demo checklist items." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
         }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error creating a checklist item reminder: %@",error.description);
-    }];
+        [parameters setObject:_item.identifier forKey:@"checklist_item_id"];
+        [parameters setObject:_item.project.identifier forKey:@"project_id"];
+        [manager POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[date timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success creating a reminder: %@",responseObject);
+            if ([responseObject objectForKey:@"failure"]){
+                NSLog(@"Failed to create checklist item: %@",responseObject);
+            } else {
+                if (!_reminder){
+                    _reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                }
+                [_reminder populateFromDictionary:[responseObject objectForKey:@"reminder"]];
+                [_item addReminder:_reminder];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+                }];
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error creating a checklist item reminder: %@",error.description);
+        }];
+    }
 }
 
 
 - (void)deleteReminder {
     if ([_project.demo isEqualToNumber:@YES]){
-        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete reminders from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"Sorry, but we're unable to delete reminders from demo checklist items." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if ([_reminder.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [_item removeReminder:_reminder];

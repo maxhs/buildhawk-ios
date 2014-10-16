@@ -39,7 +39,6 @@
     
     if (IDIOM == IPAD) {
         [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-        
     } else {
         [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
     }
@@ -61,8 +60,6 @@
     if (project.address.formattedAddress){
         [_addressLabel setText:project.address.formattedAddress];
         [_addressLabel sizeToFit];
-    } else {
-        //[_subtitleLabel setText:project.company.name];
     }
     
     __block int reminderCount = 0;

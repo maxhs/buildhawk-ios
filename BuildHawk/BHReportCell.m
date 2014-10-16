@@ -59,21 +59,31 @@
     } else {
         [_notesLabel setText:@"Notes: N/A"];
     }
+    if ([report.dateString isEqualToString:@"10/11/2014"]){
+        NSLog(@"how many photos do we have? %d",report.photos.count);
+    }
+    
     if (report.photos.count > 0){
         _photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
-        
         _photoButton.imageView.layer.cornerRadius = 2.0;
         [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
         [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
-        _photoButton.imageView.layer.shouldRasterize = YES;
-        _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         
+        if ([report.dateString isEqualToString:@"10/11/2014"]){
+            NSLog(@"the actual photos %@",report.photos);
+        }
         Photo *firstPhoto = (Photo*)report.photos.firstObject;
         if (firstPhoto.image) {
+            if ([report.dateString isEqualToString:@"10/11/2014"]){
+                NSLog(@"first photo had an image");
+            }
             [_photoButton setImage:firstPhoto.image forState:UIControlStateNormal];
+            _photoButton.imageView.layer.shouldRasterize = YES;
+            _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         } else if (firstPhoto.urlSmall.length) {
-            [_photoButton sd_setImageWithURL:[NSURL URLWithString:firstPhoto.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-                
+            [_photoButton sd_setImageWithURL:[NSURL URLWithString:firstPhoto.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"] completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+                _photoButton.imageView.layer.shouldRasterize = YES;
+                _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
             }];
         }
         [_photoCountBubble setBackgroundColor:[UIColor whiteColor]];
@@ -84,7 +94,7 @@
         _photoCountBubble.hidden = NO;
     } else {
         _photoCountBubble.hidden = YES;
-        [_photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
+        [_photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
     }
 }
 @end

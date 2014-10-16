@@ -45,7 +45,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLIconFile</key>
-			<string>BuildHawk_app_icon_152</string>
+			<string>icon-180</string>
 			<key>CFBundleURLName</key>
 			<string>com.buildhawk</string>
 			<key>CFBundleURLSchemes</key>

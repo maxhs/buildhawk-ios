@@ -15,9 +15,9 @@
 
 @implementation Photo
 
-@dynamic assignee;
 @dynamic caption;
 @dynamic createdAt;
+@dynamic takenAt;
 @dynamic dateString;
 @dynamic folder;
 @dynamic identifier;

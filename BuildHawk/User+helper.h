@@ -11,6 +11,7 @@
 @interface User (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)updateFromDictionary:(NSDictionary*)dictionary;
+- (BOOL)anyAdmin;
 - (void)removeNotification:(Notification*)notification;
 - (void)addNotification:(Notification*)notification;
 - (void)assignTask:(Task*)item;

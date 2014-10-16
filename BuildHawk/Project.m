@@ -26,6 +26,7 @@
 @implementation Project
 
 @dynamic active;
+@dynamic hidden;
 @dynamic demo;
 @dynamic identifier;
 @dynamic orderIndex;

@@ -46,20 +46,28 @@
     
     //[Flurry setCrashReportingEnabled:YES];
     //[Flurry startSession:kFlurryKey];
-    
+
     // Optional: automatically send uncaught exceptions to Google Analytics.
     /*[GAI sharedInstance].trackUncaughtExceptions = YES;
     [GAI sharedInstance].dispatchInterval = 20;
     [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
     // Initialize tracker.
     [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];*/
+    
+    _syncController = [BHSyncController sharedController];
+    
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
         switch (status) {
             case AFNetworkReachabilityStatusReachableViaWWAN:
-            case AFNetworkReachabilityStatusReachableViaWiFi:
-                NSLog(@"Connected");
+                NSLog(@"Connected via WWAN");
                 _connected = YES;
+                [_syncController syncAll];
+                break;
+            case AFNetworkReachabilityStatusReachableViaWiFi:
+                NSLog(@"Connected via WIFI");
+                _connected = YES;
+                [_syncController syncAll];
                 break;
             case AFNetworkReachabilityStatusNotReachable:
             default:
@@ -69,6 +77,8 @@
                 break;
         }
     }];
+    
+    //set up the AFNetworking manager
     _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
 
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
@@ -144,9 +154,9 @@
 
 - (void)updateLoggedInStatus {
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        _loggedIn = YES;
+        self.loggedIn = YES;
     } else {
-        _loggedIn = NO;
+        self.loggedIn = NO;
     }
 }
 

@@ -66,6 +66,14 @@
             [item populateFromDictionary:dict];
         }
         self.checklistItem = item;
+    } else if ([dictionary objectForKey:@"checklist_item_id"] && [dictionary objectForKey:@"checklist_item_id"] != [NSNull null]) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"checklist_item_id"]];
+        ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!item){
+            item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            item.identifier = [dictionary objectForKey:@"checklist_item_id"];
+        }
+        self.checklistItem = item;
     }
 
 #pragma mark - Populate Task
@@ -92,8 +100,7 @@
         }
         [task populateFromDictionary:dict];
         self.task = task;
-    }
-    if ([dictionary objectForKey:@"task_id"] && [dictionary objectForKey:@"task_id"] != [NSNull null]) {
+    } else if ([dictionary objectForKey:@"task_id"] && [dictionary objectForKey:@"task_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"task_id"]];
         Task *task = [Task MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!task){
@@ -126,6 +133,14 @@
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [report populateWithDict:dict];
+        self.report = report;
+    } else if ([dictionary objectForKey:@"report_id"] && [dictionary objectForKey:@"report_id"] != [NSNull null]) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"report_id"]];
+        Report *report = [Report MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!report){
+            report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            report.identifier = [dictionary objectForKey:@"report_id"];
+        }
         self.report = report;
     }
     

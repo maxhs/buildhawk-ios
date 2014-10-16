@@ -180,29 +180,29 @@
 
         if (IDIOM == IPAD){
             labelRect.origin.x = 100;
-            labelRect.origin.y = 120;
+            labelRect.origin.y = 130;
             hudWidth = labelRect.size.width + 200;
             hudHeight = labelRect.size.height + 200;
             
             hud.center = CGPointMake(screen.width/2, screen.height/2);
             hud.bounds = CGRectMake(0, 0, hudWidth, hudHeight);
             CGFloat imagex = hudWidth/2;
-            CGFloat imagey = (label.text == nil) ? hudHeight/2 : 56;
+            CGFloat imagey = (label.text == nil) ? hudHeight/2 : 90;
             image.center = CGPointMake(imagex, imagey);
-            spinner.center = CGPointMake(imagex, imagey+37);
+            spinner.center = CGPointMake(imagex, imagey);
             label.frame = labelRect;
         } else {
             labelRect.origin.x = 60;
-            labelRect.origin.y = 102;
+            labelRect.origin.y = 115;
             hudWidth = labelRect.size.width + 120;
             hudHeight = labelRect.size.height + 157;
             
             hud.center = CGPointMake(screen.width/2, screen.height/2);
             hud.bounds = CGRectMake(0, 0, hudWidth, hudHeight);
             CGFloat imagex = hudWidth/2;
-            CGFloat imagey = (label.text == nil) ? hudHeight/2 : 56;
+            CGFloat imagey = (label.text == nil) ? hudHeight/2 : 75;
             image.center = CGPointMake(imagex, imagey);
-            spinner.center = CGPointMake(imagex, imagey+7);
+            spinner.center = CGPointMake(imagex, imagey);
             label.frame = labelRect;
         }
 

@@ -45,9 +45,9 @@ static NSString * const kNewReportPlaceholder = @"Add new report";
 static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
 @interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UITextFieldDelegate, UITextViewDelegate, UIScrollViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate, UIViewControllerTransitioningDelegate, UIPopoverControllerDelegate> {
+    AFHTTPRequestOperationManager *manager;
     CGFloat width;
     CGFloat height;
-    BOOL iPhone5;
     BOOL choosingDate;
     BOOL saveToLibrary;
     BOOL topicsFetched;
@@ -70,7 +70,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     UIAlertView *addOtherAlertView;
     User *currentUser;
     BHReportPhotoScrollView *reportScrollView;
-    AFHTTPRequestOperationManager *manager;
+    
     UIView *photoButtonContainer;
     NSInteger removePhotoIdx;
     NSString *currentDateString;
@@ -86,9 +86,13 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     NSMutableArray *reportActivities;
     Report *activereport;
     UIBarButtonItem *backButton;
+    
     BOOL activities;
     UIButton *commentsButton;
     UIButton *activityButton;
+    UIRefreshControl *activeRefreshControl;
+    UIRefreshControl *beforeRefreshControl;
+    UIRefreshControl *afterRefreshControl;
 }
 
 @end
@@ -102,13 +106,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
 - (void)viewDidLoad {
     self.view.backgroundColor = kLighterGrayColor;
-    
-    if ([UIScreen mainScreen].bounds.size.height == 568) {
-        iPhone5 = YES;
-    } else {
-        iPhone5 = NO;
-    }
-    
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth();
         height = screenHeight();
@@ -117,43 +114,24 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         height = screenWidth();
     }
     
-    [self setUpFormatters];
-    
     [super viewDidLoad];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    
-    library = [[ALAssetsLibrary alloc]init];
     
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     currentUser = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
 
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
     if (self.navigationController.viewControllers.firstObject == self){
-        backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
+        backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back:)];
         self.navigationItem.leftBarButtonItem = backButton;
     }
     
-    CGFloat scrollViewWidth;
-    if (_reports.count == 1){
-        scrollViewWidth = width;
-    } else if (_reports.count == 2){
-        scrollViewWidth = width*2;
-    } else {
-        scrollViewWidth = width*3;
-    }
-    [self.scrollView setContentSize:CGSizeMake(scrollViewWidth, screenHeight()-self.navigationController.navigationBar.frame.size.height-[[UIApplication sharedApplication] statusBarFrame].size.height)];
-    
-    [self setUpTableViewsForReports];
-    previousContentOffsetX = _scrollView.contentOffset.x;
-    
-    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:.87]];
-    [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
-    [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"ReportPersonnel" object:nil];
     
+    [self setUpTableViewsForReports];
+    [self setUpFormatters];
+    [self setUpDatePicker];
     [self registerForKeyboardNotifications];
     
     [Flurry logEvent:@"Viewing reports"];
@@ -227,6 +205,58 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
     self.title = [NSString stringWithFormat:@"%@ - %@",_reportTableView.report.type, _reportTableView.report.dateString];
     
+    //set up the scrollView
+    CGFloat scrollViewWidth;
+    if (_reports.count == 1){
+        scrollViewWidth = width;
+    } else if (_reports.count == 2){
+        scrollViewWidth = width*2;
+    } else {
+        scrollViewWidth = width*3;
+    }
+    [self.scrollView setContentSize:CGSizeMake(scrollViewWidth, screenHeight()-self.navigationController.navigationBar.frame.size.height-[[UIApplication sharedApplication] statusBarFrame].size.height)];
+    previousContentOffsetX = _scrollView.contentOffset.x;
+    
+    //set up the refresh controls
+    activeRefreshControl = [[UIRefreshControl alloc] init];
+    [activeRefreshControl setTintColor:kDarkGrayColor];
+    [activeRefreshControl addTarget:self action:@selector(refreshReport:) forControlEvents:UIControlEventValueChanged];
+    [_activeTableView addSubview:activeRefreshControl];
+    if (self.beforeTableView){
+        beforeRefreshControl = [[UIRefreshControl alloc] init];
+        [beforeRefreshControl setTintColor:kDarkGrayColor];
+        [beforeRefreshControl addTarget:self action:@selector(refreshReport:) forControlEvents:UIControlEventValueChanged];
+        [_beforeTableView addSubview:beforeRefreshControl];
+    }
+    if (self.afterTableView){
+        afterRefreshControl = [[UIRefreshControl alloc] init];
+        [afterRefreshControl setTintColor:kDarkGrayColor];
+        [afterRefreshControl addTarget:self action:@selector(refreshReport:) forControlEvents:UIControlEventValueChanged];
+        [_afterTableView addSubview:afterRefreshControl];
+    }
+}
+
+- (void)refreshReport:(UIRefreshControl*)refreshControl {
+    BHReportTableView *reportTableView;
+    if (refreshControl == activeRefreshControl){
+        reportTableView = _activeTableView;
+    } else if (refreshControl == beforeRefreshControl){
+        reportTableView = _beforeTableView;
+    } else {
+        reportTableView = _afterTableView;
+    }
+    [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,reportTableView.report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success fetching report after refresh: %@",responseObject);
+        [reportTableView.report populateWithDict:[responseObject objectForKey:@"report"]];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [reportTableView reloadData];
+            [refreshControl endRefreshing];
+        }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error fetching report: %@",error.description);
+        [refreshControl endRefreshing];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to refresh this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }];
 }
 
 - (void)loadWeather:(NSDate*)reportDate forTableView:(BHReportTableView*)tableView {
@@ -690,10 +720,10 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             return 100;
             break;
         case 8:
-            if (iPhone5){
-                return 210;
-            } else if (IDIOM == IPAD){
+            if (IDIOM == IPAD){
                 return 360;
+            } else if ([UIScreen mainScreen].bounds.size.height == 568){
+                return 210;
             } else {
                 return 122;
             }
@@ -1038,7 +1068,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         if ([title isEqualToString:@"Cancel"]){
             
         } else if ([title isEqualToString:kAddNew]){
-            UIAlertView *newTopicAlertView = [[UIAlertView alloc] initWithTitle:@"Custom Safety Topic" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
+            UIAlertView *newTopicAlertView = [[UIAlertView alloc] initWithTitle:@"Custom safety topic:" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
             newTopicAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
             [[newTopicAlertView textFieldAtIndex:0] setAutocapitalizationType:UITextAutocapitalizationTypeWords];
             [newTopicAlertView show];
@@ -1124,10 +1154,12 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     }
 }
 
+//for taking a photo
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self dismissViewControllerAnimated:YES completion:NULL];
-
+    NSLog(@"photo info: %@",info);
     Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    [newPhoto setTakenAt:[NSDate date]];
     [newPhoto setImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
     [_reportTableView.report addPhoto:newPhoto];
     [self redrawScrollView:_reportTableView];
@@ -1135,8 +1167,11 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     [self saveImage:newPhoto];
 }
 
+// for choosing a photo
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
     [self dismissViewControllerAnimated:YES completion:NULL];
+    NSLog(@"what are the assets? %@",assets);
+    NSLog(@"the first asset: %@",assets.firstObject);
     for (id asset in assets) {
         if (asset != nil) {
             ALAssetRepresentation* representation = [asset defaultRepresentation];
@@ -1149,6 +1184,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                  scale:[UIScreen mainScreen].scale orientation:orientation];
             Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [newPhoto setTakenAt:[NSDate date]];
             [newPhoto setImage:[self fixOrientation:image]];
             [_reportTableView.report addPhoto:newPhoto];
             [self saveImage:newPhoto];
@@ -1167,7 +1203,12 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 }
 
 - (void)saveImageToLibrary:(UIImage*)originalImage {
-    if (saveToLibrary){        
+    if (saveToLibrary){
+        
+        if (!library){
+            library = [[ALAssetsLibrary alloc]init];
+        }
+        
         NSString *albumName = @"BuildHawk";
         UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
         
@@ -1239,6 +1280,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),reportScrollView.frame.size.height/2-imageSize/2,imageSize, imageSize)];
         imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageButton.imageView.layer.cornerRadius = 2.0;
+        [imageButton setBackgroundColor:kLightestGrayColor];
         [imageButton.imageView setBackgroundColor:kLightestGrayColor];
         [imageButton.imageView.layer setBackgroundColor:kLightestGrayColor.CGColor];
         imageButton.imageView.layer.shouldRasterize = YES;
@@ -1559,25 +1601,28 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             
             //assign an author
             [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
+            
             [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"Success creating report: %@",responseObject);
                 if ([responseObject objectForKey:@"duplicate"]){
                     [[[UIAlertView alloc] initWithTitle:@"Report Duplicate" message:@"A report for this date already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                     [ProgressHUD dismiss];
                 } else {
-                    NSNumber *identifier = [[responseObject objectForKey:@"report"] objectForKey:@"id"];
-                    if (photoSet.count){
-                        [self uploadPhotos:photoSet forReportId:identifier];
-                    }
                     [_reportTableView.report populateWithDict:[responseObject objectForKey:@"report"]];
                     
-                    //reattach the images we grabbed earlier. they're currently uploading to AWS.
-                    _reportTableView.report.photos = photoSet;
-                    [_project addReport:_reportTableView.report];
-                    
+                    //reattach the images we grabbed earlier.
+                    for (Photo *photo in photoSet){
+                        photo.report = _reportTableView.report;
+                    }
+                    //process and upload to AWS.
+                    if (photoSet.count){
+                        [self uploadPhotos:photoSet forReport:_reportTableView.report];
+                    }
                     if (self.delegate && [self.delegate respondsToSelector:@selector(newReportCreated:)]) {
                         [self.delegate newReportCreated:_reportTableView.report];
                     }
+                    
+                    NSLog(@"photos for new report? %d",_reportTableView.report.photos.count);
                     
                     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                         [ProgressHUD showSuccess:@"Report Added"];
@@ -1617,15 +1662,15 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     if ([_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         //[self redrawScrollView:_reportTableView];
     } else {
-        [self uploadPhotos:[NSOrderedSet orderedSetWithObject:photo] forReportId:_reportTableView.report.identifier];
+        [self uploadPhotos:[NSOrderedSet orderedSetWithObject:photo] forReport:_reportTableView.report];
     }
 }
 
-- (void)uploadPhotos:(NSOrderedSet*)photoSet forReportId:(NSNumber*)identifier {
+- (void)uploadPhotos:(NSOrderedSet*)photoSet forReport:(Report*)report {
     if ([_project.demo isEqualToNumber:@NO]){
         
-        Report *existingReport = [Report MR_findFirstByAttribute:@"identifier" withValue:identifier inContext:[NSManagedObjectContext MR_defaultContext]];
-        existingReport.saved = @NO;
+        NSLog(@"existing report for photo upload? %@",report.identifier);
+        [report setSaved:@NO];
         
         for (Photo *photo in photoSet){
             if (photo.image && [photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
@@ -1638,10 +1683,11 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 if (_project && _project.identifier){
                     [photoParameters setObject:_project.identifier forKey:@"project_id"];
                 }
-                [photoParameters setObject:identifier forKey:@"report_id"];
+                [photoParameters setObject:report.identifier forKey:@"report_id"];
                 [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
                 [photoParameters setObject:kReports forKey:@"source"];
                 [photoParameters setObject:@YES forKey:@"mobile"];
+                [photoParameters setObject:[NSNumber numberWithDouble:[photo.takenAt timeIntervalSince1970]] forKey:@"taken_at"];
                 
                 [manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
 
@@ -1650,12 +1696,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 } success:^(AFHTTPRequestOperation *operation, id responseObject) {
                     //NSLog(@"Success posting image to API: %@",responseObject);
                     if (photoSet.lastObject == photo){
-                        
-                        [existingReport populateWithDict:[responseObject objectForKey:@"report"]];
-                        
+                        [report populateWithDict:[responseObject objectForKey:@"report"]];
+    
                         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                            
-                            
                             //[[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadReport" object:nil userInfo:@{@"report_id":identifier}];
                         }];
                     }
@@ -1707,6 +1750,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 [ProgressHUD show:@"Loading..."];
                 BHReportViewController *singleReportVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Report"];
                 [singleReportVC setReport:activity.report];
+                //set the reports so that the check for unsaved changes method catches
+                [singleReportVC setReports:@[activity.report].mutableCopy];
                 [singleReportVC setProject:activity.report.project];
                 UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:singleReportVC];
                 [self presentViewController:nav animated:YES completion:NULL];
@@ -1796,6 +1841,14 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                      completion:nil];
 }
 
+- (void)setUpDatePicker {
+    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+}
+
 - (void)setUpFormatters {
     formatter = [[NSDateFormatter alloc] init];
     [formatter setLocale:[NSLocale currentLocale]];
@@ -1809,13 +1862,24 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     [numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
 }
 
-- (void)back {
+- (void)back:(UIBarButtonItem*)backBarButton {
+    if (backBarButton == backButton){
+        if (self.checkForUnsavedChanges){
+            
+        } else {
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
+        }
+    }
+}
+
+- (NSInteger)checkForUnsavedChanges {
     __block NSInteger unsavedCount = 0;
     [_reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
         if ([report.saved isEqualToNumber:@NO]){
             unsavedCount ++;
         }
     }];
+    NSLog(@"unsaved changes count: %d",unsavedCount);
     if (unsavedCount) {
         NSString *message;
         if (unsavedCount == 1){
@@ -1823,19 +1887,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         } else {
             message = [NSString stringWithFormat:@"%ld reports have unsaved changed. Do you want to save these changes?",(long)unsavedCount];
         }
-        
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:message delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
-    } else {
-        [self dismiss];
     }
-}
-
-- (void)dismiss {
-    if (self.navigationController.viewControllers.firstObject == self){
-        [self.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
-    } else {
-        [self.navigationController popViewControllerAnimated:YES];
-    }
+    return unsavedCount;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

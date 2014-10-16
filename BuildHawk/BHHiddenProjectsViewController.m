@@ -31,34 +31,36 @@
 {
     [super viewDidLoad];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    self.tableView.rowHeight = 88.f;
     backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
     loading = YES;
     _currentUser = [(BHAppDelegate*)[UIApplication sharedApplication].delegate currentUser];
-    
     [self loadHiddenProjects];
 }
 
 - (void)loadHiddenProjects {
     if (_currentUser){
         [ProgressHUD show:@"Loading hidden projects..."];
-        [manager GET:[NSString stringWithFormat:@"%@/projects/archived",kApiBaseUrl] parameters:@{@"user_id":_currentUser.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:[NSString stringWithFormat:@"%@/projects/hidden",kApiBaseUrl] parameters:@{@"user_id":_currentUser.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success fetching hidden projects: %@",responseObject);
             NSMutableOrderedSet *hiddenProjectSet = [NSMutableOrderedSet orderedSet];
             for (NSDictionary *projectDict in [responseObject objectForKey:@"projects"]){
-                Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[projectDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+                Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[projectDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (project){
                     [project updateFromDictionary:projectDict];
                 } else {
                     project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                    [project populateFromDictionary:projectDict];
                 }
-                [project populateFromDictionary:projectDict];
+                
                 [hiddenProjectSet addObject:project];
             }
             _currentUser.hiddenProjects = hiddenProjectSet;
             loading = NO;
-            [self.tableView reloadData];
+            
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
             [ProgressHUD dismiss];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failed to get hidden projects: %@",error.description);
@@ -101,7 +103,9 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (!loading && _currentUser.hiddenProjects.count == 0){
+    if (loading){
+        return 0;
+    } else if (_currentUser.hiddenProjects.count == 0){
         return 1;
     } else {
         return _currentUser.hiddenProjects.count;
@@ -110,7 +114,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if (_currentUser.hiddenProjects.count == 0){
+    if (!loading && _currentUser.hiddenProjects.count == 0){
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NothingCell"];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         [cell.textLabel setText:@"No hidden projects..."];
@@ -132,10 +136,10 @@
             [cell.subtitleLabel setText:project.company.name];
         }
         
-        [cell.projectButton setTag:indexPath.row];
+        [cell.projectButton setTag:project.identifier.integerValue];
         [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
         [cell.titleLabel setTextColor:kDarkGrayColor];
-        [cell.unhideButton setTag:indexPath.row];
+        [cell.unhideButton setTag:project.identifier.integerValue];
         [cell.unhideButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
         return cell;
     }
@@ -143,13 +147,13 @@
 
 - (void)confirmActivate:(UIButton*)button {
     [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to make this project active?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Activate", nil] show];
-    hiddenProject = [_currentUser.hiddenProjects objectAtIndex:button.tag];
+    hiddenProject = [Project MR_findFirstByAttribute:@"identifier" withValue:[NSNumber numberWithInteger:button.tag]];
 }
 
 - (void)activateProject {
     [ProgressHUD show:[NSString stringWithFormat:@"Activating %@...",hiddenProject.name]];
-    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/unarchive",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Successfully activated the project: %@",responseObject);
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/activate",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Successfully activated the project: %@",responseObject);
         
         NSIndexPath *indexPathToHide = [NSIndexPath indexPathForRow:[_currentUser.hiddenProjects indexOfObject:hiddenProject] inSection:0];
         [_currentUser activateProject:hiddenProject];
@@ -201,15 +205,10 @@
     }
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 88;
-}
-
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         [ProgressHUD dismiss];
     }
 }
@@ -222,7 +221,7 @@
 }
 
 - (void)goToProject:(UIButton*)button {
-    Project *selectedProject = [_currentUser.hiddenProjects objectAtIndex:button.tag];
+    Project *selectedProject = [Project MR_findFirstByAttribute:@"identifier" withValue:[NSNumber numberWithInteger:button.tag]];
     [self performSegueWithIdentifier:@"HiddenProject" sender:selectedProject];
 }
 

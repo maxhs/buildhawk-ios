@@ -39,7 +39,6 @@
     BOOL showActive;
     BOOL showByLocation;
     BOOL showByAssignee;
-    BOOL firstLoad;
     BOOL loading;
     UIBarButtonItem *addButton;
     UIView *overlayBackground;
@@ -76,7 +75,6 @@
     showCompleted = NO;
     showByAssignee = NO;
     showByLocation = NO;
-    firstLoad = YES;
     
     addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(createItem)];
     [self.segmentedControl setTintColor:kDarkGrayColor];
@@ -142,8 +140,8 @@
 }
 
 - (void)newTaskCreated:(Task *)newTask {
+    //NSLog(@"new task created: %@",newTask.photos.firstObject);
     [_tasks insertObject:newTask atIndex:0];
-    firstLoad = YES;
     [self drawTasklist];
 }
 
@@ -185,9 +183,6 @@
         [assigneeSet removeAllObjects];
         
         for (Task *item in _tasks){
-            if([item.completed isEqualToNumber:@NO]) {
-                [activeListItems addObject:item];
-            }
             if (item.location.length) {
                 [locationSet addObject:item.location];
             }
@@ -440,9 +435,9 @@
 
 - (void)filterActive {
     [activeListItems removeAllObjects];
-    for (Task *item in _tasks){
-        if([item.completed isEqualToNumber:@NO]) {
-            [activeListItems addObject:item];
+    for (Task *task in _tasks){
+        if(![task.completed isEqualToNumber:@YES]) {
+            [activeListItems addObject:task];
         }
     }
     [self.tableView reloadData];
@@ -565,40 +560,46 @@
         static NSString *CellIdentifier = @"TaskCell";
         BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
-        Task *item = nil;
+        Task *task = nil;
         if (showCompleted) {
-            item = [completedListItems objectAtIndex:indexPath.row];
+            task = [completedListItems objectAtIndex:indexPath.row];
         } else if (showActive) {
-            item = [activeListItems objectAtIndex:indexPath.row];
+            task = [activeListItems objectAtIndex:indexPath.row];
         } else if (showByLocation) {
-            item = [locationListItems objectAtIndex:indexPath.row];
+            task = [locationListItems objectAtIndex:indexPath.row];
         } else if (showByAssignee) {
-            item = [assigneeListItems objectAtIndex:indexPath.row];
+            task = [assigneeListItems objectAtIndex:indexPath.row];
         } else {
-            item = [_tasks objectAtIndex:indexPath.row];
+            task = [_tasks objectAtIndex:indexPath.row];
         }
         
-        [cell.itemLabel setText:item.body];
-        [cell.createdLabel setText:[dateFormatter stringFromDate:item.createdAt]];
+        [cell.itemLabel setText:task.body];
+        [cell.createdLabel setText:[dateFormatter stringFromDate:task.createdAt]];
         
-        if ([item.assignees.firstObject isKindOfClass:[User class]] && item.user){
-            User *assignee = item.assignees.firstObject;
-            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",item.user.fullname,assignee.fullname]];
+        if ([task.assignees.firstObject isKindOfClass:[User class]] && task.user){
+            User *assignee = task.assignees.firstObject;
+            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",task.user.fullname,assignee.fullname]];
             
-        } else if (item.user) {
-            [cell.ownerLabel setText:item.user.fullname];
+        } else if (task.user) {
+            [cell.ownerLabel setText:task.user.fullname];
         } else {
             [cell.ownerLabel setText:@""];
         }
+        if ([task.body isEqualToString:@"Paint"]){
+            
+        }
         
-        if (item.photos.count) {
-            if ([(Photo*)[item.photos firstObject] image]){
-                [cell.photoButton setImage:[(Photo*)[item.photos firstObject] image] forState:UIControlStateNormal];
+        if ([task.body isEqualToString:@"Paint"]){
+            NSLog(@"how many task photos: %d",task.photos.count);
+        }
+        if (task.photos.count) {
+            if ([(Photo*)[task.photos firstObject] image]){
+                [cell.photoButton setImage:[(Photo*)[task.photos firstObject] image] forState:UIControlStateNormal];
             } else {
-                [cell.photoButton sd_setImageWithURL:[NSURL URLWithString:[[item.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"]];
+                [cell.photoButton sd_setImageWithURL:[NSURL URLWithString:[[task.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
             }
         } else {
-            [cell.photoButton setImage:[UIImage imageNamed:@"BuildHawk_app_icon_120"] forState:UIControlStateNormal];
+            [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
         }
         [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
         cell.photoButton.imageView.layer.cornerRadius = 2.0;
@@ -606,8 +607,7 @@
         [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         cell.photoButton.imageView.layer.shouldRasterize = YES;
         cell.photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        
-        //cell.photoButton.clipsToBounds = YES;
+
         return cell;
     } else {
         UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:@"NothingCell"];

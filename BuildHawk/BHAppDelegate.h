@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BHMenuViewController.h"
+#import "BHSyncController.h"
 //#import "GAI.h"
 
 @interface BHAppDelegate : UIResponder <UIApplicationDelegate>
@@ -18,6 +19,7 @@
 @property (strong, nonatomic) BHMenuViewController *menu;
 @property (strong, nonatomic) User *currentUser;
 @property (strong, nonatomic) NSString *bundleName;
+@property (strong, nonatomic) BHSyncController *syncController;
 @property BOOL connected;
 @property BOOL loggedIn;
 

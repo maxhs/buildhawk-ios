@@ -85,7 +85,8 @@
     } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
-    loading = YES;
+    [delegate updateLoggedInStatus];
+    
     self.leftMenuButton.imageInsets = UIEdgeInsetsMake(0, -8, 0, 0);
     self.tableView.rowHeight = 88;
     
@@ -108,6 +109,7 @@
     [self.tableView setContentOffset:CGPointMake(0, 44)];
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
+    loading = YES;
     if (_currentUser.projects.count == 0){
         [ProgressHUD show:@"Fetching projects..."];
     }
@@ -156,6 +158,8 @@
 
 - (void)handleRefresh {
     [ProgressHUD show:@"Refreshing..."];
+    loading = YES;
+    [delegate updateLoggedInStatus];
     [self loadProjects];
     [self loadConnectItems];
 }
@@ -188,11 +192,13 @@
                 [project updateFromDictionary:projectDict];
             } else {
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [project populateFromDictionary:projectDict];
             }
-            [project populateFromDictionary:projectDict];
-            if ([project.active isEqualToNumber:@NO]) [hiddenSet addObject:project];
+            
+            if ([project.hidden isEqualToNumber:@YES]) [hiddenSet addObject:project];
             else if (project.group)[groupSet addObject:project];
             else [projectSet addObject:project];
+        
         }
     
         for (Project *p in _currentUser.projects){
@@ -207,7 +213,6 @@
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             //NSLog(@"What happened during dashboard save? %u",success);
-            loading = NO;
             if (self.isViewLoaded && self.view.window){
                 
                 _projects = [_currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
@@ -285,7 +290,7 @@
 
 - (void)loadGroups {
     if (delegate.loggedIn){
-        loading = YES;
+        
         [manager GET:[NSString stringWithFormat:@"%@/groups",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"load groups response object: %@",responseObject);
             if ([responseObject objectForKey:@"groups"]){
@@ -378,9 +383,9 @@
         return _currentUser.company.groups.count;
     } else if (section == 2) {
         return connectProjects.count;
-    } else if (section == 3 && !loading) {
+    } else if (section == 3 /*&& !loading*/) {
         return 1;
-    } else if (section == 4 && !loading) {
+    } else if (section == 4 /*&& !loading*/) {
         return 1;
     } else {
         return 0;
@@ -422,7 +427,7 @@
             [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
             
             [cell.nameLabel setTextColor:kDarkGrayColor];
-            if ([_currentUser.admin isEqualToNumber:@YES] || [_currentUser.companyAdmin isEqualToNumber:@YES] || [_currentUser.uberAdmin isEqualToNumber:@YES]){
+            if (_currentUser.anyAdmin){
                 [cell.hideButton setTag:indexPath.row];
                 [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
                 cell.scrollView.scrollEnabled = YES;
@@ -435,20 +440,28 @@
         static NSString *CellIdentifier = @"GroupCell";
         BHDashboardGroupCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardGroupCell" owner:self options:nil] lastObject];
         }
+        
         Group *group = [_currentUser.company.groups objectAtIndex:indexPath.row];
         [cell.nameLabel setText:group.name];
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-        
+    
         [cell.groupCountLabel setHidden:NO];
-        [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %d",group.projects.count]];
+        if (group.projects.count > 0)
+            [cell.groupCountLabel setText:[NSString stringWithFormat:@"Projects: %lu",(unsigned long)group.projects.count]];
+        else if (loading)
+            [cell.groupCountLabel setText:@""];
+        else
+            [cell.groupCountLabel setText:@"No projects"];
         
         [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
         [cell.nameLabel setTextColor:kDarkGrayColor];
         return cell;
+        
     } else if (indexPath.section == 2) {
+        
         static NSString *CellIdentifier = @"ConnectCell";
         BHTasklistConnectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -573,14 +586,18 @@
 }
 
 - (void)confirmHide:(UIButton*)button{
-    [[[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Once hidden, a project will no longer be visible on your dashboard." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Hide", nil] show];
-    hiddenProject = [_projects objectAtIndex:button.tag];
-    BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:button.tag inSection:0]];
-    [cell.scrollView setContentOffset:CGPointZero animated:YES];
+    if (_projects.count){
+        [[[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Once hidden, a project will no longer be visible on your dashboard." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Hide", nil] show];
+        hiddenProject = [_projects objectAtIndex:button.tag];
+        BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:button.tag inSection:0]];
+        [cell.scrollView setContentOffset:CGPointZero animated:YES];
+    } else {
+        [self.tableView reloadData];
+    }
 }
 
 - (void)hideProject{
-    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/archive",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager POST:[NSString stringWithFormat:@"%@/projects/%@/hide",kApiBaseUrl,hiddenProject.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Successfully hid the project: %@",responseObject);
 
         NSIndexPath *indexPathToHide = [NSIndexPath indexPathForRow:[_projects indexOfObject:hiddenProject] inSection:0];
@@ -591,7 +608,8 @@
         
         loading = NO;
         [self.tableView beginUpdates];
-        if ([self.tableView cellForRowAtIndexPath:indexPathToHide] != nil){
+        //check to make sure that the indexPath for deletion actually exists and that there are projects. if there aren't projects, display the "no projects" placeholder
+        if ([self.tableView cellForRowAtIndexPath:indexPathToHide] != nil && _projects.count){
             [self.tableView deleteRowsAtIndexPaths:@[indexPathToHide] withRowAnimation:UITableViewRowAnimationFade];
         } else {
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
@@ -650,7 +668,10 @@
         }
     } else if (indexPath.section == 1) {
         Group *group = [_currentUser.company.groups objectAtIndex:indexPath.row];
-        [self performSegueWithIdentifier:@"Group" sender:group];
+        
+        //only segue to the group view if there's a project assigned to the current user
+        if (group.projects.count)
+            [self performSegueWithIdentifier:@"Group" sender:group];
     } else if (indexPath.section == 2) {
         [self performSegueWithIdentifier:@"TasklistConnect" sender:indexPath];
     } else if (indexPath.section == 3) {

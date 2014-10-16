@@ -113,8 +113,18 @@
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
-            NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            NSLog(@"photo dict: %@",photoDict);
+            
+            Photo *photo;
+            if ([photoDict objectForKey:@"epoch_taken"]){
+                NSDate *epochTaken = [NSDate dateWithTimeIntervalSince1970:[[photoDict objectForKey:@"epoch_taken"] doubleValue]];
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"takenAt == %@", epochTaken];
+                photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            } else {
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+                photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            
             if (photo){
                 [photo updateFromDictionary:photoDict];
             } else {
@@ -165,8 +175,8 @@
                     Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                     if (!activity){
                         activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                        [activity populateFromDictionary:dict];
                     }
+                    [activity populateFromDictionary:dict];
                     if (![activity.activityType isEqualToString:@"Comment"])
                         [set addObject:activity];
                 }
@@ -299,8 +309,17 @@
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
-            NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
-            Photo *photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            NSLog(@"photo dict: %@",photoDict);
+            Photo *photo;
+            if ([photoDict objectForKey:@"epoch_taken"]){
+                NSDate *epochTaken = [NSDate dateWithTimeIntervalSince1970:[[photoDict objectForKey:@"epoch_taken"] doubleValue]];
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"takenAt == %@", epochTaken];
+                photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            } else {
+                NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [photoDict objectForKey:@"id"]];
+                photo = [Photo MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            
             if (photo){
                 [photo updateFromDictionary:photoDict];
             } else {

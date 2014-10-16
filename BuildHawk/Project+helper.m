@@ -31,7 +31,9 @@
     if ([dictionary objectForKey:@"company"] && [dictionary objectForKey:@"company"] != [NSNull null]) {
         NSDictionary *companyDict = [dictionary objectForKey:@"company"];
         Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:[companyDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!company){
+        if (company){
+            [company updateFromDictionary:companyDict];
+        } else {
             company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [company populateFromDictionary:companyDict];
         }
@@ -45,6 +47,15 @@
     
     if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
         self.active = [dictionary objectForKey:@"active"];
+    }
+    
+    //if the project is explicitly set to hidden, it means it should be hidden!
+    if ([dictionary objectForKey:@"hidden"] && [dictionary objectForKey:@"hidden"] != [NSNull null]) {
+        self.hidden = [dictionary objectForKey:@"hidden"];
+    }
+    //if a project is marked as visible, it means it isn't hidden
+    if ([dictionary objectForKey:@"visible"] && [dictionary objectForKey:@"visible"] != [NSNull null]) {
+        self.hidden = @NO;
     }
     
     if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
@@ -315,10 +326,20 @@
     }
     
     if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
-        self.active = [NSNumber numberWithBool:[[dictionary objectForKey:@"active"] boolValue]];
+        self.active = [dictionary objectForKey:@"active"];
     }
+    
+    //if the project is explicitly set to hidden, it means it should be hidden!
+    if ([dictionary objectForKey:@"hidden"] && [dictionary objectForKey:@"hidden"] != [NSNull null]) {
+        self.hidden = [dictionary objectForKey:@"hidden"];
+    }
+    //if a project is marked as visible, it means it isn't hidden
+    if ([dictionary objectForKey:@"visible"] && [dictionary objectForKey:@"visible"] != [NSNull null]) {
+        self.hidden = @NO;
+    }
+    
     if ([dictionary objectForKey:@"core"] && [dictionary objectForKey:@"core"] != [NSNull null]) {
-        self.demo = [NSNumber numberWithBool:[[dictionary objectForKey:@"core"] boolValue]];
+        self.demo = [dictionary objectForKey:@"core"];
     }
     
     if ([dictionary objectForKey:@"address"] && [dictionary objectForKey:@"address"] != [NSNull null]) {

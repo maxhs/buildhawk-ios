@@ -13,7 +13,8 @@
 
 @interface Project : NSManagedObject
 
-@property (nonatomic, retain) NSNumber * active;
+@property (nonatomic, retain) NSNumber * active; // refers to whether the project is ACTIVE for billing purposes
+@property (nonatomic, retain) NSNumber * hidden; // refers to whether the projects is hidden for the current user
 @property (nonatomic, retain) NSNumber * demo;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSNumber * orderIndex;
@@ -42,8 +43,4 @@
 @property (nonatomic, retain) Tasklist *tasklist;
 @property (nonatomic, retain) NSOrderedSet *tasks;
 @property (nonatomic, retain) NSMutableOrderedSet *userConnectItems;
-@end
-
-@interface Project (CoreDataGeneratedAccessors)
-
 @end

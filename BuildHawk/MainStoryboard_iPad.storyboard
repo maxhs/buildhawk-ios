@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6245" systemVersion="13F34" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="4qn-JZ-wEX">
     <dependencies>
-        <deployment defaultVersion="1792" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6238"/>
     </dependencies>
     <scenes>
@@ -835,7 +834,7 @@
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="x2c-hX-MDx" userLabel="Report Type Button">
-                                                            <rect key="frame" x="249" y="10" width="134" height="50"/>
+                                                            <rect key="frame" x="244" y="10" width="134" height="50"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                             <state key="normal" backgroundImage="wideButton.png">
@@ -844,7 +843,7 @@
                                                             </state>
                                                         </button>
                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" adjustsImageWhenHighlighted="NO" lineBreakMode="wordWrap" id="LZc-rj-cx3" userLabel="Report Date Button">
-                                                            <rect key="frame" x="385" y="10" width="134" height="50"/>
+                                                            <rect key="frame" x="390" y="10" width="134" height="50"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                             <state key="normal" backgroundImage="wideButton.png">
@@ -865,11 +864,11 @@
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" id="gDc-kV-l1G">
-                                                            <rect key="frame" x="0.0" y="0.0" width="3072" height="400"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="3840" height="500"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="p5O-HE-E7F">
-                                                                    <rect key="frame" x="155" y="34" width="400" height="66"/>
+                                                                    <rect key="frame" x="80" y="34" width="610" height="66"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -880,14 +879,14 @@
                                                                         <outlet property="delegate" destination="0Dh-aL-9oM" id="BII-YU-wWb"/>
                                                                     </connections>
                                                                 </textView>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="9gO-A2-RXg" userLabel="Wind Label">
+                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Wind:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="9gO-A2-RXg" userLabel="Wind Label">
                                                                     <rect key="frame" x="86" y="4" width="41" height="21"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
                                                                     <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                                     <nil key="highlightedColor"/>
                                                                 </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="x9a-H3-Oh4" userLabel="Precip Label">
+                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Precip:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="x9a-H3-Oh4" userLabel="Precip Label">
                                                                     <rect key="frame" x="234" y="4" width="47" height="21"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
@@ -914,14 +913,14 @@
                                                                         <outlet property="delegate" destination="0Dh-aL-9oM" id="4ew-bF-NyE"/>
                                                                     </connections>
                                                                 </textField>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="BZg-bG-9t1" userLabel="Temp Label">
+                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Temp:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="BZg-bG-9t1" userLabel="Temp Label">
                                                                     <rect key="frame" x="392" y="4" width="43" height="21"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
                                                                     <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                                     <nil key="highlightedColor"/>
                                                                 </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RhI-B2-Lcl" userLabel="Humidity Label">
+                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Humidity:" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RhI-B2-Lcl" userLabel="Humidity Label">
                                                                     <rect key="frame" x="548" y="4" width="64" height="21"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
@@ -939,7 +938,7 @@
                                                                     </connections>
                                                                 </textField>
                                                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="BF5-kg-dJz" userLabel="Humidity Field">
-                                                                    <rect key="frame" x="618" y="0.0" width="100" height="30"/>
+                                                                    <rect key="frame" x="618" y="0.0" width="80" height="30"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
@@ -949,7 +948,7 @@
                                                                     </connections>
                                                                 </textField>
                                                                 <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="9zo-5f-zds">
-                                                                    <rect key="frame" x="563" y="43" width="50" height="50"/>
+                                                                    <rect key="frame" x="700" y="25" width="50" height="50"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                 </imageView>
                                                             </subviews>
@@ -1204,7 +1203,7 @@
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="P1f-jM-Q0h">
-                                                                    <rect key="frame" x="155" y="34" width="400" height="66"/>
+                                                                    <rect key="frame" x="80" y="34" width="610" height="66"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -1274,7 +1273,7 @@
                                                                     </connections>
                                                                 </textField>
                                                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="w4o-Sg-2gQ" userLabel="Humidity Field">
-                                                                    <rect key="frame" x="618" y="0.0" width="100" height="30"/>
+                                                                    <rect key="frame" x="618" y="0.0" width="80" height="30"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
@@ -1284,7 +1283,7 @@
                                                                     </connections>
                                                                 </textField>
                                                                 <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="sXN-gc-ZgK">
-                                                                    <rect key="frame" x="563" y="43" width="50" height="50"/>
+                                                                    <rect key="frame" x="700" y="25" width="50" height="50"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                 </imageView>
                                                             </subviews>
@@ -1539,7 +1538,7 @@
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="QHW-1q-gpT">
-                                                                    <rect key="frame" x="155" y="34" width="400" height="66"/>
+                                                                    <rect key="frame" x="80" y="34" width="610" height="66"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -1609,7 +1608,7 @@
                                                                     </connections>
                                                                 </textField>
                                                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="2zX-AC-BSl" userLabel="Humidity Field">
-                                                                    <rect key="frame" x="618" y="0.0" width="100" height="30"/>
+                                                                    <rect key="frame" x="618" y="0.0" width="80" height="30"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                     <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                     <fontDescription key="fontDescription" type="system" pointSize="15"/>
@@ -1619,7 +1618,7 @@
                                                                     </connections>
                                                                 </textField>
                                                                 <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="Y54-Oz-Dd0">
-                                                                    <rect key="frame" x="563" y="43" width="50" height="50"/>
+                                                                    <rect key="frame" x="700" y="25" width="50" height="50"/>
                                                                     <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                 </imageView>
                                                             </subviews>
@@ -2376,7 +2375,7 @@
                                                     </state>
                                                 </button>
                                                 <scrollView multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="LHL-dF-KDg">
-                                                    <rect key="frame" x="0.0" y="0.0" width="680" height="174"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="680" height="88"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" id="Blh-zz-IJX">
@@ -2385,7 +2384,7 @@
                                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                                                         </view>
                                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="itw-Nq-2bO">
-                                                            <rect key="frame" x="0.0" y="0.0" width="680" height="175"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="680" height="88"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
@@ -2763,6 +2762,52 @@
                                             <rect key="frame" x="0.0" y="0.0" width="768" height="53"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="PhotoCell" rowHeight="100" id="NXs-su-4Za" customClass="BHListItemPhotoCell">
+                                        <rect key="frame" x="0.0" y="22" width="768" height="54"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="NXs-su-4Za" id="jFf-h2-7w4">
+                                            <rect key="frame" x="0.0" y="0.0" width="768" height="53"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="8dj-4i-0Yn">
+                                                    <rect key="frame" x="0.0" y="0.0" width="768" height="100"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <subviews>
+                                                        <view opaque="NO" contentMode="scaleToFill" id="8cG-gh-8Wg">
+                                                            <rect key="frame" x="307" y="0.0" width="154" height="100"/>
+                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                            <subviews>
+                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="h3U-QP-cEW">
+                                                                    <rect key="frame" x="79" y="15" width="70" height="70"/>
+                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                    <state key="normal" image="cameraButton.png">
+                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                    </state>
+                                                                </button>
+                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Lpi-Hl-e0O">
+                                                                    <rect key="frame" x="5" y="15" width="70" height="70"/>
+                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                    <state key="normal" image="libraryButton.png">
+                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                    </state>
+                                                                </button>
+                                                            </subviews>
+                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                        </view>
+                                                    </subviews>
+                                                    <connections>
+                                                        <outlet property="delegate" destination="NXs-su-4Za" id="Ng1-gV-nyE"/>
+                                                    </connections>
+                                                </scrollView>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="buttonContainer" destination="8cG-gh-8Wg" id="pKi-VF-z6s"/>
+                                            <outlet property="choosePhotoButton" destination="Lpi-Hl-e0O" id="3lM-1m-2Gm"/>
+                                            <outlet property="scrollView" destination="8dj-4i-0Yn" id="Qem-2M-Apt"/>
+                                            <outlet property="takePhotoButton" destination="h3U-QP-cEW" id="qSp-Ao-T3A"/>
+                                        </connections>
                                     </tableViewCell>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ContactCell" rowHeight="88" id="I0s-VX-wbf" customClass="BHItemContactCell">
                                         <rect key="frame" x="0.0" y="22" width="768" height="54"/>

@@ -15,7 +15,20 @@
 @implementation BHSyncController{
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
-    NSArray *tasks;
+}
+
+@synthesize tasks = _tasks;
+@synthesize checklistItems = _checklistItems;
+@synthesize reports = _reports;
+@synthesize photos = _photos;
+
++ (id)sharedController {
+    static BHSyncController *sharedController = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedController = [[self alloc] init];
+    });
+    return sharedController;
 }
 
 - (id)init {
@@ -27,8 +40,18 @@
 }
 
 - (void)fetchObjectsThatNeedSyncing {
-    tasks = [Task MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    _tasks = [Task MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    _checklistItems = [ChecklistItem MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    _reports = [Report MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    _photos = [Photo MR_findByAttribute:@"identifier" withValue:@0 inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSLog(@"unsaved tasks: %d, checklist items: %d, reports: %d, photos: %d",_tasks.count, _checklistItems.count, _reports.count, _photos.count);
 }
 
+- (void)syncAll{
+    [self fetchObjectsThatNeedSyncing];
+    if (_tasks.count || _checklistItems.count || _reports.count || _photos.count){
+        NSLog(@"should be syncing");
+    }
+}
 
 @end

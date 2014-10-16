@@ -267,7 +267,7 @@
 
 -(void)addComment:(Comment *)comment {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.comments];
-    [set addObject:comment];
+    [set insertObject:comment atIndex:0];
     self.comments = set;
 }
 -(void)removeComment:(Comment *)comment {
