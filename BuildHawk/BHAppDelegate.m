@@ -38,22 +38,11 @@
 {
     [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
     [MagicalRecord setupAutoMigratingCoreDataStack];
-    
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
-    [self customizeAppearance];
     
-    //[NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
+    //[self setupThirdPartyAnalytics];
     
-    //[Flurry setCrashReportingEnabled:YES];
-    //[Flurry startSession:kFlurryKey];
-
-    // Optional: automatically send uncaught exceptions to Google Analytics.
-    /*[GAI sharedInstance].trackUncaughtExceptions = YES;
-    [GAI sharedInstance].dispatchInterval = 20;
-    [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
-    // Initialize tracker.
-    [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];*/
-    
+    //create the sync controller singleton
     _syncController = [BHSyncController sharedController];
     
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
@@ -78,7 +67,7 @@
         }
     }];
     
-    //set up the AFNetworking manager
+    //set up the AFNetworking manager. this one's important!
     _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
 
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
@@ -106,6 +95,8 @@
     sideMenuViewController.delegate = self;
     self.window.rootViewController = sideMenuViewController;
     self.window.backgroundColor = [UIColor blackColor];
+    
+    [self customizeAppearance];
     
     return YES;
 }
@@ -372,6 +363,20 @@ void uncaughtExceptionHandler(NSException *exception) {
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
     [Flurry logEvent:@"Rejected Remote Notifications"];
+}
+
+- (void)setupThirdPartyAnalytics {
+    //[NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
+    
+    [Flurry setCrashReportingEnabled:YES];
+    [Flurry startSession:kFlurryKey];
+    
+//    // Optional: automatically send uncaught exceptions to Google Analytics.
+//    [GAI sharedInstance].trackUncaughtExceptions = YES;
+//    [GAI sharedInstance].dispatchInterval = 20;
+//    [[[GAI sharedInstance] logger] setLogLevel:kGAILogLevelNone];
+//    // Initialize tracker.
+//    [[GAI sharedInstance] trackerWithTrackingId:@"UA-43601553-1"];
 }
 
 @end

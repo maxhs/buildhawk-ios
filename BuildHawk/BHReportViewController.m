@@ -1147,7 +1147,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
         [vc setDelegate:self];
-        //[vc setModalPresentationStyle:UIModalPresentationCurrentContext];
         [self presentViewController:vc animated:YES completion:NULL];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We're unable to access a camera on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -1157,7 +1156,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 //for taking a photo
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self dismissViewControllerAnimated:YES completion:NULL];
-    NSLog(@"photo info: %@",info);
     Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     [newPhoto setTakenAt:[NSDate date]];
     [newPhoto setImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
@@ -1170,21 +1168,19 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 // for choosing a photo
 - (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
     [self dismissViewControllerAnimated:YES completion:NULL];
-    NSLog(@"what are the assets? %@",assets);
-    NSLog(@"the first asset: %@",assets.firstObject);
     for (id asset in assets) {
         if (asset != nil) {
             ALAssetRepresentation* representation = [asset defaultRepresentation];
             UIImageOrientation orientation = UIImageOrientationUp;
             NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
-            if (orientationValue != nil) {
+            if (orientationValue != nil)
                 orientation = [orientationValue intValue];
-            }
             
             UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
                                                  scale:[UIScreen mainScreen].scale orientation:orientation];
+            
             Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [newPhoto setTakenAt:[NSDate date]];
+            [newPhoto setTakenAt:[asset valueForProperty:ALAssetPropertyDate]];
             [newPhoto setImage:[self fixOrientation:image]];
             [_reportTableView.report addPhoto:newPhoto];
             [self saveImage:newPhoto];
@@ -1243,7 +1239,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                         }];
             }
             else {
-                NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
+                //NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
             }
         }];
     }

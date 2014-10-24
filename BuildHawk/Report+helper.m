@@ -113,7 +113,7 @@
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
-            NSLog(@"photo dict: %@",photoDict);
+            //NSLog(@"photo dict: %@",photoDict);
             
             Photo *photo;
             if ([photoDict objectForKey:@"epoch_taken"]){
@@ -309,7 +309,7 @@
     if ([dictionary objectForKey:@"photos"] && [dictionary objectForKey:@"photos"] != [NSNull null]) {
         NSMutableOrderedSet *orderedPhotos = [NSMutableOrderedSet orderedSet];
         for (id photoDict in [dictionary objectForKey:@"photos"]){
-            NSLog(@"photo dict: %@",photoDict);
+            //NSLog(@"photo dict: %@",photoDict);
             Photo *photo;
             if ([photoDict objectForKey:@"epoch_taken"]){
                 NSDate *epochTaken = [NSDate dateWithTimeIntervalSince1970:[[photoDict objectForKey:@"epoch_taken"] doubleValue]];
