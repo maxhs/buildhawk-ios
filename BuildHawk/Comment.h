@@ -11,6 +11,8 @@
 #import "User+helper.h"
 #import "Activity.h"
 #import "ChecklistItem.h"
+#import "Task+helper.h"
+#import "Report.h"
 
 @interface Comment : NSManagedObject
 
@@ -18,9 +20,11 @@
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSDate * createdAt;
 @property (nonatomic, retain) NSString * dateString;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) User *user;
-@property (nonatomic, retain) Comment *comment;
+@property (nonatomic, retain) Task *task;
+@property (nonatomic, retain) Report *report;
 @property (nonatomic, retain) Activity *activity;
 
 @end

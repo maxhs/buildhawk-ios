@@ -14,7 +14,7 @@
 @implementation Phase (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"category helper dictionary: %@",dictionary);
+    //NSLog(@"phase helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
@@ -29,17 +29,23 @@
         }
         self.checklist = checklist;
     }
-    
+    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
+        self.orderIndex = [dictionary objectForKey:@"order_index"];
+    }
     if ([dictionary objectForKey:@"item_count"] && [dictionary objectForKey:@"item_count"] != [NSNull null]) {
         self.itemCount = [dictionary objectForKey:@"item_count"];
     }
     if ([dictionary objectForKey:@"progress_count"] && [dictionary objectForKey:@"progress_count"] != [NSNull null]) {
         self.progressCount = [dictionary objectForKey:@"progress_count"];
     }
-    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
-        self.orderIndex = [dictionary objectForKey:@"order_index"];
+    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
+        self.completedCount = [dictionary objectForKey:@"completed_count"];
     }
-    if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"not_applicable_count"] && [dictionary objectForKey:@"not_applicable_count"] != [NSNull null]) {
+        self.notApplicableCount = [dictionary objectForKey:@"not_applicable_count"];
+    }
+    
+    /*if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"milestone_date"] doubleValue];
         self.milestoneDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     } else {
@@ -51,7 +57,7 @@
         self.completedDate = [NSDate dateWithTimeIntervalSince1970:_interval];
     } else {
         self.completedDate = nil;
-    }
+    }*/
     
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
@@ -71,9 +77,12 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
-
+    //NSLog(@"update phase helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
+    }
+    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
+        self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
     if ([dictionary objectForKey:@"item_count"] && [dictionary objectForKey:@"item_count"] != [NSNull null]) {
         self.itemCount = [dictionary objectForKey:@"item_count"];
@@ -81,15 +90,18 @@
     if ([dictionary objectForKey:@"progress_count"] && [dictionary objectForKey:@"progress_count"] != [NSNull null]) {
         self.progressCount = [dictionary objectForKey:@"progress_count"];
     }
-    if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
-        self.orderIndex = [dictionary objectForKey:@"order_index"];
+    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
+        self.completedCount = [dictionary objectForKey:@"completed_count"];
     }
-    if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"not_applicable_count"] && [dictionary objectForKey:@"not_applicable_count"] != [NSNull null]) {
+        self.notApplicableCount = [dictionary objectForKey:@"not_applicable_count"];
+    }
+    /*if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
         self.milestoneDate = [BHUtilities parseDate:[dictionary objectForKey:@"milestone_date"]];
     }
     if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
         self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
-    }
+    }*/
     if ([dictionary objectForKey:@"categories"] && [dictionary objectForKey:@"categories"] != [NSNull null]) {
         NSMutableOrderedSet *categories = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *categoryDict in [dictionary objectForKey:@"categories"]) {
@@ -100,7 +112,6 @@
                 category = [Cat MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [category populateFromDictionary:categoryDict];
             }
-            
             [categories addObject:category];
         }
         self.categories = categories;
@@ -111,13 +122,15 @@
 - (void)calculateProgress{
     __block int completedCount = 0;
     __block int notApplicableCount = 0;
+    __block int itemCount = 0;
     [self.categories enumerateObjectsUsingBlock:^(Cat *category, NSUInteger idx, BOOL *stop) {
         completedCount += category.completedCount.intValue;
         notApplicableCount += category.notApplicableCount.intValue;
+        itemCount += category.items.count;
     }];
     self.completedCount = [NSNumber numberWithInteger:completedCount];
     self.notApplicableCount = [NSNumber numberWithInteger:notApplicableCount];
-    //NSLog(@"phase %@ with %@ complete and %@ not applicable",self.name,self.completedCount,self.notApplicableCount);
+    self.itemCount = [NSNumber numberWithInteger:itemCount];
 }
 
 - (void)addCategory:(Cat *)category{

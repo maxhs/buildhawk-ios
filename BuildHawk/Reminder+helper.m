@@ -9,6 +9,7 @@
 #import "Reminder+helper.h"
 #import "ChecklistItem+helper.h"
 #import "User+helper.h"
+#import "BHAppDelegate.h"
 
 @implementation Reminder (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -64,4 +65,45 @@
         }
     }
 }
+
+- (void)updateFromDictionary:(NSDictionary *)dictionary {
+    //NSLog(@"update reminder helper dictionary: %@",dictionary);
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
+        self.identifier = [dictionary objectForKey:@"id"];
+    }
+    if ([dictionary objectForKey:@"active"] && [dictionary objectForKey:@"active"] != [NSNull null]) {
+        self.active = [dictionary objectForKey:@"active"];
+    }
+    if ([dictionary objectForKey:@"reminder_date"] && [dictionary objectForKey:@"reminder_date"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"reminder_date"] doubleValue];
+        self.reminderDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
+        self.createdDate = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+}
+
+- (void)synchWithServer:(synchCompletion)completed {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (self.checklistItem) {
+        [parameters setObject:self.checklistItem.identifier forKey:@"checklist_item_id"];
+    }
+    [parameters setObject:self.project.identifier forKey:@"project_id"];
+    
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[self.reminderDate timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success creating a reminder: %@",responseObject);
+        if ([responseObject objectForKey:@"failure"]){
+            NSLog(@"Failed to create/synch checklist item: %@",responseObject);
+            completed(NO);
+        } else {
+            [self updateFromDictionary:[responseObject objectForKey:@"reminder"]];
+            completed(YES);
+        }
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        completed(NO);
+        NSLog(@"Error creating a checklist item reminder: %@",error.description);
+    }];
+}
+
 @end

@@ -8,7 +8,10 @@
 
 #import "Photo.h"
 
+typedef void(^synchCompletion)(BOOL completed);
+
 @interface Photo (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)updateFromDictionary:(NSDictionary*)dictionary;
+- (void)synchWithServer:(synchCompletion)completed;
 @end

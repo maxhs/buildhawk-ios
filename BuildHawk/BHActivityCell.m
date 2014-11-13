@@ -31,8 +31,7 @@
     return self;
 }
 
-- (void)awakeFromNib
-{
+- (void)awakeFromNib {
     [super awakeFromNib];
     [_activityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
     [_timestampLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
@@ -43,11 +42,8 @@
     origX = _activityLabel.frame.origin.x;
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
 }
 
 - (void)configureForActivity:(Activity*)activity {
@@ -67,9 +63,7 @@
 
 - (void)configureForComment:(Comment*)comment {
     [self.imageView setImage:nil];
-    
     [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" - %@",comment.body,comment.user.fullname]];
-    
     CGRect frame = _activityLabel.frame;
     frame.origin.x = 10;
     if (IDIOM != IPAD){
@@ -99,8 +93,6 @@
                 activityObject = @"an unnamed item";
             }
         } else if (activity.checklistItem){
-            
-            
             if (activity.checklistItem.body.length > 25){
                 activityObject = [[activity.checklistItem.body substringToIndex:25] stringByAppendingString:@"..."];
             } else if (activity.checklistItem.body.length) {

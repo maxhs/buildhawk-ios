@@ -79,6 +79,7 @@
     [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
     [self setUpFooter];
     [self setUpTimeFormatters];
+    [ProgressHUD show:@"Fetching the latest..."];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -118,24 +119,28 @@
 }
 
 - (void)handleRefresh {
-    [self loadProject];
+    if (delegate.connected){
+        [ProgressHUD show:@"Refreshing project..."];
+        [self loadProject];
+    }
 }
 
 - (void)loadProject {
-    [ProgressHUD show:@"Refreshing project..."];
-    [manager GET:[NSString stringWithFormat:@"%@/projects/%@/dash",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success getting project synopsis: %@",responseObject);
-        [_project populateFromDictionary:[responseObject objectForKey:@"project"]];
-        if (self.isViewLoaded && self.view.window){
+    if (delegate.connected){
+        [manager GET:[NSString stringWithFormat:@"%@/projects/%@/dash",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success getting project synopsis: %@",responseObject);
+            [_project populateFromDictionary:[responseObject objectForKey:@"project"]];
+            [self.tableView reloadData];
+            
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [self.tableView reloadData];
                 [ProgressHUD dismiss];
             }];
-        }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [ProgressHUD dismiss];
-        NSLog(@"Failed to get project synopsis: %@",error.description);
-    }];
+            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [ProgressHUD dismiss];
+            NSLog(@"Failed to get project synopsis: %@",error.description);
+        }];
+    }
 }
 
 #pragma mark - Table view data source
@@ -672,9 +677,9 @@
         if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         }
         
         [imageButton setFrame:photoRect];

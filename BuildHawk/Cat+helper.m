@@ -23,12 +23,18 @@
     if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
         self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
-    if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
+    /*if ([dictionary objectForKey:@"milestone_date"] && [dictionary objectForKey:@"milestone_date"] != [NSNull null]) {
         self.milestoneDate = [BHUtilities parseDate:[dictionary objectForKey:@"milestone_date"]];
     }
     if ([dictionary objectForKey:@"completed_date"] && [dictionary objectForKey:@"completed_date"] != [NSNull null]) {
         self.completedDate = [BHUtilities parseDate:[dictionary objectForKey:@"completed_date"]];
     }
+    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
+        self.completedCount = [dictionary objectForKey:@"completed_count"];
+    }
+    if ([dictionary objectForKey:@"not_applicable_count"] && [dictionary objectForKey:@"not_applicable_count"] != [NSNull null]) {
+        self.notApplicableCount = [dictionary objectForKey:@"not_applicable_count"];
+    }*/
     if ([dictionary objectForKey:@"checklist_items"] && [dictionary objectForKey:@"checklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
@@ -47,12 +53,22 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary{
+    //NSLog(@"update cat helper dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
     if ([dictionary objectForKey:@"order_index"] && [dictionary objectForKey:@"order_index"] != [NSNull null]) {
         self.orderIndex = [dictionary objectForKey:@"order_index"];
     }
+    /*if ([dictionary objectForKey:@"item_count"] && [dictionary objectForKey:@"item_count"] != [NSNull null]) {
+        self.itemCount = [dictionary objectForKey:@"item_count"];
+    }
+    if ([dictionary objectForKey:@"completed_count"] && [dictionary objectForKey:@"completed_count"] != [NSNull null]) {
+        self.completedCount = [dictionary objectForKey:@"completed_count"];
+    }
+    if ([dictionary objectForKey:@"not_applicable_count"] && [dictionary objectForKey:@"not_applicable_count"] != [NSNull null]) {
+        self.notApplicableCount = [dictionary objectForKey:@"not_applicable_count"];
+    }*/
     if ([dictionary objectForKey:@"checklist_items"] && [dictionary objectForKey:@"checklist_items"] != [NSNull null]) {
         NSMutableOrderedSet *items = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *itemDict in [dictionary objectForKey:@"checklist_items"]) {
@@ -87,7 +103,6 @@
     }];
     self.completedCount = [NSNumber numberWithInteger:completedCount];
     self.notApplicableCount = [NSNumber numberWithInteger:notApplicableCount];
-    //NSLog(@"cat %@ with %@ complete and %@ not applicable",self.name,self.completedCount,self.notApplicableCount);
 }
 
 - (void)removeItem:(ChecklistItem *)item{

@@ -19,5 +19,6 @@
 @dynamic project;
 @dynamic createdDate;
 @dynamic notification;
+@dynamic saved;
 
 @end

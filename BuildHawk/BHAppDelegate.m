@@ -7,30 +7,35 @@
 //
 
 #import "BHAppDelegate.h"
-#import "User+helper.h"
 #import "Project.h"
 #import "BHProjectCollection.h"
 #import "Constants.h"
 #import "BHLoginViewController.h"
-#import "CoreData+MagicalRecord.h"
-#import "Flurry.h"
-#import <Crashlytics/Crashlytics.h>
-#import "SDWebImageManager.h"
 #import "UIImage+ImageEffects.h"
 #import "BHTaskViewController.h"
 #import "BHMenuViewController.h"
 #import "BHDashboardViewController.h"
+#import "User+helper.h"
+#import "Report+helper.h"
+#import "Message+helper.h"
+#import "CoreData+MagicalRecord.h"
+#import "Flurry.h"
+#import <Crashlytics/Crashlytics.h>
+#import <SDWebImage/SDWebImageManager.h>
 #import <RESideMenu/RESideMenu.h>
+
+#define MIXPANEL_TOKEN @"2e57104ead72acdd8a77ca963e32e74a"
 
 @interface BHAppDelegate () <RESideMenuDelegate> {
     UIView *overlayView;
     CGRect screen;
+    UILabel *statusLabel;
 }
 @end
 
 @implementation BHAppDelegate
 
-@synthesize nav = _nav;
+@synthesize activeTabBarController = _activeTabBarController;
 @synthesize menu = _menu;
 @synthesize bundleName = _bundleName;
 
@@ -38,9 +43,7 @@
 {
     [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
     [MagicalRecord setupAutoMigratingCoreDataStack];
-    [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
-    
-    //[self setupThirdPartyAnalytics];
+    [self setupThirdPartyAnalytics];
     
     //create the sync controller singleton
     _syncController = [BHSyncController sharedController];
@@ -51,44 +54,58 @@
             case AFNetworkReachabilityStatusReachableViaWWAN:
                 NSLog(@"Connected via WWAN");
                 _connected = YES;
+                if (statusLabel)
+                    [self removeStatusMessage];
                 [_syncController syncAll];
                 break;
             case AFNetworkReachabilityStatusReachableViaWiFi:
                 NSLog(@"Connected via WIFI");
                 _connected = YES;
+                if (statusLabel)
+                    [self removeStatusMessage];
                 [_syncController syncAll];
                 break;
-            case AFNetworkReachabilityStatusNotReachable:
-            default:
-                NSLog(@"Not online");
-                _connected = NO;
+            case AFNetworkReachabilityStatusUnknown:
+                NSLog(@"Reachability not known");
                 [self offlineNotification];
+                _connected = NO;
                 break;
+            case AFNetworkReachabilityStatusNotReachable:
+                NSLog(@"Not online");
+                [self offlineNotification];
+                _connected = NO;
+                break;
+            default:
+                break;
+                
         }
     }];
     
     //set up the AFNetworking manager. this one's important!
     _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
-
+    [_manager.requestSerializer setAuthorizationHeaderFieldWithUsername:@"buildhawk_mobile" password:@"aca344dc4b27b82f994094d8c9bab0af"];
+    [_manager.requestSerializer setValue:(IDIOM == IPAD) ? @"2" : @"1" forHTTPHeaderField:@"device_type"];
+    
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
     //test to see whether we have a current user
+    UINavigationController *nav;
     if (_currentUser){
         //head straight into the app
         BHDashboardViewController *vc = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Dashboard"];
-        _nav = [[UINavigationController alloc] initWithRootViewController:vc];
+        nav = [[UINavigationController alloc] initWithRootViewController:vc];
     } else {
         //show the login UI
-        _nav = (UINavigationController*)self.window.rootViewController;
+        nav = (UINavigationController*)self.window.rootViewController;
     }
     
     // set the delegate's logged in/logged out flag
     [self updateLoggedInStatus];
     
     _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
-    RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:_nav
+    RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:nav
                                                                     leftMenuViewController:_menu
                                                                    rightMenuViewController:nil];
     sideMenuViewController.menuPreferredStatusBarStyle = 1; // UIStatusBarStyleLightContent
@@ -104,7 +121,6 @@
 - (void)customizeAppearance {
     [self.window setTintColor:[UIColor blackColor]];
     [self setToBuildHawkAppearances];
-    
     
     CGFloat tabFontSize;
     if (IDIOM == IPAD){
@@ -179,11 +195,9 @@
                                                            } forState:UIControlStateNormal];
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
     [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0, 3) forBarMetrics:UIBarMetricsDefault];
+    
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
      setTitleTextAttributes:@{[UIColor blackColor]:NSForegroundColorAttributeName} forState:UIControlStateNormal];
-    
-    [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]    setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
-    
 }
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav {
@@ -246,14 +260,15 @@
             NSDictionary *urlDict = [self parseQueryString:[url query]];
             if ([urlDict objectForKey:@"task_id"] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
                 BHDashboardViewController *dashboard = nil;
-                for (UIViewController *vc in [_nav viewControllers]) {
+                UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+                for (UIViewController *vc in [nav viewControllers]) {
                     if ([vc isKindOfClass:[BHDashboardViewController class]]){
                         dashboard = (BHDashboardViewController*)vc;
                         break;
                     }
                 }
                 if (dashboard) {
-                    [_nav popToViewController:dashboard animated:NO];
+                    [nav popToViewController:dashboard animated:NO];
                     [_manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,[urlDict objectForKey:@"task_id"]] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                         //NSLog(@"success getting task: %@",responseObject);
                         Task *item = [Task MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"task"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -261,18 +276,16 @@
                             item = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                         }
                         [item populateFromDictionary:[responseObject objectForKey:@"task"]];
-                        BHTaskViewController *taskVC = [_nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
+                        BHTaskViewController *taskVC = [nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
                         [taskVC setProject:item.project];
                         [taskVC setTask:item];
-                        [_nav pushViewController:taskVC animated:YES];
+                        [nav pushViewController:taskVC animated:YES];
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                        NSLog(@"Failed to load task: %@",error.description);
+                        //NSLog(@"Failed to load task: %@",error.description);
                     }];
-                    
                 }
             }
         }
-
     }
     return YES;
 }
@@ -320,7 +333,55 @@
 }
 
 - (void)offlineNotification {
-    [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Your device appears to be offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    if (_connected)
+        [[[UIAlertView alloc] initWithTitle:@"Device Offline" message:@"You can continue to work offline, although not all data may display properly. Changes will be synchronized when you reconnect." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+
+    [self displayStatusMessage:@"Your device is currently offline"];
+}
+
+- (void)displayStatusMessage:(NSString*)string {
+    CGFloat statusHeight = kOfflineStatusHeight;
+    if (!statusLabel){
+        statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
+        [statusLabel setBackgroundColor:kDarkerGrayColor];
+        [statusLabel setTextAlignment:NSTextAlignmentCenter];
+        [statusLabel setTextColor:[UIColor whiteColor]];
+        [statusLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [self.window addSubview:statusLabel];
+    }
+    [statusLabel setText:string];
+    
+    UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+    CGRect tabFrame = _activeTabBarController.tabBar.frame;
+    tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - statusHeight;
+    
+    [UIView animateWithDuration:.5 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.00001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [statusLabel setFrame:CGRectMake(0, screenHeight()-statusHeight, screenWidth(), statusHeight)];
+        [_activeTabBarController.tabBar setFrame:tabFrame];
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+- (void)prepareStatusLabelForTab {
+    CGFloat statusHeight = kOfflineStatusHeight;
+    UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+    CGRect tabFrame = _activeTabBarController.tabBar.frame;
+    tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - statusHeight;
+    [_activeTabBarController.tabBar setFrame:tabFrame];
+}
+
+- (void)removeStatusMessage{
+    CGFloat statusHeight = kOfflineStatusHeight;
+    UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+    CGRect tabFrame = _activeTabBarController.tabBar.frame;
+    tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height;
+    [UIView animateWithDuration:.5 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.00001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        [statusLabel setFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
+        [_activeTabBarController.tabBar setFrame:tabFrame];
+    } completion:^(BOOL finished) {
+        
+    }];
 }
 
 #pragma mark uncaughtExceptionHandler
@@ -330,7 +391,8 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
 {
-    [Flurry logEvent:@"Did Receive Remote Notification"];
+    //[Flurry logEvent:@"Did Receive Remote Notification"];
+    [[Mixpanel sharedInstance] trackPushNotification:pushMessage];
 }
 
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
@@ -343,13 +405,8 @@ void uncaughtExceptionHandler(NSException *exception) {
     [Flurry logEvent:@"Registered For Remote Notifications"];
     [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
     [[NSUserDefaults standardUserDefaults] synchronize];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+    if (_connected && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        if (IDIOM == IPAD){
-            [parameters setObject:@2 forKey:@"device_type"];
-        } else {
-            [parameters setObject:@1 forKey:@"device_type"];
-        }
         [parameters setObject:deviceToken forKey:@"token"];
         [_manager DELETE:[NSString stringWithFormat:@"%@/users/%@/remove_push_token",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success with removing push token: %@",responseObject);
@@ -365,11 +422,48 @@ void uncaughtExceptionHandler(NSException *exception) {
     [Flurry logEvent:@"Rejected Remote Notifications"];
 }
 
-- (void)setupThirdPartyAnalytics {
-    //[NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
+- (void)notifyError:(NSError*)error andOperation:(AFHTTPRequestOperation *)operation andObject:(id)object {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+    }
+    if (error){
+        [parameters setObject:error.localizedDescription forKey:@"body"];
+    }
+    if (operation){
+        [parameters setObject:[NSNumber numberWithInteger:operation.response.statusCode] forKey:@"status_code"];
+    }
+    if (object){
+        if ([object isKindOfClass:[Photo class]]){
+            [parameters setObject:[(Photo*)object identifier] forKey:@"photo"];
+        } else if ([object isKindOfClass:[Report class]]){
+            [parameters setObject:[(Report*)object identifier] forKey:@"report_id"];
+        } else if ([object isKindOfClass:[ChecklistItem class]]) {
+            [parameters setObject:[(ChecklistItem*)object identifier] forKey:@"checklist_item"];
+        } else if ([object isKindOfClass:[Task class]]){
+            [parameters setObject:[(Task*)object identifier] forKey:@"task"];
+        } else if ([object isKindOfClass:[Message class]]) {
+            [parameters setObject:[(Message*)object identifier] forKey:@"message"];
+        }
+    }
     
-    [Flurry setCrashReportingEnabled:YES];
-    [Flurry startSession:kFlurryKey];
+    if (parameters.count){
+        [_manager POST:[NSString stringWithFormat:@"%@/errors",kApiBaseUrl] parameters:@{@"error":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success creating an error log: %@",responseObject);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error creating an error :( %@", error.description);
+        }];
+    }
+}
+
+- (void)setupThirdPartyAnalytics {
+    [NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
+    [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
+    [Mixpanel sharedInstanceWithToken:MIXPANEL_TOKEN];
+    Mixpanel *mixpanel = [Mixpanel sharedInstance];
+    [mixpanel track:@"Launch"];
+    //[Flurry setCrashReportingEnabled:YES];
+    //[Flurry startSession:kFlurryKey];
     
 //    // Optional: automatically send uncaught exceptions to Google Analytics.
 //    [GAI sharedInstance].trackUncaughtExceptions = YES;

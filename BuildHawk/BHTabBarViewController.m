@@ -8,8 +8,11 @@
 
 #import "BHTabBarViewController.h"
 #import "Photo.h"
+#import "BHAppDelegate.h"
 
-@interface BHTabBarViewController ()
+@interface BHTabBarViewController () {
+    BHAppDelegate *delegate;
+}
 
 @end
 
@@ -39,10 +42,18 @@
     }
     self.tabBar.clipsToBounds = YES;
     self.navigationController.interactivePopGestureRecognizer.enabled = NO;
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    [delegate setActiveTabBarController:self];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if (!delegate.connected){
+        [delegate prepareStatusLabelForTab];
+    }
+}
+
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }

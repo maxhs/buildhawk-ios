@@ -17,6 +17,7 @@
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSDate * createdDate;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) Notification *notification;

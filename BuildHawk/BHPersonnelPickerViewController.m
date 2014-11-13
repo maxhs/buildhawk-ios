@@ -276,6 +276,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    User *user;
     if (searching){
         if (indexPath.section == 0){
             static NSString *CellIdentifier = @"ReportCell";
@@ -316,7 +317,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             
                 return cell;
             } else {
-                User *user;
+                
                 if (filteredUsers.count){
                     user = filteredUsers[indexPath.row];
                     [cell.connectNameLabel setText:user.fullname];
@@ -429,7 +430,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             cell.layer.borderColor = [UIColor colorWithWhite:1 alpha:.2].CGColor;
             
             //this could be a user, or it could be a connect user
-            User *user = company.projectUsers[indexPath.row-1];
+            user = company.projectUsers[indexPath.row-1];
             [cell.connectNameLabel setText:user.fullname];
             [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [cell.connectNameLabel setTextColor:[UIColor whiteColor]];
@@ -469,6 +470,18 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             } else {
                 [cell.hoursLabel setText:@""];
             }
+        }
+        
+        //set up the checkmark
+        cell.accessoryType = UITableViewCellAccessoryNone;
+        if (_task){
+            [_task.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+                if ([user.identifier isEqualToNumber:assignee.identifier]){
+                    cell.accessoryType = UITableViewCellAccessoryCheckmark;
+                    [cell setTintColor:[UIColor whiteColor]];
+                    *stop = YES;
+                }
+            }];
         }
         return cell;
     }
@@ -620,9 +633,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                         }
                         [self.navigationController popViewControllerAnimated:YES];
                     } else {
-                        
                         [self selectUser];
-    
                     }
                 }
             }
@@ -644,11 +655,15 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         } else {
             selectedUser = [selectedCompany.projectUsers objectAtIndex:indexPath.row-1];
             if (selectedUser){
-                //NSLog(@"selected user: %@",selectedUser);
-                if ([selectedUser isKindOfClass:[User class]]){
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
-                }
-                [self.navigationController popViewControllerAnimated:YES];
+                __block BOOL remove = NO;
+                [_task.assignees enumerateObjectsUsingBlock:^(User *user, NSUInteger idx, BOOL *stop) {
+                    if ([user.identifier isEqualToNumber:selectedUser.identifier]){
+                        remove = YES;
+                        *stop = YES;
+                    }
+                }];
+                remove ? [_task removeAssignee:selectedUser] : [_task addAssignee:selectedUser];
+                [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
             }
         }
         

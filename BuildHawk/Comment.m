@@ -17,6 +17,8 @@
 @dynamic user;
 @dynamic createdAt;
 @dynamic activity;
-@dynamic comment;
+@dynamic report;
+@dynamic task;
+@dynamic saved;
 
 @end

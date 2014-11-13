@@ -301,18 +301,18 @@
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
     }
-    [manager GET:[NSString stringWithFormat:@"%@/checklists/%@",kApiBaseUrl,project.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsMobileToken]){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsMobileToken] forKey:@"mobile_token"];
+    }
+    [parameters setObject:project.identifier forKey:@"project_id"];
+    [manager GET:[NSString stringWithFormat:@"%@/checklists",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"checklist response: %@",[responseObject objectForKey:@"checklist"]);
         NSDictionary *checklistDict = [responseObject objectForKey:@"checklist"];
         _checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[checklistDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (_checklist){
-            //[_checklist updateFromDictionary:checklistDict];
-        } else {
+        if (!_checklist){
             _checklist = [Checklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            
         }
         [_checklist populateFromDictionary:checklistDict];
-        
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             loading = NO;
             
@@ -320,7 +320,7 @@
                 [self.tableView reloadData];
             }
             
-            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            if (refreshControl.isRefreshing) {[refreshControl endRefreshing];}
             [ProgressHUD dismiss];
        
         }];
@@ -330,6 +330,30 @@
         //[[[UIAlertView alloc] initWithTitle:nil message:@"We couldn't find a checklist associated with this project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         if (refreshControl.isRefreshing) [refreshControl endRefreshing];
         [ProgressHUD dismiss];
+    }];
+}
+
+- (void)loadPhase:(Phase*)phase {
+    [manager GET:[NSString stringWithFormat:@"%@/phases/%@",kApiBaseUrl,phase.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success getting phase");
+        [phase populateFromDictionary:[responseObject objectForKey:@"phase"]];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            
+        }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failed to get phase: %@",error.description);
+    }];
+}
+
+- (void)loadCategory:(Cat*)category {
+    [manager GET:[NSString stringWithFormat:@"%@/categories/%@",kApiBaseUrl,category.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success getting category");
+        [category populateFromDictionary:[responseObject objectForKey:@"category"]];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            
+        }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failed to get category: %@",error.description);
     }];
 }
 
@@ -430,7 +454,7 @@
         }
         
         cell.textLabel.numberOfLines = 5;
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
         
         //set the image properly
         if ([item.type isEqualToString:@"Com"]) {
@@ -477,9 +501,9 @@
             //calculate the progress percentage
             float count = phase.completedCount.floatValue + phase.notApplicableCount.floatValue;
             NSString *progressPercentage;
-            if ((count/phase.itemCount.floatValue)*100 == 100.f){
+            if ((count/phase.itemCount.floatValue) == 1.f){
                 progressPercentage = @"100%";
-            } else if ((count/phase.itemCount.floatValue)*100 == 0.f){
+            } else if ((count/phase.itemCount.floatValue) == 0.f){
                 progressPercentage = @"0%";
             } else {
                 progressPercentage = [NSString stringWithFormat:@"%.1f%%",(count/phase.itemCount.floatValue)*100];
@@ -518,14 +542,14 @@
                     [cell.detailLabel setTextColor:[UIColor whiteColor]];
                     
                     //calculate the progress percentage
-                    float count = category.completedCount.floatValue + category.notApplicableCount.floatValue;
+                    int count = category.completedCount.intValue + category.notApplicableCount.intValue;
                     NSString *progressPercentage;
-                    if ((count/category.items.count)*100 == 100.f){
+                    if (((float)count/category.items.count) == 1.f){
                         progressPercentage = @"100%";
-                    } else if ((count/category.items.count)*100 == 0.f){
+                    } else if (((float)count/category.items.count) == 0.f){
                         progressPercentage = @"0%";
                     } else {
-                        progressPercentage = [NSString stringWithFormat:@"%.1f%%",(count/category.items.count)*100];
+                        progressPercentage = [NSString stringWithFormat:@"%.1f%%",100.f*count/(float)category.items.count];
                     }
                     [cell.progressPercentage setText:progressPercentage];
                     [cell.progressPercentage setTextColor:[UIColor whiteColor]];
@@ -637,6 +661,9 @@
                 
                 [rowDictionary removeObjectForKey:[NSString stringWithFormat:@"%ld",(long)indexPath.section]];
             } else {
+                //TESTING
+                [self loadPhase:phase];
+                //
                 phase.expanded = @YES;
                 if (completed) {
                     [rowDictionary setObject:phase.completedCategories.mutableCopy forKey:[NSString stringWithFormat:@"%ld",(long)
@@ -685,6 +712,9 @@
                         [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                         [self.tableView endUpdates];
                     } else {
+                        //TESTING
+                        [self loadCategory:category];
+                        //
                         category.expanded = @YES;
                         NSMutableArray *newIndexPaths = [NSMutableArray array];
                         NSInteger catIdx = [openRows indexOfObject:category];

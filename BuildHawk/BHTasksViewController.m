@@ -25,6 +25,7 @@
 
 @interface BHTasksViewController () <UITableViewDelegate, UITableViewDataSource, UIActionSheetDelegate, UIPopoverPresentationControllerDelegate, BHTaskDelegate> {
     NSDateFormatter *dateFormatter;
+    BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *activeListItems;
     NSMutableArray *completedListItems;
@@ -56,7 +57,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [delegate manager];
     
     //set the project to be the tab bar project IF the project wasn't already set, i.e. if it was a buildhawk connect thing
     if (!_project){
@@ -106,10 +108,6 @@
         [self drawTasklist];
         [self loadTasklist];
     }
-    
-    dateFormatter = [[NSDateFormatter alloc] init];
-    [dateFormatter setDateStyle:NSDateFormatterShortStyle];
-    [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadTask:) name:@"ReloadTask" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addTask:) name:@"AddTask" object:nil];
@@ -292,11 +290,15 @@
 }
 
 - (void)handleRefresh {
-    [ProgressHUD show:@"Refreshing..."];
-    if (_connectMode){
-        [self connectRefresh];
+    if (delegate.connected){
+        [ProgressHUD show:@"Refreshing..."];
+        if (_connectMode){
+            [self connectRefresh];
+        } else {
+            [self loadTasklist];
+        }
     } else {
-        [self loadTasklist];
+        [self drawTasklist];
     }
 }
 
@@ -492,6 +494,7 @@
 }
 
 - (void)loadTasklist {
+    if (delegate.connected)
     [manager GET:[NSString stringWithFormat:@"%@/tasklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading tasklist: %@",responseObject);
         if ([responseObject objectForKey:@"tasklist"]) {
@@ -574,6 +577,10 @@
         }
         
         [cell.itemLabel setText:task.body];
+        
+        if (!dateFormatter){
+            [self setupDateFormatter];
+        }
         [cell.createdLabel setText:[dateFormatter stringFromDate:task.createdAt]];
         
         if ([task.assignees.firstObject isKindOfClass:[User class]] && task.user){
@@ -585,13 +592,7 @@
         } else {
             [cell.ownerLabel setText:@""];
         }
-        if ([task.body isEqualToString:@"Paint"]){
-            
-        }
-        
-        if ([task.body isEqualToString:@"Paint"]){
-            NSLog(@"how many task photos: %d",task.photos.count);
-        }
+  
         if (task.photos.count) {
             if ([(Photo*)[task.photos firstObject] image]){
                 [cell.photoButton setImage:[(Photo*)[task.photos firstObject] image] forState:UIControlStateNormal];
@@ -840,8 +841,13 @@
     }];
 }
 
+- (void)setupDateFormatter {
+    dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+    [dateFormatter setTimeStyle:NSDateFormatterShortStyle];
+}
 
--(void)viewWillDisappear:(BOOL)animated {
+- (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
 }

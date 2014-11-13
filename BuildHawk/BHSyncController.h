@@ -7,6 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "Project+helper.h"
+
+typedef enum {
+    kDecrement = -1,
+    kUnchanged = 0,
+    kIncrement = 1
+} SynchDirection;
 
 @interface BHSyncController : NSObject
 
@@ -14,8 +21,10 @@
 @property (strong, nonatomic) NSArray *reports;
 @property (strong, nonatomic) NSArray *checklistItems;
 @property (strong, nonatomic) NSArray *photos;
+@property int synchCount;
 
 + (id)sharedController;
 - (void)syncAll;
+- (void)updateStatusMessage:(SynchDirection)direction;
 
 @end

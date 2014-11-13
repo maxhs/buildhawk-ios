@@ -39,8 +39,8 @@ typedef void(^RequestSuccess)(id result);
 @interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate> {
     BOOL iPhone5;
     BOOL saveToLibrary;
-    UIActionSheet *assigneeActionSheet;
     UIActionSheet *locationActionSheet;
+    BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
     UIActionSheet *emailActionSheet;
     UIActionSheet *callActionSheet;
@@ -81,7 +81,8 @@ typedef void(^RequestSuccess)(id result);
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    appDelegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [appDelegate manager];
     
     if ([UIScreen mainScreen].bounds.size.height == 568) {
         iPhone5 = YES;
@@ -159,7 +160,7 @@ typedef void(^RequestSuccess)(id result);
     self.itemTextView.delegate = self;
     [self.itemTextView setText:itemPlaceholder];
     library = [[ALAssetsLibrary alloc] init];
-    [self drawItem];
+    
     [Flurry logEvent:@"Viewing task"];
     
     //notifications
@@ -196,15 +197,13 @@ typedef void(^RequestSuccess)(id result);
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     }
     if (_task.assignees.count) {
-        id assignee = _task.assignees.firstObject;
-        if ([assignee isKindOfClass:[User class]]){
-            User *assigneeUser = assignee;
-            if (assigneeUser.fullname.length){
-                [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.fullname] forState:UIControlStateNormal];
-            } else if (assigneeUser.firstName.length){
-                [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",assigneeUser.firstName] forState:UIControlStateNormal];
-            }
+        if (_task.assignees.count == 1){
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",[(User*)[_task.assignees firstObject] fullname]] forState:UIControlStateNormal];
+        } else {
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned to %lu personnel",(unsigned long)_task.assignees.count] forState:UIControlStateNormal];
         }
+    } else {
+        [self.assigneeButton setTitle:@"Assign" forState:UIControlStateNormal];
     }
 }
 
@@ -217,18 +216,23 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self drawItem];
 }
 
 - (void)loadItem {
-    [manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,_task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success getting task: %@",responseObject);
-        [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
-        [self.tableView beginUpdates];
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-        [self.tableView endUpdates];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failed to load task: %@",error.description);
-    }];
+    if ([(BHAppDelegate*)[UIApplication sharedApplication].delegate connected]){
+        [manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,_task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"success getting task: %@",responseObject);
+            [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
+            [self.tableView beginUpdates];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            //NSLog(@"Failed to load task: %@",error.description);
+        }];
+    } else {
+        
+    }
 }
 
 #pragma mark - Table view data source
@@ -446,7 +450,7 @@ typedef void(^RequestSuccess)(id result);
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
 }
 
-- (void)assignTask:(NSNotification*)notification {
+/*- (void)assignTask:(NSNotification*)notification {
     NSDictionary *info = [notification userInfo];
     if ([info objectForKey:@"user"]){
         User *user = [info objectForKey:@"user"];
@@ -458,7 +462,7 @@ typedef void(^RequestSuccess)(id result);
             [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
         }
     }
-}
+}*/
 
 - (IBAction)completionTapped{
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -633,10 +637,13 @@ typedef void(^RequestSuccess)(id result);
             }
             if (_project && _project.identifier){
                 [photoParameters setObject:_project.identifier forKey:@"project_id"];
+                [photo setProject:_project];
             }
             [photoParameters setObject:_task.identifier forKey:@"task_id"];
+            [photo setTask:_task];
             [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
             [photoParameters setObject:kTasklist forKey:@"source"];
+            [photo setSource:kTasklist];
             [photoParameters setObject:@YES forKey:@"mobile"];
             
             //NSLog(@"photo parameters: %@",photoParameters);
@@ -694,8 +701,7 @@ typedef void(^RequestSuccess)(id result);
 
     int index = 0;
     for (Photo *photo in _task.photos) {
-        /*
-        __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        /*__weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
         if (photo.urlSmall.length){
             [imageButton setAlpha:0.0];
             [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
@@ -714,9 +720,9 @@ typedef void(^RequestSuccess)(id result);
         if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         }
         
         [_photosScrollView addSubview:imageButton];
@@ -809,18 +815,10 @@ typedef void(^RequestSuccess)(id result);
 
 -(IBAction)assigneeButtonTapped{
     if (_connectMode){
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's assignee." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's assignees." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        [_task setSaved:NO];
-        if (_task.assignees.count){
-            assigneeActionSheet = [[UIActionSheet alloc] initWithTitle:@"Assign this task:" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-            [assigneeActionSheet addButtonWithTitle:@"Reassign"];
-            assigneeActionSheet.destructiveButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Remove assignee"];
-            assigneeActionSheet.cancelButtonIndex = [assigneeActionSheet addButtonWithTitle:@"Cancel"];
-            [assigneeActionSheet showInView:self.view];
-        } else {
-            [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
-        }
+        [_task setSaved:@NO];
+        [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
     }
 }
 
@@ -852,11 +850,35 @@ typedef void(^RequestSuccess)(id result);
 -(void)sendItem {
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else if (!appDelegate.connected){
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
+        [_task setSaved:@NO];
+        [appDelegate.syncController updateStatusMessage:kIncrement];
+        [ProgressHUD showSuccess:@"Saved"];
     } else if ([_itemTextView.text isEqualToString:itemPlaceholder] || _itemTextView.text.length == 0){
         [[[UIAlertView alloc] initWithTitle:nil message:@"Please describe your task before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        
+        if (appDelegate.currentUser){
+            [_task setUser:appDelegate.currentUser];
+        }
+        if (_connectMode){
+            [_task setApproved:@NO];
+        }
+        
+        NSString *strippedLocationString;
+        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+            strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+                                      [NSCharacterSet whitespaceCharacterSet]];
+            if (strippedLocationString.length) {
+                [parameters setObject:strippedLocationString forKey:@"location"];
+                _task.location = strippedLocationString;
+            }
+        } else {
+            _task.location = nil;
+        }
         
         BOOL isNew;
         if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
@@ -873,23 +895,12 @@ typedef void(^RequestSuccess)(id result);
             [_task setBody:_itemTextView.text];
         }
         
-        NSString *strippedLocationString;
-        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-            strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
-                                      [NSCharacterSet whitespaceCharacterSet]];
-            if (strippedLocationString.length) {
-                [parameters setObject:strippedLocationString forKey:@"location"];
-                _task.location = strippedLocationString;
-            }
-        } else {
-            _task.location = nil;
-        }
-
         if (_task.assignees.count){
-            User *assigneeUser = _task.assignees.firstObject;
-            if (![assigneeUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) {
-                [parameters setObject:assigneeUser.identifier forKey:@"assignee_id"];
-            }
+            NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:_task.assignees.count];
+            [_task.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+                [assigneeIds addObject:assignee.identifier];
+            }];
+            [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"user_ids"];
         }
         
         if ([_task.completed isEqualToNumber:@YES]){
@@ -948,20 +959,20 @@ typedef void(^RequestSuccess)(id result);
                 [ProgressHUD dismiss];
             }];
         } else {
-            [manager PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, _task.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"Success updating task: %@",responseObject);
-                [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
-                [_task setSaved:@YES];
-                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    [ProgressHUD showSuccess:@"Task Saved"];
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
-                    //[self dismiss];
-                }];
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                [_task setSaved:@NO];
-                [ProgressHUD dismiss];
-                NSLog(@"Failed to update task: %@",error.description);
+            [_task synchWithServer:^(BOOL completed) {
+                if (completed) {
+                    [_task setSaved:@YES];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        [ProgressHUD showSuccess:@"Task Saved"];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
+                        //[self dismiss];
+                    }];
+                } else {
+                    [_task setSaved:@NO];
+                    [ProgressHUD dismiss];
+                }
             }];
+            
         }
     }
 }
@@ -1018,12 +1029,16 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)sendMail:(NSString*)destinationEmail {
     if ([MFMailComposeViewController canSendMail]) {
-        [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
-        MFMailComposeViewController* controller = [[MFMailComposeViewController alloc] init];
+        //[(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
+        MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
         controller.mailComposeDelegate = self;
         [controller setSubject:[NSString stringWithFormat:@"%@ Task: \"%@\"",_project.name,_task.body]];
         [controller setToRecipients:@[destinationEmail]];
-        if (controller) [self presentViewController:controller animated:YES completion:nil];
+        if (controller) {
+            [self presentViewController:controller animated:YES completion:^{
+                [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+            }];
+        }
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
         [alert show];
@@ -1033,8 +1048,8 @@ typedef void(^RequestSuccess)(id result);
           didFinishWithResult:(MFMailComposeResult)result
                         error:(NSError*)error;
 {
-    if (result == MFMailComposeResultSent) {}
-    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
+    //if (result == MFMailComposeResultSent) {}
+    //[(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -1087,11 +1102,6 @@ typedef void(^RequestSuccess)(id result);
         _task.location = nil;
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Reassign"]) {
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
-    } else if (actionSheet == assigneeActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
-        if (buttonIndex == assigneeActionSheet.destructiveButtonIndex){
-            _task.assignees = nil;
-            [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
-        }
     } else if (actionSheet == locationActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
         NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
         if (buttonTitle.length) {
@@ -1176,7 +1186,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)back {
-    if ([_task.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO]) {
+    if ([_task.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO] && appDelegate.connected) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self dismiss];

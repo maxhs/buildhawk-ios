@@ -13,7 +13,6 @@
 
 @required
 - (void)newReportCreated:(Report*)report;
-//- (void)photoAdded;
 @end
 
 @interface BHReportViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>

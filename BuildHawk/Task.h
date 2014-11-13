@@ -16,6 +16,7 @@
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) NSNumber * completed;
+@property (nonatomic, retain) NSNumber * approved;
 @property (nonatomic, retain) NSDate * completedAt;
 @property (nonatomic, retain) NSDate * createdAt;
 @property (nonatomic, retain) NSNumber * identifier;

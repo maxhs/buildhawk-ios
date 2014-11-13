@@ -274,7 +274,7 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"update project dict: %@",dictionary);
+    NSLog(@"update project dict: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
@@ -291,7 +291,7 @@
     }
     
     //note that company and companies refer to different things.
-    
+
     if ([dictionary objectForKey:@"companies"] && [dictionary objectForKey:@"companies"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"companies"]){
@@ -415,38 +415,38 @@
     }
     
     if ([dictionary objectForKey:@"phases"] && [dictionary objectForKey:@"phases"] != [NSNull null]) {
-        NSMutableOrderedSet *tmpPhases = [NSMutableOrderedSet orderedSet];
+        NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
         for (id phaseDict in [dictionary objectForKey:@"phases"]){
             if ([phaseDict objectForKey:@"id"]){
                 NSPredicate *phasePredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [phaseDict objectForKey:@"id"]];
-                //on the api, we're actually callign a category a "phase"
                 Phase *phase = [Phase MR_findFirstWithPredicate:phasePredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (phase){
-                    [phase populateFromDictionary:phaseDict];
+                    [phase updateFromDictionary:phaseDict];
                 } else {
                     phase = [Phase MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     phase.name = [phaseDict objectForKey:@"name"];
+                    [phase populateFromDictionary:phaseDict];
                 }
-                [phase populateFromDictionary:phaseDict];
-                [tmpPhases addObject:phase];
+                
+                [phase calculateProgress];
+                [set addObject:phase];
             }
         }
-        self.phases = tmpPhases;
+        self.phases = set;
     }
     if ([dictionary objectForKey:@"upcoming_items"] && [dictionary objectForKey:@"upcoming_items"] != [NSNull null]) {
         NSMutableOrderedSet *tmpUpcoming = [NSMutableOrderedSet orderedSet];
         for (id itemDict in [dictionary objectForKey:@"upcoming_items"]){
             if ([itemDict objectForKey:@"id"]){
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
-                //on the api, we're actually callign a category a "phase"
+                
                 ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (item){
-                    [item populateFromDictionary:itemDict];
+                    [item updateFromDictionary:itemDict];
                 } else {
                     item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [item populateFromDictionary:itemDict];
                 }
-                [item populateFromDictionary:itemDict];
                 [tmpUpcoming addObject:item];
             }
         }
@@ -459,12 +459,11 @@
                 NSPredicate *itemPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [itemDict objectForKey:@"id"]];
                 ChecklistItem *item = [ChecklistItem MR_findFirstWithPredicate:itemPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (item){
-                    [item populateFromDictionary:itemDict];
+                    [item updateFromDictionary:itemDict];
                 } else {
                     item = [ChecklistItem MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     [item populateFromDictionary:itemDict];
                 }
-                [item populateFromDictionary:itemDict];
                 [tmpRecent addObject:item];
             }
         }

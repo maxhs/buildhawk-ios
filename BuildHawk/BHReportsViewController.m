@@ -17,8 +17,9 @@
 #import "SafetyTopic+helper.h"
 
 @interface BHReportsViewController () <BHReportDelegate> {
+    BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
-    Project *project;
+    Project *_project;
     UIRefreshControl *refreshControl;
     BOOL daily;
     BOOL safety;
@@ -43,8 +44,9 @@
     [super viewDidLoad];
     
     screen = [UIScreen mainScreen].bounds;
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    project = [(BHTabBarViewController*)self.tabBarController project];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [delegate manager];
+    _project = [(BHTabBarViewController*)self.tabBarController project];
     
     //add refresh control and set up the tableView
     refreshControl = [[UIRefreshControl alloc] init];
@@ -77,7 +79,7 @@
     [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
         
-    if (project.reports.count == 0){
+    if (_project.reports.count == 0){
         if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
             dispatch_async(dispatch_get_main_queue(), ^{
                 [ProgressHUD show:@"Fetching reports..."];
@@ -117,18 +119,19 @@
 #pragma mark - API
 
 - (void)loadReports {
-    loading = YES;
-    [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"project_id":project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting reports: %@",responseObject);
-        [self updateLocalReports:[responseObject objectForKey:@"reports"]];
-    
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error getting reports: %@",error.description);
-        [ProgressHUD dismiss];
-        loading = NO;
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    if (delegate.connected){
+        loading = YES;
+        [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success getting reports: %@",responseObject);
+            [self updateLocalReports:[responseObject objectForKey:@"reports"]];
         
-    }];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error getting reports: %@",error.description);
+            [ProgressHUD dismiss];
+            loading = NO;
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        }];
+    }
 }
 
 - (void)updateLocalReports:(NSArray*)array {
@@ -148,14 +151,14 @@
         
         [reportSet addObject:report];
     }
-    for (Report *report in project.reports) {
+    for (Report *report in _project.reports) {
         if (![reportSet containsObject:report]) {
             NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
-            [project removeReport:report];
+            [_project removeReport:report];
             [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }
-    project.reports = reportSet;
+    _project.reports = reportSet;
     
     //save!
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
@@ -190,14 +193,14 @@
     if (daily || weekly || safety){
         report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
     } else {
-        report = [project.reports objectAtIndex:indexPathForDeletion.row];
+        report = [_project.reports objectAtIndex:indexPathForDeletion.row];
     }
     [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //will return success = true if the report was found and deleted or success = false if the report was not found, e.g. if it had already been deleted on the server side.
         //NSLog(@"Success deleting report: %@",responseObject);
         
         //remove the report from all data sources
-        [project removeReport:report];
+        [_project removeReport:report];
         [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         if (safety || weekly || daily){
             [_filteredReports removeObject:report];
@@ -306,7 +309,7 @@
         _filteredReports = [NSMutableArray array];
     }
     [_filteredReports removeAllObjects];
-    for (Report *report in project.reports){
+    for (Report *report in _project.reports){
         if ([report.type isEqualToString:type]){
             [_filteredReports addObject:report];
         }
@@ -332,8 +335,8 @@
             return 1;
         }
     } else {
-        if (project.reports.count){
-            return project.reports.count;
+        if (_project.reports.count){
+            return _project.reports.count;
         } else if (loading) {
             return 0;
         } else {
@@ -355,8 +358,8 @@
             return [self generateNothingCellForIndexPath:indexPath];
         }
     } else {
-        if (project.reports.count){
-            Report *report = [project.reports objectAtIndex:indexPath.row];
+        if (_project.reports.count){
+            Report *report = [_project.reports objectAtIndex:indexPath.row];
             [cell configureReport:report];
         } else if (!loading) {
             return [self generateNothingCellForIndexPath:indexPath];
@@ -387,8 +390,8 @@
     Report *selectedReport;
     if ((daily || weekly || safety) && _filteredReports.count > indexPath.row){
         selectedReport = [_filteredReports objectAtIndex:indexPath.row];
-    } else if (project.reports.count > indexPath.row) {
-        selectedReport = [project.reports objectAtIndex:indexPath.row];
+    } else if (_project.reports.count > indexPath.row) {
+        selectedReport = [_project.reports objectAtIndex:indexPath.row];
     }
     if (selectedReport)
         [self performSegueWithIdentifier:@"Report" sender:selectedReport];
@@ -406,8 +409,8 @@
     Report *report;
     if (_filteredReports.count && (safety || weekly || daily)){
         report = [_filteredReports objectAtIndex:indexPath.row];
-    } else if (project.reports.count) {
-        report = [project.reports objectAtIndex:indexPath.row];
+    } else if (_project.reports.count) {
+        report = [_project.reports objectAtIndex:indexPath.row];
     }
     
     //ensure that there's a signed in user and ask whether they're the current author
@@ -446,18 +449,12 @@
 }
 
 - (void)newReportCreated:(Report *)report {
-    //NSLog(@"delegate method: %@",report);
-    
+    NSLog(@"delegate method: %@",report);
     daily = NO;
     weekly = NO;
     safety = NO;
-    
-    [self.tableView beginUpdates];
-    [project addReport:report];
-    [self.tableView insertRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:0]] withRowAnimation:UITableViewRowAnimationNone];
-    [self.tableView endUpdates];
-    
-    //[self.tableView reloadData];
+    [_project addReport:report];
+    [self.tableView reloadData];
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -479,17 +476,18 @@
         BHReportViewController *vc = [segue destinationViewController];
         vc.delegate = self;
         
-        [vc setProject:project];
+        [vc setProject:_project];
         if (daily || safety || weekly){
             [vc setReports:_filteredReports];
         } else {
-            [vc setReports:project.reports.array.mutableCopy];
+            [vc setReports:_project.reports.array.mutableCopy];
         }
         
         if ([sender isKindOfClass:[Report class]]){
             [vc setReport:(Report*)sender];
         } else if ([sender isKindOfClass:[NSString class]]) {
             Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newReport.project = _project;
             newReport.type = (NSString*)sender;
             NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
             [formatter setDateFormat:@"MM/dd/yyyy"];
@@ -544,13 +542,14 @@
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"MM/dd/yyyy"];
     NSString *selectedDateString = [formatter stringFromDate:self.datePicker.date];
-    [project.reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
+    [_project.reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
         if ([report.dateString isEqualToString:selectedDateString]){
             [self performSegueWithIdentifier:@"Report" sender:report];
             *stop = YES;
         }
-        if (idx == project.reports.count-1){
+        if (idx == _project.reports.count-1){
             Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newReport.project = _project;
             newReport.dateString = selectedDateString;
             newReport.type = kDaily;
             [self performSegueWithIdentifier:@"Report" sender:newReport];

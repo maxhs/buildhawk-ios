@@ -33,6 +33,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kUserDefaultsAdmin @"admin"
 #define kUserDefaultsCompanyAdmin @"companyAdmin"
 #define kUserDefaultsUberAdmin @"uberAdmin"
+#define kUserDefaultsMobileToken @"mobileToken"
 
 #define kCompleted @"Completed"
 #define kcompleted @"completed"
@@ -90,6 +91,10 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kTask @"Task"
 #define kPhoto @"Photo"
 #define kReminder @"Reminder"
+#define kFolder @"Folder"
+
+//Numerical Constants
+#define kOfflineStatusHeight 25.f
 
 //Colors
 #define kBackgroundFade 0.3f
@@ -98,7 +103,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kLightGrayColor [UIColor colorWithWhite:.90 alpha:.9]
 #define kSeparatorColor [UIColor colorWithWhite:.925 alpha:1]
 
-#define kDarkerGrayColor [UIColor colorWithWhite:.05 alpha:0.9]
+#define kDarkerGrayColor [UIColor colorWithWhite:.06 alpha:0.9]
 #define kDarkGrayColor [UIColor colorWithWhite:.05 alpha:1.0]
 #define kBackgroundBlack [UIColor colorWithWhite:1.0 alpha:0.1]
 #define kLightBlueColor [UIColor colorWithRed:(85.0/255.0) green:(140.0/255.0) blue:(200.0/255.0) alpha:1.0]

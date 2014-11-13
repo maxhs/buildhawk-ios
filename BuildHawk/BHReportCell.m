@@ -47,7 +47,7 @@
     if (report.author.fullname.length){
         [_authorLabel setText:[NSString stringWithFormat:@"Author: %@",report.author.fullname]];
     } else {
-        [_authorLabel setText:@""];
+        [_authorLabel setText:@"Author: N/A"];
     }
     NSInteger count = report.reportUsers.count;
     for (ReportSub *reportSub in report.reportSubs){
@@ -59,9 +59,6 @@
     } else {
         [_notesLabel setText:@"Notes: N/A"];
     }
-    if ([report.dateString isEqualToString:@"10/11/2014"]){
-        NSLog(@"how many photos do we have? %d",report.photos.count);
-    }
     
     if (report.photos.count > 0){
         _photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -69,14 +66,8 @@
         [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
         [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         
-        if ([report.dateString isEqualToString:@"10/11/2014"]){
-            NSLog(@"the actual photos %@",report.photos);
-        }
         Photo *firstPhoto = (Photo*)report.photos.firstObject;
         if (firstPhoto.image) {
-            if ([report.dateString isEqualToString:@"10/11/2014"]){
-                NSLog(@"first photo had an image");
-            }
             [_photoButton setImage:firstPhoto.image forState:UIControlStateNormal];
             _photoButton.imageView.layer.shouldRasterize = YES;
             _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;

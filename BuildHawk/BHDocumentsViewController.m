@@ -42,6 +42,7 @@
     NSMutableArray *browserPhotos;
     CGRect screen;
     UIRefreshControl *refreshControl;
+    BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     Project *_project;
 }
@@ -60,7 +61,8 @@
     } else {
         iPhone5 = NO;
     }
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [delegate manager];
     screen = [UIScreen mainScreen].bounds;
     photosArray = [NSMutableArray array];
     userArray = [NSMutableArray array];
@@ -97,9 +99,11 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    CGRect tabFrame = self.tabBarController.tabBar.frame;
+    tabFrame.origin.y = screenHeight()-tabFrame.size.height - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - (delegate.connected ? 0 : kOfflineStatusHeight);
     [UIView animateWithDuration:.25 animations:^{
-        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
-        self.tabBarController.tabBar.alpha = 1.0;
+        [self.tabBarController.tabBar setFrame:tabFrame];
+        //self.tabBarController.tabBar.alpha = 1.0;
     }];
 }
 
@@ -109,19 +113,20 @@
 }
 
 - (void)loadPhotos {
-    [ProgressHUD show:@"Fetching documents..."];
-    loading = YES;
-    
-    [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
-        [_project parseDocuments:[responseObject objectForKey:@"photos"]];
-        [self drawDocuments:_project.documents];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error getting photos: %@",error.description);
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-        loading = NO;
-        [ProgressHUD dismiss];
-    }];
+    if (delegate.connected){
+        [ProgressHUD show:@"Fetching documents..."];
+        loading = YES;
+        [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
+            [_project parseDocuments:[responseObject objectForKey:@"photos"]];
+            [self drawDocuments:_project.documents];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error getting photos: %@",error.description);
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            loading = NO;
+            [ProgressHUD dismiss];
+        }];
+    }
 }
 
 - (void)drawDocuments:(NSOrderedSet*)set {
@@ -199,7 +204,6 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-   
     static NSString *CellIdentifier = @"PhotoPickerCell";
     BHPhotoPickerCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -322,7 +326,7 @@
             }];
         }];
     } else {
-        [cell.photoButton setImage:[UIImage imageNamed:@"icon-256"] forState:UIControlStateNormal];
+        [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
         
         [UIView animateWithDuration:.25 animations:^{
             [cell.bucketLabel setAlpha:1.0];
@@ -525,9 +529,11 @@
             break;
     }
     
+    CGRect tabFrame = self.tabBarController.tabBar.frame;
+    tabFrame.origin.y = screenHeight();
     [UIView animateWithDuration:.25 animations:^{
-        self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, self.tabBarController.tabBar.frame.size.height);
-        self.tabBarController.tabBar.alpha = 0.0;
+        [self.tabBarController.tabBar setFrame:tabFrame];
+        //self.tabBarController.tabBar.alpha = 0.0;
     }];
 }
 

@@ -85,7 +85,7 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)loadNotifications {
-    if (delegate.loggedIn && _currentUser.managedObjectContext != nil){
+    if (delegate.connected && delegate.loggedIn && _currentUser.managedObjectContext != nil){
         [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting messages: %@",responseObject);
             [self updateNotifications:[responseObject objectForKey:@"notifications"]];
@@ -96,23 +96,24 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)updateNotifications:(NSArray*)array {
-    NSMutableOrderedSet *notifications = [NSMutableOrderedSet orderedSet];
-    for (NSDictionary *dict in array){
-        Notification *notification = [Notification MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!notification){
-            notification = [Notification MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-        [notification populateFromDictionary:dict];
-        [notifications addObject:notification];
-    }
-    
-    for (Notification *notification in _currentUser.notifications) {
-        if (![notifications containsObject:notification]) {
-            //NSLog(@"Deleting a notification that no longer exists: %@",notification.body);
-            [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-    }
     if (_currentUser && ![_currentUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        NSMutableOrderedSet *notifications = [NSMutableOrderedSet orderedSet];
+        for (NSDictionary *dict in array){
+            Notification *notification = [Notification MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!notification){
+                notification = [Notification MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [notification populateFromDictionary:dict];
+            [notifications addObject:notification];
+        }
+        
+        for (Notification *notification in _currentUser.notifications) {
+            if (![notifications containsObject:notification]) {
+                //NSLog(@"Deleting a notification that no longer exists: %@",notification.body);
+                [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
+    
         _currentUser.notifications = notifications;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             //NSLog(@"Success saving notifications: %u",success);

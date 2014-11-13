@@ -15,6 +15,7 @@
 #import "Activity+helper.h"
 #import "Reminder+helper.h"
 #import "BHUtilities.h"
+#import "BHAppDelegate.h"
 
 @implementation ChecklistItem (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
@@ -135,8 +136,9 @@
                 activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [activity populateFromDictionary:dict];
-            if (![activity.activityType isEqualToString:@"Comment"])
+            if (![activity.activityType isEqualToString:@"Comment"]){
                 [orderedActivities addObject:activity];
+            }
         }
         for (Activity *activity in self.activities) {
             if (![orderedActivities containsObject:activity]){
@@ -165,7 +167,12 @@
     if ([dictionary objectForKey:@"photos_count"] && [dictionary objectForKey:@"photos_count"] != [NSNull null]) {
         self.photosCount = [dictionary objectForKey:@"photos_count"];
     }
-    
+    if ([dictionary objectForKey:@"checklist_id"] && [dictionary objectForKey:@"checklist_id"] != [NSNull null]) {
+        Checklist *checklist = [Checklist MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"checklist_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (checklist){
+            self.checklist = checklist;
+        }
+    }
     if ([dictionary objectForKey:@"critical_date_epoch_time"] && [dictionary objectForKey:@"critical_date_epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"critical_date_epoch_time"] doubleValue];
         self.criticalDate = [NSDate dateWithTimeIntervalSince1970:_interval];
@@ -307,6 +314,29 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reminders];
     [set removeObject:reminder];
     self.reminders = set;
+}
+
+- (void)synchWithServer:(synchCompletion)complete {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (self.state){
+        // if we don't send a state, this will erase the checklist item's current state via the API
+        [parameters setObject:self.state forKey:@"state"];
+    }
+
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,self.identifier] parameters:@{@"checklist_item":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success synching checklist item %@",responseObject);
+
+        [self setSaved:@YES];
+        [self populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
+        
+        complete(YES);
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":self}];
+        
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Failure synching checklist item: %@",error.description);
+        [self setSaved:@NO];
+        complete(NO);
+    }];
 }
 
 @end

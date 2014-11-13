@@ -101,7 +101,7 @@
             }];
         }];
     } else {
-        [cell.photoButton setImage:[UIImage imageNamed:@"icon-256"] forState:UIControlStateNormal];
+        [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
         [UIView animateWithDuration:.25 animations:^{
             [cell.docLabel setAlpha:1.0];
             [cell.photoButton setAlpha:1.0];

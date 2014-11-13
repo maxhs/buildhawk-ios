@@ -23,6 +23,7 @@
 
 @dynamic admin;
 @dynamic authToken;
+@dynamic mobileToken;
 @dynamic companyAdmin;
 @dynamic count;
 @dynamic coworkers;

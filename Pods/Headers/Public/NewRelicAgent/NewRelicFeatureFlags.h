@@ -1,1 +1,1 @@
-../../../NewRelicAgent/NewRelic_iOS_Agent_3.406/NewRelicAgent.framework/Versions/A/Headers/NewRelicFeatureFlags.h
+../../../NewRelicAgent/NewRelic_iOS_Agent_4.83/NewRelicAgent.framework/Versions/A/Headers/NewRelicFeatureFlags.h

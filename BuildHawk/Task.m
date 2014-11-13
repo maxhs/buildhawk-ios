@@ -19,6 +19,7 @@
 
 @dynamic body;
 @dynamic completed;
+@dynamic approved;
 @dynamic completedAt;
 @dynamic createdAt;
 @dynamic identifier;

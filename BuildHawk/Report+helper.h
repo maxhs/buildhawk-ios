@@ -17,6 +17,8 @@
 #import "ReportSub.h"
 #import "Subcontractor.h"
 
+typedef void(^synchCompletion)(BOOL completed);
+
 @interface Report (helper)
 
 - (void) populateWithDict:(NSDictionary*)dictionary;
@@ -32,4 +34,6 @@
 - (void) addReportSubcontractor:(ReportSub*)reportSubcontractor;
 - (void) removeReportSubcontractor:(ReportSub*)reportSubcontractor;
 - (void) clearReportSubcontractors;
+
+- (void)synchWithServer:(synchCompletion)completed;
 @end

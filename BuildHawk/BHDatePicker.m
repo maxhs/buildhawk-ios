@@ -110,7 +110,6 @@ typedef enum {
 }
 
 - (BHDatePickerComponent)componentFromLetter:(NSString *)letter {
-    NSLog(@"letter: %@",letter);
     if ([letter isEqualToString:@"y"]) {
         return kBHDatePickerYear;
     }
@@ -433,7 +432,8 @@ typedef enum {
     NSDate *datePicked = self.date;
     
     if (self.minimumDate != nil && [datePicked compare:self.minimumDate] == NSOrderedAscending) {
-        [self setDate:self.minimumDate animated:YES];
+        //[self setDate:self.minimumDate animated:YES];
+        [[[UIAlertView alloc] initWithTitle:@"Date selection" message:@"You've selected a reminder date in the past. Did you really mean to do this?" delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:nil] show];
     }
     else if (self.maximumDate != nil && [datePicked compare:self.maximumDate] == NSOrderedDescending) {
         [self setDate:self.maximumDate animated:YES];

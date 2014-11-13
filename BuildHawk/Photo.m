@@ -37,5 +37,8 @@
 @dynamic report;
 @dynamic task;
 @dynamic activities;
+@dynamic saved;
+
+@synthesize synching;
 
 @end

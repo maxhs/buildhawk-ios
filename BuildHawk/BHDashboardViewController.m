@@ -6,30 +6,31 @@
 //  Copyright (c) 2013 BuildHawk. All rights reserved.
 //
 
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHDashboardViewController.h"
-#import "BHDashboardProjectCell.h"
-#import "BHDashboardGroupCell.h"
 #import "BHProjectSynopsisViewController.h"
 #import "BHTabBarViewController.h"
+#import "BHTabBarViewController.h"
+#import "BHTasksViewController.h"
+#import "BHDemoProjectsViewController.h"
+#import "BHWebViewController.h"
+#import "BHTourViewController.h"
+#import "BHGroupViewController.h"
+#import "BHHiddenProjectsViewController.h"
+#import "BHDashboardProjectCell.h"
+#import "BHDashboardGroupCell.h"
+#import "BHTasklistConnectCell.h"
+#import "BHDashboardButtonCell.h"
 #import "Checklist+helper.h"
 #import "Company+helper.h"
 #import "Project+helper.h"
 #import "Tasklist+helper.h"
 #import "Address.h"
-#import <AFNetworking/AFHTTPRequestOperationManager.h>
-#import "BHTabBarViewController.h"
+#import "Report+helper.h"
 #import "Constants.h"
 #import "BHAppDelegate.h"
-#import "BHGroupViewController.h"
-#import "BHHiddenProjectsViewController.h"
 #import "BHOverlayView.h"
-#import "BHTasksViewController.h"
-#import "BHTasklistConnectCell.h"
-#import "BHDemoProjectsViewController.h"
 #import "BHSafetyTopicTransition.h"
-#import "BHWebViewController.h"
-#import "BHDashboardButtonCell.h"
-#import "BHTourViewController.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIAlertViewDelegate, UIViewControllerTransitioningDelegate> {
     CGRect searchContainerRect;
@@ -44,6 +45,7 @@
     NSMutableArray *recentlyCompletedTasks;
     NSMutableArray *upcomingChecklistItems;
     
+    Mixpanel *mixpanel;
     CGRect screen;
     Project *hiddenProject;
     UIBarButtonItem *refreshButton;
@@ -64,7 +66,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+    mixpanel = [Mixpanel sharedInstance];
     self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     self.navigationController.interactivePopGestureRecognizer.enabled = NO;
     
@@ -113,8 +115,7 @@
     if (_currentUser.projects.count == 0){
         [ProgressHUD show:@"Fetching projects..."];
     }
-    [self loadProjects];
-
+    
     refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
     self.navigationItem.rightBarButtonItem = refreshButton;
     
@@ -137,7 +138,9 @@
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:NO animated:NO];
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
+    [self loadProjects];
     [self loadConnectItems];
+    [mixpanel track:((IDIOM == IPAD) ? @"iPad: Dashboard" : @"iPhone: Dashboard") properties:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]}];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -157,24 +160,57 @@
 }
 
 - (void)handleRefresh {
-    [ProgressHUD show:@"Refreshing..."];
-    loading = YES;
-    [delegate updateLoggedInStatus];
-    [self loadProjects];
-    [self loadConnectItems];
+    if (delegate.connected){
+        [ProgressHUD show:@"Refreshing..."];
+        loading = YES;
+        [delegate updateLoggedInStatus];
+        [self loadProjects];
+        [self loadConnectItems];
+    } else {
+        [self.tableView reloadData];
+    }
 }
 
 - (void)loadProjects {
-    [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"load projects response object: %@",responseObject);
-        [self updateProjects:[responseObject objectForKey:@"projects"]];
-        
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error while loading projects: %@",error.description);
-        loading = NO;
-        //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [ProgressHUD dismiss];
-    }];
+    if (delegate.connected){
+        [manager GET:[NSString stringWithFormat:@"%@/projects",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"load projects response object: %@",responseObject);
+            [self updateProjects:[responseObject objectForKey:@"projects"]];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error while loading projects: %@",error.description);
+            loading = NO;
+            //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while loading your projects. Please try again soon" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [ProgressHUD dismiss];
+        }];
+    } else {
+        [self getProjectsOffline];
+    }
+}
+
+- (void)getProjectsOffline {
+    NSMutableOrderedSet *projectSet = [NSMutableOrderedSet orderedSet];
+    NSMutableOrderedSet *groupSet = [NSMutableOrderedSet orderedSet];
+    NSMutableOrderedSet *hiddenSet = [NSMutableOrderedSet orderedSet];
+    
+    for (Project *p in _currentUser.projects){
+        if ([p.hidden isEqualToNumber:@YES]){
+            [hiddenSet addObject:p];
+        } else if (p.group){
+            [groupSet addObject:p];
+        } else {
+            [projectSet addObject:p];
+        }
+    }
+    
+    _currentUser.projects = projectSet;
+    _currentUser.hiddenProjects = hiddenSet;
+
+    _projects = [_currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
+        NSNumber *first = a.orderIndex;
+        NSNumber *second = b.orderIndex;
+        return [first compare:second];
+    }].mutableCopy;
+    [self.tableView reloadData];
 }
 
 - (void)updateProjects:(NSArray*)projectsArray {
@@ -229,7 +265,7 @@
 }
 
 - (void)loadConnectItems {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && delegate.connected){
         loading = YES;
         [manager GET:[NSString stringWithFormat:@"%@/connect",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success loading connect items: %@",responseObject);

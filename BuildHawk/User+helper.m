@@ -21,6 +21,9 @@
     if ([dictionary objectForKey:@"authentication_token"] && [dictionary objectForKey:@"authentication_token"] != [NSNull null]) {
         self.authToken = [dictionary objectForKey:@"authentication_token"];
     }
+    if ([dictionary objectForKey:@"mobile_token"] && [dictionary objectForKey:@"mobile_token"] != [NSNull null]) {
+        self.mobileToken = [dictionary objectForKey:@"mobile_token"];
+    }
     if ([dictionary objectForKey:@"full_name"] && [dictionary objectForKey:@"full_name"] != [NSNull null]) {
         self.fullname = [dictionary objectForKey:@"full_name"];
     }
@@ -57,12 +60,18 @@
     }
     if ([dictionary objectForKey:@"admin"] && [dictionary objectForKey:@"admin"] != [NSNull null]) {
         self.admin = [dictionary objectForKey:@"admin"];
+    } else {
+        self.admin = @NO;
     }
     if ([dictionary objectForKey:@"company_admin"] && [dictionary objectForKey:@"company_admin"] != [NSNull null]) {
         self.companyAdmin = [dictionary objectForKey:@"company_admin"];
+    } else {
+        self.companyAdmin = @NO;
     }
     if ([dictionary objectForKey:@"uber_admin"] && [dictionary objectForKey:@"uber_admin"] != [NSNull null]) {
         self.uberAdmin = [dictionary objectForKey:@"uber_admin"];
+    } else {
+        self.uberAdmin = @NO;
     }
     if ([dictionary objectForKey:@"push_permissions"] && [dictionary objectForKey:@"push_permissions"] != [NSNull null]) {
         self.pushPermissions = [dictionary objectForKey:@"push_permissions"];
@@ -101,7 +110,10 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
-
+    //NSLog(@"update user helper dictionary: %@",dictionary);
+    if ([dictionary objectForKey:@"mobile_token"] && [dictionary objectForKey:@"mobile_token"] != [NSNull null]) {
+        self.mobileToken = [dictionary objectForKey:@"mobile_token"];
+    }
     if ([dictionary objectForKey:@"full_name"] && [dictionary objectForKey:@"full_name"] != [NSNull null]) {
         self.fullname = [dictionary objectForKey:@"full_name"];
     }
@@ -145,6 +157,21 @@
             [company populateFromDictionary:companyDict];
         }
         self.company = company;
+    }
+    if ([dictionary objectForKey:@"admin"] && [dictionary objectForKey:@"admin"] != [NSNull null]) {
+        self.admin = [dictionary objectForKey:@"admin"];
+    } else {
+        self.admin = @NO;
+    }
+    if ([dictionary objectForKey:@"company_admin"] && [dictionary objectForKey:@"company_admin"] != [NSNull null]) {
+        self.companyAdmin = [dictionary objectForKey:@"company_admin"];
+    } else {
+        self.companyAdmin = @NO;
+    }
+    if ([dictionary objectForKey:@"uber_admin"] && [dictionary objectForKey:@"uber_admin"] != [NSNull null]) {
+        self.uberAdmin = [dictionary objectForKey:@"uber_admin"];
+    } else {
+        self.uberAdmin = @NO;
     }
 }
 

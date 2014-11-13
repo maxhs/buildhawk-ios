@@ -15,6 +15,7 @@
 
 @property (nonatomic, retain) NSNumber * admin;
 @property (nonatomic, retain) NSString * authToken;
+@property (nonatomic, retain) NSString * mobileToken;
 @property (nonatomic, retain) NSNumber * companyAdmin;
 @property (nonatomic, retain) NSNumber * count;
 @property (nonatomic, retain) id coworkers;

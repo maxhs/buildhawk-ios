@@ -12,32 +12,31 @@
 #import "BHReportWeatherCell.h"
 #import "BHTabBarViewController.h"
 #import "BHReportPhotoCell.h"
-#import <CoreLocation/CoreLocation.h>
+#import "BHActivityCell.h"
+#import "BHChooseTopicsViewCell.h"
+#import "BHSafetyTopicsCell.h"
 #import "BHChooseReportPersonnelCell.h"
 #import "BHReportPersonnelCell.h"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
-#import "Project+helper.h"
-#import "Report.h"
 #import "Flurry.h"
-#import <AssetsLibrary/AssetsLibrary.h>
-#import "BHPersonnelPickerViewController.h"
-#import <CTAssetsPickerController/CTAssetsPickerController.h>
-#import "BHChooseTopicsViewCell.h"
-#import "BHSafetyTopicsCell.h"
-#import "SafetyTopic+helper.h"
-#import "Photo+helper.h"
 #import "BHAppDelegate.h"
-#import "Subcontractor.h"
+#import <AssetsLibrary/AssetsLibrary.h>
+#import <CoreLocation/CoreLocation.h>
+#import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "BHReportPhotoScrollView.h"
 #import "BHPersonnelCountTextField.h"
 #import "BHSafetyTopicTransition.h"
 #import "BHSafetyTopicViewController.h"
-#import "Activity+helper.h"
-#import "Address.h"
-#import "BHActivityCell.h"
 #import "BHTaskViewController.h"
 #import "BHChecklistItemViewController.h"
+#import "BHPersonnelPickerViewController.h"
+#import "Activity+helper.h"
+#import "Project+helper.h"
+#import "Photo+helper.h"
+#import "SafetyTopic+helper.h"
+#import "Address+helper.h"
+#import "Report+helper.h"
 
 #define kForecastAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
 static NSString * const kReportPlaceholder = @"Report details...";
@@ -45,6 +44,7 @@ static NSString * const kNewReportPlaceholder = @"Add new report";
 static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
 @interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UITextFieldDelegate, UITextViewDelegate, UIScrollViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate, UIViewControllerTransitioningDelegate, UIPopoverControllerDelegate> {
+    BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
     CGFloat width;
     CGFloat height;
@@ -79,6 +79,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     UITextField *countTextField;
     ALAssetsLibrary *library;
     UIActionSheet *topicsActionSheet;
+    UIAlertView *newTopicAlertView;
     NSInteger idx;
     UIBarButtonItem *saveCreateButton;
     UIBarButtonItem *doneButton;
@@ -115,7 +116,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     }
     
     [super viewDidLoad];
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    appDelegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [appDelegate manager];
     
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     currentUser = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -911,7 +913,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
 - (void)showDatePicker:(id)sender{
     if (overlayBackground == nil){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:YES];
+        overlayBackground = [appDelegate addOverlayUnderNav:YES];
         UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
         tapGesture.numberOfTapsRequired = 1;
         [overlayBackground addGestureRecognizer:tapGesture];
@@ -1068,7 +1070,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         if ([title isEqualToString:@"Cancel"]){
             
         } else if ([title isEqualToString:kAddNew]){
-            UIAlertView *newTopicAlertView = [[UIAlertView alloc] initWithTitle:@"Custom safety topic:" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
+            newTopicAlertView = [[UIAlertView alloc] initWithTitle:@"Custom safety topic:" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
             newTopicAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
             [[newTopicAlertView textFieldAtIndex:0] setAutocapitalizationType:UITextAutocapitalizationTypeWords];
             [newTopicAlertView show];
@@ -1103,12 +1105,14 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         [self post];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [self.navigationController popViewControllerAnimated:YES];
-    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Add"]) {
+    } else if (alertView == newTopicAlertView) {
         SafetyTopic *topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [topic setTitle:[[alertView textFieldAtIndex:0] text]];
         if (![_reportTableView.report.safetyTopics containsObject:topic]) {
-            [_report addSafetyTopic:topic];
-            [self.activeTableView reloadData];
+            [_reportTableView.report addSafetyTopic:topic];
+            [_reportTableView beginUpdates];
+            [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
+            [_reportTableView endUpdates];
         } else {
             [[[UIAlertView alloc] initWithTitle:nil message:@"Safety topic already added." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
@@ -1268,9 +1272,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal];
+            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         }
         [imageButton setTag:[tableView.report.photos indexOfObject:photo]];
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),reportScrollView.frame.size.height/2-imageSize/2,imageSize, imageSize)];
@@ -1535,76 +1539,14 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         
     } else {
         
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        [parameters setObject:_project.identifier forKey:@"project_id"];
-        if (_reportTableView.report.weather.length) [parameters setObject:_reportTableView.report.weather forKey:@"weather"];
-        if (_reportTableView.report.dateString.length) [parameters setObject:_reportTableView.report.dateString forKey:@"date_string"];
-        if (_reportTableView.report.type.length) [parameters setObject:_reportTableView.report.type forKey:@"report_type"];
-        if (_reportTableView.report.precip.length) [parameters setObject:_reportTableView.report.precip forKey:@"precip"];
-        if (_reportTableView.report.humidity.length) [parameters setObject:_reportTableView.report.humidity forKey:@"humidity"];
-        if (_reportTableView.report.weatherIcon.length) [parameters setObject:_reportTableView.report.weatherIcon forKey:@"weather_icon"];
-        if (_reportTableView.report.body.length){
-            [parameters setObject:_reportTableView.report.body forKey:@"body"];
-        }
-        if (_reportTableView.report.reportUsers.count) {
-            NSMutableArray *userArray = [NSMutableArray array];
-            for (ReportUser *reportUser in _reportTableView.report.reportUsers) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (![reportUser.userId isEqualToNumber:[NSNumber numberWithInt:0]]) {
-                    [dict setObject:reportUser.userId forKey:@"id"];
-                }
-                if (reportUser.fullname.length) {
-                    [dict setObject:reportUser.fullname forKey:@"full_name"];
-                }
-                if (reportUser.hours) {
-                    [dict setObject:reportUser.hours forKey:@"hours"];
-                }
-                [userArray addObject:dict];
-            }
-            if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
-        }
-        
-        if (_reportTableView.report.reportSubs.count) {
-            NSMutableArray *subArray = [NSMutableArray array];
-            for (ReportSub *reportSub in _reportTableView.report.reportSubs) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
-                if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
-                if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
-                [subArray addObject:dict];
-                
-            }
-            if (subArray.count)[parameters setObject:subArray forKey:@"report_companies"];
-        }
-        if (_reportTableView.report.safetyTopics.count) {
-            NSMutableArray *topicsArray = [NSMutableArray array];
-            for (SafetyTopic *topic in _reportTableView.report.safetyTopics) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (![topic.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.identifier forKey:@"id"];
-                if (![topic.topicId isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.topicId forKey:@"topic_id"];
-                if (topic.title.length) [dict setObject:topic.title forKey:@"title"];
-                //if (topic.info) [dict setObject:topic.info forKey:@"info"];
-                [topicsArray addObject:dict];
-            }
-            if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
-        }
-        
         if ([_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [ProgressHUD show:@"Creating report..."];
             
             //fetch the images
             NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:_reportTableView.report.photos];
             
-            //assign an author
-            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
-            
-            [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"Success creating report: %@",responseObject);
-                if ([responseObject objectForKey:@"duplicate"]){
-                    [[[UIAlertView alloc] initWithTitle:@"Report Duplicate" message:@"A report for this date already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                    [ProgressHUD dismiss];
-                } else {
-                    [_reportTableView.report populateWithDict:[responseObject objectForKey:@"report"]];
+            [_reportTableView.report synchWithServer:^(BOOL complete) {
+                if (complete){
                     
                     //reattach the images we grabbed earlier.
                     for (Photo *photo in photoSet){
@@ -1614,40 +1556,33 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                     if (photoSet.count){
                         [self uploadPhotos:photoSet forReport:_reportTableView.report];
                     }
-                    if (self.delegate && [self.delegate respondsToSelector:@selector(newReportCreated:)]) {
-                        [self.delegate newReportCreated:_reportTableView.report];
-                    }
-                    
-                    NSLog(@"photos for new report? %d",_reportTableView.report.photos.count);
                     
                     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        if (self.delegate && [self.delegate respondsToSelector:@selector(newReportCreated:)]) {
+                            [self.delegate newReportCreated:_reportTableView.report];
+                        }
                         [ProgressHUD showSuccess:@"Report Added"];
                         [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                         [self.navigationController popViewControllerAnimated:YES];
                     }];
                     
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    [ProgressHUD dismiss];
                 }
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                NSLog(@"Failure creating report: %@",error.description);
-                [ProgressHUD dismiss];
             }];
+            
         } else {
             [ProgressHUD show:@"Saving report..."];
-            [manager PATCH:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_reportTableView.report.identifier] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"Success updating report: %@",responseObject);
-                [_reportTableView.report clearReportUsers];
-                [_reportTableView.report populateWithDict:[responseObject objectForKey:@"report"]];
-                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    
-                    [ProgressHUD showSuccess:@"Report saved"];
-                    //[[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report saved" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                }];
-                
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                NSLog(@"Failure updating report: %@",error.description);
-                [ProgressHUD dismiss];
+            [_reportTableView.report synchWithServer:^(BOOL complete) {
+                if (complete){
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        [ProgressHUD showSuccess:@"Report saved"];
+                    }];
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    [ProgressHUD dismiss];
+                }
             }];
         }
     }
@@ -1690,7 +1625,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                     [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
             
                 } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                    //NSLog(@"Success posting image to API: %@",responseObject);
+                    NSLog(@"Success posting report photo to API: %@",responseObject);
+                    
                     if (photoSet.lastObject == photo){
                         [report populateWithDict:[responseObject objectForKey:@"report"]];
     
@@ -1699,7 +1635,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                         }];
                     }
                 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                    NSLog(@"failure posting image to API: %@",error.description);
+                    NSLog(@"Failure posting image to API: %@",error.description);
+                    [appDelegate notifyError:error andOperation:operation andObject:photo];
                 }];
             }
         }
@@ -1875,7 +1812,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             unsavedCount ++;
         }
     }];
-    NSLog(@"unsaved changes count: %d",unsavedCount);
+    NSLog(@"unsaved changes count: %ld",(long)unsavedCount);
     if (unsavedCount) {
         NSString *message;
         if (unsavedCount == 1){

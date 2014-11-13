@@ -18,6 +18,7 @@
 @property (nonatomic, retain) NSDate * takenAt;
 @property (nonatomic, retain) NSString * dateString;
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) id image;
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) NSString * original;
@@ -35,5 +36,7 @@
 @property (nonatomic, retain) Project *recentDocuments;
 @property (nonatomic, retain) Report *report;
 @property (nonatomic, retain) Task *task;
+
+@property BOOL synching;
 
 @end

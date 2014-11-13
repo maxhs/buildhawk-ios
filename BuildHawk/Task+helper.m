@@ -12,6 +12,7 @@
 #import "Tasklist+helper.h"
 #import "Project+helper.h"
 #import "Photo+helper.h"
+#import "BHAppDelegate.h"
 
 @implementation Task (helper)
 
@@ -119,6 +120,9 @@
     if ([dictionary objectForKey:@"completed"] && [dictionary objectForKey:@"completed"] != [NSNull null]) {
         self.completed = [dictionary objectForKey:@"completed"];
     }
+    if ([dictionary objectForKey:@"approved"] && [dictionary objectForKey:@"approved"] != [NSNull null]) {
+        self.approved = [dictionary objectForKey:@"approved"];
+    }
     if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
         self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
@@ -192,6 +196,40 @@
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
     [set removeObject:activity];
     self.activities = set;
+}
+
+- (void)synchWithServer:(synchCompletion)complete {
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+
+    [parameters setObject:self.body forKey:@"body"];
+    if (self.location.length){
+        [parameters setObject:self.location forKey:@"location"];
+    }
+    if (self.assignees.count){
+        NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
+        [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+            [assigneeIds addObject:assignee.identifier];
+        }];
+        [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"user_ids"];
+    }
+    if ([self.completed isEqualToNumber:@YES]){
+        [parameters setObject:@YES forKey:@"completed"];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+    } else {
+        [parameters setObject:@NO forKey:@"completed"];
+    }
+    
+    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, self.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success synching task: %@",responseObject);
+        [self populateFromDictionary:[responseObject objectForKey:@"task"]];
+        [self setSaved:@YES];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":self}];
+        complete(YES);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [self setSaved:@NO];
+        complete(NO);
+        NSLog(@"Failed to synch task: %@",error.description);
+    }];
 }
 
 @end

@@ -175,7 +175,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         } else {
             email = self.emailTextField.text;
         }
-        [[AFHTTPRequestOperationManager manager] POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions/forgot_password",kApiBaseUrl] parameters:@{@"email":email} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success with forgot password: %@",responseObject);
             if ([responseObject objectForKey:@"failure"]){
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find an account for that email address." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -213,13 +213,11 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     if (email) [parameters setObject:email forKey:@"email"];
     if (password) [parameters setObject:password forKey:@"password"];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
-    if (IDIOM == IPAD){
-        [parameters setObject:@2 forKey:@"device_type"];
-    } else {
-        [parameters setObject:@1 forKey:@"device_type"];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) {
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
     }
-    [[AFHTTPRequestOperationManager manager] POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    
+    [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -228,6 +226,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         }
         [user populateFromDictionary:[responseObject objectForKey:@"user"]];
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
+        [[NSUserDefaults standardUserDefaults] setObject:user.mobileToken forKey:kUserDefaultsMobileToken];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
         [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
         [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];

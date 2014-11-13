@@ -7,7 +7,12 @@
 //
 
 #import "Photo+helper.h"
+#import "Project+helper.h"
 #import "Folder+helper.h"
+#import "BHAppDelegate.h"
+#import "Report+helper.h"
+#import "ChecklistItem+helper.h"
+#import "Task+helper.h"
 
 @implementation Photo (helper)
 
@@ -68,6 +73,32 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
+        self.identifier = [dictionary objectForKey:@"id"];
+    }
+    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
+        self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+    if ([dictionary objectForKey:@"epoch_taken"] && [dictionary objectForKey:@"epoch_taken"] != [NSNull null]) {
+        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_taken"] doubleValue];
+        self.takenAt = [NSDate dateWithTimeIntervalSince1970:_interval];
+    }
+    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
+        self.name = [dictionary objectForKey:@"name"];
+    }
+    if ([dictionary objectForKey:@"url_small"] && [dictionary objectForKey:@"url_small"] != [NSNull null]) {
+        self.urlSmall = [dictionary objectForKey:@"url_small"];
+    }
+    if ([dictionary objectForKey:@"url_large"] && [dictionary objectForKey:@"url_large"] != [NSNull null]) {
+        self.urlLarge = [dictionary objectForKey:@"url_large"];
+    }
+    if ([dictionary objectForKey:@"url_thumb"] && [dictionary objectForKey:@"url_thumb"] != [NSNull null]) {
+        self.urlThumb = [dictionary objectForKey:@"url_thumb"];
+    }
+    if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
+        self.original = [dictionary objectForKey:@"original"];
+    }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }
@@ -92,6 +123,63 @@
     }
     if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {
         self.caption = [dictionary objectForKey:@"description"];
+    }
+}
+
+- (void)synchWithServer:(synchCompletion)complete {
+    NSLog(@"Are we already synching this photo? %u",self.synching);
+    
+    //only need to synch if it's a new image, i.e. its identifier is 0
+    if (self.image && [self.identifier isEqualToNumber:@0] && !self.synching){
+        NSData *imageData = UIImageJPEGRepresentation(self.image, 1);
+        NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
+        [photoParameters setObject:@YES forKey:@"mobile"];
+        
+        // Standard Stuff //
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+            [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+        }
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
+            [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+        }
+        if (self.project && self.project.identifier){
+            [photoParameters setObject:self.project.identifier forKey:@"project_id"];
+        }
+        [photoParameters setObject:[NSNumber numberWithDouble:[self.takenAt timeIntervalSince1970]] forKey:@"taken_at"];
+        // *** //
+        
+        if (self.report && ![self.report.identifier isEqualToNumber:@0]){
+            [photoParameters setObject:self.report.identifier forKey:@"report_id"];
+            [photoParameters setObject:kReports forKey:@"source"];
+        } else if (self.checklistItem && ![self.checklistItem.identifier isEqualToNumber:@0]) {
+            [photoParameters setObject:self.checklistItem.identifier forKey:@"checklist_item_id"];
+            [photoParameters setObject:kChecklist forKey:@"source"];
+        } else if (self.task && ![self.task.identifier isEqualToNumber:@0]){
+            [photoParameters setObject:self.task.identifier forKey:@"task_id"];
+            [photoParameters setObject:kTasklist forKey:@"source"];
+        } else if (self.folder && ![self.folder.identifier isEqualToNumber:@0]){
+            [photoParameters setObject:self.folder.identifier forKey:@"folder_id"];
+            [photoParameters setObject:kFolder forKey:@"source"];
+        }
+        
+        BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+        self.synching = YES;
+        [[delegate manager] POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success synching image with API: %@",responseObject);
+            //[self populateFromDictionary:[responseObject objectForKey:@"photo"]];
+            [self updateFromDictionary:[responseObject objectForKey:@"photo"]];
+            [self setSaved:@YES];
+            complete(YES);
+            self.synching = NO;
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failure synching image with API: %@",error.description);
+            [self setSaved:@NO];
+            complete(NO);
+            self.synching = NO;
+            [delegate notifyError:error andOperation:operation andObject:self];
+        }];
     }
 }
 

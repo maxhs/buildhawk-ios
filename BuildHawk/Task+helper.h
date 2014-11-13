@@ -11,6 +11,8 @@
 #import "User+helper.h"
 #import "Activity+helper.h"
 
+typedef void(^synchCompletion)(BOOL completed);
+
 @interface Task (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)addComment:(Comment *)comment;
@@ -21,4 +23,5 @@
 - (void)removeAssignee:(User *)user;
 - (void)addActivity:(Activity *)activity;
 - (void)removeActivity:(Activity *)activity;
+- (void)synchWithServer:(synchCompletion)complete;
 @end
