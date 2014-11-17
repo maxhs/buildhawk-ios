@@ -14,7 +14,6 @@
 #import "ChecklistItem+helper.h"
 #import "Constants.h"
 #import "Checklist.h"
-#import "Flurry.h"
 #import "Project.h"
 #import "BHOverlayView.h"
 #import "UIImage+ImageEffects.h"
@@ -23,7 +22,9 @@
 #import "Checklist+helper.h"
 //#import "GAI.h"
 
-@interface BHChecklistViewController () <UISearchBarDelegate, UISearchDisplayDelegate, UITableViewDataSource, UITableViewDelegate, NSFetchedResultsControllerDelegate> {
+@interface BHChecklistViewController () <UISearchBarDelegate, UISearchDisplayDelegate, UITableViewDataSource, UITableViewDelegate> {
+    AFHTTPRequestOperationManager *manager;
+    BHAppDelegate *delegate;
     Project *project;
     UIRefreshControl *refreshControl;
     NSMutableArray *filteredItems;
@@ -34,7 +35,7 @@
     BOOL inProgress;
     CGFloat itemRowHeight;
     CGRect screen;
-    AFHTTPRequestOperationManager *manager;
+    
     NSIndexPath *indexPathToExpand;
     UIView *initialOverlayBackground;
     UIView *overlayBackground;
@@ -53,8 +54,9 @@
 @implementation BHChecklistViewController
 
 - (void)viewDidLoad {
-    self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     [super viewDidLoad];
+    
+    self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     screen = [[UIScreen mainScreen] bounds];
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
@@ -64,7 +66,8 @@
     [self.navigationController setNavigationBarHidden:NO];
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.tabBarController.tabBar.frame.size.height, 0);
     project = [(BHTabBarViewController*)self.tabBarController project];
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = [delegate manager];
     rowDictionary = [NSMutableDictionary dictionary];
     itemRowHeight = 110;
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Checklists",project.name];
@@ -80,8 +83,6 @@
             category.expanded = @NO;
         }
     }
-    
-    [Flurry logEvent:@"Viewing checklist"];
     
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
@@ -110,10 +111,12 @@
     [super viewDidAppear:animated];
     self.tabBarController.navigationItem.rightBarButtonItem = searchButton;
 
-    //ensure that the checklist is properly populated
-    if (!_checklist || ![(Phase*)_checklist.phases.firstObject categories].count){
-        [self loadChecklist];
-        [ProgressHUD show:@"Loading Checklist..."];
+    if (delegate.connected){
+        //ensure that the checklist is properly populated
+        if (!_checklist || ![(Phase*)_checklist.phases.firstObject categories].count){
+            [self loadChecklist];
+            [ProgressHUD show:@"Loading Checklist..."];
+        }
     }
     
     if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist]){
@@ -289,8 +292,12 @@
 }
 
 - (void)handleRefresh {
-    [ProgressHUD show:@"Refreshing..."];
-    [self loadChecklist];
+    if (delegate.connected){
+        [ProgressHUD show:@"Refreshing..."];
+        [self loadChecklist];
+    } else {
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    }
 }
 
 #pragma mark - API call
@@ -820,8 +827,8 @@
         [item.category.phase calculateProgress];
         
         //ensure the row stays expanded
-        [item.category setExpanded:@YES];
-        [item.category.phase setExpanded:@YES];
+        //[item.category setExpanded:@YES];
+        //[item.category.phase setExpanded:@YES];
         
         //reload the tableview after checking to make sure the phase (i.e. section) really exists
         if (item.category.phase.orderIndex.integerValue < self.tableView.numberOfSections){
@@ -921,7 +928,7 @@
     [checklist.tapGesture addTarget:self action:@selector(slide3:)];
     
     [UIView animateWithDuration:.35 animations:^{
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
+        overlayBackground = [delegate addOverlayUnderNav:NO];
         [overlayBackground addSubview:checklistScreenshot];
         [overlayBackground addSubview:checklist];
         [sender.view setAlpha:0.0];

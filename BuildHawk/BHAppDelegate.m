@@ -19,7 +19,6 @@
 #import "Report+helper.h"
 #import "Message+helper.h"
 #import "CoreData+MagicalRecord.h"
-#import "Flurry.h"
 #import <Crashlytics/Crashlytics.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <RESideMenu/RESideMenu.h>
@@ -47,6 +46,8 @@
     
     //create the sync controller singleton
     _syncController = [BHSyncController sharedController];
+    //assume we're connected to start
+    _connected = YES;
     
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
@@ -146,8 +147,9 @@
     }
     
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
-    
     [[UISwitch appearance] setOnTintColor:kBlueColor];
+    [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
+     setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
     
     [[UISegmentedControl appearance] setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:kMyriadProRegular size:15]} forState:UIControlStateNormal];
     [[UISegmentedControl appearance] setContentPositionAdjustment:UIOffsetMake(0, 1) forSegmentType:UISegmentedControlSegmentAny barMetrics:UIBarMetricsDefault];
@@ -197,7 +199,7 @@
     [[UIBarButtonItem appearance] setTitlePositionAdjustment:UIOffsetMake(0, 3) forBarMetrics:UIBarMetricsDefault];
     
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
-     setTitleTextAttributes:@{[UIColor blackColor]:NSForegroundColorAttributeName} forState:UIControlStateNormal];
+     setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
 }
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav {
@@ -336,6 +338,7 @@
     if (_connected)
         [[[UIAlertView alloc] initWithTitle:@"Device Offline" message:@"You can continue to work offline, although not all data may display properly. Changes will be synchronized when you reconnect." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
 
+    [ProgressHUD dismiss];
     [self displayStatusMessage:@"Your device is currently offline"];
 }
 
@@ -384,14 +387,8 @@
     }];
 }
 
-#pragma mark uncaughtExceptionHandler
-void uncaughtExceptionHandler(NSException *exception) {
-    //[Flurry logError:exception.name message:exception.description exception:exception];
-}
-
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
 {
-    //[Flurry logEvent:@"Did Receive Remote Notification"];
     [[Mixpanel sharedInstance] trackPushNotification:pushMessage];
 }
 
@@ -402,7 +399,6 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
 {
-    [Flurry logEvent:@"Registered For Remote Notifications"];
     [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
     [[NSUserDefaults standardUserDefaults] synchronize];
     if (_connected && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
@@ -419,7 +415,7 @@ void uncaughtExceptionHandler(NSException *exception) {
 
 - (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
 {
-    [Flurry logEvent:@"Rejected Remote Notifications"];
+    
 }
 
 - (void)notifyError:(NSError*)error andOperation:(AFHTTPRequestOperation *)operation andObject:(id)object {
@@ -434,15 +430,15 @@ void uncaughtExceptionHandler(NSException *exception) {
         [parameters setObject:[NSNumber numberWithInteger:operation.response.statusCode] forKey:@"status_code"];
     }
     if (object){
-        if ([object isKindOfClass:[Photo class]]){
+        if ([object isKindOfClass:[Photo class]] && [(Photo*)object identifier]){
             [parameters setObject:[(Photo*)object identifier] forKey:@"photo"];
-        } else if ([object isKindOfClass:[Report class]]){
+        } else if ([object isKindOfClass:[Report class]] && [(Report*)object identifier]){
             [parameters setObject:[(Report*)object identifier] forKey:@"report_id"];
-        } else if ([object isKindOfClass:[ChecklistItem class]]) {
+        } else if ([object isKindOfClass:[ChecklistItem class]] && [(ChecklistItem*)object identifier]) {
             [parameters setObject:[(ChecklistItem*)object identifier] forKey:@"checklist_item"];
-        } else if ([object isKindOfClass:[Task class]]){
+        } else if ([object isKindOfClass:[Task class]] && [(Task*)object identifier]){
             [parameters setObject:[(Task*)object identifier] forKey:@"task"];
-        } else if ([object isKindOfClass:[Message class]]) {
+        } else if ([object isKindOfClass:[Message class]] && [(Message*)object identifier]) {
             [parameters setObject:[(Message*)object identifier] forKey:@"message"];
         }
     }
@@ -462,8 +458,6 @@ void uncaughtExceptionHandler(NSException *exception) {
     [Mixpanel sharedInstanceWithToken:MIXPANEL_TOKEN];
     Mixpanel *mixpanel = [Mixpanel sharedInstance];
     [mixpanel track:@"Launch"];
-    //[Flurry setCrashReportingEnabled:YES];
-    //[Flurry startSession:kFlurryKey];
     
 //    // Optional: automatically send uncaught exceptions to Google Analytics.
 //    [GAI sharedInstance].trackUncaughtExceptions = YES;

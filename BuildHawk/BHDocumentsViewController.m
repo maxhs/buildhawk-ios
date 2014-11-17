@@ -16,7 +16,6 @@
 #import "BHFoldersViewController.h"
 #import "UIButton+WebCache.h"
 #import "BHPhotosViewController.h"
-#import "Flurry.h"
 #import "BHAppDelegate.h"
 #import "BHUtilities.h"
 
@@ -73,7 +72,6 @@
     
     sortByDate = NO;
     sortByUser = NO;
-    [Flurry logEvent:@"Viewing documents"];
     [super viewDidLoad];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
@@ -83,12 +81,18 @@
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     if (_project.documents.count > 0) [self drawDocuments:_project.documents];
-    [self loadPhotos];
+    if (delegate.connected){
+        [self loadPhotos];
+    }
 }
 
 - (void)handleRefresh {
-    [ProgressHUD show:@"Refreshing..."];
-    [self loadPhotos];
+    if (delegate.connected){
+        [ProgressHUD show:@"Refreshing..."];
+        [self loadPhotos];
+    } else {
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {

@@ -37,6 +37,4 @@
 @property (nonatomic, retain) Report *report;
 @property (nonatomic, retain) Task *task;
 
-@property BOOL synching;
-
 @end

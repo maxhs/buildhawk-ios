@@ -17,7 +17,6 @@
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "BHAppDelegate.h"
-#import "Flurry.h"
 #import "Project.h"
 #import "BHOverlayView.h"
 #import "Subcontractor.h"
@@ -93,7 +92,6 @@
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    [Flurry logEvent:@"Viewing task"];
     
     if (_connectMode){
         _tasks = _project.userConnectItems.array.mutableCopy;
@@ -583,9 +581,9 @@
         }
         [cell.createdLabel setText:[dateFormatter stringFromDate:task.createdAt]];
         
-        if ([task.assignees.firstObject isKindOfClass:[User class]] && task.user){
-            User *assignee = task.assignees.firstObject;
-            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",task.user.fullname,assignee.fullname]];
+        if (task.assignees.count && task.user){
+            NSString *assigneeString = task.assignees.count == 1 ? [(User*)task.assignees.firstObject fullname] : [NSString stringWithFormat:@"%lu assignees",(unsigned long)task.assignees.count];
+            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",task.user.fullname,assigneeString]];
             
         } else if (task.user) {
             [cell.ownerLabel setText:task.user.fullname];

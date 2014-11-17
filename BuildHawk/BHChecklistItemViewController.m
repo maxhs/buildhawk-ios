@@ -22,7 +22,6 @@
 #import "UIButton+WebCache.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhotoBrowser.h"
-#import "Flurry.h"
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 #import "BHPersonnelPickerViewController.h"
 #import "Project.h"
@@ -118,9 +117,7 @@
     self.tableView.backgroundColor = [UIColor whiteColor];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem:)];
-    self.navigationItem.rightBarButtonItem = saveButton;
-    [Flurry logEvent:@"Viewing checklist item"];
-    
+    self.navigationItem.rightBarButtonItem = saveButton;    
 }
 
 - (void)setUpTimeFormatters {
@@ -1247,6 +1244,7 @@
     if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self updateChecklistItem:NO];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+        [_item setSaved:@YES];
         [self loadItem:NO];
         [self.navigationController popViewControllerAnimated:YES];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Delete"]) {

@@ -223,7 +223,6 @@
 		F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0817F9F2DE0020DE13 /* cameraButton@2x.png */; };
 		F292AC1117F9F2DE0020DE13 /* textButton.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0917F9F2DE0020DE13 /* textButton.png */; };
 		F292AC1217F9F2DE0020DE13 /* textButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F292AC0A17F9F2DE0020DE13 /* textButton@2x.png */; };
-		F292B27618353CDA005E9123 /* libFlurry_4.3.0.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F292B27518353CDA005E9123 /* libFlurry_4.3.0.a */; };
 		F292B28518353E3E005E9123 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F292B28418353E3E005E9123 /* Security.framework */; };
 		F292B28718353E44005E9123 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F292B28618353E44005E9123 /* SystemConfiguration.framework */; };
 		F292B28918353E49005E9123 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F292B28818353E49005E9123 /* CoreData.framework */; };
@@ -642,8 +641,6 @@
 		F292AC0817F9F2DE0020DE13 /* cameraButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cameraButton@2x.png"; sourceTree = "<group>"; };
 		F292AC0917F9F2DE0020DE13 /* textButton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = textButton.png; sourceTree = "<group>"; };
 		F292AC0A17F9F2DE0020DE13 /* textButton@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "textButton@2x.png"; sourceTree = "<group>"; };
-		F292B27418353CDA005E9123 /* Flurry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Flurry.h; sourceTree = "<group>"; };
-		F292B27518353CDA005E9123 /* libFlurry_4.3.0.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libFlurry_4.3.0.a; sourceTree = "<group>"; };
 		F292B28418353E3E005E9123 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		F292B28618353E44005E9123 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		F292B28818353E49005E9123 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -857,7 +854,6 @@
 				F292B28518353E3E005E9123 /* Security.framework in Frameworks */,
 				F289FE33183415DA0070E8FC /* AssetsLibrary.framework in Frameworks */,
 				F2A594F417FBCD1C00B818B5 /* CoreImage.framework in Frameworks */,
-				F292B27618353CDA005E9123 /* libFlurry_4.3.0.a in Frameworks */,
 				F2A594F217FBCD0200B818B5 /* ImageIO.framework in Frameworks */,
 				F2A594E817FAAD8700B818B5 /* AddressBookUI.framework in Frameworks */,
 				F241EA651860D2E400DA0FEA /* Crashlytics.framework in Frameworks */,
@@ -900,7 +896,6 @@
 				F2FAE42D18F4DDB3005E582B /* MWPhotoBrowser */,
 				F2FAE3C618F4DCA2005E582B /* MBProgressHUD */,
 				F2FAE3CA18F4DCA2005E582B /* DACircularProgress */,
-				F292B28218353E21005E9123 /* Flurry */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1204,15 +1199,6 @@
 				F2C2008E18FCE617003C401A /* BHChooseTopicsViewCell.m */,
 			);
 			name = Reports;
-			sourceTree = "<group>";
-		};
-		F292B28218353E21005E9123 /* Flurry */ = {
-			isa = PBXGroup;
-			children = (
-				F292B27418353CDA005E9123 /* Flurry.h */,
-				F292B27518353CDA005E9123 /* libFlurry_4.3.0.a */,
-			);
-			name = Flurry;
 			sourceTree = "<group>";
 		};
 		F2A957EA19DF501A00A3B471 /* Checklists */ = {

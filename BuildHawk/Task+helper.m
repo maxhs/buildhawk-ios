@@ -68,17 +68,20 @@
         
         self.user = user;
     }
-    if ([dictionary objectForKey:@"assignee"] && [dictionary objectForKey:@"assignee"] != [NSNull null]) {
+    if ([dictionary objectForKey:@"assignees"] && [dictionary objectForKey:@"assignees"] != [NSNull null]) {
         NSMutableOrderedSet *orderedUsers = [NSMutableOrderedSet orderedSet];
-        NSDictionary *userDict = [dictionary objectForKey:@"assignee"];
-        NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!user){
-            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        for (id userDict in [dictionary objectForKey:@"assignees"]) {
+            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
+            User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (user){
+                [user updateFromDictionary:userDict];
+            } else {
+                user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [user populateFromDictionary:userDict];
+            }
+            [user assignTask:self];
+            [orderedUsers addObject:user];
         }
-        [user populateFromDictionary:userDict];
-        [user assignTask:self];
-        [orderedUsers addObject:user];
         self.assignees = orderedUsers;
     }
     
@@ -210,7 +213,7 @@
         [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
             [assigneeIds addObject:assignee.identifier];
         }];
-        [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"user_ids"];
+        [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"assignee_ids"];
     }
     if ([self.completed isEqualToNumber:@YES]){
         [parameters setObject:@YES forKey:@"completed"];
@@ -220,10 +223,14 @@
     }
     
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, self.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success synching task: %@",responseObject);
-        [self populateFromDictionary:[responseObject objectForKey:@"task"]];
-        [self setSaved:@YES];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":self}];
+        NSLog(@"Success synching task: %@",responseObject);
+        if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoTask]){
+            [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        } else {
+            [self populateFromDictionary:[responseObject objectForKey:@"task"]];
+            [self setSaved:@YES];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":self}];
+        }
         complete(YES);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [self setSaved:@NO];

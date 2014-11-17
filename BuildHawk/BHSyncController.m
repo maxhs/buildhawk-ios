@@ -109,6 +109,7 @@ typedef void(^synchCompletion)(BOOL);
                 if (completed){
                     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                         [self updateSynchCount];
+                        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadReports" object:nil];
                     }];
                 }
             }];
@@ -128,6 +129,11 @@ typedef void(^synchCompletion)(BOOL);
             }];
         }
     }
+}
+
+- (void)update {
+    [self fetchObjectsThatNeedSyncing];
+    [self updateSynchCount];
 }
 
 - (void)updateStatusMessage:(SynchDirection)direction {

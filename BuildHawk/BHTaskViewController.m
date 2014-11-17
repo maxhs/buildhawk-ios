@@ -14,7 +14,6 @@
 #import "UIButton+WebCache.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhotoBrowser.h"
-#import "Flurry.h"
 #import "BHTabBarViewController.h"
 #import "BHPersonnelPickerViewController.h"
 #import "BHAddCommentCell.h"
@@ -160,8 +159,6 @@ typedef void(^RequestSuccess)(id result);
     self.itemTextView.delegate = self;
     [self.itemTextView setText:itemPlaceholder];
     library = [[ALAssetsLibrary alloc] init];
-    
-    [Flurry logEvent:@"Viewing task"];
     
     //notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(assignTask:) name:@"AssignTask" object:nil];
@@ -853,8 +850,10 @@ typedef void(^RequestSuccess)(id result);
     } else if (!appDelegate.connected){
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
         [_task setSaved:@NO];
-        [appDelegate.syncController updateStatusMessage:kIncrement];
-        [ProgressHUD showSuccess:@"Saved"];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [ProgressHUD showSuccess:@"Saved"];
+            [appDelegate.syncController update];
+        }];
     } else if ([_itemTextView.text isEqualToString:itemPlaceholder] || _itemTextView.text.length == 0){
         [[[UIAlertView alloc] initWithTitle:nil message:@"Please describe your task before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
@@ -900,7 +899,7 @@ typedef void(^RequestSuccess)(id result);
             [_task.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
                 [assigneeIds addObject:assignee.identifier];
             }];
-            [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"user_ids"];
+            [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"assignee_ids"];
         }
         
         if ([_task.completed isEqualToNumber:@YES]){

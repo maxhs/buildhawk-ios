@@ -39,6 +39,4 @@
 @dynamic activities;
 @dynamic saved;
 
-@synthesize synching;
-
 @end

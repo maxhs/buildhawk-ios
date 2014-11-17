@@ -66,6 +66,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     mixpanel = [Mixpanel sharedInstance];
     self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     self.navigationController.interactivePopGestureRecognizer.enabled = NO;
@@ -81,10 +82,7 @@
     [self.view setBackgroundColor:kDarkerGrayColor];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
-    
-    if (delegate.currentUser){
-        _currentUser = delegate.currentUser;
-    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     [delegate updateLoggedInStatus];
@@ -95,9 +93,7 @@
     screen = [UIScreen mainScreen].bounds;
     filteredProjects = [NSMutableArray array];
 
-    if (IDIOM == IPAD){
-        
-    } else {
+    if (IDIOM != IPAD){
         if (screen.size.height == 568) iPhone5 = YES;
         else iPhone5 = NO;
     }
@@ -112,9 +108,12 @@
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
     loading = YES;
-    if (_currentUser.projects.count == 0){
+    if (_currentUser && _currentUser.projects.count == 0){
         [ProgressHUD show:@"Fetching projects..."];
     }
+    [self loadProjects];
+    [self loadConnectItems];
+    [mixpanel track:@"Dashboard" properties:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]}];
     
     refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
     self.navigationItem.rightBarButtonItem = refreshButton;
@@ -127,10 +126,9 @@
             break;
         }
     }
-    
     [self.searchBar setPlaceholder:@"Search for projects..."];
     [self.searchBar setSearchBarStyle:UISearchBarStyleMinimal];
-    _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+    
     [self registerForKeyboardNotifications];
 }
 
@@ -138,9 +136,6 @@
     [super viewWillAppear:animated];
     [self.navigationController setNavigationBarHidden:NO animated:NO];
     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
-    [self loadProjects];
-    [self loadConnectItems];
-    [mixpanel track:((IDIOM == IPAD) ? @"iPad: Dashboard" : @"iPhone: Dashboard") properties:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]}];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -166,6 +161,7 @@
         [delegate updateLoggedInStatus];
         [self loadProjects];
         [self loadConnectItems];
+        [delegate.syncController syncAll];
     } else {
         [self.tableView reloadData];
     }
@@ -183,6 +179,7 @@
             [ProgressHUD dismiss];
         }];
     } else {
+        NSLog(@"delegate not connected");
         [self getProjectsOffline];
     }
 }
@@ -219,6 +216,7 @@
         [self.tableView reloadData];
         [ProgressHUD dismiss];
     } else {
+        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
         NSMutableOrderedSet *projectSet = [NSMutableOrderedSet orderedSet];
         NSMutableOrderedSet *groupSet = [NSMutableOrderedSet orderedSet];
         NSMutableOrderedSet *hiddenSet = [NSMutableOrderedSet orderedSet];
@@ -234,7 +232,6 @@
             if ([project.hidden isEqualToNumber:@YES]) [hiddenSet addObject:project];
             else if (project.group)[groupSet addObject:project];
             else [projectSet addObject:project];
-        
         }
     
         for (Project *p in _currentUser.projects){
@@ -375,7 +372,6 @@
             project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [project populateFromDictionary:obj];
-        NSLog(@"hidden project: %@",project.name);
         [projectSet addObject:project];
     }
 
@@ -407,7 +403,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (searching) {
+    if (searching && section == 0) {
         return filteredProjects.count;
     } else if (section == 0){
         if (_projects.count == 0 && !loading){
@@ -419,9 +415,9 @@
         return _currentUser.company.groups.count;
     } else if (section == 2) {
         return connectProjects.count;
-    } else if (section == 3 /*&& !loading*/) {
+    } else if (section == 3) {
         return 1;
-    } else if (section == 4 /*&& !loading*/) {
+    } else if (section == 4) {
         return 1;
     } else {
         return 0;
@@ -528,7 +524,6 @@
         
         BHDashboardButtonCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ButtonCell"];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-    
         [cell.button removeTarget:nil
                            action:NULL
                  forControlEvents:UIControlEventAllEvents];
@@ -611,14 +606,6 @@
     }
     [headerView addSubview:headerLabel];
     return headerView;
-}
-    
--(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
-        //end of loading
-        //[ProgressHUD dismiss];
-    }
 }
 
 - (void)confirmHide:(UIButton*)button{

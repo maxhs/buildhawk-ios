@@ -96,7 +96,9 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)updateNotifications:(NSArray*)array {
-    if (_currentUser && ![_currentUser.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        //refetch the user in case there's a CoreData fault
+        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
         NSMutableOrderedSet *notifications = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *dict in array){
             Notification *notification = [Notification MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];

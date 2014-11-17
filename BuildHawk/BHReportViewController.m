@@ -19,7 +19,6 @@
 #import "BHReportPersonnelCell.h"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
-#import "Flurry.h"
 #import "BHAppDelegate.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <CoreLocation/CoreLocation.h>
@@ -135,8 +134,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     [self setUpFormatters];
     [self setUpDatePicker];
     [self registerForKeyboardNotifications];
-    
-    [Flurry logEvent:@"Viewing reports"];
 }
 
 - (void)setUpTableViewsForReports {
@@ -846,7 +843,11 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 [headerLabel setText:@"NOTES"];
                 break;
             case 9:
-                //[headerLabel setText:[NSString stringWithFormat:@"%@ ACTIVITY",_project.name.uppercaseString]];
+                if ([tableView.report.type isEqualToString:kDaily]){
+                    [headerLabel setText:@"DAILY SUMMARY"];
+                } else {
+                    [headerLabel setText:[NSString stringWithFormat:@"%@ ACTIVITY",_project.name.uppercaseString]];
+                }
                 activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
                 [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
                 [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
@@ -1537,37 +1538,20 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new reports for demo projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
         
-    } else {
+    } else if (appDelegate.connected) {
         
         if ([_reportTableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [ProgressHUD show:@"Creating report..."];
-            
-            //fetch the images
-            NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:_reportTableView.report.photos];
-            
             [_reportTableView.report synchWithServer:^(BOOL complete) {
                 if (complete){
-                    
-                    //reattach the images we grabbed earlier.
-                    for (Photo *photo in photoSet){
-                        photo.report = _reportTableView.report;
-                    }
-                    //process and upload to AWS.
-                    if (photoSet.count){
-                        [self uploadPhotos:photoSet forReport:_reportTableView.report];
-                    }
-                    
                     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                         if (self.delegate && [self.delegate respondsToSelector:@selector(newReportCreated:)]) {
-                            [self.delegate newReportCreated:_reportTableView.report];
+                            [self.delegate newReportCreated:_reportTableView.report.identifier];
                         }
                         [ProgressHUD showSuccess:@"Report Added"];
-                        [[[UIAlertView alloc] initWithTitle:@"Success" message:@"Report added" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                         [self.navigationController popViewControllerAnimated:YES];
                     }];
-                    
                 } else {
-                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while creating this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                     [ProgressHUD dismiss];
                 }
             }];
@@ -1575,16 +1559,23 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         } else {
             [ProgressHUD show:@"Saving report..."];
             [_reportTableView.report synchWithServer:^(BOOL complete) {
-                if (complete){
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                    if (complete){
                         [ProgressHUD showSuccess:@"Report saved"];
-                    }];
-                } else {
-                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                    [ProgressHUD dismiss];
-                }
+                    } else {
+                        //increment the status
+                        [appDelegate.syncController update];
+                        [ProgressHUD dismiss];
+                    }
+                }];
             }];
         }
+    } else {
+        [_reportTableView.report setSaved:@NO];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [ProgressHUD showSuccess:@"Report saved"];
+            [appDelegate.syncController update];
+        }];
     }
 }
 

@@ -78,24 +78,31 @@
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
-        
-    if (_project.reports.count == 0){
-        if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [ProgressHUD show:@"Fetching reports..."];
-            });
+    
+    if (delegate.connected){
+        if (_project.reports.count == 0){
+            if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [ProgressHUD show:@"Fetching reports..."];
+                });
+            } else {
+                overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
+                [self slide1];
+                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
+            }
         } else {
-            overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-            [self slide1];
-            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [ProgressHUD show:@"Updating reports..."];
+            });
         }
-    } else {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [ProgressHUD show:@"Updating reports..."];
-        });
-        
+        [self loadReports];
     }
-    [self loadReports];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReports) name:@"ReloadReports" object:nil];
+}
+
+- (void)reloadReports {
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_project.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
+    [self.tableView reloadData];
 }
 
 - (void)sortButtonTreatment:(UIButton*)button {
@@ -226,8 +233,13 @@
 }
 
 - (void)handleRefresh {
-    [ProgressHUD show:@"Refreshing..."];
-    [self loadReports];
+    if (delegate.connected){
+        [ProgressHUD show:@"Refreshing..."];
+        [self loadReports];
+    } else {
+        [self reloadReports];
+        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    }
 }
 
 #pragma mark - Sorting & filtering
@@ -336,6 +348,7 @@
         }
     } else {
         if (_project.reports.count){
+            NSLog(@"returning project count: %lu",(unsigned long)_project.reports.count);
             return _project.reports.count;
         } else if (loading) {
             return 0;
@@ -360,6 +373,7 @@
     } else {
         if (_project.reports.count){
             Report *report = [_project.reports objectAtIndex:indexPath.row];
+            NSLog(@"Configuring report for %@",report.dateString);
             [cell configureReport:report];
         } else if (!loading) {
             return [self generateNothingCellForIndexPath:indexPath];
@@ -448,8 +462,9 @@
     }
 }
 
-- (void)newReportCreated:(Report *)report {
-    NSLog(@"delegate method: %@",report);
+- (void)newReportCreated:(NSNumber *)reportId {
+    NSLog(@"new report delegate method: %@",reportId);
+    Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId inContext:[NSManagedObjectContext MR_defaultContext]];
     daily = NO;
     weekly = NO;
     safety = NO;

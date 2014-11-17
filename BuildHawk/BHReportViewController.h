@@ -12,7 +12,7 @@
 @protocol BHReportDelegate <NSObject>
 
 @required
-- (void)newReportCreated:(Report*)report;
+- (void)newReportCreated:(NSNumber*)reportId;
 @end
 
 @interface BHReportViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>

@@ -16,7 +16,6 @@
 #import "BHRecentDocumentCell.h"
 #import "UIButton+WebCache.h"
 #import "MWPhotoBrowser.h"
-#import "Flurry.h"
 #import "BHChecklistViewController.h"
 #import "BHChecklistItemViewController.h"
 #import "BHTaskViewController.h"
@@ -39,7 +38,6 @@
 
 @interface BHProjectSynopsisViewController () <UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     BHAppDelegate *delegate;
-    User *_currentUser;
     AFHTTPRequestOperationManager *manager;
     UIScrollView *documentsScrollView;
     CGRect screen;
@@ -53,21 +51,17 @@
     NSMutableOrderedSet *pastDueProjectReminders;
     UIBarButtonItem *refreshButton;
 }
-
 @end
 
 @implementation BHProjectSynopsisViewController
 
 @synthesize project = _project;
 
-- (void)viewDidLoad
-{
-    //set the _currentUser beofre viewDidLoad to ensure the tableView loads properly
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
-    _currentUser = delegate.currentUser;
-    
-    [super viewDidLoad];
     
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = _project.name;
@@ -75,8 +69,7 @@
     
     refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
     self.navigationItem.rightBarButtonItem = refreshButton;
-    
-    [Flurry logEvent:[NSString stringWithFormat: @"Viewing dashboard for %@",_project.name]];
+
     [self setUpFooter];
     [self setUpTimeFormatters];
     [ProgressHUD show:@"Fetching the latest..."];
@@ -128,7 +121,7 @@
 - (void)loadProject {
     if (delegate.connected){
         [manager GET:[NSString stringWithFormat:@"%@/projects/%@/dash",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting project synopsis: %@",responseObject);
+            //NSLog(@"Success getting project synopsis: %@",responseObject);
             [_project populateFromDictionary:[responseObject objectForKey:@"project"]];
             [self.tableView reloadData];
             
@@ -143,27 +136,32 @@
     }
 }
 
-#pragma mark - Table view data source
-
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
-    pastDueProjectReminders = [NSMutableOrderedSet orderedSet];
+- (void)parseReminders {
     [_project.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if ([reminder.user.identifier isEqualToNumber:_currentUser.identifier]){
+        if (reminder.user && [reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
             [pastDueProjectReminders addObject:reminder];
+            *stop = YES;
         }
     }];
     projectReminders = [NSMutableOrderedSet orderedSet];
     [_project.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if ([reminder.user.identifier isEqualToNumber:_currentUser.identifier]){
+        if ([reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
             [projectReminders addObject:reminder];
+            *stop = YES;
         }
     }];
+}
+
+#pragma mark - Table view data source
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    pastDueProjectReminders = [NSMutableOrderedSet orderedSet];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [self parseReminders];
+    }
     return 8;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     switch (section) {
         case 0:
         {
@@ -623,7 +621,7 @@
         NSLog(@"Success deleting this reminder: %@",responseObject);
         
         [projectReminders removeObject:reminder];
-        [_currentUser.reminders removeObject:reminder];
+        [delegate.currentUser.reminders removeObject:reminder];
         [reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         
         [self.tableView beginUpdates];

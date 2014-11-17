@@ -17,7 +17,7 @@
 @implementation Photo (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
-    //NSLog(@"photo helper dictionary: %@",dictionary);
+    //NSLog(@"populate photo dictionary: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
@@ -73,6 +73,7 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
+    //NSLog(@"update photo dict: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
@@ -127,10 +128,9 @@
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
-    NSLog(@"Are we already synching this photo? %u",self.synching);
     
     //only need to synch if it's a new image, i.e. its identifier is 0
-    if (self.image && [self.identifier isEqualToNumber:@0] && !self.synching){
+    if (self.image && [self.identifier isEqualToNumber:@0]){
         NSData *imageData = UIImageJPEGRepresentation(self.image, 1);
         NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
         [photoParameters setObject:@YES forKey:@"mobile"];
@@ -163,21 +163,22 @@
         }
         
         BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-        self.synching = YES;
+
         [[delegate manager] POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success synching image with API: %@",responseObject);
             //[self populateFromDictionary:[responseObject objectForKey:@"photo"]];
-            [self updateFromDictionary:[responseObject objectForKey:@"photo"]];
-            [self setSaved:@YES];
-            complete(YES);
-            self.synching = NO;
+            Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"photo"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+            [photo updateFromDictionary:[responseObject objectForKey:@"photo"]];
+            [photo setSaved:@YES];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                complete(YES);
+            }];
+            
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure synching image with API: %@",error.description);
-            [self setSaved:@NO];
             complete(NO);
-            self.synching = NO;
             [delegate notifyError:error andOperation:operation andObject:self];
         }];
     }

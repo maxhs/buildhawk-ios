@@ -21,6 +21,11 @@
 @implementation Project (helper)
 
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
+    if (!self){
+        NSLog(@"Core data couldn't find project");
+        return;
+    }
+    
     //NSLog(@"project dict: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
@@ -274,7 +279,7 @@
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
-    NSLog(@"update project dict: %@",dictionary);
+    //NSLog(@"update project dict: %@",dictionary);
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
         self.name = [dictionary objectForKey:@"name"];
     }

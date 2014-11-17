@@ -529,7 +529,7 @@
             if ([responseObject objectForKey:@"duplicate"]){
                 [[[UIAlertView alloc] initWithTitle:@"Report Duplicate" message:@"A report for this date already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                 [ProgressHUD dismiss];
-                complete(YES);
+                complete(NO);
             } else {
                 [self populateWithDict:[responseObject objectForKey:@"report"]];
                 complete(YES);
@@ -538,7 +538,7 @@
                     photo.report = self;
                     [photo synchWithServer:^(BOOL complete) {
                         if (complete){
-                            [delegate.syncController updateStatusMessage:kIncrement];
+                            
                         }
                     }];
                 }
@@ -550,14 +550,17 @@
             complete(NO);
         }];
     } else {
-        NSLog(@"saving an existing report");
+        NSLog(@"saving an existing report: %@",self.identifier);
         [manager PATCH:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,self.identifier] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success synching report: %@",responseObject);
-            [self clearReportUsers];
-            [self populateWithDict:[responseObject objectForKey:@"report"]];
+            if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoReport]){
+                [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            } else {
+                [self clearReportUsers];
+                [self populateWithDict:[responseObject objectForKey:@"report"]];
+            }
             complete(YES);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            //[[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while saving this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             NSLog(@"Failure synching report: %@",error.description);
             complete(NO);
         }];

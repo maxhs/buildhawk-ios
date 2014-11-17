@@ -26,5 +26,5 @@ typedef enum {
 + (id)sharedController;
 - (void)syncAll;
 - (void)updateStatusMessage:(SynchDirection)direction;
-
+- (void)update;
 @end
