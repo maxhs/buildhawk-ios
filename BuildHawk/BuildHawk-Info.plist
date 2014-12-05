@@ -30,7 +30,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>com.buildhawk.test</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<string>7.0</string>
+	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>BuildHawk Test</string>
 	<key>CFBundlePackageType</key>

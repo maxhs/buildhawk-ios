@@ -121,7 +121,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 - (void)loadPersonnel {
     [ProgressHUD show:@"Fetching personnel..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success loading project personnel: %@",responseObject);
+        NSLog(@"success loading project personnel: %@",responseObject);
         [_project updateFromDictionary:[responseObject objectForKey:@"project"]];
         loading = NO;
         
@@ -152,7 +152,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             user.company.projectUsers = [NSMutableOrderedSet orderedSet];
         }
         [user.company.projectUsers addObject:user];
-        [companySet addObject:user.company];
+        
+        if (user.company)
+            [companySet addObject:user.company];
     }];
     
     [self.tableView reloadData];
@@ -498,6 +500,10 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         if ([sender isKindOfClass:[Company class]]){
             [vc setTitle:[NSString stringWithFormat:@"Add to: %@",[(Company*)sender name]]];
             [vc setCompany:(Company*)sender];
+        } else if ([sender isKindOfClass:[User class]]){
+            User *user = (User*)sender;
+            [vc.emailTextField setText:user.email];
+            [vc.phoneTextField setText:user.phone];
         }
     }
 }
@@ -581,7 +587,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (searching){
-        //id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
         if (indexPath.section == 1){
             if (_companyMode){
                 [self performSearch];
@@ -598,11 +603,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 }
             } else {
                 selectedUser = filteredUsers[indexPath.row];
+                NSLog(@"selectedUser: %@",selectedUser);
                 
                 if (indexPath.row == filteredUsers.count){
                     
                    [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
-                
+
                 } else if (self.phone) {
                     
                     if (selectedUser.phone.length) {

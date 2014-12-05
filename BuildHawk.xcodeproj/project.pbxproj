@@ -40,6 +40,9 @@
 		F20D2E8B19E98E9A00CA54C0 /* Activity.m in Sources */ = {isa = PBXBuildFile; fileRef = F20D2E8A19E98E9A00CA54C0 /* Activity.m */; };
 		F20EBBED19BBCEE500A97F3A /* success.png in Resources */ = {isa = PBXBuildFile; fileRef = F20EBBEB19BBCEE500A97F3A /* success.png */; };
 		F20EBBEE19BBCEE500A97F3A /* success@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F20EBBEC19BBCEE500A97F3A /* success@2x.png */; };
+		F20FB2DE1A240DA00007C905 /* whiteK@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F20FB2DB1A240DA00007C905 /* whiteK@2x.png */; };
+		F20FB2DF1A240DA00007C905 /* whiteK.png in Resources */ = {isa = PBXBuildFile; fileRef = F20FB2DC1A240DA00007C905 /* whiteK.png */; };
+		F20FB2E01A240DA00007C905 /* whiteK@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F20FB2DD1A240DA00007C905 /* whiteK@3x.png */; };
 		F21110BD19C9EBDB00CC255D /* UIFontDescriptor+MyriadPro.m in Sources */ = {isa = PBXBuildFile; fileRef = F21110BC19C9EBDB00CC255D /* UIFontDescriptor+MyriadPro.m */; };
 		F21110C319CA501E00CC255D /* BuildHawk.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F21110C119CA501E00CC255D /* BuildHawk.xcdatamodeld */; };
 		F2139D2F1938101500EE5C96 /* ReportUser+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F2139D2E1938101500EE5C96 /* ReportUser+helper.m */; };
@@ -155,8 +158,6 @@
 		F260F82819CE679F000DD028 /* reminderButton@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F260F82219CE679F000DD028 /* reminderButton@2x.png */; };
 		F261472E1964785B00E82DC5 /* BHActivitiesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F261472D1964785B00E82DC5 /* BHActivitiesViewController.m */; };
 		F26364D819D2366C00E9966A /* BHSyncViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F26364D719D2366C00E9966A /* BHSyncViewController.m */; };
-		F26364DC19D2843A00E9966A /* whiteK@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F26364DA19D2843A00E9966A /* whiteK@2x.png */; };
-		F26364DE19D2848100E9966A /* whiteK.png in Resources */ = {isa = PBXBuildFile; fileRef = F26364DD19D2848100E9966A /* whiteK.png */; };
 		F26364E119D38D2B00E9966A /* BHDashboardButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F26364E019D38D2B00E9966A /* BHDashboardButtonCell.m */; };
 		F26537061948D1CE00E21EB4 /* ReportSub.m in Sources */ = {isa = PBXBuildFile; fileRef = F26537051948D1CE00E21EB4 /* ReportSub.m */; };
 		F26537091948D1CF00E21EB4 /* ReportUser.m in Sources */ = {isa = PBXBuildFile; fileRef = F26537081948D1CF00E21EB4 /* ReportUser.m */; };
@@ -394,6 +395,9 @@
 		F20D2E8A19E98E9A00CA54C0 /* Activity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Activity.m; sourceTree = "<group>"; };
 		F20EBBEB19BBCEE500A97F3A /* success.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = success.png; sourceTree = "<group>"; };
 		F20EBBEC19BBCEE500A97F3A /* success@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "success@2x.png"; sourceTree = "<group>"; };
+		F20FB2DB1A240DA00007C905 /* whiteK@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "whiteK@2x.png"; sourceTree = "<group>"; };
+		F20FB2DC1A240DA00007C905 /* whiteK.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteK.png; sourceTree = "<group>"; };
+		F20FB2DD1A240DA00007C905 /* whiteK@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "whiteK@3x.png"; sourceTree = "<group>"; };
 		F21110BB19C9EBDB00CC255D /* UIFontDescriptor+MyriadPro.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIFontDescriptor+MyriadPro.h"; sourceTree = "<group>"; };
 		F21110BC19C9EBDB00CC255D /* UIFontDescriptor+MyriadPro.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIFontDescriptor+MyriadPro.m"; sourceTree = "<group>"; };
 		F21110C219CA501E00CC255D /* BuildHawk.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BuildHawk.xcdatamodel; sourceTree = "<group>"; };
@@ -549,8 +553,6 @@
 		F261472D1964785B00E82DC5 /* BHActivitiesViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHActivitiesViewController.m; sourceTree = "<group>"; };
 		F26364D619D2366C00E9966A /* BHSyncViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSyncViewController.h; sourceTree = "<group>"; };
 		F26364D719D2366C00E9966A /* BHSyncViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSyncViewController.m; sourceTree = "<group>"; };
-		F26364DA19D2843A00E9966A /* whiteK@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "whiteK@2x.png"; sourceTree = "<group>"; };
-		F26364DD19D2848100E9966A /* whiteK.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = whiteK.png; sourceTree = "<group>"; };
 		F26364DF19D38D2B00E9966A /* BHDashboardButtonCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHDashboardButtonCell.h; sourceTree = "<group>"; };
 		F26364E019D38D2B00E9966A /* BHDashboardButtonCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHDashboardButtonCell.m; sourceTree = "<group>"; };
 		F26537041948D1CE00E21EB4 /* ReportSub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReportSub.h; sourceTree = "<group>"; };
@@ -1330,12 +1332,13 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				F20FB2DB1A240DA00007C905 /* whiteK@2x.png */,
+				F20FB2DC1A240DA00007C905 /* whiteK.png */,
+				F20FB2DD1A240DA00007C905 /* whiteK@3x.png */,
 				F260F81C19CDF33F000DD028 /* Navigation Elements */,
 				F260F81B19CDF315000DD028 /* New User Tour Screenshots */,
 				F20EBBEB19BBCEE500A97F3A /* success.png */,
 				F20EBBEC19BBCEE500A97F3A /* success@2x.png */,
-				F26364DD19D2848100E9966A /* whiteK.png */,
-				F26364DA19D2843A00E9966A /* whiteK@2x.png */,
 				F260F81F19CE679F000DD028 /* reminders.png */,
 				F260F82019CE679F000DD028 /* reminders@2x.png */,
 				F260F82119CE679F000DD028 /* reminderButton.png */,
@@ -1626,6 +1629,7 @@
 				F203962D17D171CF001CFF61 /* logo.png in Resources */,
 				F23AD64F193E381D00510290 /* whiteX.png in Resources */,
 				F226819F187DE66800D78BDD /* rainy@2x.png in Resources */,
+				F20FB2DF1A240DA00007C905 /* whiteK.png in Resources */,
 				F2A957E819DE27F200A3B471 /* mailButton.png in Resources */,
 				F203962E17D171CF001CFF61 /* logo@2x.png in Resources */,
 				F21DD5F11964EA7B00EE1BD3 /* BHReminderCell.xib in Resources */,
@@ -1694,8 +1698,6 @@
 				F260F82619CE679F000DD028 /* reminders@2x.png in Resources */,
 				F291F4BF17F0B80900A27B46 /* stopAndCheckOutline.png in Resources */,
 				F25EDAA4195D0B21009C4386 /* BHActivityCell.xib in Resources */,
-				F26364DE19D2848100E9966A /* whiteK.png in Resources */,
-				F26364DC19D2843A00E9966A /* whiteK@2x.png in Resources */,
 				F2C4456D196BA9B80079AF62 /* email.png in Resources */,
 				F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */,
 				F24D8499197E0C6E005E2EDF /* MyriadPro-It.otf in Resources */,
@@ -1721,6 +1723,7 @@
 				F260F7F619CD5EAF000DD028 /* tasklistScreenshot@2x.png in Resources */,
 				F28F9A3A18A34D5C000A46D4 /* icon-29.png in Resources */,
 				F29EF2E91815BE1B00F737B7 /* navBarBackground@2x.png in Resources */,
+				F20FB2DE1A240DA00007C905 /* whiteK@2x.png in Resources */,
 				F21F6EB61930FB82003BC323 /* Default-iPad@2x.png in Resources */,
 				F226819E187DE66800D78BDD /* rainy.png in Resources */,
 				F292AC1217F9F2DE0020DE13 /* textButton@2x.png in Resources */,
@@ -1728,6 +1731,7 @@
 				F260F80119CD6235000DD028 /* dashboardScreenshot.png in Resources */,
 				F29EF2E81815BE1B00F737B7 /* navBarBackground.png in Resources */,
 				F260F82519CE679F000DD028 /* reminders.png in Resources */,
+				F20FB2E01A240DA00007C905 /* whiteK@3x.png in Resources */,
 				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
 				F2C4455D196B69710079AF62 /* phone.png in Resources */,
 				F2E41EF619421AD5006C7583 /* calendar@2x.png in Resources */,
@@ -2096,8 +2100,8 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/maxhs/BuildHawk-ios",

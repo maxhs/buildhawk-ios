@@ -247,13 +247,13 @@
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             //NSLog(@"What happened during dashboard save? %u",success);
             if (self.isViewLoaded && self.view.window){
-                
                 _projects = [_currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
                     NSNumber *first = a.orderIndex;
                     NSNumber *second = b.orderIndex;
                     return [first compare:second];
                 }].mutableCopy;
                 //_projects = [NSMutableArray arrayWithArray:_currentUser.projects.array];
+                loading = NO;
                 [self.tableView reloadData];
                 [ProgressHUD dismiss];
             }

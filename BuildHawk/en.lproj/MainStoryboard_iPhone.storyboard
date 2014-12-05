@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6250" systemVersion="14A389" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="vTw-MH-BEh">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6250" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="vTw-MH-BEh">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6244"/>
@@ -758,7 +758,7 @@
                                         <rect key="frame" x="163" y="14" width="150" height="29"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <state key="normal" title="New Report">
+                                        <state key="normal" title="+ Report">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </state>
@@ -840,7 +840,7 @@
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <subviews>
                                                         <view contentMode="scaleToFill" id="F0y-co-iUf">
-                                                            <rect key="frame" x="0.0" y="0.0" width="2240" height="700"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="2560" height="800"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="Vxe-0S-apT">
@@ -1958,6 +1958,14 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
+                            <searchBar contentMode="redraw" id="jic-nm-bKg">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="6Zr-Fy-AcW" id="GA6-t8-lWt"/>
+                                </connections>
+                            </searchBar>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="TN5-xn-Rdo">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -1982,6 +1990,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="1zJ-yS-qvt"/>
                     <connections>
+                        <outlet property="searchBar" destination="jic-nm-bKg" id="h6u-Vj-qnb"/>
                         <outlet property="tableView" destination="TN5-xn-Rdo" id="LWb-ne-fO0"/>
                     </connections>
                 </viewController>
@@ -2695,7 +2704,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="RTD-Pc-YLr">
-                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="238"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="284"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view opaque="NO" contentMode="scaleToFill" id="ZnV-NA-tPL">
@@ -2984,7 +2993,7 @@
         <image name="reports.png" width="25" height="25"/>
         <image name="tasks.png" width="25" height="25"/>
         <image name="textButton.png" width="97" height="70"/>
-        <image name="whiteK.png" width="22" height="22"/>
+        <image name="whiteK.png" width="26" height="26"/>
         <image name="wideButton.png" width="300" height="70"/>
     </resources>
     <simulatedMetricsContainer key="defaultSimulatedMetrics">
@@ -2993,14 +3002,14 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="Uyg-Ck-Q13"/>
-        <segue reference="eeI-5R-PC5"/>
-        <segue reference="Cv8-k3-7jn"/>
         <segue reference="0zF-UE-phA"/>
+        <segue reference="Cv8-k3-7jn"/>
+        <segue reference="eeI-5R-PC5"/>
         <segue reference="5Do-X8-bCk"/>
-        <segue reference="xbn-MH-Kf9"/>
         <segue reference="3vv-Tr-RXj"/>
+        <segue reference="xbn-MH-Kf9"/>
         <segue reference="26g-62-Vbf"/>
         <segue reference="yeJ-Wu-Oy1"/>
+        <segue reference="kCC-Uk-lqd"/>
     </inferredMetricsTieBreakers>
 </document>

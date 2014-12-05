@@ -24,6 +24,7 @@ typedef void(^synchCompletion)(BOOL);
 @synthesize checklistItems = _checklistItems;
 @synthesize reports = _reports;
 @synthesize photos = _photos;
+@synthesize synchCount = _synchCount;
 
 + (id)sharedController {
     static BHSyncController *sharedController = nil;
@@ -65,7 +66,6 @@ typedef void(^synchCompletion)(BOOL);
 
 - (void)syncAll{
     [self fetchObjectsThatNeedSyncing];
-    
     if (_synchCount <= 0){
         return;
     } else {

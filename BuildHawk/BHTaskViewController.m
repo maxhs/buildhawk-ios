@@ -52,7 +52,7 @@ typedef void(^RequestSuccess)(id result);
     NSMutableArray *browserPhotos;
     UITextView *addCommentTextView;
     NSDateFormatter *commentFormatter;
-    UIButton *doneButton;
+    UIButton *doneCommentButton;
     ALAssetsLibrary *library;
     NSIndexPath *indexPathForDeletion;
     UIButton *activityButton;
@@ -261,7 +261,7 @@ typedef void(^RequestSuccess)(id result);
         addCommentTextView.delegate = self;
         [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
-        doneButton = addCommentCell.doneButton;
+        doneCommentButton = addCommentCell.doneButton;
         return addCommentCell;
     } else if (activities){
         BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
@@ -297,7 +297,7 @@ typedef void(^RequestSuccess)(id result);
     }
     
     [UIView animateWithDuration:.25 animations:^{
-        doneButton.alpha = 1.0;
+        doneCommentButton.alpha = 1.0;
     }];
     
     [[self navigationItem] setRightBarButtonItem:doneEditingButton];
@@ -490,7 +490,7 @@ typedef void(^RequestSuccess)(id result);
         self.navigationItem.rightBarButtonItem = saveButton;
     }
     [UIView animateWithDuration:.25 animations:^{
-        doneButton.alpha = 0.0;
+        doneCommentButton.alpha = 0.0;
     }];
 }
 

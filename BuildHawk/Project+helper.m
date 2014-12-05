@@ -81,12 +81,6 @@
             }
             [orderedUsers addObject:user];
         }
-        for (User *user in self.users){
-            if (![orderedUsers containsObject:user]){
-                NSLog(@"Deleting a project user that no longer exists: %@",user.fullname);
-                [user MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-        }
         self.users = orderedUsers;
     }
     
@@ -296,7 +290,6 @@
     }
     
     //note that company and companies refer to different things.
-
     if ([dictionary objectForKey:@"companies"] && [dictionary objectForKey:@"companies"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
         for (id dict in [dictionary objectForKey:@"companies"]){
@@ -310,6 +303,7 @@
             }
             [set addObject:company];
         }
+
         self.companies = set;
     }
     

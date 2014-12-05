@@ -318,23 +318,24 @@
 
 - (void)synchWithServer:(synchCompletion)complete {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    
+    // if we don't send a state, this will erase the checklist item's current state via the API
     if (self.state){
-        // if we don't send a state, this will erase the checklist item's current state via the API
         [parameters setObject:self.state forKey:@"state"];
     }
-
+    //re-fetch the item in case there are CoreData faulting issues
+    ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:self.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
+    
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,self.identifier] parameters:@{@"checklist_item":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success synching checklist item %@",responseObject);
 
-        [self setSaved:@YES];
-        [self populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-        
+        [item setSaved:@YES];
+        [item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
         complete(YES);
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":self}];
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure synching checklist item: %@",error.description);
-        [self setSaved:@NO];
+        [item setSaved:@NO];
         complete(NO);
     }];
 }

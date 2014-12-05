@@ -18,6 +18,11 @@
 
 @interface BHAddressBookPickerViewController () {
     NSMutableArray *_addressBookArray;
+    NSMutableArray *_filteredArray;
+    NSString *searchText;
+    BOOL searching;
+    NSTimeInterval duration;
+    UIViewAnimationOptions animationCurve;
 }
 
 @end
@@ -33,7 +38,20 @@
     [super viewDidLoad];
     _addressBookArray = [NSMutableArray array];
     self.tableView.rowHeight = 78;
+    _filteredArray = [NSMutableArray array];
     [self sortPeople];
+    [self.searchBar setPlaceholder:@"Search..."];
+    [self.searchBar setSearchBarStyle:UISearchBarStyleMinimal];
+    self.tableView.tableHeaderView = self.searchBar;
+    //reset the search bar font
+    for (id subview in [self.searchBar.subviews.firstObject subviews]){
+        if ([subview isKindOfClass:[UITextField class]]){
+            UITextField *searchTextField = (UITextField*)subview;
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            break;
+        }
+    }
+    [self registerKeyboardNotifications];
 }
 
 - (void)sortPeople {
@@ -109,7 +127,11 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _addressBookArray.count;
+    if (searching){
+        return _filteredArray.count;
+    } else {
+        return _addressBookArray.count;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -118,7 +140,13 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddressBookCell" owner:self options:nil] lastObject];
     }
-    User *user = _addressBookArray[indexPath.row];
+    User *user;
+    if (searching){
+        user = _filteredArray[indexPath.row];
+    } else {
+        user = _addressBookArray[indexPath.row];
+    }
+    
     if (user.firstName.length){
         if (user.lastName.length){
             [cell.nameLabel setText:[NSString stringWithFormat:@"%@ %@",user.firstName,user.lastName]];
@@ -165,6 +193,112 @@
     }
     [self.navigationController popViewControllerAnimated:YES];
 }
+
+- (void)registerKeyboardNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+#pragma mark - Search Section
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+    BOOL shouldReload = NO;
+    if (!searching){
+        shouldReload = YES;
+    }
+    searching = YES;
+    
+    [_filteredArray removeAllObjects];
+    [_filteredArray addObjectsFromArray:_addressBookArray];
+    
+    if (shouldReload) [self.tableView reloadData];
+    [self.searchBar setShowsCancelButton:YES animated:YES];
+    
+    //self.navigationItem.rightBarButtonItem = doneButton;
+}
+
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
+    searchText = searchBar.text;
+    [self filterContentForSearchText:searchText scope:nil];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [self endSearch];
+    [self.tableView reloadData];
+}
+
+- (BOOL)searchBar:(UISearchBar *)searchBar shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    searchText = [searchBar.text stringByReplacingCharactersInRange:range withString:text];
+    [self filterContentForSearchText:searchText scope:nil];
+    return YES;
+}
+
+- (void)endSearch {
+    //have to manually resign the first responder here
+    [self.searchBar resignFirstResponder];
+    [self.searchBar setText:@""];
+    [self.view endEditing:YES];
+    searching = NO;
+     [self.searchBar setShowsCancelButton:NO animated:YES];
+    [_filteredArray removeAllObjects];
+}
+
+- (void)doneEditing {
+    [self.view endEditing:YES];
+    searching = NO;
+    [self.searchBar setText:@""];
+    [self.tableView reloadData];
+}
+
+-(void)willShowKeyboard:(NSNotification*)notification {
+    NSDictionary* keyboardInfo = [notification userInfo];
+    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameBeginUserInfoKey];
+    CGFloat keyboardHeight = [keyboardFrameBegin CGRectValue].size.height;
+    duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    animationCurve = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:(animationCurve << 16)
+                     animations:^{
+                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
+                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
+                     }
+                     completion:NULL];
+}
+
+- (void)willHideKeyboard:(NSNotification *)notification
+{
+    duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    animationCurve = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:(animationCurve << 16)
+                     animations:^{
+                         self.tableView.contentInset = UIEdgeInsetsZero;
+                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
+                     }
+                     completion:NULL];
+}
+
+- (void)filterContentForSearchText:(NSString*)text scope:(NSString*)scope {
+    NSLog(@"search text: %@",text);
+    if (text.length) {
+        [_filteredArray removeAllObjects];
+        for (User *user in _addressBookArray){
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", text];
+            if([predicate evaluateWithObject:user.fullname]) {
+                [_filteredArray addObject:user];
+            } else if ([predicate evaluateWithObject:user.phone]){
+                [_filteredArray addObject:user];
+            } else if ([predicate evaluateWithObject:user.email]){
+                [_filteredArray addObject:user];
+            }
+        }
+    } else {
+        _filteredArray = [NSMutableArray arrayWithArray:_addressBookArray];
+    }
+    [self.tableView reloadData];
+}
+
 
 - (void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];

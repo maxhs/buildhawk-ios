@@ -348,7 +348,6 @@
         }
     } else {
         if (_project.reports.count){
-            NSLog(@"returning project count: %lu",(unsigned long)_project.reports.count);
             return _project.reports.count;
         } else if (loading) {
             return 0;

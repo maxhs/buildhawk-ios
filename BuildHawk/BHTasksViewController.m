@@ -595,7 +595,7 @@
             if ([(Photo*)[task.photos firstObject] image]){
                 [cell.photoButton setImage:[(Photo*)[task.photos firstObject] image] forState:UIControlStateNormal];
             } else {
-                [cell.photoButton sd_setImageWithURL:[NSURL URLWithString:[[task.photos firstObject] urlThumb]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
+                [cell.photoButton sd_setImageWithURL:[NSURL URLWithString:[[task.photos firstObject] urlSmall]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
             }
         } else {
             [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
@@ -637,21 +637,21 @@
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (_tasks.count > 0){
-        Task *item;
+    if (_tasks.count){
+        Task *task;
         if (showCompleted) {
-            item = [completedListItems objectAtIndex:indexPath.row];
+            task = [completedListItems objectAtIndex:indexPath.row];
         } else if (showActive) {
-            item = [activeListItems objectAtIndex:indexPath.row];
+            task = [activeListItems objectAtIndex:indexPath.row];
         } else if (showByLocation) {
-            item = [locationListItems objectAtIndex:indexPath.row];
+            task = [locationListItems objectAtIndex:indexPath.row];
         } else if (showByAssignee) {
-            item = [assigneeListItems objectAtIndex:indexPath.row];
+            task = [assigneeListItems objectAtIndex:indexPath.row];
         } else {
-            item = [_tasks objectAtIndex:indexPath.row];
+            task = [_tasks objectAtIndex:indexPath.row];
         }
         //ensure there's a signed in user and that the user is the owner of the current item/task
-        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([item.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([task.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
             return YES;
         } else {
             return NO;
@@ -708,7 +708,19 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         indexPathForDeletion = indexPath;
-        Task *task = _tasks[indexPath.row];
+        Task *task;
+        if (showCompleted) {
+            task = [completedListItems objectAtIndex:indexPath.row];
+        } else if (showActive) {
+            task = [activeListItems objectAtIndex:indexPath.row];
+        } else if (showByLocation) {
+            task = [locationListItems objectAtIndex:indexPath.row];
+        } else if (showByAssignee) {
+            task = [assigneeListItems objectAtIndex:indexPath.row];
+        } else {
+            task = [_tasks objectAtIndex:indexPath.row];
+        }
+        
         [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:[NSString stringWithFormat:@"Are you sure you want to delete \"%@\"?",task.body] delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
     }
 }
@@ -723,7 +735,19 @@
 
 - (void)deleteItem{
     [ProgressHUD show:@"Deleting..."];
-    Task *task = [_tasks objectAtIndex:indexPathForDeletion.row];
+    Task *task;
+    if (showCompleted) {
+        task = [completedListItems objectAtIndex:indexPathForDeletion.row];
+    } else if (showActive) {
+        task = [activeListItems objectAtIndex:indexPathForDeletion.row];
+    } else if (showByLocation) {
+        task = [locationListItems objectAtIndex:indexPathForDeletion.row];
+    } else if (showByAssignee) {
+        task = [assigneeListItems objectAtIndex:indexPathForDeletion.row];
+    } else {
+        task = [_tasks objectAtIndex:indexPathForDeletion.row];
+    }
+    
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl, task.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         if (showCompleted) {
             [completedListItems removeObject:task];

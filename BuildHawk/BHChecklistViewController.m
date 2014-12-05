@@ -827,8 +827,8 @@
         [item.category.phase calculateProgress];
         
         //ensure the row stays expanded
-        //[item.category setExpanded:@YES];
-        //[item.category.phase setExpanded:@YES];
+        [item.category setExpanded:@YES];
+        [item.category.phase setExpanded:@YES];
         
         //reload the tableview after checking to make sure the phase (i.e. section) really exists
         if (item.category.phase.orderIndex.integerValue < self.tableView.numberOfSections){

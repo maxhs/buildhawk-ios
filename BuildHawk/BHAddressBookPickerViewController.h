@@ -13,6 +13,7 @@
 @interface BHAddressBookPickerViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 @property (strong, nonatomic) NSArray *peopleArray;
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Project *project;

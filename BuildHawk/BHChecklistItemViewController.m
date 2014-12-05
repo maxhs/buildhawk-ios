@@ -116,7 +116,7 @@
     photosArray = [NSMutableArray array];
     self.tableView.backgroundColor = [UIColor whiteColor];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(updateChecklistItem:)];
+    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
     self.navigationItem.rightBarButtonItem = saveButton;    
 }
 
@@ -930,46 +930,42 @@
     }
 }
 
-- (void)updateChecklistItem:(BOOL)stayHere {
+//This method adds a NO boolean flag to the update checklist method
+- (void)save {
+    [self updateChecklistItem:NO];
+}
+
+- (void)updateChecklistItem:(BOOL)dismiss {
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if (!delegate.connected) {
         [_item setSaved:@NO];
-        [delegate.syncController updateStatusMessage:kIncrement];
+        [delegate.syncController update];
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
         [ProgressHUD showSuccess:@"Saved"];
     } else {
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        if (_item.state){
-            // if we don't send a state, this will erase the checklist item's current state via the API
-            [parameters setObject:_item.state forKey:@"state"];
-        }
-        
         [ProgressHUD show:@"Updating item..."];
-        [manager PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,_item.identifier] parameters:@{@"checklist_item":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success updating checklist item %@",responseObject);
-            
-            [_item setSaved:@YES];
-            [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-            
+        [_item synchWithServer:^(BOOL completed) {
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
-                
-                if (stayHere){
-                    [ProgressHUD showSuccess:@"Saved"];
-                    [self.tableView reloadData];
-                } else {
-                    [self.navigationController popViewControllerAnimated:YES];
-                    [ProgressHUD dismiss];
-                }
-                
             }];
             
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failure updating checklist item: %@",error.description);
-            [ProgressHUD dismiss];
-            [_item setSaved:@NO];
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            if (completed){
+                [delegate.syncController update];
+                
+                if (dismiss){
+                    [self.navigationController popViewControllerAnimated:YES];
+                    [ProgressHUD dismiss];
+                } else {
+                    [ProgressHUD showSuccess:@"Saved"];
+                    [self.tableView reloadData];
+                }
+                
+            } else {
+                [ProgressHUD dismiss];
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                [_item setSaved:@NO];
+            }
         }];
     }
 }
@@ -1028,7 +1024,6 @@
                 } else {
                     _item.state = [NSNumber numberWithInteger:kItemCompleted];
                 }
-                [tableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationAutomatic];
                 break;
             case 1:
                 if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
@@ -1036,7 +1031,6 @@
                 } else {
                     [_item setState:[NSNumber numberWithInteger:kItemInProgress]];
                 }
-                [tableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationAutomatic];
                 break;
             case 2:
                 if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
@@ -1044,11 +1038,13 @@
                 } else {
                     [_item setState:[NSNumber numberWithInteger:kItemNotApplicable]];
                 }
-                [tableView reloadSections:[NSIndexSet indexSetWithIndex:2] withRowAnimation:UITableViewRowAnimationAutomatic];
                 break;
             default:
                 break;
         }
+        [UIView setAnimationsEnabled:NO];
+        [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:2],[NSIndexPath indexPathForRow:1 inSection:2],[NSIndexPath indexPathForRow:2 inSection:2]] withRowAnimation:UITableViewRowAnimationNone];
+        [UIView setAnimationsEnabled:YES];
     } else if (indexPath.section == 4){
         if (_reminder){
             
@@ -1242,7 +1238,7 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
-        [self updateChecklistItem:NO];
+        [self updateChecklistItem:YES];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         [_item setSaved:@YES];
         [self loadItem:NO];

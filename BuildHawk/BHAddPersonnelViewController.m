@@ -83,10 +83,10 @@
             NSLog(@"Success finding user: %@",responseObject);
             [ProgressHUD dismiss];
             
-            if ([responseObject objectForKey:@"success"]){
+            if ([[responseObject objectForKey:@"success"] isEqualToNumber:@0]){
+                //success => false means the API searched for, but could not find, a match
                 [self moveForward];
             } else {
-                
                 NSDictionary *userDict = [responseObject objectForKey:@"user"];
                 User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!user){
@@ -274,6 +274,19 @@
         secondTableViewTextFieldFrame.size.width = screenWidth()-20;
         switch (indexPath.row) {
             case 0:
+                cell.personnelTextField.placeholder = @"Company name (required)";
+                _companyNameTextField = cell.personnelTextField;
+                if (_company && _company.name.length){
+                    [_companyNameTextField setText:_company.name];
+                } else if (_companyName.length){
+                    [_companyNameTextField setText:_companyName];
+                }
+                [_companyNameTextField setKeyboardType:UIKeyboardTypeDefault];
+                [_companyNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
+                [_companyNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
+                [_companyNameTextField setFrame:secondTableViewTextFieldFrame];
+                break;
+            case 1:
             {
                 cell.personnelTextField.placeholder = @"First name..";
                 if (_firstName.length){
@@ -287,7 +300,7 @@
                 [_firstNameTextField setFrame:secondTableViewTextFieldFrame];
             }
                 break;
-            case 1:
+            case 2:
                 cell.personnelTextField.placeholder = @"Last name...";
                 if (_lastName.length){
                     [_lastNameTextField setText:_lastName];
@@ -299,20 +312,7 @@
                 [_lastNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
                 [_lastNameTextField setFrame:secondTableViewTextFieldFrame];
                 break;
-            case 2:
-                cell.personnelTextField.placeholder = @"Company name (required)";
-                _companyNameTextField = cell.personnelTextField;
-                if (_company && _company.name.length){
-                    [_companyNameTextField setText:_company.name];
-                } else if (_companyName.length){
-                    [_companyNameTextField setText:_companyName];
-                }
-                [_companyNameTextField setKeyboardType:UIKeyboardTypeDefault];
-                [_companyNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
-                [_companyNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
-                [_companyNameTextField setFrame:secondTableViewTextFieldFrame];
-                break;
-                
+            
             case 3:
                 if (phone.length > 0 && email.length == 0){
                     cell.personnelTextField.placeholder = @"Email address";
@@ -381,7 +381,7 @@
         [parameters setObject:userParameters forKey:@"user"];
         
         [manager POST:[NSString stringWithFormat:@"%@/projects/%@/add_user",kApiBaseUrl,_project.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"success creating a new project sub user: %@",responseObject);
+            NSLog(@"success creating a new project sub user: %@",responseObject);
             if ([responseObject objectForKey:@"user"]){
                 
                 NSDictionary *userDict = [responseObject objectForKey:@"user"];
@@ -395,7 +395,6 @@
                     NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
                     [assignees addObject:user];
                     _task.assignees = assignees;
-                    
                     
                     //Check if the user is active or not. If not, then they're a "connect user"
                     if ([user.active isEqualToNumber:@NO]){

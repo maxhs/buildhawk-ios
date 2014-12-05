@@ -59,6 +59,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         iPad = YES;
     }
     [self textFieldTreatment:self.emailTextField];
+    [self.emailTextField setPlaceholder:@"user@example.com"];
     [self textFieldTreatment:self.passwordTextField];
     
     [_loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];

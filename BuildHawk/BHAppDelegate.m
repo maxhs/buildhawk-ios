@@ -213,9 +213,6 @@
     } else {
         [overlayView setBackgroundColor:[UIColor colorWithPatternImage:[self blurredSnapshot]]];
     }
-    /*UITapGestureRecognizer *overlayTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(removeOverlay)];
-    overlayTap.numberOfTapsRequired = 1;
-    [overlayView addGestureRecognizer:overlayTap];*/
     [overlayView setAlpha:0.0];
     [self.window addSubview:overlayView];
     
@@ -335,8 +332,9 @@
 }
 
 - (void)offlineNotification {
-    if (_connected)
+    if (_connected) {
         [[[UIAlertView alloc] initWithTitle:@"Device Offline" message:@"You can continue to work offline, although not all data may display properly. Changes will be synchronized when you reconnect." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 
     [ProgressHUD dismiss];
     [self displayStatusMessage:@"Your device is currently offline"];
@@ -393,8 +391,8 @@
 }
 
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
-    //NSLog(@"didRegisterUserNotificationSettings: %@",notificationSettings);
-    //NSLog(@"Current user notification cettings: %@",[[UIApplication sharedApplication] currentUserNotificationSettings]);
+    NSLog(@"didRegisterUserNotificationSettings: %@",notificationSettings);
+    NSLog(@"Current user notification cettings: %@",[[UIApplication sharedApplication] currentUserNotificationSettings]);
 }
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken

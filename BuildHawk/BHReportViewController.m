@@ -36,8 +36,9 @@
 #import "SafetyTopic+helper.h"
 #import "Address+helper.h"
 #import "Report+helper.h"
+#import "BHAddCommentCell.h"
+#import "Comment+helper.h"
 
-#define kForecastAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
 static NSString * const kReportPlaceholder = @"Report details...";
 static NSString * const kNewReportPlaceholder = @"Add new report";
 static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
@@ -93,6 +94,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     UIRefreshControl *activeRefreshControl;
     UIRefreshControl *beforeRefreshControl;
     UIRefreshControl *afterRefreshControl;
+    UITextView *addCommentTextView;
+    UIButton *doneCommentButton;
+    NSDateFormatter *commentFormatter;
 }
 
 @end
@@ -134,6 +138,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     [self setUpFormatters];
     [self setUpDatePicker];
     [self registerForKeyboardNotifications];
+    
+    //show activities for this task by default
+    activities = YES;
 }
 
 - (void)setUpTableViewsForReports {
@@ -462,13 +469,17 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         return 1;
     } else if (section == 6 && [tableView.report.type isEqualToString:kSafety]){
         return tableView.report.safetyTopics.count;
-    } else if (section == 7 || section == 8){
+    } else if (section == 7 || section == 8 || section == 9){
         return 1;
-    } else if (section == 9){
-        if ([tableView.report.type isEqualToString:kDaily]){
-            return tableView.report.dailyActivities.count;
+    } else if (section == 10){
+        if (activities){
+            if ([tableView.report.type isEqualToString:kDaily]){
+                return tableView.report.dailyActivities.count;
+            } else {
+                return tableView.report.activities.count;
+            }
         } else {
-            return tableView.report.activities.count;
+            return tableView.report.comments.count + 1;
         }
     } else {
         return 0;
@@ -663,23 +674,49 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
         return cell;
     } else {
-        static NSString *CellIdentifier = @"ActivityCell";
-        BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-        if (cell == nil) {
-            cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
-        }
-        
-        Activity *activity;
-        if ([tableView.report.type isEqualToString:kDaily]){
-            activity = tableView.report.dailyActivities[indexPath.row];
-            [cell configureActivityForSynopsis:activity];
-        } else {
-            activity = tableView.report.activities[indexPath.row];
+        if (!activities && indexPath.row == 0){
+            BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
+            if (addCommentCell == nil) {
+                addCommentCell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddCommentCell" owner:self options:nil] lastObject];
+            }
+            [addCommentCell configure];
+            addCommentTextView.tag = indexPath.section;
+            addCommentTextView = addCommentCell.messageTextView;
+            addCommentTextView.delegate = self;
+            [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
+            doneCommentButton = addCommentCell.doneButton;
+            _reportTableView = tableView;
+            return addCommentCell;
+        } else if (activities){
+            BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+            }
+            Activity *activity = [tableView.report.activities objectAtIndex:indexPath.row];
             [cell configureForActivity:activity];
+            [cell.timestampLabel setText:[commentFormatter stringFromDate:activity.createdDate]];
+            return cell;
+        } else {
+            
+            static NSString *CellIdentifier = @"ActivityCell";
+            BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+            if (cell == nil) {
+                cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
+            }
+            
+            Activity *activity;
+            if ([tableView.report.type isEqualToString:kDaily]){
+                activity = tableView.report.dailyActivities[indexPath.row];
+                [cell configureActivityForSynopsis:activity];
+            } else {
+                activity = tableView.report.activities[indexPath.row];
+                [cell configureForActivity:activity];
+            }
+        
+            [cell.timestampLabel setText:[timeStampFormatter stringFromDate:activity.createdDate]];
+            return cell;
         }
-    
-        [cell.timestampLabel setText:[timeStampFormatter stringFromDate:activity.createdDate]];
-        return cell;
     }
 }
 
@@ -764,6 +801,59 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
     } else if (section == 0 && ![tableView.report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
+    } else if (section == 9) {
+        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
+        [headerView setBackgroundColor:kDarkerGrayColor];
+        UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
+        headerLabel.layer.cornerRadius = 3.f;
+        headerLabel.clipsToBounds = YES;
+        [headerLabel setBackgroundColor:[UIColor clearColor]];
+        [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [headerLabel setTextAlignment:NSTextAlignmentCenter];
+        [headerLabel setTextColor:[UIColor darkGrayColor]];
+        
+        [headerLabel setText:@""];
+        
+        activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
+        [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        
+        NSString *activitiesTitle = tableView.report.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)tableView.report.activities.count];
+        [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
+        
+        if (activities){
+            [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            [activityButton setBackgroundColor:[UIColor clearColor]];
+        } else {
+            [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            [activityButton setBackgroundColor:[UIColor whiteColor]];
+        }
+        [activityButton setFrame:CGRectMake(0, 0, width/2, 40)];
+        [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
+        [headerView addSubview:activityButton];
+        
+        commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        
+        [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+        [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        
+        NSString *commentsTitle = tableView.report.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)tableView.report.comments.count];
+        [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
+        if (activities){
+            [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            [commentsButton setBackgroundColor:[UIColor whiteColor]];
+        } else {
+            [commentsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+            [commentsButton setBackgroundColor:[UIColor clearColor]];
+        }
+        
+        [commentsButton setFrame:CGRectMake(width/2, 0, width/2, 40)];
+        [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
+        [headerView addSubview:commentsButton];
+        
+        [headerView addSubview:headerLabel];
+        return headerView;
+
     } else {
         UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 40)];
         [headerView setBackgroundColor:[UIColor whiteColor]];
@@ -885,6 +975,57 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     }
 }
 
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)thisText {
+    if ([thisText isEqualToString:@"\n"]) {
+        if (textView == addCommentTextView && textView.text.length) {
+            [self submitComment];
+            [self doneEditing];
+        }
+        [textView resignFirstResponder];
+        return NO;
+    }
+    
+    return YES;
+}
+
+#pragma mark - Header & Comments Section
+
+- (void)submitComment {
+    if ([_project.demo isEqualToNumber:@YES]){
+        [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        if (addCommentTextView.text.length) {
+            [ProgressHUD show:@"Adding comment..."];
+            NSDictionary *commentDict = @{@"report_id":_reportTableView.report.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
+            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"success creating a comment for task: %@",responseObject);
+                
+                Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+                [comment populateFromDictionary:[responseObject objectForKey:@"comment"]];
+                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_task.comments];
+                [set insertObject:comment atIndex:0];
+                [_task setComments:set];
+                
+                //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:0];
+                
+                [self.tableView beginUpdates];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+                //[self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView endUpdates];
+                
+                addCommentTextView.text = kAddCommentPlaceholder;
+                addCommentTextView.textColor = [UIColor lightGrayColor];
+                
+                [ProgressHUD dismiss];
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                [ProgressHUD dismiss];
+                NSLog(@"Failure creating a comment for task: %@",error.description);
+            }];
+        }
+    }
+    [self doneEditing];
+}
+
 - (void)showActivities {
     [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -958,7 +1099,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 -(void)textViewDidBeginEditing:(UITextView *)textView {
     [activereport setSaved:@NO];
     self.navigationItem.rightBarButtonItem = doneButton;
-    if ([textView.text isEqualToString:kReportPlaceholder] || [textView.text isEqualToString:kWeatherPlaceholder]) {
+    if ([textView.text isEqualToString:kReportPlaceholder] || [textView.text isEqualToString:kWeatherPlaceholder] || [textView.text isEqualToString:kAddCommentPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor blackColor]];
     }
@@ -971,6 +1112,11 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         
         [_reportTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:1] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
         
+    } else if (textView.tag == 9 || textView == addCommentTextView){
+        [_reportTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:9] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [UIView animateWithDuration:.25 animations:^{
+            doneCommentButton.alpha = 1.0;
+        }];
     }
 }
 
@@ -1028,6 +1174,11 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     if (saveCreateButton)
         self.navigationItem.rightBarButtonItem = saveCreateButton;
     [self.view endEditing:YES];
+    if (doneCommentButton.alpha > 0){
+        [UIView animateWithDuration:.25 animations:^{
+            doneCommentButton.alpha = 0.0;
+        }];
+    }
 }
 
 - (void)choosePersonnel {
@@ -1732,6 +1883,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
     CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    if (!activities && _reportTableView.report.comments.count == 0){
+        keyboardHeight += 66.f;
+    }
     [UIView animateWithDuration:duration
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
@@ -1781,6 +1935,10 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     timeStampFormatter = [[NSDateFormatter alloc] init];
     [timeStampFormatter setLocale:[NSLocale currentLocale]];
     [timeStampFormatter setDateFormat:@"MMM d \n h:mm a"];
+    
+    commentFormatter = [[NSDateFormatter alloc] init];
+    [commentFormatter setDateStyle:NSDateFormatterShortStyle];
+    [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
     numberFormatter = [[NSNumberFormatter alloc] init];
     [numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
