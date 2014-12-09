@@ -37,17 +37,16 @@
     if (self.presenting) {
         fromViewController.view.userInteractionEnabled = NO;
         
+        CGRect startFrame = endFrame;
+        startFrame.origin.y += screenHeight();
+        toViewController.view.frame = startFrame;
+        toViewController.edgesForExtendedLayout = UIRectEdgeAll;
+        
         [transitionContext.containerView addSubview:fromView];
         [transitionContext.containerView addSubview:toView];
         
         CGRect fromFrame = fromViewController.view.frame;
         fromFrame.origin.y -= screenHeight();
-        
-        CGRect startFrame = endFrame;
-        startFrame.origin.y += screenHeight();
-        
-        toViewController.view.frame = startFrame;
-        toViewController.edgesForExtendedLayout = UIRectEdgeAll;
         
         [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseIn animations:^{
             [fromViewController.view setAlpha:0.5];

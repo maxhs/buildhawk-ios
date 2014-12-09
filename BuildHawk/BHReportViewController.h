@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "BHReportTableView.h"
+#import "BHReportsCollectionCell.h"
 
 @protocol BHReportDelegate <NSObject>
 
@@ -15,11 +16,8 @@
 - (void)newReportCreated:(NSNumber*)reportId;
 @end
 
-@interface BHReportViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
-@property (weak, nonatomic) IBOutlet BHReportTableView *activeTableView;
-@property (weak, nonatomic) IBOutlet BHReportTableView *beforeTableView;
-@property (weak, nonatomic) IBOutlet BHReportTableView *afterTableView;
-@property (weak, nonatomic) IBOutlet UIScrollView *scrollView;
+@interface BHReportViewController : UIViewController
+@property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
 @property (strong, nonatomic) BHReportTableView *reportTableView;
 @property (strong, nonatomic) Report *report;
 @property (strong, nonatomic) Project *project;
@@ -29,5 +27,8 @@
 @property (weak, nonatomic) IBOutlet UIButton *cancelButton;
 @property (weak, nonatomic) IBOutlet UIButton *selectButton;
 @property (strong, nonatomic) UIPopoverController *popover;
+@property (strong, nonatomic) UIBarButtonItem *saveCreateButton;
+@property (strong, nonatomic) UIBarButtonItem *doneButton;
+
 @property (weak, nonatomic) id<BHReportDelegate> delegate;
 @end

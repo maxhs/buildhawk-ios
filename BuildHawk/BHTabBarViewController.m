@@ -50,7 +50,7 @@
     [super viewWillAppear:animated];
     [delegate.syncController update];
     if (delegate.syncController.synchCount > 0 || !delegate.connected){
-        NSLog(@"now? %lu",(unsigned long)delegate.syncController.synchCount);
+        NSLog(@"synch count now? %lu",(unsigned long)delegate.syncController.synchCount);
         [delegate prepareStatusLabelForTab];
     }
 }

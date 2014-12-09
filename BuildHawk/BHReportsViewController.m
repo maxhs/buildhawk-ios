@@ -372,7 +372,6 @@
     } else {
         if (_project.reports.count){
             Report *report = [_project.reports objectAtIndex:indexPath.row];
-            NSLog(@"Configuring report for %@",report.dateString);
             [cell configureReport:report];
         } else if (!loading) {
             return [self generateNothingCellForIndexPath:indexPath];

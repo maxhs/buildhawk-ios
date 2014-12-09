@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6250" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="vTw-MH-BEh">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="6254" systemVersion="14B25" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" initialViewController="vTw-MH-BEh">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6244"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
     </dependencies>
     <scenes>
         <!--Activities View Controller-->
@@ -785,1027 +785,380 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="UKP-eM-un5" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1462" y="676"/>
+            <point key="canvasLocation" x="1426" y="670"/>
         </scene>
-        <!--Reports-->
+        <!--Report Detail View(s)-->
         <scene sceneID="13">
             <objects>
-                <viewController storyboardIdentifier="Report" title="Reports" id="3" customClass="BHReportViewController" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Report" title="Report Detail View(s)" automaticallyAdjustsScrollViewInsets="NO" id="3" customClass="BHReportViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="17">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="DvU-aj-8ES">
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" directionalLockEnabled="YES" alwaysBounceHorizontal="YES" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" id="g1M-LD-dVc">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <subviews>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="156" sectionHeaderHeight="22" sectionFooterHeight="22" id="LzY-6V-uE2" customClass="BHReportTableView">
-                                        <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <prototypes>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPickerCell" rowHeight="70" id="iVQ-qk-HOS" customClass="BHReportPickerCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="iVQ-qk-HOS" id="88Q-A1-nkQ">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" adjustsImageWhenHighlighted="NO" lineBreakMode="wordWrap" id="6RI-Xs-Jvd">
-                                                            <rect key="frame" x="130" y="11" width="180" height="48"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="ohi-xL-vd2">
-                                                            <rect key="frame" x="10" y="11" width="105" height="48"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="datePickerButton" destination="6RI-Xs-Jvd" id="6Fe-sC-M0E"/>
-                                                    <outlet property="typePickerButton" destination="ohi-xL-vd2" id="E8U-kz-Uhq"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportWeatherCell" rowHeight="100" id="9Z5-FX-Chz" customClass="BHReportWeatherCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="9Z5-FX-Chz" id="hei-Hr-HHJ">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <view contentMode="scaleToFill" id="F0y-co-iUf">
-                                                            <rect key="frame" x="0.0" y="0.0" width="2560" height="800"/>
-                                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                            <subviews>
-                                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="Vxe-0S-apT">
-                                                                    <rect key="frame" x="0.0" y="43" width="250" height="60"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="9Z5-FX-Chz" id="DT2-zs-J0O"/>
-                                                                    </connections>
-                                                                </textView>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="bg7-Th-dvZ" userLabel="Wind Label">
-                                                                    <rect key="frame" x="11" y="4" width="41" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RgV-af-5ex" userLabel="Precip Label">
-                                                                    <rect key="frame" x="3" y="24" width="47" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="0x3-7j-RRE" userLabel="Wind text field">
-                                                                    <rect key="frame" x="51" y="0.0" width="100" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="9Z5-FX-Chz" id="hkz-zB-OlC"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="J1s-b1-5S5" userLabel="Precip text field">
-                                                                    <rect key="frame" x="52" y="20" width="100" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="9Z5-FX-Chz" id="okW-TU-dXC"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="O8L-ur-PVP" userLabel="Temp Label">
-                                                                    <rect key="frame" x="164" y="4" width="43" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="qqu-fF-sZ3" userLabel="Humidity Label">
-                                                                    <rect key="frame" x="142" y="24" width="64" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="aBX-A5-jCQ" userLabel="Temp text field">
-                                                                    <rect key="frame" x="212" y="0.0" width="108" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="9Z5-FX-Chz" id="md4-uf-1P2"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="DKx-Cq-p21" userLabel="Humidity text field">
-                                                                    <rect key="frame" x="212" y="20" width="108" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="9Z5-FX-Chz" id="qGs-2F-ayG"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="wnb-I1-1FE">
-                                                                    <rect key="frame" x="255" y="42" width="50" height="50"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                </imageView>
-                                                            </subviews>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                        </view>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="dailySummaryTextView" destination="Vxe-0S-apT" id="BgP-hj-PxP"/>
-                                                    <outlet property="humidityLabel" destination="qqu-fF-sZ3" id="Pi4-bS-1eY"/>
-                                                    <outlet property="humidityTextField" destination="DKx-Cq-p21" id="yDO-k2-7g9"/>
-                                                    <outlet property="precipLabel" destination="RgV-af-5ex" id="mOg-IU-vid"/>
-                                                    <outlet property="precipTextField" destination="J1s-b1-5S5" id="xoo-Rr-F8f"/>
-                                                    <outlet property="tempLabel" destination="O8L-ur-PVP" id="MDZ-6L-ntl"/>
-                                                    <outlet property="tempTextField" destination="aBX-A5-jCQ" id="CpN-5h-WYf"/>
-                                                    <outlet property="weatherContainerView" destination="F0y-co-iUf" id="jWi-Tg-Qtv"/>
-                                                    <outlet property="weatherImageView" destination="wnb-I1-1FE" id="dEM-Yt-Irg"/>
-                                                    <outlet property="windLabel" destination="bg7-Th-dvZ" id="9sO-Ux-BDQ"/>
-                                                    <outlet property="windTextField" destination="0x3-7j-RRE" id="fw2-mb-DFb"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseReportPersonnelCell" rowHeight="120" id="uou-kq-s24" customClass="BHChooseReportPersonnelCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="uou-kq-s24" id="Nlo-B0-bgW">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="YRr-Ok-I0w">
-                                                            <rect key="frame" x="25" y="7" width="270" height="51"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="ADD / EDIT">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="ev5-5a-iGI">
-                                                            <rect key="frame" x="25" y="63" width="270" height="51"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="PRE-FILL FROM LAST REPORT">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="choosePersonnelButton" destination="YRr-Ok-I0w" id="Yy0-7o-bEw"/>
-                                                    <outlet property="prefillButton" destination="ev5-5a-iGI" id="qRJ-XH-49o"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPersonnelCell" rowHeight="66" id="B0Z-aF-Hjr" customClass="BHReportPersonnelCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="B0Z-aF-Hjr" id="GZf-Pv-Y0y">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="OWV-bx-0yF" userLabel="Remove Button">
-                                                            <rect key="frame" x="271" y="11" width="44" height="44"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                            <state key="normal" image="blackX.png">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumFontSize="10" id="qkY-hP-yyU" userLabel="Person Label">
-                                                            <rect key="frame" x="4" y="3" width="180" height="60"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <nil key="highlightedColor"/>
-                                                        </label>
-                                                        <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" textAlignment="center" minimumFontSize="17" id="uI7-Lu-K3e" customClass="BHPersonnelCountTextField">
-                                                            <rect key="frame" x="204" y="3" width="60" height="60"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
-                                                        </textField>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="countTextField" destination="uI7-Lu-K3e" id="xNq-Qm-Tdi"/>
-                                                    <outlet property="personLabel" destination="qkY-hP-yyU" id="yhJ-gO-zgW"/>
-                                                    <outlet property="removeButton" destination="OWV-bx-0yF" id="aB3-us-Sgr"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="SafetyTopicCell" rowHeight="66" id="TsR-Eo-YTC" customClass="BHSafetyTopicsCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="TsR-Eo-YTC" id="7hD-kg-cAj">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="YQ6-nS-LXa">
-                                                            <rect key="frame" x="48" y="6" width="224" height="54"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                            <nil key="highlightedColor"/>
-                                                        </label>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="HWd-Ie-5J9">
-                                                            <rect key="frame" x="271" y="11" width="44" height="44"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                            <state key="normal" image="blackX.png">
-                                                                <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="info.png" id="dyy-Fm-aBU">
-                                                            <rect key="frame" x="14" y="20" width="25" height="25"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                        </imageView>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="removeButton" destination="HWd-Ie-5J9" id="D84-Ty-m5h"/>
-                                                    <outlet property="titleLabel" destination="YQ6-nS-LXa" id="dUN-Nc-cBy"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseTopicsCell" rowHeight="80" id="63W-XK-ZOC" customClass="BHChooseTopicsViewCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="63W-XK-ZOC" id="Cnw-TB-08f">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6is-Xy-qDF">
-                                                            <rect key="frame" x="25" y="15" width="270" height="50"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="TAP TO ADD TOPIC">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="chooseTopicsButton" destination="6is-Xy-qDF" id="rim-gc-vkg"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="PhotoCell" rowHeight="100" id="Cwg-QD-WxN" customClass="BHReportPhotoCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Cwg-QD-WxN" id="y1m-dn-bg3">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="2LQ-TB-8zU" customClass="BHReportPhotoScrollView">
-                                                            <rect key="frame" x="148" y="11" width="172" height="76"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            <connections>
-                                                                <outlet property="delegate" destination="Cwg-QD-WxN" id="IHt-ic-Vp8"/>
-                                                            </connections>
-                                                        </scrollView>
-                                                        <view contentMode="scaleToFill" id="y52-KK-H4v">
-                                                            <rect key="frame" x="0.0" y="0.0" width="148" height="100"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="RFb-Ay-Ibt">
-                                                                    <rect key="frame" x="75" y="14" width="70" height="70"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <state key="normal" backgroundImage="cameraButton.png">
-                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    </state>
-                                                                </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="0MZ-cr-0Ts">
-                                                                    <rect key="frame" x="3" y="14" width="70" height="70"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <state key="normal" backgroundImage="libraryButton.png">
-                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    </state>
-                                                                </button>
-                                                            </subviews>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                        </view>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="libraryButton" destination="0MZ-cr-0Ts" id="xYj-Lh-ARx"/>
-                                                    <outlet property="photoButton" destination="RFb-Ay-Ibt" id="9bI-xS-0at"/>
-                                                    <outlet property="photoButtonContainerView" destination="y52-KK-H4v" id="8ec-6U-fVI"/>
-                                                    <outlet property="photoScrollView" destination="2LQ-TB-8zU" id="7NK-UU-1Rw"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportSectionCell" rowHeight="210" id="UY5-L0-fr2" customClass="BHReportSectionCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="UY5-L0-fr2" id="9ez-mW-ZcE">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <textView clipsSubviews="YES" contentMode="scaleToFill" id="zD8-eU-zgL">
-                                                            <rect key="frame" x="5" y="5" width="310" height="200"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" scrollDirection="horizontal" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="FZc-yS-Hxg">
+                                    <size key="itemSize" width="320" height="504"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="49"/>
+                                </collectionViewFlowLayout>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="ReportsCollectionCell" id="Jw6-1s-NhY" customClass="BHReportsCollectionCell">
+                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <tableView clipsSubviews="YES" contentMode="scaleToFill" directionalLockEnabled="YES" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="156" sectionHeaderHeight="22" sectionFooterHeight="22" id="ahb-PE-LP7" customClass="BHReportTableView">
+                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="504"/>
+                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <prototypes>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPickerCell" rowHeight="70" id="iJa-IG-DT4" customClass="BHReportPickerCell">
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="iJa-IG-DT4" id="DO5-v3-YFE">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" adjustsImageWhenHighlighted="NO" lineBreakMode="wordWrap" id="a54-UB-Vcv">
+                                                                        <rect key="frame" x="130" y="11" width="180" height="48"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                                        <state key="normal">
+                                                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Jh9-Dw-t02">
+                                                                        <rect key="frame" x="10" y="11" width="105" height="48"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                                        <state key="normal">
+                                                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
                                                             <connections>
-                                                                <outlet property="delegate" destination="UY5-L0-fr2" id="wnh-GZ-eTg"/>
+                                                                <outlet property="datePickerButton" destination="a54-UB-Vcv" id="fUX-cX-8SC"/>
+                                                                <outlet property="typePickerButton" destination="Jh9-Dw-t02" id="sjN-MY-R12"/>
                                                             </connections>
-                                                        </textView>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="reportBodyTextView" destination="zD8-eU-zgL" id="1lg-0J-a8Y"/>
-                                                </connections>
-                                            </tableViewCell>
-                                        </prototypes>
-                                        <connections>
-                                            <outlet property="dataSource" destination="3" id="711-5o-Tgl"/>
-                                            <outlet property="delegate" destination="3" id="cIb-ob-1F7"/>
-                                        </connections>
-                                    </tableView>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="156" sectionHeaderHeight="22" sectionFooterHeight="22" id="ahb-PE-LP7" customClass="BHReportTableView">
-                                        <rect key="frame" x="320" y="0.0" width="320" height="504"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <prototypes>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPickerCell" rowHeight="70" id="iJa-IG-DT4" customClass="BHReportPickerCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="iJa-IG-DT4" id="DO5-v3-YFE">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" adjustsImageWhenHighlighted="NO" lineBreakMode="wordWrap" id="a54-UB-Vcv">
-                                                            <rect key="frame" x="130" y="11" width="180" height="48"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Jh9-Dw-t02">
-                                                            <rect key="frame" x="10" y="11" width="105" height="48"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="datePickerButton" destination="a54-UB-Vcv" id="fUX-cX-8SC"/>
-                                                    <outlet property="typePickerButton" destination="Jh9-Dw-t02" id="sjN-MY-R12"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportWeatherCell" rowHeight="100" id="S1Q-BS-0Ea" customClass="BHReportWeatherCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="S1Q-BS-0Ea" id="xXX-ag-cUR">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <view contentMode="scaleToFill" id="Tba-hi-5mv">
-                                                            <rect key="frame" x="0.0" y="0.0" width="320" height="100"/>
-                                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                            <subviews>
-                                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="fbH-Yj-JEp">
-                                                                    <rect key="frame" x="0.0" y="43" width="250" height="60"/>
-                                                                    <autoresizingMask key="autoresizingMask"/>
-                                                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="S1Q-BS-0Ea" id="Zqp-O6-v7g"/>
-                                                                    </connections>
-                                                                </textView>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ieN-9L-Ie4" userLabel="Wind Label">
-                                                                    <rect key="frame" x="11" y="4" width="41" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="7UW-lF-8Be" userLabel="Precip Label">
-                                                                    <rect key="frame" x="3" y="24" width="47" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="oWb-wn-RYh" userLabel="Wind text field">
-                                                                    <rect key="frame" x="51" y="0.0" width="100" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="S1Q-BS-0Ea" id="MkB-e2-k1v"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="Lkq-Pf-hKn" userLabel="Precip text field">
-                                                                    <rect key="frame" x="52" y="20" width="100" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="S1Q-BS-0Ea" id="yhv-Qn-q5R"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="LNN-Bo-l4e" userLabel="Temp Label">
-                                                                    <rect key="frame" x="164" y="4" width="43" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="pO8-HH-VCd" userLabel="Humidity Label">
-                                                                    <rect key="frame" x="142" y="24" width="64" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="his-Ox-GGy" userLabel="Temp text field">
-                                                                    <rect key="frame" x="212" y="0.0" width="108" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="S1Q-BS-0Ea" id="XmB-i6-piM"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="Xhj-n8-0hB" userLabel="Humidity text field">
-                                                                    <rect key="frame" x="212" y="20" width="108" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="S1Q-BS-0Ea" id="CvN-rV-iAu"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="MCV-iT-7Kz">
-                                                                    <rect key="frame" x="255" y="42" width="50" height="50"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                </imageView>
-                                                            </subviews>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                        </view>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="dailySummaryTextView" destination="fbH-Yj-JEp" id="sBq-Pm-HCe"/>
-                                                    <outlet property="humidityLabel" destination="pO8-HH-VCd" id="L2u-Lm-L5Z"/>
-                                                    <outlet property="humidityTextField" destination="Xhj-n8-0hB" id="boW-3a-gdZ"/>
-                                                    <outlet property="precipLabel" destination="7UW-lF-8Be" id="TPz-KU-vio"/>
-                                                    <outlet property="precipTextField" destination="Lkq-Pf-hKn" id="VIa-3S-XzK"/>
-                                                    <outlet property="tempLabel" destination="LNN-Bo-l4e" id="NaC-7L-BMc"/>
-                                                    <outlet property="tempTextField" destination="his-Ox-GGy" id="bcD-Tm-7fR"/>
-                                                    <outlet property="weatherContainerView" destination="Tba-hi-5mv" id="2La-jS-1PI"/>
-                                                    <outlet property="weatherImageView" destination="MCV-iT-7Kz" id="K0q-ee-IYT"/>
-                                                    <outlet property="windLabel" destination="ieN-9L-Ie4" id="lS6-CE-mIV"/>
-                                                    <outlet property="windTextField" destination="oWb-wn-RYh" id="sfg-rd-oom"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseReportPersonnelCell" rowHeight="120" id="fBD-KS-TFh" customClass="BHChooseReportPersonnelCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="fBD-KS-TFh" id="dgj-Gi-klU">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Ko5-AF-s62">
-                                                            <rect key="frame" x="25" y="7" width="270" height="51"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="ADD / EDIT">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="f60-Rm-nVq">
-                                                            <rect key="frame" x="25" y="63" width="270" height="51"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="PRE-FILL FROM LAST REPORT">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="choosePersonnelButton" destination="Ko5-AF-s62" id="FKo-Kz-fHy"/>
-                                                    <outlet property="prefillButton" destination="f60-Rm-nVq" id="zfO-6f-iYz"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPersonnelCell" rowHeight="66" id="BaX-Rg-SId" customClass="BHReportPersonnelCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="BaX-Rg-SId" id="e6Y-hu-bAW">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="iSN-kY-lGt" userLabel="Remove Button">
-                                                            <rect key="frame" x="271" y="11" width="44" height="44"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                            <state key="normal" image="blackX.png">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumFontSize="10" id="CsF-RT-Gdg" userLabel="Person Label">
-                                                            <rect key="frame" x="4" y="3" width="180" height="60"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <nil key="highlightedColor"/>
-                                                        </label>
-                                                        <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" textAlignment="center" minimumFontSize="17" id="yEB-YB-nuS" customClass="BHPersonnelCountTextField">
-                                                            <rect key="frame" x="204" y="3" width="60" height="60"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
-                                                        </textField>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="countTextField" destination="yEB-YB-nuS" id="PDS-Rl-SvI"/>
-                                                    <outlet property="personLabel" destination="CsF-RT-Gdg" id="Tl9-cl-Hby"/>
-                                                    <outlet property="removeButton" destination="iSN-kY-lGt" id="Ju2-8K-bew"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="SafetyTopicCell" rowHeight="66" id="Y48-yU-zDp" customClass="BHSafetyTopicsCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Y48-yU-zDp" id="RRs-nV-6f9">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="dJu-WK-NPe">
-                                                            <rect key="frame" x="48" y="6" width="224" height="54"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                            <nil key="highlightedColor"/>
-                                                        </label>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="fS0-WB-oCi">
-                                                            <rect key="frame" x="271" y="11" width="44" height="44"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                            <state key="normal" image="blackX.png">
-                                                                <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="info.png" id="fnz-eB-raJ">
-                                                            <rect key="frame" x="14" y="20" width="25" height="25"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                        </imageView>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="removeButton" destination="fS0-WB-oCi" id="Eos-7X-7XL"/>
-                                                    <outlet property="titleLabel" destination="dJu-WK-NPe" id="twx-eI-Qse"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseTopicsCell" rowHeight="80" id="LnF-4Y-tiW" customClass="BHChooseTopicsViewCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="LnF-4Y-tiW" id="EwL-Ia-QTB">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="cEK-zd-q1y">
-                                                            <rect key="frame" x="25" y="15" width="270" height="50"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="TAP TO ADD TOPIC">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="chooseTopicsButton" destination="cEK-zd-q1y" id="bOM-23-hrr"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="PhotoCell" rowHeight="100" id="5qD-Ay-0UF" customClass="BHReportPhotoCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="5qD-Ay-0UF" id="QKL-Hf-4bk">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="yek-ye-UiF" customClass="BHReportPhotoScrollView">
-                                                            <rect key="frame" x="148" y="11" width="172" height="76"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            <connections>
-                                                                <outlet property="delegate" destination="5qD-Ay-0UF" id="N8o-ZG-vlc"/>
-                                                            </connections>
-                                                        </scrollView>
-                                                        <view contentMode="scaleToFill" id="tho-fy-T1y">
-                                                            <rect key="frame" x="0.0" y="0.0" width="148" height="100"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="hBS-b8-eZs">
-                                                                    <rect key="frame" x="75" y="14" width="70" height="70"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <state key="normal" backgroundImage="cameraButton.png">
-                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    </state>
-                                                                </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="VHf-Q6-9hb">
-                                                                    <rect key="frame" x="3" y="14" width="70" height="70"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <state key="normal" backgroundImage="libraryButton.png">
-                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    </state>
-                                                                </button>
-                                                            </subviews>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                        </view>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="libraryButton" destination="VHf-Q6-9hb" id="LhS-h0-rVm"/>
-                                                    <outlet property="photoButton" destination="hBS-b8-eZs" id="VaF-tf-yTC"/>
-                                                    <outlet property="photoButtonContainerView" destination="tho-fy-T1y" id="3mG-xI-K3N"/>
-                                                    <outlet property="photoScrollView" destination="yek-ye-UiF" id="CEu-mW-RNB"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportSectionCell" rowHeight="210" id="CJj-aZ-fKp" customClass="BHReportSectionCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="CJj-aZ-fKp" id="0uX-Mm-mze">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <textView clipsSubviews="YES" contentMode="scaleToFill" id="M1Y-ti-vlO">
-                                                            <rect key="frame" x="5" y="5" width="310" height="200"/>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportWeatherCell" rowHeight="100" id="S1Q-BS-0Ea" customClass="BHReportWeatherCell">
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="S1Q-BS-0Ea" id="xXX-ag-cUR">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <view contentMode="scaleToFill" id="Tba-hi-5mv">
+                                                                        <rect key="frame" x="0.0" y="0.0" width="960" height="300"/>
+                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                                        <subviews>
+                                                                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="fbH-Yj-JEp">
+                                                                                <rect key="frame" x="0.0" y="43" width="250" height="60"/>
+                                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                                <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <color key="textColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                                                <connections>
+                                                                                    <outlet property="delegate" destination="S1Q-BS-0Ea" id="Zqp-O6-v7g"/>
+                                                                                </connections>
+                                                                            </textView>
+                                                                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ieN-9L-Ie4" userLabel="Wind Label">
+                                                                                <rect key="frame" x="11" y="4" width="41" height="21"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
+                                                                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <nil key="highlightedColor"/>
+                                                                            </label>
+                                                                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="7UW-lF-8Be" userLabel="Precip Label">
+                                                                                <rect key="frame" x="3" y="24" width="47" height="21"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
+                                                                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <nil key="highlightedColor"/>
+                                                                            </label>
+                                                                            <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="oWb-wn-RYh" userLabel="Wind text field">
+                                                                                <rect key="frame" x="51" y="0.0" width="100" height="30"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                                                <textInputTraits key="textInputTraits"/>
+                                                                                <connections>
+                                                                                    <outlet property="delegate" destination="S1Q-BS-0Ea" id="MkB-e2-k1v"/>
+                                                                                </connections>
+                                                                            </textField>
+                                                                            <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="Lkq-Pf-hKn" userLabel="Precip text field">
+                                                                                <rect key="frame" x="52" y="20" width="100" height="30"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                                                <textInputTraits key="textInputTraits"/>
+                                                                                <connections>
+                                                                                    <outlet property="delegate" destination="S1Q-BS-0Ea" id="yhv-Qn-q5R"/>
+                                                                                </connections>
+                                                                            </textField>
+                                                                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="LNN-Bo-l4e" userLabel="Temp Label">
+                                                                                <rect key="frame" x="164" y="4" width="43" height="21"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
+                                                                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <nil key="highlightedColor"/>
+                                                                            </label>
+                                                                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="pO8-HH-VCd" userLabel="Humidity Label">
+                                                                                <rect key="frame" x="142" y="24" width="64" height="21"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
+                                                                                <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <nil key="highlightedColor"/>
+                                                                            </label>
+                                                                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="his-Ox-GGy" userLabel="Temp text field">
+                                                                                <rect key="frame" x="212" y="0.0" width="108" height="30"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                                                <textInputTraits key="textInputTraits"/>
+                                                                                <connections>
+                                                                                    <outlet property="delegate" destination="S1Q-BS-0Ea" id="XmB-i6-piM"/>
+                                                                                </connections>
+                                                                            </textField>
+                                                                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="Xhj-n8-0hB" userLabel="Humidity text field">
+                                                                                <rect key="frame" x="212" y="20" width="108" height="30"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                                                                <textInputTraits key="textInputTraits"/>
+                                                                                <connections>
+                                                                                    <outlet property="delegate" destination="S1Q-BS-0Ea" id="CvN-rV-iAu"/>
+                                                                                </connections>
+                                                                            </textField>
+                                                                            <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="MCV-iT-7Kz">
+                                                                                <rect key="frame" x="255" y="42" width="50" height="50"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                            </imageView>
+                                                                        </subviews>
+                                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                    </view>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
                                                             <connections>
-                                                                <outlet property="delegate" destination="CJj-aZ-fKp" id="jdS-L6-Sjt"/>
+                                                                <outlet property="dailySummaryTextView" destination="fbH-Yj-JEp" id="sBq-Pm-HCe"/>
+                                                                <outlet property="humidityLabel" destination="pO8-HH-VCd" id="L2u-Lm-L5Z"/>
+                                                                <outlet property="humidityTextField" destination="Xhj-n8-0hB" id="boW-3a-gdZ"/>
+                                                                <outlet property="precipLabel" destination="7UW-lF-8Be" id="TPz-KU-vio"/>
+                                                                <outlet property="precipTextField" destination="Lkq-Pf-hKn" id="VIa-3S-XzK"/>
+                                                                <outlet property="tempLabel" destination="LNN-Bo-l4e" id="NaC-7L-BMc"/>
+                                                                <outlet property="tempTextField" destination="his-Ox-GGy" id="bcD-Tm-7fR"/>
+                                                                <outlet property="weatherContainerView" destination="Tba-hi-5mv" id="2La-jS-1PI"/>
+                                                                <outlet property="weatherImageView" destination="MCV-iT-7Kz" id="K0q-ee-IYT"/>
+                                                                <outlet property="windLabel" destination="ieN-9L-Ie4" id="lS6-CE-mIV"/>
+                                                                <outlet property="windTextField" destination="oWb-wn-RYh" id="sfg-rd-oom"/>
                                                             </connections>
-                                                        </textView>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="reportBodyTextView" destination="M1Y-ti-vlO" id="J3m-kF-8Ej"/>
-                                                </connections>
-                                            </tableViewCell>
-                                        </prototypes>
-                                        <connections>
-                                            <outlet property="dataSource" destination="3" id="pBE-Op-3DP"/>
-                                            <outlet property="delegate" destination="3" id="faE-q0-05v"/>
-                                        </connections>
-                                    </tableView>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="156" sectionHeaderHeight="22" sectionFooterHeight="22" id="YlM-zT-rls" customClass="BHReportTableView">
-                                        <rect key="frame" x="640" y="0.0" width="320" height="504"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        <prototypes>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPickerCell" rowHeight="70" id="HKF-ly-o1e" customClass="BHReportPickerCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="HKF-ly-o1e" id="dTe-PX-pZT">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" adjustsImageWhenHighlighted="NO" lineBreakMode="wordWrap" id="hsi-0p-J5J">
-                                                            <rect key="frame" x="130" y="11" width="180" height="48"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="2gJ-WY-XI2">
-                                                            <rect key="frame" x="10" y="11" width="105" height="48"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="datePickerButton" destination="hsi-0p-J5J" id="eBm-4x-PQx"/>
-                                                    <outlet property="typePickerButton" destination="2gJ-WY-XI2" id="8va-hJ-a4Z"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportWeatherCell" rowHeight="100" id="UXn-cq-lYx" customClass="BHReportWeatherCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="UXn-cq-lYx" id="llg-Af-Tls">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <view contentMode="scaleToFill" id="040-or-MRp">
-                                                            <rect key="frame" x="0.0" y="0.0" width="320" height="100"/>
-                                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                                            <subviews>
-                                                                <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="BXM-dp-mXN">
-                                                                    <rect key="frame" x="0.0" y="43" width="250" height="60"/>
-                                                                    <autoresizingMask key="autoresizingMask"/>
-                                                                    <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <color key="textColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="UXn-cq-lYx" id="Q4P-Rj-9QF"/>
-                                                                    </connections>
-                                                                </textView>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="sHw-Rk-RgF" userLabel="Wind Label">
-                                                                    <rect key="frame" x="11" y="4" width="41" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="Pwg-ki-BhB" userLabel="Precip Label">
-                                                                    <rect key="frame" x="3" y="24" width="47" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="HTR-d5-Vbq" userLabel="Wind text field">
-                                                                    <rect key="frame" x="51" y="0.0" width="100" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="UXn-cq-lYx" id="fbD-ix-4R9"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <textField opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="LgM-lU-XAx" userLabel="Precip text field">
-                                                                    <rect key="frame" x="52" y="20" width="100" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="UXn-cq-lYx" id="6gD-sc-l1Q"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="1Sz-qx-lOH" userLabel="Temp Label">
-                                                                    <rect key="frame" x="164" y="4" width="43" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cux-W9-mqz" userLabel="Humidity Label">
-                                                                    <rect key="frame" x="142" y="24" width="64" height="21"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="15"/>
-                                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <nil key="highlightedColor"/>
-                                                                </label>
-                                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="n1J-tE-UMa" userLabel="Temp text field">
-                                                                    <rect key="frame" x="212" y="0.0" width="108" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="UXn-cq-lYx" id="ehg-lI-DY2"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="N/A" minimumFontSize="17" id="cKv-In-k2M" userLabel="Humidity text field">
-                                                                    <rect key="frame" x="212" y="20" width="108" height="30"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="15"/>
-                                                                    <textInputTraits key="textInputTraits"/>
-                                                                    <connections>
-                                                                        <outlet property="delegate" destination="UXn-cq-lYx" id="Dx3-Sq-VPw"/>
-                                                                    </connections>
-                                                                </textField>
-                                                                <imageView userInteractionEnabled="NO" alpha="0.89999997615814209" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" id="yGE-t5-AWf">
-                                                                    <rect key="frame" x="255" y="42" width="50" height="50"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                </imageView>
-                                                            </subviews>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                        </view>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="dailySummaryTextView" destination="BXM-dp-mXN" id="KSC-aT-8tG"/>
-                                                    <outlet property="humidityLabel" destination="cux-W9-mqz" id="bxG-7d-I45"/>
-                                                    <outlet property="humidityTextField" destination="cKv-In-k2M" id="3MX-ea-1CD"/>
-                                                    <outlet property="precipLabel" destination="Pwg-ki-BhB" id="kW5-47-dK9"/>
-                                                    <outlet property="precipTextField" destination="LgM-lU-XAx" id="8yn-LJ-LWo"/>
-                                                    <outlet property="tempLabel" destination="1Sz-qx-lOH" id="4po-vi-Fei"/>
-                                                    <outlet property="tempTextField" destination="n1J-tE-UMa" id="Cbe-ha-zEh"/>
-                                                    <outlet property="weatherContainerView" destination="040-or-MRp" id="Xag-rW-QgK"/>
-                                                    <outlet property="weatherImageView" destination="yGE-t5-AWf" id="209-k6-var"/>
-                                                    <outlet property="windLabel" destination="sHw-Rk-RgF" id="ug9-Lu-HzY"/>
-                                                    <outlet property="windTextField" destination="HTR-d5-Vbq" id="V61-NW-nl2"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseReportPersonnelCell" rowHeight="120" id="Upn-zU-Zja" customClass="BHChooseReportPersonnelCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Upn-zU-Zja" id="ckU-YC-m8s">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="gcp-NE-a5T">
-                                                            <rect key="frame" x="25" y="7" width="270" height="51"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="ADD / EDIT">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="1SI-du-347">
-                                                            <rect key="frame" x="25" y="63" width="270" height="51"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="PRE-FILL FROM LAST REPORT">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="choosePersonnelButton" destination="gcp-NE-a5T" id="PSM-IV-gcU"/>
-                                                    <outlet property="prefillButton" destination="1SI-du-347" id="rm2-ou-qPM"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPersonnelCell" rowHeight="66" id="20D-Ff-k4u" customClass="BHReportPersonnelCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="20D-Ff-k4u" id="y0C-VI-MDl">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="5YZ-VI-PlX" userLabel="Remove Button">
-                                                            <rect key="frame" x="271" y="11" width="44" height="44"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                            <state key="normal" image="blackX.png">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumFontSize="10" id="unc-yi-yDB" userLabel="Person Label">
-                                                            <rect key="frame" x="4" y="3" width="180" height="60"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <nil key="highlightedColor"/>
-                                                        </label>
-                                                        <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" textAlignment="center" minimumFontSize="17" id="CSL-dR-2Lz" customClass="BHPersonnelCountTextField">
-                                                            <rect key="frame" x="204" y="3" width="60" height="60"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
-                                                        </textField>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="countTextField" destination="CSL-dR-2Lz" id="kTE-mc-BQh"/>
-                                                    <outlet property="personLabel" destination="unc-yi-yDB" id="2fQ-yy-5Ks"/>
-                                                    <outlet property="removeButton" destination="5YZ-VI-PlX" id="m1h-Om-rwO"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="SafetyTopicCell" rowHeight="66" id="WFJ-UF-mmR" customClass="BHSafetyTopicsCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="WFJ-UF-mmR" id="8i6-Cy-xNG">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="4or-QQ-Int">
-                                                            <rect key="frame" x="48" y="6" width="224" height="54"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                            <nil key="highlightedColor"/>
-                                                        </label>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="pkf-9u-nBH">
-                                                            <rect key="frame" x="271" y="11" width="44" height="44"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                                            <state key="normal" image="blackX.png">
-                                                                <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                        <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="info.png" id="otF-To-Gu8">
-                                                            <rect key="frame" x="14" y="20" width="25" height="25"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                        </imageView>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="removeButton" destination="pkf-9u-nBH" id="QLy-sg-XQ6"/>
-                                                    <outlet property="titleLabel" destination="4or-QQ-Int" id="Ah5-wQ-atX"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseTopicsCell" rowHeight="80" id="1lv-p1-7d3" customClass="BHChooseTopicsViewCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="1lv-p1-7d3" id="3pl-CK-2rw">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="OcD-ib-OkJ">
-                                                            <rect key="frame" x="25" y="15" width="270" height="50"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                            <state key="normal" title="TAP TO ADD TOPIC">
-                                                                <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                                <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            </state>
-                                                        </button>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="chooseTopicsButton" destination="OcD-ib-OkJ" id="HLu-Tk-XfA"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="PhotoCell" rowHeight="100" id="r3D-Gt-nZA" customClass="BHReportPhotoCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="r3D-Gt-nZA" id="ASs-dn-Guf">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="S5k-qh-3Qq" customClass="BHReportPhotoScrollView">
-                                                            <rect key="frame" x="148" y="11" width="172" height="76"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                            <connections>
-                                                                <outlet property="delegate" destination="r3D-Gt-nZA" id="RtB-OC-nZ0"/>
-                                                            </connections>
-                                                        </scrollView>
-                                                        <view contentMode="scaleToFill" id="LXC-Po-GEW">
-                                                            <rect key="frame" x="0.0" y="0.0" width="148" height="100"/>
-                                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                            <subviews>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="RQD-Y4-mo2">
-                                                                    <rect key="frame" x="75" y="14" width="70" height="70"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <state key="normal" backgroundImage="cameraButton.png">
-                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    </state>
-                                                                </button>
-                                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="2Ie-1M-A99">
-                                                                    <rect key="frame" x="3" y="14" width="70" height="70"/>
-                                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
-                                                                    <state key="normal" backgroundImage="libraryButton.png">
-                                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                                                    </state>
-                                                                </button>
-                                                            </subviews>
-                                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                                        </view>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="libraryButton" destination="2Ie-1M-A99" id="Nui-MG-zs2"/>
-                                                    <outlet property="photoButton" destination="RQD-Y4-mo2" id="D1E-eS-2ZQ"/>
-                                                    <outlet property="photoButtonContainerView" destination="LXC-Po-GEW" id="lkr-kM-X8l"/>
-                                                    <outlet property="photoScrollView" destination="S5k-qh-3Qq" id="Ptm-Ws-Tqg"/>
-                                                </connections>
-                                            </tableViewCell>
-                                            <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportSectionCell" rowHeight="210" id="cB3-pP-I5N" customClass="BHReportSectionCell">
-                                                <autoresizingMask key="autoresizingMask"/>
-                                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cB3-pP-I5N" id="gZn-Ri-F7s">
-                                                    <autoresizingMask key="autoresizingMask"/>
-                                                    <subviews>
-                                                        <textView clipsSubviews="YES" contentMode="scaleToFill" id="GZO-aT-CWJ">
-                                                            <rect key="frame" x="5" y="5" width="310" height="200"/>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseReportPersonnelCell" rowHeight="120" id="fBD-KS-TFh" customClass="BHChooseReportPersonnelCell">
                                                             <autoresizingMask key="autoresizingMask"/>
-                                                            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                                                            <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                            <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="fBD-KS-TFh" id="dgj-Gi-klU">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Ko5-AF-s62">
+                                                                        <rect key="frame" x="25" y="7" width="270" height="51"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                                        <state key="normal" title="ADD / EDIT">
+                                                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="f60-Rm-nVq">
+                                                                        <rect key="frame" x="25" y="63" width="270" height="51"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                                        <state key="normal" title="PRE-FILL FROM LAST REPORT">
+                                                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
                                                             <connections>
-                                                                <outlet property="delegate" destination="cB3-pP-I5N" id="JHy-kh-e6s"/>
+                                                                <outlet property="choosePersonnelButton" destination="Ko5-AF-s62" id="FKo-Kz-fHy"/>
+                                                                <outlet property="prefillButton" destination="f60-Rm-nVq" id="zfO-6f-iYz"/>
                                                             </connections>
-                                                        </textView>
-                                                    </subviews>
-                                                </tableViewCellContentView>
-                                                <connections>
-                                                    <outlet property="reportBodyTextView" destination="GZO-aT-CWJ" id="Z8O-f1-MxL"/>
-                                                </connections>
-                                            </tableViewCell>
-                                        </prototypes>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportPersonnelCell" rowHeight="66" id="BaX-Rg-SId" customClass="BHReportPersonnelCell">
+                                                            <autoresizingMask key="autoresizingMask"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="BaX-Rg-SId" id="e6Y-hu-bAW">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="iSN-kY-lGt" userLabel="Remove Button">
+                                                                        <rect key="frame" x="271" y="11" width="44" height="44"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                        <state key="normal" image="blackX.png">
+                                                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumFontSize="10" id="CsF-RT-Gdg" userLabel="Person Label">
+                                                                        <rect key="frame" x="4" y="3" width="180" height="60"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                        <nil key="highlightedColor"/>
+                                                                    </label>
+                                                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" textAlignment="center" minimumFontSize="17" id="yEB-YB-nuS" customClass="BHPersonnelCountTextField">
+                                                                        <rect key="frame" x="204" y="3" width="60" height="60"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                                        <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
+                                                                    </textField>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
+                                                            <connections>
+                                                                <outlet property="countTextField" destination="yEB-YB-nuS" id="PDS-Rl-SvI"/>
+                                                                <outlet property="personLabel" destination="CsF-RT-Gdg" id="Tl9-cl-Hby"/>
+                                                                <outlet property="removeButton" destination="iSN-kY-lGt" id="Ju2-8K-bew"/>
+                                                            </connections>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="SafetyTopicCell" rowHeight="66" id="Y48-yU-zDp" customClass="BHSafetyTopicsCell">
+                                                            <autoresizingMask key="autoresizingMask"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Y48-yU-zDp" id="RRs-nV-6f9">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="dJu-WK-NPe">
+                                                                        <rect key="frame" x="48" y="6" width="224" height="54"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                        <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                                        <nil key="highlightedColor"/>
+                                                                    </label>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="fS0-WB-oCi">
+                                                                        <rect key="frame" x="271" y="11" width="44" height="44"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                                        <state key="normal" image="blackX.png">
+                                                                            <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                                                            <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="info.png" id="fnz-eB-raJ">
+                                                                        <rect key="frame" x="14" y="20" width="25" height="25"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                    </imageView>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
+                                                            <connections>
+                                                                <outlet property="removeButton" destination="fS0-WB-oCi" id="Eos-7X-7XL"/>
+                                                                <outlet property="titleLabel" destination="dJu-WK-NPe" id="twx-eI-Qse"/>
+                                                            </connections>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ChooseTopicsCell" rowHeight="80" id="LnF-4Y-tiW" customClass="BHChooseTopicsViewCell">
+                                                            <autoresizingMask key="autoresizingMask"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="LnF-4Y-tiW" id="EwL-Ia-QTB">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="cEK-zd-q1y">
+                                                                        <rect key="frame" x="25" y="15" width="270" height="50"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                                        <state key="normal" title="TAP TO ADD TOPIC">
+                                                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                        </state>
+                                                                    </button>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
+                                                            <connections>
+                                                                <outlet property="chooseTopicsButton" destination="cEK-zd-q1y" id="bOM-23-hrr"/>
+                                                            </connections>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="PhotoCell" rowHeight="100" id="5qD-Ay-0UF" customClass="BHReportPhotoCell">
+                                                            <autoresizingMask key="autoresizingMask"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="5qD-Ay-0UF" id="QKL-Hf-4bk">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="yek-ye-UiF" customClass="BHReportPhotoScrollView">
+                                                                        <rect key="frame" x="148" y="11" width="172" height="76"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                        <connections>
+                                                                            <outlet property="delegate" destination="5qD-Ay-0UF" id="N8o-ZG-vlc"/>
+                                                                        </connections>
+                                                                    </scrollView>
+                                                                    <view contentMode="scaleToFill" id="tho-fy-T1y">
+                                                                        <rect key="frame" x="0.0" y="0.0" width="148" height="100"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <subviews>
+                                                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="hBS-b8-eZs">
+                                                                                <rect key="frame" x="75" y="14" width="70" height="70"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <state key="normal" backgroundImage="cameraButton.png">
+                                                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                </state>
+                                                                            </button>
+                                                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="VHf-Q6-9hb">
+                                                                                <rect key="frame" x="3" y="14" width="70" height="70"/>
+                                                                                <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                                <state key="normal" backgroundImage="libraryButton.png">
+                                                                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                                                </state>
+                                                                            </button>
+                                                                        </subviews>
+                                                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                                    </view>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
+                                                            <connections>
+                                                                <outlet property="libraryButton" destination="VHf-Q6-9hb" id="LhS-h0-rVm"/>
+                                                                <outlet property="photoButton" destination="hBS-b8-eZs" id="VaF-tf-yTC"/>
+                                                                <outlet property="photoButtonContainerView" destination="tho-fy-T1y" id="3mG-xI-K3N"/>
+                                                                <outlet property="photoScrollView" destination="yek-ye-UiF" id="CEu-mW-RNB"/>
+                                                            </connections>
+                                                        </tableViewCell>
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportSectionCell" rowHeight="210" id="CJj-aZ-fKp" customClass="BHReportSectionCell">
+                                                            <autoresizingMask key="autoresizingMask"/>
+                                                            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="CJj-aZ-fKp" id="0uX-Mm-mze">
+                                                                <autoresizingMask key="autoresizingMask"/>
+                                                                <subviews>
+                                                                    <textView clipsSubviews="YES" contentMode="scaleToFill" id="M1Y-ti-vlO">
+                                                                        <rect key="frame" x="5" y="5" width="310" height="200"/>
+                                                                        <autoresizingMask key="autoresizingMask"/>
+                                                                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                                                        <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                                                                        <connections>
+                                                                            <outlet property="delegate" destination="CJj-aZ-fKp" id="jdS-L6-Sjt"/>
+                                                                        </connections>
+                                                                    </textView>
+                                                                </subviews>
+                                                            </tableViewCellContentView>
+                                                            <connections>
+                                                                <outlet property="reportBodyTextView" destination="M1Y-ti-vlO" id="J3m-kF-8Ej"/>
+                                                            </connections>
+                                                        </tableViewCell>
+                                                    </prototypes>
+                                                    <connections>
+                                                        <outlet property="dataSource" destination="Jw6-1s-NhY" id="YRL-fr-VkQ"/>
+                                                        <outlet property="delegate" destination="Jw6-1s-NhY" id="9kr-on-gdz"/>
+                                                    </connections>
+                                                </tableView>
+                                            </subviews>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </view>
                                         <connections>
-                                            <outlet property="dataSource" destination="3" id="rZg-yx-ZmL"/>
-                                            <outlet property="delegate" destination="3" id="YVn-D3-D2T"/>
+                                            <outlet property="reportTableView" destination="ahb-PE-LP7" id="oRA-e7-fVd"/>
                                         </connections>
-                                    </tableView>
-                                </subviews>
+                                    </collectionViewCell>
+                                </cells>
                                 <connections>
-                                    <outlet property="delegate" destination="3" id="82b-4g-Yv5"/>
+                                    <outlet property="dataSource" destination="3" id="6tZ-Df-uNr"/>
+                                    <outlet property="delegate" destination="3" id="NKH-b3-Ray"/>
                                 </connections>
-                            </scrollView>
+                            </collectionView>
                             <view contentMode="scaleToFill" id="85Y-QG-ggI">
                                 <rect key="frame" x="0.0" y="554" width="320" height="210"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -1852,13 +1205,10 @@
                         <barButtonItem key="backBarButtonItem" title="Cancel" id="pMU-QJ-K4q"/>
                     </navigationItem>
                     <connections>
-                        <outlet property="activeTableView" destination="ahb-PE-LP7" id="qxI-wk-h1w"/>
-                        <outlet property="afterTableView" destination="YlM-zT-rls" id="xMc-tu-9DL"/>
-                        <outlet property="beforeTableView" destination="LzY-6V-uE2" id="k03-pU-rTh"/>
                         <outlet property="cancelButton" destination="5kp-gF-ujE" id="xbe-xv-5Jm"/>
+                        <outlet property="collectionView" destination="g1M-LD-dVc" id="edQ-G4-WZQ"/>
                         <outlet property="datePicker" destination="jsi-5N-UBn" id="RAQ-Qe-ONK"/>
                         <outlet property="datePickerContainer" destination="85Y-QG-ggI" id="Jcm-y5-uK5"/>
-                        <outlet property="scrollView" destination="DvU-aj-8ES" id="Z3E-wZ-l6b"/>
                         <outlet property="selectButton" destination="r7W-5T-7rb" id="b69-fL-5d3"/>
                         <segue destination="xov-V5-hTJ" kind="push" identifier="PersonnelPicker" id="bOL-sd-mqt"/>
                     </connections>
@@ -2230,7 +1580,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="F6C-ez-KSV">
-                                                    <rect key="frame" x="20" y="0.0" width="280" height="66"/>
+                                                    <rect key="frame" x="20" y="22" width="280" height="66"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                     <state key="normal" backgroundImage="wideButton.png">
                                                         <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -2704,7 +2054,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="RTD-Pc-YLr">
-                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="284"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="320" height="330"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view opaque="NO" contentMode="scaleToFill" id="ZnV-NA-tPL">
@@ -3002,14 +2352,14 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="0zF-UE-phA"/>
-        <segue reference="Cv8-k3-7jn"/>
         <segue reference="eeI-5R-PC5"/>
-        <segue reference="5Do-X8-bCk"/>
-        <segue reference="3vv-Tr-RXj"/>
-        <segue reference="xbn-MH-Kf9"/>
-        <segue reference="26g-62-Vbf"/>
-        <segue reference="yeJ-Wu-Oy1"/>
+        <segue reference="Cv8-k3-7jn"/>
         <segue reference="kCC-Uk-lqd"/>
+        <segue reference="0zF-UE-phA"/>
+        <segue reference="7to-sF-Hdh"/>
+        <segue reference="bOL-sd-mqt"/>
+        <segue reference="yeJ-Wu-Oy1"/>
+        <segue reference="5Do-X8-bCk"/>
+        <segue reference="xbn-MH-Kf9"/>
     </inferredMetricsTieBreakers>
 </document>
