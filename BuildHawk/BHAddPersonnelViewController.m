@@ -240,7 +240,7 @@
         switch (indexPath.row) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
-                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
                 [cell.imageView setImage:[UIImage imageNamed:@"contacts"]];
                 [cell.personnelTextField setUserInteractionEnabled:NO];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -531,8 +531,7 @@
     [self.view endEditing:YES];
 }
 
-- (void)registerForKeyboardNotifications
-{
+- (void)registerForKeyboardNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification object:nil];
@@ -542,9 +541,8 @@
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
+- (void)keyboardWillShow:(NSNotification *)notification {
+    NSDictionary* info = [notification userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     
@@ -556,9 +554,8 @@
                      completion:nil];
 }
 
-- (void)keyboardWillHide:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
+- (void)keyboardWillHide:(NSNotification *)notification {
+    NSDictionary* info = [notification userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     [UIView animateWithDuration:duration
@@ -570,11 +567,8 @@
                      completion:nil];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
-
 
 @end

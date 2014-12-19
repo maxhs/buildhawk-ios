@@ -1921,7 +1921,7 @@
                                             <outlet property="delegate" destination="YSk-d2-LcY" id="L0J-0e-Nt4"/>
                                         </connections>
                                     </textField>
-                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Your password" minimumFontSize="17" id="EQ4-0j-N6W">
+                                    <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="password" minimumFontSize="17" id="EQ4-0j-N6W">
                                         <rect key="frame" x="30" y="135" width="460" height="44"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -1948,7 +1948,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="6Vq-oA-XPB">
-                                        <rect key="frame" x="160" y="337" width="200" height="44"/>
+                                        <rect key="frame" x="60" y="337" width="400" height="44"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" widthSizable="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                         <state key="normal" title="Forgot password?">
@@ -2924,13 +2924,13 @@
         <image name="Default-iPad.png" width="768" height="1024"/>
         <image name="blackX.png" width="44" height="44"/>
         <image name="cameraButton.png" width="70" height="70"/>
-        <image name="checklists.png" width="25" height="25"/>
-        <image name="documents.png" width="25" height="25"/>
+        <image name="checklists.png" width="15" height="15"/>
+        <image name="documents.png" width="15" height="15"/>
         <image name="info.png" width="25" height="25"/>
         <image name="libraryButton.png" width="70" height="70"/>
         <image name="mailButton.png" width="97" height="70"/>
-        <image name="reports.png" width="25" height="25"/>
-        <image name="tasks.png" width="25" height="25"/>
+        <image name="reports.png" width="15" height="15"/>
+        <image name="tasks.png" width="15" height="15"/>
         <image name="textButton.png" width="97" height="70"/>
         <image name="whiteK.png" width="26" height="26"/>
         <image name="wideButton.png" width="300" height="70"/>

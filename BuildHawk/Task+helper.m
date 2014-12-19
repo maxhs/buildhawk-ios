@@ -202,45 +202,52 @@
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-    [parameters setObject:self.body forKey:@"body"];
-    if (self.location.length){
-        [parameters setObject:self.location forKey:@"location"];
-    }
-    if (self.assignees.count){
-        NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
-        [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
-            [assigneeIds addObject:assignee.identifier];
-        }];
-        [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"assignee_ids"];
-    }
-    if ([self.completed isEqualToNumber:@YES]){
-        [parameters setObject:@YES forKey:@"completed"];
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
-    } else {
-        [parameters setObject:@NO forKey:@"completed"];
-    }
-    
-    [delegate.manager PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, self.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success synching task: %@",responseObject);
-        if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoTask]){
-            [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+    if (self && self.body){
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+        
+        [parameters setObject:self.body forKey:@"body"];
+        if (self.location.length){
+            [parameters setObject:self.location forKey:@"location"];
+        }
+        if (self.assignees.count){
+            NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
+            [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+                if ([assignee.identifier isEqualToNumber:@0]){
+                    [assignee MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                } else {
+                    [assigneeIds addObject:assignee.identifier];
+                }
+            }];
+            [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"assignee_ids"];
+        }
+        if ([self.completed isEqualToNumber:@YES]){
+            [parameters setObject:@YES forKey:@"completed"];
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
         } else {
-            [self populateFromDictionary:[responseObject objectForKey:@"task"]];
-            [self setSaved:@YES];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":self}];
+            [parameters setObject:@NO forKey:@"completed"];
         }
-        complete(YES);
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-    
-        if (!delegate.connected){
-            //only mark as unsaved if the failure is connectivity related
-            [self setSaved:@NO];
-        }
-        complete(NO);
-        NSLog(@"Failed to synch task: %@",error.description);
-    }];
+        
+        [delegate.manager PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, self.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success synching task: %@",responseObject);
+            if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoTask]){
+                [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            } else {
+                [self populateFromDictionary:[responseObject objectForKey:@"task"]];
+                [self setSaved:@YES];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":self}];
+            }
+            complete(YES);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        
+            if (!delegate.connected){
+                //only mark as unsaved if the failure is connectivity related
+                [self setSaved:@NO];
+            }
+            complete(NO);
+            NSLog(@"Failed to synch task: %@",error.description);
+        }];
+    }
 }
 
 @end

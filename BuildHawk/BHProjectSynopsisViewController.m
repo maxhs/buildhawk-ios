@@ -196,13 +196,18 @@
         case 4:
             if (_project.checklist.activities.count > 3){
                 return 3;
-            } else {
+            } else if (_project.checklist && _project.checklist.activities.count) {
                 return _project.checklist.activities.count;
+            } else {
+                return 0;
             }
             break;
         case 5:
-            if (_project.recentDocuments.count > 0) return 1;
-            else return 0;
+            if (_project.recentDocuments.count > 0) {
+                return 1;
+            } else {
+                return 0;
+            }
             break;
         case 6:
             if (_project.tasklist.activities.count > 3){
@@ -302,9 +307,9 @@
             if ([[checklistItem type] isEqualToString:@"Com"]) {
                 [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
             } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+                [cell.imageView setImage:[UIImage imageNamed:@"s&c"]];
             } else {
-                [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+                [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
             }
             cell.deadlineTextLabel.numberOfLines = 0;
             return cell;
@@ -845,9 +850,9 @@
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[Report class]]){
-            [vc setReport:(Report*)sender];
+            [vc setInitialReportId:[(Report*)sender identifier]];
         }
-        [vc setProject:_project];
+        [vc setProjectId:_project.identifier];
     } else if ([segue.identifier isEqualToString:@"Activities"]) {
         BHActivitiesViewController *vc = [segue destinationViewController];
         [vc setProject:_project];

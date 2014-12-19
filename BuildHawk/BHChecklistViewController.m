@@ -461,15 +461,15 @@
         }
         
         cell.textLabel.numberOfLines = 5;
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
         
         //set the image properly
         if ([item.type isEqualToString:@"Com"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
         } else if ([item.type isEqualToString:@"S&C"]) {
-            [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+            [cell.imageView setImage:[UIImage imageNamed:@"s&c"]];
         } else {
-            [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+            [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
         }
         return cell;
     } else {
@@ -477,7 +477,7 @@
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHChecklistCell" owner:self options:nil] lastObject];
         }
-        [cell.mainLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        [cell.mainLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
         [cell.mainLabel setNumberOfLines:5];
         
         Phase *phase;
@@ -503,7 +503,7 @@
             } else {
                 [cell.detailLabel setText:[NSString stringWithFormat:@"Categories: %lu",(unsigned long)phase.categories.count]];
             }
-            [cell.detailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+            [cell.detailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
             
             //calculate the progress percentage
             float count = phase.completedCount.floatValue + phase.notApplicableCount.floatValue;
@@ -533,7 +533,7 @@
                 id item = [openRows objectAtIndex:indexPath.row-1];
                 if (item && [item isKindOfClass:[Cat class]]){
                     Cat *category = (Cat*)item;
-                    [cell.mainLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:25]];
+                    [cell.mainLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:25]];
                     [cell.mainLabel setTextColor:[UIColor whiteColor]];
                     [cell.mainLabel setText:[NSString stringWithFormat:@" %@",category.name]];
                     if (completed){
@@ -545,7 +545,7 @@
                     } else {
                         [cell.detailLabel setText:[NSString stringWithFormat:@" Items: %lu",(unsigned long)category.items.count]];
                     }
-                    [cell.detailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+                    [cell.detailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
                     [cell.detailLabel setTextColor:[UIColor whiteColor]];
                     
                     //calculate the progress percentage
@@ -567,7 +567,7 @@
                 } else if (item) {
                     ChecklistItem *item = [openRows objectAtIndex:indexPath.row-1];
                     [cell.itemBody setText:item.body];
-                    [cell.itemBody setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+                    [cell.itemBody setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
                     [cell.progressPercentage setText:@""];
                     [cell setBackgroundColor:kBlueColor];
                     
@@ -611,9 +611,9 @@
                     if ([item.type isEqualToString:@"Com"]) {
                         [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
                     } else if ([item.type isEqualToString:@"S&C"]) {
-                        [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutline"]];
+                        [cell.imageView setImage:[UIImage imageNamed:@"s&cWhite"]];
                     } else {
-                        [cell.imageView setImage:[UIImage imageNamed:@"documentsOutline"]];
+                        [cell.imageView setImage:[UIImage imageNamed:@"folderWhite"]];
                     }
                 }
             }

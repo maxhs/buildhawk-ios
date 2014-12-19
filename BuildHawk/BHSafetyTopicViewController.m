@@ -29,7 +29,7 @@
     infoTextView = [[UITextView alloc] initWithFrame:CGRectMake(4, 0, self.tableView.frame.size.width-8, self.tableView.frame.size.height)];
     [infoTextView setAttributedText:attributedInfo];
     [infoTextView setTextColor:[UIColor blackColor]];
-    [infoTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [infoTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
     [infoTextView setScrollEnabled:NO];
     textViewHeight = [infoTextView sizeThatFits:CGSizeMake(self.tableView.frame.size.width-8, CGFLOAT_MAX)].height;
     [infoTextView setFrame:CGRectMake(4, 0, self.tableView.frame.size.width-8, textViewHeight)];
@@ -59,7 +59,7 @@
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         [cell.textLabel setText:_safetyTopic.title];
         [cell.textLabel setTextColor:[UIColor blackColor]];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
         cell.textLabel.textAlignment = NSTextAlignmentCenter;
         return cell;
     } else {
@@ -75,7 +75,7 @@
             [cell.textLabel setTextColor:[UIColor lightGrayColor]];
             [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
         }
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         return cell;
     }
 }

@@ -23,7 +23,7 @@
 {
     [super awakeFromNib];
     // Initialization code
-    [_hoursLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_hoursLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

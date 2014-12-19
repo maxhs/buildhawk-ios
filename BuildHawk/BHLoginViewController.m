@@ -7,8 +7,6 @@
 //
 
 #import "BHLoginViewController.h"
-#import "User.h"
-#import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHAppDelegate.h"
 #import "BHMenuViewController.h"
 #import "BHDashboardViewController.h"
@@ -21,8 +19,6 @@
 static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
-    BOOL iPhone5;
-    BOOL iPad;
     NSString *forgotPasswordEmail;
     BHAppDelegate* delegate;
     NSMutableOrderedSet *projectSet;
@@ -31,14 +27,16 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     NSArray *views;
     NSUInteger completedAnimations;
     void (^completionBlock)();
+    UITapGestureRecognizer *backgroundTapGesture;
+    CGFloat logoY;
 }
 
 @property (weak, nonatomic) IBOutlet UITextField *emailTextField;
 @property (weak, nonatomic) IBOutlet UITextField *passwordTextField;
 @property (weak, nonatomic) IBOutlet UIButton *loginButton;
 @property (weak, nonatomic) IBOutlet UIImageView *logoImageView;
-@property (weak, nonatomic) IBOutlet UIView *loginContainerView;
 @property (weak, nonatomic) IBOutlet UIButton *forgotPasswordButton;
+
 -(IBAction)loginTapped;
 -(IBAction)forgotPassword;
 
@@ -46,33 +44,35 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 @implementation BHLoginViewController
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        iPhone5 = YES;
-    } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone){
-        iPhone5 = NO;
-        _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -88);
-    } else {
-        iPad = YES;
-    }
+
     [self textFieldTreatment:self.emailTextField];
     [self.emailTextField setPlaceholder:@"user@example.com"];
     [self textFieldTreatment:self.passwordTextField];
     
-    [_loginButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    _loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
-    _loginButton.layer.borderWidth = .5f;
+    [_loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_loginButton setEnabled:NO];
-    [_loginButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
+    [_loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
+    [_loginButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLato] size:0]];
     
     [_forgotPasswordButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-    [_forgotPasswordButton setTitle:@"FORGOT PASSWORD?" forState:UIControlStateNormal];
-    [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_forgotPasswordButton setTitle:@"Forget your password?" forState:UIControlStateNormal];
+    [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    
+    [_forgotPasswordButton setAlpha:0.0];
+    [_emailTextField setAlpha:0.0];
+    [_passwordTextField setAlpha:0.0];
+    [_loginButton setAlpha:0.0];
 
     demoProject = [Project MR_findFirstByAttribute:@"demo" withValue:@YES inContext:[NSManagedObjectContext MR_defaultContext]];
+    backgroundTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(doneEditing)];
+    backgroundTapGesture.numberOfTapsRequired = 1;
+    [self.view addGestureRecognizer:backgroundTapGesture];
+    [backgroundTapGesture setEnabled:NO];
+    
+    [self registerForKeyboardNotifications];
 }
 
 - (void)viewWillAppear:(BOOL)animated{
@@ -84,17 +84,27 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsMobileToken]){
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsMobileToken] forKey:@"mobile_token"];
+        [self login:parameters];
+    } else {
+        [self showLoginStuff];
+    }
+}
+
+- (void)showLoginStuff{
     CGRect newLogoFrame = _logoImageView.frame;
     newLogoFrame.origin.y = screenHeight()/4-_logoImageView.frame.size.height;
     [UIView animateWithDuration:.8 delay:.15 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [_logoImageView setFrame:newLogoFrame];
-        [_loginContainerView setAlpha:1.0];
+        [_emailTextField setAlpha:1.0];
+        [_passwordTextField setAlpha:1.0];
+        [_forgotPasswordButton setAlpha:1.0];
+        [_loginButton setAlpha:1.0];
     } completion:^(BOOL finished) {
-        
+        logoY = _logoImageView.frame.origin.y;
     }];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]){
-        [self login:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsEmail] andPassword:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsPassword]];
-    }
 }
 
 - (void)loadDemo {
@@ -133,7 +143,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 - (void)drawDemoButton {
     demoButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [demoButton setFrame:CGRectMake(0, screenHeight()-44, screenWidth(), 44)];
-    [demoButton.titleLabel setFont:[UIFont fontWithName:kMyriadProSemibold size:17]];
+    [demoButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
     [demoButton setTitle:@"VIEW DEMO PROJECT" forState:UIControlStateNormal];
     [demoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [demoButton setBackgroundColor:kBlueColor];
@@ -155,17 +165,27 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 }
 
 - (void)textFieldTreatment:(UITextField*)textField {
-    textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
+    textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.1].CGColor;
     textField.layer.borderWidth = .5f;
-    UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 7, 20)];
+    UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 5, 21)];
     textField.leftView = paddingView;
     textField.leftViewMode = UITextFieldViewModeAlways;
-    [textField setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    [textField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
 }
 
 - (IBAction)loginTapped {
     [self.loginButton setUserInteractionEnabled:NO];
-    [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
+    
+    NSString *email = self.emailTextField.text;
+    NSString *password = self.passwordTextField.text;
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    if (email) [parameters setObject:email forKey:@"email"];
+    if (password) [parameters setObject:password forKey:@"password"];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) {
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
+    }
+    
+    [self login:parameters];
 }
 
 - (IBAction)forgotPassword{
@@ -191,7 +211,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         forgotPasswordAlert.alertViewStyle = UIAlertViewStylePlainTextInput;
         UITextField *alertTextField = [forgotPasswordAlert textFieldAtIndex:0];
         [alertTextField setKeyboardType:UIKeyboardTypeEmailAddress];
-        [alertTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [alertTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
         [alertTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
         [alertTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
         [forgotPasswordAlert show];
@@ -205,20 +225,10 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     }
 }
 
-- (void)login:(NSString*)email andPassword:(NSString*)password{
+- (void)login:(NSMutableDictionary*)parameters{
     [ProgressHUD show:@"Logging in..."];
-    if (!email.length)
-        email = self.emailTextField.text;
-    if (!password.length)
-        password = self.passwordTextField.text;
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (email) [parameters setObject:email forKey:@"email"];
-    if (password) [parameters setObject:password forKey:@"password"];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]) {
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken] forKey:@"device_token"];
-    }
     
-    [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -229,8 +239,6 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
         [[NSUserDefaults standardUserDefaults] setObject:user.mobileToken forKey:kUserDefaultsMobileToken];
         [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
-        [[NSUserDefaults standardUserDefaults] setObject:email forKey:kUserDefaultsEmail];
-        [[NSUserDefaults standardUserDefaults] setObject:password forKey:kUserDefaultsPassword];
         [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
         [[NSUserDefaults standardUserDefaults] synchronize];
         
@@ -241,7 +249,6 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             delegate.currentUser = user;
             [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];
             [UIView animateWithDuration:.3 animations:^{
-                _loginContainerView.transform = CGAffineTransformIdentity;
                 _logoImageView.transform = CGAffineTransformIdentity;
                 [self.view endEditing:YES];
             } completion:^(BOOL finished) {
@@ -265,9 +272,10 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
                 [[[UIAlertView alloc] initWithTitle:@"Uh oh" message:@"Something went wrong while trying to log you in." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
         } else {
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
         [ProgressHUD dismiss];
+        [self showLoginStuff];
         [self.loginButton setUserInteractionEnabled:YES];
     }];
 }
@@ -284,7 +292,6 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [view.layer addAnimation:animation forKey:kShakeAnimationKey];
 }
 
-
 #pragma mark - CAAnimation Delegate
 
 - (void)animationDidStop:(CAAnimation *)animation finished:(BOOL)flag {
@@ -297,22 +304,63 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     }
 }
 
+- (void)doneEditing {
+    [self.view endEditing:YES];
+}
+
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        if (iPhone5){
-            _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -130);
-            _logoImageView.transform = CGAffineTransformMakeTranslation(0, -60);
-        } else if (iPad) {
-            
-            //don't do a thing, the keyboard is already framed
-        
-        } else {
-            _loginContainerView.transform = CGAffineTransformMakeTranslation(0, -226);
-            _logoImageView.transform = CGAffineTransformMakeTranslation(0, -180);
-        }
-    } completion:^(BOOL finished) {
-        
-    }];
+    
+}
+
+- (void)registerForKeyboardNotifications
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWillShow:(NSNotification *)note {
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _loginButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight-54);
+                         _emailTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                         _passwordTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                         _forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                         _logoImageView.transform = CGAffineTransformMakeTranslation(0, -logoY/2);
+                     }
+                     completion:^(BOOL finished) {
+                         [backgroundTapGesture setEnabled:YES];
+                     }];
+}
+
+- (void)keyboardWillHide:(NSNotification *)note {
+    NSDictionary* info = [note userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _loginButton.transform = CGAffineTransformIdentity;
+                         _emailTextField.transform = CGAffineTransformIdentity;
+                         _passwordTextField.transform = CGAffineTransformIdentity;
+                         _forgotPasswordButton.transform = CGAffineTransformIdentity;
+                         _logoImageView.transform = CGAffineTransformIdentity;
+                     }
+                     completion:^(BOOL finished) {
+                         [backgroundTapGesture setEnabled:NO];
+                     }];
 }
 
 
@@ -320,10 +368,8 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     if (self.emailTextField.text.length && self.passwordTextField.text.length){
         [self.loginButton setEnabled:YES];
         [self.loginButton setBackgroundColor:kBlueColor];
-        [self.loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     } else {
-        [self.loginButton setTitleColor:[UIColor colorWithWhite:0 alpha:.2] forState:UIControlStateNormal];
-        [self.loginButton setBackgroundColor:[UIColor clearColor]];
+        [self.loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
         self.loginButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.2].CGColor;
         [self.loginButton setEnabled:NO];
     }
@@ -333,7 +379,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             return YES;
         } else if (self.passwordTextField.text.length && self.emailTextField.text.length) {
             [textField resignFirstResponder];
-            [self login:self.emailTextField.text andPassword:self.passwordTextField.text];
+            [self loginTapped];
         }
     }
     return YES;

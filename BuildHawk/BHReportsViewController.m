@@ -74,9 +74,9 @@
     
     //set up the date picker stuff
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     
     if (delegate.connected){
@@ -357,11 +357,9 @@
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"ReportCell";
     BHReportCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    
     if (weekly || safety || daily){
         if (_filteredReports.count){
             Report *report = [_filteredReports objectAtIndex:indexPath.row];
@@ -478,41 +476,35 @@
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kSafety]){
         [self performSegueWithIdentifier:@"Report" sender:kSafety];
     }
+    [actionSheet dismissWithClickedButtonIndex:buttonIndex animated:YES];
 }
 
 #pragma mark - Navigation
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
-    
     if ([[segue identifier] isEqualToString:@"Report"]){
         BHReportViewController *vc = [segue destinationViewController];
-        vc.delegate = self;
+        vc.reportDelegate = self;
+        [vc setProjectId:_project.identifier];
         
-        [vc setProject:_project];
-        if (daily || safety || weekly){
-            [vc setReports:_filteredReports];
-        } else {
-            [vc setReports:_project.reports.array.mutableCopy];
-        }
-        
+        //seguing to an existing report
         if ([sender isKindOfClass:[Report class]]){
-            [vc setReport:(Report*)sender];
+            [vc setInitialReportId:[(Report*)sender identifier]];
+            if (daily || safety || weekly){
+                [vc setReports:_filteredReports];
+            } else {
+                [vc setReports:_project.reports.array.mutableCopy];
+            }
         } else if ([sender isKindOfClass:[NSString class]]) {
-            Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            newReport.project = _project;
-            newReport.type = (NSString*)sender;
+        
+        //seguing to a new report
             NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
             [formatter setDateFormat:@"MM/dd/yyyy"];
-            newReport.dateString = [formatter stringFromDate:[NSDate date]];
-            [vc setReport:newReport];
+            [vc setReportDateString:[formatter stringFromDate:[NSDate date]]];
+            [vc setReportType:(NSString*)sender];
         }
     }
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 - (IBAction)cancelDatePicker{
@@ -616,6 +608,11 @@
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
     self.tabBarController.navigationItem.rightBarButtonItems = nil;
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 
 @end

@@ -88,12 +88,6 @@
     }];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -119,7 +113,7 @@
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         [cell.textLabel setText:@"No hidden projects..."];
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
         return cell;
     } else {
@@ -137,7 +131,8 @@
         }
         
         [cell.projectButton setTag:project.identifier.integerValue];
-        [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+        [cell.projectButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
+        //[cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
         [cell.titleLabel setTextColor:kDarkGrayColor];
         [cell.unhideButton setTag:project.identifier.integerValue];
         [cell.unhideButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
@@ -146,7 +141,7 @@
 }
 
 - (void)confirmActivate:(UIButton*)button {
-    [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to make this project active?" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Activate", nil] show];
+    [[[UIAlertView alloc] initWithTitle:@"Hidden Project" message:@"This project is currently hidden. You can activate this project to take a closer look." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Activate", nil] show];
     hiddenProject = [Project MR_findFirstByAttribute:@"identifier" withValue:[NSNumber numberWithInteger:button.tag]];
 }
 
@@ -215,6 +210,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    NSLog(@"did select");
     if ([cell isKindOfClass:[BHHiddenProjectCell class]]){
         [(BHHiddenProjectCell*)cell scroll];
     }
@@ -232,6 +228,10 @@
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
     }
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
 }
 
 @end

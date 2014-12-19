@@ -45,11 +45,13 @@
     if ([dictionary objectForKey:@"phone"] && [dictionary objectForKey:@"phone"] != [NSNull null]) {
         self.phone = [dictionary objectForKey:@"phone"];
     } else {
+        //empty out the phone if it's not part of the response object.
         self.phone = @"";
     }
     if ([dictionary objectForKey:@"formatted_phone"] && [dictionary objectForKey:@"formatted_phone"] != [NSNull null]) {
         self.formattedPhone = [dictionary objectForKey:@"formatted_phone"];
     } else {
+        //empty out the phone if it's not part of the response object.
         self.formattedPhone = @"";
     }
     if ([dictionary objectForKey:@"email"] && [dictionary objectForKey:@"email"] != [NSNull null]) {

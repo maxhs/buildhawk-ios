@@ -32,22 +32,22 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_scrollView setContentSize:CGSizeMake(screenWidth(), 88)];
+    [_scrollView setContentSize:CGSizeMake(screenWidth()+88, 88)];
     [_alertLabel setBackgroundColor:[UIColor redColor]];
     [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
     _alertLabel.layer.cornerRadius = 11.f;
     
     if (IDIOM == IPAD) {
-        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
     } else {
-        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
     }
     
-    [_addressLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
-    [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
-    [_alertLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_addressLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    [_alertLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
     
-    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
     [_hideButton setBackgroundColor:[UIColor redColor]];
 }
 
@@ -78,11 +78,7 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView.contentOffset.x >= 88){
-        [_hideButton setUserInteractionEnabled:YES];
-    } else {
-        [_hideButton setUserInteractionEnabled:NO];
-    }
+    _hideButton.transform = CGAffineTransformMakeTranslation(-scrollView.contentOffset.x, 0);
 }
 
 @end

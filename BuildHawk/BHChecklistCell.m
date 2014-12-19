@@ -22,7 +22,7 @@
 - (void)awakeFromNib
 {
     [super awakeFromNib];
-    [_progressPercentage setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    [_progressPercentage setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

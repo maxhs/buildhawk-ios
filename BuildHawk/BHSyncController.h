@@ -27,4 +27,5 @@ typedef enum {
 - (void)syncAll;
 - (void)updateStatusMessage:(SynchDirection)direction;
 - (void)update;
+- (void)cancelSynch;
 @end

@@ -164,4 +164,22 @@ typedef void(^synchCompletion)(BOOL);
     }
 }
 
+- (void)cancelSynch {
+    NSArray *reports = [Report MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSArray *tasks = [Task MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSArray *checklistItems = [ChecklistItem MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    
+    [reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
+        [report setSaved:@YES];
+    }];
+    [tasks enumerateObjectsUsingBlock:^(Task *task, NSUInteger idx, BOOL *stop) {
+        [task setSaved:@YES];
+    }];
+    [checklistItems enumerateObjectsUsingBlock:^(ChecklistItem *item, NSUInteger idx, BOOL *stop) {
+        [item setSaved:@YES];
+    }];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    [self updateSynchCount];
+}
+
 @end

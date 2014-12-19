@@ -122,7 +122,7 @@
     for (id subview in [self.searchBar.subviews.firstObject subviews]){
         if ([subview isKindOfClass:[UITextField class]]){
             UITextField *searchTextField = (UITextField*)subview;
-            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
             break;
         }
     }
@@ -451,7 +451,12 @@
             }
             [cell configureForProject:project andUser:_currentUser];
             [cell.textLabel setText:@""];
-            [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
+            
+            if (project.progressPercentage.length){
+                [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
+            } else {
+                [cell.progressButton setTitle:@"-" forState:UIControlStateNormal];
+            }
             [cell.progressButton setTag:indexPath.row];
             [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
             
@@ -459,13 +464,11 @@
             [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
             
             [cell.nameLabel setTextColor:kDarkGrayColor];
-            if (_currentUser.anyAdmin){
-                [cell.hideButton setTag:indexPath.row];
-                [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
-                cell.scrollView.scrollEnabled = YES;
-            } else {
-                cell.scrollView.scrollEnabled = YES;
-            }
+            
+            [cell.hideButton setTag:indexPath.row];
+            [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
+            cell.scrollView.scrollEnabled = YES;
+            
         }
         return cell;
     } else if (indexPath.section == 1) {

@@ -36,8 +36,8 @@ typedef void(^RequestFailure)(NSError *error);
 typedef void(^RequestSuccess)(id result);
 
 @interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate> {
-    BOOL iPhone5;
     BOOL saveToLibrary;
+    BOOL iPhone5;
     UIActionSheet *locationActionSheet;
     BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
@@ -83,9 +83,9 @@ typedef void(^RequestSuccess)(id result);
     appDelegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [appDelegate manager];
     
-    if ([UIScreen mainScreen].bounds.size.height == 568) {
+    if ([UIScreen mainScreen].bounds.size.height >= 568) {
         iPhone5 = YES;
-    } else if (IDIOM != IPAD) {
+    } else {
         iPhone5 = NO;
         self.emailButton.transform = CGAffineTransformMakeTranslation(0, -88);
         self.callButton.transform = CGAffineTransformMakeTranslation(0, -88);
@@ -167,10 +167,10 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)drawItem {
-    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
-    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
-    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:19]];
-    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLatoBold] size:0]];
+    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     
     if (_task.body.length) {
         [self.itemTextView setText:_task.body];
@@ -189,18 +189,18 @@ typedef void(^RequestSuccess)(id result);
     }
     
     if (_task.location && _task.location.length) {
-        [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",_task.location] forState:UIControlStateNormal];
+        [self.locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",_task.location] forState:UIControlStateNormal];
     } else {
         [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     }
     if (_task.assignees.count) {
         if (_task.assignees.count == 1){
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",[(User*)[_task.assignees firstObject] fullname]] forState:UIControlStateNormal];
+            [self.assigneeButton setTitle:[NSString stringWithFormat:@"ASSIGNED: %@",[(User*)[_task.assignees firstObject] fullname]] forState:UIControlStateNormal];
         } else {
             [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned to %lu personnel",(unsigned long)_task.assignees.count] forState:UIControlStateNormal];
         }
     } else {
-        [self.assigneeButton setTitle:@"Assign" forState:UIControlStateNormal];
+        [self.assigneeButton setTitle:@"ASSIGN" forState:UIControlStateNormal];
     }
 }
 
@@ -248,8 +248,7 @@ typedef void(^RequestSuccess)(id result);
     else return _task.comments.count + 1;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (!activities && indexPath.row == 0) {
         BHAddCommentCell *addCommentCell = [tableView dequeueReusableCellWithIdentifier:@"AddCommentCell"];
         if (addCommentCell == nil) {
@@ -259,7 +258,7 @@ typedef void(^RequestSuccess)(id result);
         
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
-        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneCommentButton = addCommentCell.doneButton;
         return addCommentCell;
@@ -683,36 +682,12 @@ typedef void(^RequestSuccess)(id result);
     [_photosScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     _photosScrollView.showsHorizontalScrollIndicator=NO;
 
-    float imageSize;
-    float space;
-    if (IDIOM == IPAD) {
-        imageSize = 80;
-        space = 4;
-    } else if (iPhone5){
-        imageSize = 56.0;
-        space = 4.0;
-    } else {
-        imageSize = 40;
-        space = 3;
-    }
+    float imageSize = _photosScrollView.frame.size.height;
+    float space = 0;
 
     int index = 0;
     for (Photo *photo in _task.photos) {
-        /*__weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        if (photo.urlSmall.length){
-            [imageButton setAlpha:0.0];
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-                [UIView animateWithDuration:.25 animations:^{
-                    [imageButton setAlpha:1.0];
-                }];
-            }];
-        } else if (photo.image) {
-            [imageButton setImage:photo.image forState:UIControlStateNormal];
-            [UIView animateWithDuration:.25 animations:^{
-                [imageButton setAlpha:1.0];
-            }];
-        }
-        */
+ 
         UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
         if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
@@ -725,10 +700,6 @@ typedef void(^RequestSuccess)(id result);
         [_photosScrollView addSubview:imageButton];
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),4,imageSize, imageSize)];
         imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
-        imageButton.imageView.clipsToBounds = YES;
-        imageButton.imageView.layer.cornerRadius = 2.0;
-        [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
-        [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.imageView.layer.shouldRasterize = YES;
         imageButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
         [imageButton setTag:[_task.photos indexOfObject:photo]];
@@ -737,25 +708,9 @@ typedef void(^RequestSuccess)(id result);
         index++;
     }
     
-    if (_task.photos.count > 0){
-        [self.view bringSubviewToFront:self.photosScrollView];
-        [self.photosScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
-        if (self.photosScrollView.isHidden) [self.photosScrollView setHidden:NO];
-        [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            if (IDIOM == IPAD) {
-                self.photoButton.transform = CGAffineTransformMakeTranslation(-302, 0);
-                self.libraryButton.transform = CGAffineTransformMakeTranslation(-302, 0);
-            } else if (iPhone5) {
-                self.photoButton.transform = CGAffineTransformMakeTranslation(-96, 0);
-                self.libraryButton.transform = CGAffineTransformMakeTranslation(-96, 0);
-            } else {
-                self.photoButton.transform = CGAffineTransformMakeTranslation(-96, -32);
-                self.libraryButton.transform = CGAffineTransformMakeTranslation(-86, -32);
-            }
-        } completion:^(BOOL finished) {
-            
-        }];
-    }
+    [self.view bringSubviewToFront:self.photosScrollView];
+    [self.photosScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))),40)];
+    if (self.photosScrollView.isHidden) [self.photosScrollView setHidden:NO];
     
     [UIView animateWithDuration:.3 delay:.7 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.photosScrollView setAlpha:1.0];
@@ -838,9 +793,9 @@ typedef void(^RequestSuccess)(id result);
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     BHPersonnelPickerViewController *vc = [segue destinationViewController];
-    [vc setProject:_project];
+    [vc setProjectId:_project.identifier];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
-        [vc setTask:_task];
+        [vc setTaskId:_task.identifier];
     }
 }
 
@@ -1169,14 +1124,17 @@ typedef void(^RequestSuccess)(id result);
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (alertView == addOtherAlertView) {
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
-            [self.locationButton setTitle:[[alertView textFieldAtIndex:0] text] forState:UIControlStateNormal];
+            NSString *newLocationString = [[alertView textFieldAtIndex:0] text];
+            [_task setLocation:newLocationString];
+            [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",newLocationString] forState:UIControlStateNormal];
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self sendItem];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
-        [self loadItem];
-        [self drawItem];
+        //[self loadItem];
+        //[self drawItem];
         [self dismiss];
+        [_task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self takePhoto];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]){
@@ -1192,8 +1150,7 @@ typedef void(^RequestSuccess)(id result);
     }
 }
 
-- (void)registerForKeyboardNotifications
-{
+- (void)registerForKeyboardNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification object:nil];

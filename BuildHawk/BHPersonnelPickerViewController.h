@@ -17,10 +17,10 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 @property (weak, nonatomic) IBOutlet UIButton *addressBookButton;
-@property (strong, nonatomic) Company *company;
-@property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) Task *task;
-@property (strong, nonatomic) Report *report;
+@property (strong, nonatomic) NSNumber *companyId;
+@property (strong, nonatomic) NSNumber *projectId;
+@property (strong, nonatomic) NSNumber *taskId;
+@property (strong, nonatomic) NSNumber *reportId;
 @property BOOL phone;
 @property BOOL email;
 @property BOOL text;

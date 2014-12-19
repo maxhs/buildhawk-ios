@@ -123,9 +123,9 @@
         if ([[checklistItem type] isEqualToString:@"Com"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
         } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-            [cell.imageView setImage:[UIImage imageNamed:@"stopAndCheckOutlineDark"]];
+            [cell.imageView setImage:[UIImage imageNamed:@"s&c"]];
         } else {
-            [cell.imageView setImage:[UIImage imageNamed:@"documentsOutlineDark"]];
+            [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
         }
         cell.deadlineTextLabel.numberOfLines = 0;
         return cell;
@@ -267,9 +267,9 @@
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[Report class]]){
-            [vc setReport:(Report*)sender];
+            [vc setInitialReportId:[(Report*)sender identifier]];
         }
-        [vc setProject:_project];
+        [vc setProjectId:_project.identifier];
     }
 }
 @end

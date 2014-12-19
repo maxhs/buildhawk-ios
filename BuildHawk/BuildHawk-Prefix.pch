@@ -18,6 +18,6 @@
     #import <NewRelicAgent/NewRelic.h>
     #import "ProgressHUD.h"
     #import "Constants.h"
-    #import "UIFontDescriptor+MyriadPro.h"
+    #import "UIFontDescriptor+Custom.h"
     #import <Mixpanel/Mixpanel.h>
 #endif

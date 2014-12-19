@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Report.h"
+#import "Report+helper.h"
 
 @interface BHReportCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UILabel *reportLabel;

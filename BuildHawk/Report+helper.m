@@ -366,9 +366,7 @@
                 if (dict != [NSNull null] && [dict objectForKey:@"id"]){
                     NSPredicate *photoPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
                     Activity *activity = [Activity MR_findFirstWithPredicate:photoPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-                    if (activity){
-                        
-                    } else {
+                    if (!activity){
                         activity = [Activity MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                         [activity populateFromDictionary:dict];
                     }
@@ -404,15 +402,15 @@
             self.activities = set;
         }
     }
-    
-}
 
+}
 
 -(void)addSafetyTopic:(SafetyTopic *)topic {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.safetyTopics];
     [set addObject:topic];
     self.safetyTopics = set;
 }
+
 -(void)removeSafetyTopic:(SafetyTopic *)topic {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.safetyTopics];
     [set removeObject:topic];
@@ -424,6 +422,7 @@
     [set addObject:reportUser];
     self.reportUsers = set;
 }
+
 -(void)removeReportUser:(ReportUser*)reportUser {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportUsers];
     [set removeObject:reportUser];
@@ -439,6 +438,7 @@
     [set addObject:photo];
     self.photos = set;
 }
+
 -(void)removePhoto:(Photo *)photo {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set removeObject:photo];
@@ -450,120 +450,126 @@
     [set addObject:reportSubcontractor];
     self.reportSubs = set;
 }
+
 -(void)removeReportSubcontractor:(ReportSub *)reportSubcontractor {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportSubs];
     [set removeObject:reportSubcontractor];
     self.reportSubs = set;
 }
+
 -(void)clearReportSubcontractors {
     self.reportSubs = nil;
 }
 
 - (void)synchWithServer:(synchCompletion)complete{
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:self.project.identifier forKey:@"project_id"];
-    if (self.weather.length) [parameters setObject:self.weather forKey:@"weather"];
-    if (self.dateString.length) [parameters setObject:self.dateString forKey:@"date_string"];
-    if (self.type.length) [parameters setObject:self.type forKey:@"report_type"];
-    if (self.precip.length) [parameters setObject:self.precip forKey:@"precip"];
-    if (self.humidity.length) [parameters setObject:self.humidity forKey:@"humidity"];
-    if (self.weatherIcon.length) [parameters setObject:self.weatherIcon forKey:@"weather_icon"];
-    if (self.body.length){
-        [parameters setObject:self.body forKey:@"body"];
-    }
-    if (self.reportUsers.count) {
-        NSMutableArray *userArray = [NSMutableArray array];
-        for (ReportUser *reportUser in self.reportUsers) {
-            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-            if (![reportUser.userId isEqualToNumber:[NSNumber numberWithInt:0]]) {
-                [dict setObject:reportUser.userId forKey:@"id"];
-            }
-            if (reportUser.fullname.length) {
-                [dict setObject:reportUser.fullname forKey:@"full_name"];
-            }
-            if (reportUser.hours) {
-                [dict setObject:reportUser.hours forKey:@"hours"];
-            }
-            [userArray addObject:dict];
+    if (self.project.identifier){
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:self.project.identifier forKey:@"project_id"];
+        if (self.weather.length) [parameters setObject:self.weather forKey:@"weather"];
+        if (self.dateString.length) [parameters setObject:self.dateString forKey:@"date_string"];
+        if (self.type.length) [parameters setObject:self.type forKey:@"report_type"];
+        if (self.precip.length) [parameters setObject:self.precip forKey:@"precip"];
+        if (self.humidity.length) [parameters setObject:self.humidity forKey:@"humidity"];
+        if (self.wind.length) [parameters setObject:self.wind forKey:@"wind"];
+        if (self.weatherIcon.length) [parameters setObject:self.weatherIcon forKey:@"weather_icon"];
+        if (self.body.length){
+            [parameters setObject:self.body forKey:@"body"];
         }
-        if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
-    }
-    
-    if (self.reportSubs.count) {
-        NSMutableArray *subArray = [NSMutableArray array];
-        for (ReportSub *reportSub in self.reportSubs) {
-            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-            if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
-            if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
-            if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
-            [subArray addObject:dict];
-            
-        }
-        if (subArray.count)[parameters setObject:subArray forKey:@"report_companies"];
-    }
-    if (self.safetyTopics.count) {
-        NSMutableArray *topicsArray = [NSMutableArray array];
-        for (SafetyTopic *topic in self.safetyTopics) {
-            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-            if (![topic.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.identifier forKey:@"id"];
-            if (![topic.topicId isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.topicId forKey:@"topic_id"];
-            if (topic.title.length) [dict setObject:topic.title forKey:@"title"];
-            [topicsArray addObject:dict];
-        }
-        if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
-    }
-    
-    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-    AFHTTPRequestOperationManager *manager = [delegate manager];
-    
-    if ([self.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        NSLog(@"synching a new report");
-        //fetch the images
-        NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:self.photos];
-        
-        //assign an author
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
-        
-        [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success creating report: %@",responseObject);
-            if ([responseObject objectForKey:@"duplicate"]){
-                [[[UIAlertView alloc] initWithTitle:@"Report Duplicate" message:@"A report for this date already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                [ProgressHUD dismiss];
-                complete(NO);
-            } else {
-                [self populateWithDict:[responseObject objectForKey:@"report"]];
-                complete(YES);
-                //reattach the images we grabbed earlier.
-                for (Photo *photo in photoSet){
-                    photo.report = self;
-                    [photo synchWithServer:^(BOOL complete) {
-                        if (complete){
-                            
-                        }
-                    }];
+        if (self.reportUsers.count) {
+            NSMutableArray *userArray = [NSMutableArray array];
+            for (ReportUser *reportUser in self.reportUsers) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if (![reportUser.userId isEqualToNumber:[NSNumber numberWithInt:0]]) {
+                    [dict setObject:reportUser.userId forKey:@"id"];
                 }
+                if (reportUser.fullname.length) {
+                    [dict setObject:reportUser.fullname forKey:@"full_name"];
+                }
+                if (reportUser.hours) {
+                    [dict setObject:reportUser.hours forKey:@"hours"];
+                }
+                [userArray addObject:dict];
             }
+            if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
+        }
+        
+        if (self.reportSubs.count) {
+            NSMutableArray *subArray = [NSMutableArray array];
+            for (ReportSub *reportSub in self.reportSubs) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
+                if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
+                if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
+                [subArray addObject:dict];
+                
+            }
+            if (subArray.count)[parameters setObject:subArray forKey:@"report_companies"];
+        }
+        if (self.safetyTopics.count) {
+            NSMutableArray *topicsArray = [NSMutableArray array];
+            for (SafetyTopic *topic in self.safetyTopics) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+                if (![topic.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.identifier forKey:@"id"];
+                if (![topic.topicId isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.topicId forKey:@"topic_id"];
+                if (topic.title.length) [dict setObject:topic.title forKey:@"title"];
+                [dict setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+                [topicsArray addObject:dict];
+            }
+            if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
+        }
+        
+        BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+        AFHTTPRequestOperationManager *manager = [delegate manager];
+        
+        if ([self.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            NSLog(@"synching a new report");
+            //fetch the images
+            NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:self.photos];
             
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while synching this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-            NSLog(@"Failure creating report: %@",error.description);
-            complete(NO);
-        }];
-    } else {
-        NSLog(@"saving an existing report: %@",self.identifier);
-        [manager PATCH:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,self.identifier] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success synching report: %@",responseObject);
-            if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoReport]){
-                [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            } else {
-                [self clearReportUsers];
-                [self populateWithDict:[responseObject objectForKey:@"report"]];
-            }
-            complete(YES);
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failure synching report: %@",error.description);
-            complete(NO);
-        }];
+            //assign an author
+            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"author_id"];
+            
+            [manager POST:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"Success creating report: %@",responseObject);
+                if ([responseObject objectForKey:@"duplicate"]){
+                    [[[UIAlertView alloc] initWithTitle:@"Report Duplicate" message:@"A report for this date already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    [ProgressHUD dismiss];
+                    complete(NO);
+                } else {
+                    [self populateWithDict:[responseObject objectForKey:@"report"]];
+                    complete(YES);
+                    //reattach the images we grabbed earlier.
+                    for (Photo *photo in photoSet){
+                        photo.report = self;
+                        [photo synchWithServer:^(BOOL complete) {
+                            if (complete){
+                                
+                            }
+                        }];
+                    }
+                }
+                
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while synching this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                NSLog(@"Failure creating report: %@",error.description);
+                complete(NO);
+            }];
+        } else {
+            NSLog(@"saving an existing report: %@",self.identifier);
+            [manager PATCH:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,self.identifier] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                //NSLog(@"Success synching report: %@",responseObject);
+                if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoReport]){
+                    [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                } else {
+                    [self clearReportUsers];
+                    [self populateWithDict:[responseObject objectForKey:@"report"]];
+                }
+                complete(YES);
+            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                NSLog(@"Failure synching report: %@",error.description);
+                complete(NO);
+            }];
+        }
     }
 }
 

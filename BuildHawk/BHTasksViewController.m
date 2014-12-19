@@ -601,9 +601,9 @@
             [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
         }
         [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
-        cell.photoButton.imageView.layer.cornerRadius = 2.0;
+        /*cell.photoButton.imageView.layer.cornerRadius = 2.0;
         [cell.photoButton.imageView setBackgroundColor:[UIColor clearColor]];
-        [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+        [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];*/
         cell.photoButton.imageView.layer.shouldRasterize = YES;
         cell.photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
 
@@ -613,7 +613,7 @@
         UIButton *nothingButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [nothingButton setTitle:@"No Tasks..." forState:UIControlStateNormal];
         [nothingButton.titleLabel setNumberOfLines:0];
-        [nothingButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        [nothingButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
         nothingButton.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
         [nothingButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         [nothingButton setBackgroundColor:[UIColor clearColor]];

@@ -37,6 +37,10 @@
     NSString *searchText;
     NSTimeInterval duration;
     UIViewAnimationOptions animationCurve;
+    Project *_project;
+    Report *_report;
+    Task *_task;
+    Company *_company;
 }
 @end
 
@@ -44,10 +48,10 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 @implementation BHPersonnelPickerViewController
 @synthesize phone, email;
-@synthesize project = _project;
-@synthesize company = _company;
-@synthesize task = _task;
-@synthesize report = _report;
+@synthesize projectId = _projectId;
+@synthesize companyId = _companyId;
+@synthesize taskId = _taskId;
+@synthesize reportId = _reportId;
 
 - (void)viewDidLoad
 {
@@ -60,6 +64,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     } else {
         filteredUsers = [NSMutableArray array];
     }
+    
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+    _company = [Company MR_findFirstByAttribute:@"identifier" withValue:_companyId inContext:[NSManagedObjectContext MR_defaultContext]];
+    _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
     
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
@@ -75,7 +84,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [searchTextField setBackgroundColor:[UIColor clearColor]];
             [searchTextField setTextColor:[UIColor blackColor]];
             [searchTextField setTintColor:[UIColor blackColor]];
-            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [searchTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
             break;
         }
@@ -89,8 +98,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [self pinParentCompanyToTop];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addCompany:) name:@"AddCompany" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
+    [self registerKeyboardNotifications];
 }
 
 - (void)pinParentCompanyToTop {
@@ -121,7 +129,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 - (void)loadPersonnel {
     [ProgressHUD show:@"Fetching personnel..."];
     [manager GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"success loading project personnel: %@",responseObject);
+        //NSLog(@"success loading project personnel: %@",responseObject);
         [_project updateFromDictionary:[responseObject objectForKey:@"project"]];
         loading = NO;
         
@@ -276,8 +284,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     User *user;
     if (searching){
         if (indexPath.section == 0){
@@ -292,9 +299,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.hoursLabel setText:@""];
             [cell.nameLabel setText:@""];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-            [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-            [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             if (_companyMode){
                 Company *company;
                 if (filteredSubcontractors.count){
@@ -304,9 +311,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                         [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
                             if ([company.identifier isEqualToNumber:reportSub.companyId]){
                                 [cell.connectNameLabel setText:company.name];
-                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
                                 [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
-                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
                                 [cell.nameLabel setText:@""];
                                 *stop = YES;
                             }
@@ -358,7 +365,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             }
             
             [cell.nameLabel setTextColor:[UIColor lightGrayColor]];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             return cell;
         }
     } else {
@@ -392,9 +399,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
                 if ([company.identifier isEqualToNumber:reportSub.companyId]){
                     [cell.connectNameLabel setText:company.name];
-                    [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+                    [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
                     [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
-                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
                     [cell.nameLabel setText:@""];
                     *stop = YES;
                 }
@@ -402,7 +409,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             
         } else if (indexPath.row == 0){
             cell.backgroundColor = [UIColor whiteColor];
@@ -412,7 +419,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
             [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
         } else if (indexPath.row == company.projectUsers.count + 1){
             [cell.connectNameLabel setText:@""];
             [cell.connectDetailLabel setText:@""];
@@ -420,7 +427,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.nameLabel setText:[NSString stringWithFormat:@"\u2794 Add a contact to \"%@\"",company.name]];
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextAlignment:NSTextAlignmentCenter];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProIt] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProIt] size:0]];
             [cell.nameLabel setTextColor:[UIColor whiteColor]];
             cell.backgroundColor = kBlueColor;
             //add a border
@@ -434,11 +441,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             //this could be a user, or it could be a connect user
             user = company.projectUsers[indexPath.row-1];
             [cell.connectNameLabel setText:user.fullname];
-            [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [cell.connectNameLabel setTextColor:[UIColor whiteColor]];
             [cell.connectDetailLabel setTextColor:[UIColor whiteColor]];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-            [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
             [cell.hoursLabel setTextColor:[UIColor whiteColor]];
             cell.backgroundColor = kLightBlueColor;
             if (user.company.name.length){
@@ -851,7 +858,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }];
 }
 
--(void)willShowKeyboard:(NSNotification*)notification {
+- (void)registerKeyboardNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)willShowKeyboard:(NSNotification*)notification {
     NSDictionary* keyboardInfo = [notification userInfo];
     NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameBeginUserInfoKey];
     CGFloat keyboardHeight = [keyboardFrameBegin CGRectValue].size.height;

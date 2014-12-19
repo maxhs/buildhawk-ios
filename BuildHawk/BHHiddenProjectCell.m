@@ -30,22 +30,19 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    screen = [UIScreen mainScreen].bounds;
-    [self.unhideButton setBackgroundColor:[UIColor redColor]];
-    [self.scrollView setContentSize:CGSizeMake(screen.size.width, 88)];
-    [self.unhideButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    
-    if (IDIOM == IPAD) {
-        [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-        [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
-    } else {
-        [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-        [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
-    }
-    [_projectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-    
-    [_unhideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
     [_unhideButton setBackgroundColor:[UIColor redColor]];
+    [_unhideButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+    [_unhideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    [_scrollView setContentSize:CGSizeMake(screenWidth()+88, 88)];
+
+    if (IDIOM == IPAD) {
+        [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    } else {
+        [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+        [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    }
+    [_projectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
 }
 
 - (void)scroll{
@@ -57,10 +54,6 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView.contentOffset.x >= 88){
-        [self.unhideButton setUserInteractionEnabled:YES];
-    } else {
-        [self.unhideButton setUserInteractionEnabled:NO];
-    }
+    _unhideButton.transform = CGAffineTransformMakeTranslation(-scrollView.contentOffset.x, 0);
 }
 @end

@@ -19,6 +19,9 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kUrlScheme @"buildhawk"
 #define kForecastAPIKey @"32a0ebe578f183fac27d67bb57f230b5"
 
+#define ANUIFontTextStyleCaption3 @"ANUIFontTextStyleCaption3"
+#define ANUIFontTextStyleCaption4 @"ANUIFontTextStyleCaption4"
+
 #define kUserDefaultsId @"user_id"
 #define kUserDefaultsPassword @"password"
 #define kUserDefaultsEmail @"email"
@@ -75,6 +78,16 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kMyriadProLight @"MyriadPro-Light"
 #define kMyriadProSemibold @"MyriadPro-Semibold"
 #define kMyriadProIt @"MyriadPro-It"
+#define kLato @"Lato-Regular"
+#define kLatoItalic @"Lato-Italic"
+#define kLatoLight @"Lato-Light"
+#define kLatoLightItalic @"Lato-LightItalic"
+#define kLatoHairline @"Lato-Hairline"
+#define kLatoHairlineItalic @"Lato-HairlineItalic"
+#define kLatoBlack @"Lato-Black"
+#define kLatoBlackItalic @"Lato-BlackItalic"
+#define kLatoBold @"Lato-Bold"
+#define kLatoBoldItalic @"Lato-BoldItalic"
 
 //User walkthrough
 #define kHasSeenDashboard @"hasSeenDashboard"

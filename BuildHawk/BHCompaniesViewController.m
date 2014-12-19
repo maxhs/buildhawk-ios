@@ -86,13 +86,13 @@
     }
     if (indexPath.row == _searchResults.count){
         [cell.textLabel setText:[NSString stringWithFormat:@"Add \"%@\"",_searchTerm]];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
         [cell.textLabel setTextColor:[UIColor lightGrayColor]];
     } else {
         
         NSDictionary *companyDict = _searchResults[indexPath.row];
         [cell.textLabel setText:[companyDict objectForKey:@"name"]];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [cell.textLabel setTextColor:[UIColor blackColor]];
     }
     return cell;

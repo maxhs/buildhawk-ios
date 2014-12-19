@@ -121,19 +121,22 @@
     if (self.picker.showsCancelButton)
     {
         self.navigationItem.leftBarButtonItem =
-        [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Cancel", nil)
+        [[UIBarButtonItem alloc] initWithTitle:NSLocalizedStringFromTable(@"Cancel", @"CTAssetsPickerController", nil)
                                          style:UIBarButtonItemStylePlain
                                         target:self.picker
                                         action:@selector(dismiss:)];
     }
     
     self.navigationItem.rightBarButtonItem =
-    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", nil)
+    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedStringFromTable(@"Done", @"CTAssetsPickerController", nil)
                                      style:UIBarButtonItemStyleDone
                                     target:self.picker
                                     action:@selector(finishPickingAssets:)];
     
-    self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
+    if (self.picker.alwaysEnableDoneButton)
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+    else
+        self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
 }
 
 - (void)setupToolbar
@@ -144,7 +147,7 @@
 - (void)localize
 {
     if (!self.picker.title)
-        self.title = NSLocalizedString(@"Photos", nil);
+        self.title = NSLocalizedStringFromTable(@"Photos", @"CTAssetsPickerController", nil);
     else
         self.title = self.picker.title;
 }

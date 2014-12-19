@@ -269,16 +269,16 @@
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
         
         if (IDIOM == IPAD){
-            [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+            [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
         } else {
-            [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         }
         
         return bodyCell;
     } else if (indexPath.section == 1) {
         BHItemDeadlineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ItemDeadlineCell"];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         [cell.deadlineLabel setTextColor:[UIColor blackColor]];
     
         if (_item.criticalDate){
@@ -324,7 +324,7 @@
             default:
                 break;
         }
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
         return cell;
     } else if (indexPath.section == 3) {
         
@@ -570,7 +570,7 @@
     [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]) {
         BHPersonnelPickerViewController *vc = [segue destinationViewController];
-        [vc setProject:_project];
+        [vc setProjectId:_project.identifier];
         if (phoneBool) {
             [vc setPhone:YES];
         } else if (emailBool) {
@@ -912,7 +912,7 @@
 #pragma mark - API GET & PATCH item
 
 - (void)loadItem:(BOOL)shouldReload{
-    if (delegate.connected){
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
             [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];

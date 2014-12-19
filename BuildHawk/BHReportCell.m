@@ -8,9 +8,8 @@
 
 #import "BHReportCell.h"
 #import "Photo+helper.h"
-#import "ReportSub.h"
+#import "ReportSub+helper.h"
 #import "UIButton+WebCache.h"
-#import "Report+helper.h"
 #import "User+helper.h"
 
 @implementation BHReportCell
@@ -24,22 +23,18 @@
     return self;
 }
 
-- (void)awakeFromNib
-{
+- (void)awakeFromNib {
     [super awakeFromNib];
-    [_reportLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
-    [_authorLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-    [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-    [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_reportLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    [_authorLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     
     [_separatorView setBackgroundColor:kSeparatorColor];
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
 }
 
 - (void)configureReport:(Report *)report {
@@ -62,9 +57,9 @@
     
     if (report.photos.count > 0){
         _photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
-        _photoButton.imageView.layer.cornerRadius = 2.0;
-        [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
-        [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
+//        _photoButton.imageView.layer.cornerRadius = 2.0;
+//        [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
+//        [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         
         Photo *firstPhoto = (Photo*)report.photos.firstObject;
         if (firstPhoto.image) {
@@ -81,7 +76,7 @@
         _photoCountBubble.layer.cornerRadius = _photoCountBubble.frame.size.height/2;
         _photoCountBubble.layer.backgroundColor = [UIColor clearColor].CGColor;
         [_photoCountBubble setText:[NSString stringWithFormat:@"%lu",(unsigned long)report.photos.count]];
-        [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+        [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
         _photoCountBubble.hidden = NO;
     } else {
         _photoCountBubble.hidden = YES;

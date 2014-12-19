@@ -17,18 +17,18 @@
 @end
 
 @interface BHReportViewController : UIViewController
+
 @property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
-@property (strong, nonatomic) BHReportTableView *reportTableView;
-@property (strong, nonatomic) Report *report;
-@property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) NSMutableArray *reports;
+@property (strong, nonatomic) NSString *reportDateString;
+@property (strong, nonatomic) NSString *reportType;
+@property (strong, nonatomic) NSNumber *initialReportId;
+@property (strong, nonatomic) NSNumber *projectId;
+@property (strong, nonatomic) NSArray *reports;
 @property (weak, nonatomic) IBOutlet UIDatePicker *datePicker;
 @property (weak, nonatomic) IBOutlet UIView *datePickerContainer;
 @property (weak, nonatomic) IBOutlet UIButton *cancelButton;
 @property (weak, nonatomic) IBOutlet UIButton *selectButton;
 @property (strong, nonatomic) UIPopoverController *popover;
-@property (strong, nonatomic) UIBarButtonItem *saveCreateButton;
-@property (strong, nonatomic) UIBarButtonItem *doneButton;
+@property (weak, nonatomic) id<BHReportDelegate> reportDelegate;
 
-@property (weak, nonatomic) id<BHReportDelegate> delegate;
 @end

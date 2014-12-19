@@ -19,8 +19,9 @@
 #import "SafetyTopic+helper.h"
 #import "Address+helper.h"
 #import "Report+helper.h"
+#import <CTAssetsPickerController/CTAssetsPickerController.h>
 
-@interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout> {
+@interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, BHReportCellDelegate, CTAssetsPickerControllerDelegate, MWPhotoBrowserDelegate> {
     BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
     CGFloat width;
@@ -31,10 +32,16 @@
     NSNumberFormatter *numberFormatter;
     NSDateFormatter *commentFormatter;
     
+    Report *_report;
+    Project *_project;
     User *currentUser;
     UIView *overlayBackground;
-
+    NSMutableArray *_browserPhotos;
+    
+    UIBarButtonItem *saveButton;
+    UIBarButtonItem *addButton;
     UIBarButtonItem *backButton;
+    UIBarButtonItem *doneButton;
     
     CGFloat topInset;
     NSInteger currentPage;
@@ -44,10 +51,11 @@
 
 @implementation BHReportViewController
 
-@synthesize report = _report;
+@synthesize initialReportId = _initialReportId;
 @synthesize reports = _reports;
-@synthesize project = _project;
-@synthesize reportTableView = _reportTableView;
+@synthesize projectId = _projectId;
+@synthesize reportDateString = _reportDateString;
+@synthesize reportType = _reportType;
 
 - (void)viewDidLoad {
     self.view.backgroundColor = kLighterGrayColor;
@@ -66,7 +74,10 @@
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
     currentUser = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
 
-    _doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
+    saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(post)];
+    addButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(post)];
+    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
+    
     if (self.navigationController.viewControllers.firstObject == self){
         backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back:)];
         self.navigationItem.leftBarButtonItem = backButton;
@@ -75,6 +86,17 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"ReportPersonnel" object:nil];
     
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    if (_reportDateString.length){
+        _report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        [_report setDateString:_reportDateString];
+        [_report setProject:_project];
+        [_report setType:_reportType];
+        _reports = [NSArray arrayWithObject:_report];
+    } else {
+        _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_initialReportId inContext:[NSManagedObjectContext MR_defaultContext]];
+    }
+    
     [self setUpFormatters];
     [self setUpDatePicker];
     
@@ -82,6 +104,20 @@
     topInset = [[UIApplication sharedApplication] statusBarFrame].size.height + self.navigationController.navigationBar.frame.size.height;
     [_collectionView setDirectionalLockEnabled:YES];
     [_collectionView setContentSize:CGSizeMake(width, height-topInset)];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if ([_report.identifier isEqualToNumber:@0]){
+        self.navigationItem.rightBarButtonItem = addButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = saveButton;
+    }
+    
+    //make sure we're showing the right report, at the right index
+    self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
+    NSInteger idx = [_reports indexOfObject:_report];
+    [self.collectionView setContentOffset:CGPointMake(width*idx, 0)];
 }
 
 - (void)setUpFormatters {
@@ -113,9 +149,10 @@
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     BHReportsCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"ReportsCollectionCell" forIndexPath:indexPath];
+    cell.delegate = self;
     Report *report = _reports[indexPath.item];
-    [cell setReportVC:self];
-    [cell configureForReport:report withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
+    _report = report;
+    [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
     
     return cell;
 }
@@ -129,31 +166,27 @@
     return UIEdgeInsetsMake(0, 0, 0, 0);
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
-    self.navigationItem.rightBarButtonItem = _saveCreateButton;
-}
-
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     CGFloat x = scrollView.contentOffset.x;
     CGFloat pageWidth = scrollView.frame.size.width;
     currentPage = floor((x - pageWidth) / pageWidth) + 1;
     
-    _reportTableView = [(BHReportsCollectionCell*)_collectionView.visibleCells.firstObject reportTableView];
     if (_reports.count > currentPage){
         //changing the datasource, which changes as the collectionView is horizontally scrolled
-        if (![_report.identifier isEqualToNumber:[(Report*)_reports[currentPage] identifier]]){
-            _report = _reports[currentPage];
-            self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
+        _report = _reports[currentPage];
+        if ([_report.identifier isEqualToNumber:@0]){
+            self.navigationItem.rightBarButtonItem = addButton;
+        } else {
+            self.navigationItem.rightBarButtonItem = saveButton;
         }
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
     }
 }
 
 - (void)loadReport {
-    if (_reportTableView.report.identifier){
+    if (![_report.identifier isEqualToNumber:@0]){
         [ProgressHUD show:@"Fetching report..."];
-        NSString *slashSafeDate = [_reportTableView.report.dateString stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
+        NSString *slashSafeDate = [_report.dateString stringByReplacingOccurrencesOfString:@"/" withString:@"-"];
         [manager GET:[NSString stringWithFormat:@"%@/reports/%@/review_report",kApiBaseUrl,_project.identifier] parameters:@{@"date_string":slashSafeDate} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting report: %@",responseObject);
             //_report = [[Report alloc] initWithDictionary:[responseObject objectForKey:@"report"]];
@@ -166,28 +199,25 @@
     }
 }
 
+- (void)updatePersonnel:(NSNotification*)notification {
+    //NSDictionary *info = [notification userInfo];
+    [_collectionView reloadData];
+}
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
         BHPersonnelPickerViewController *vc = [segue destinationViewController];
-        [vc setProject:_project];
-        [vc setReport:_reportTableView.report];
-        [vc setCompany:_project.company];
+        [vc setProjectId:_project.identifier];
+        [vc setReportId:_report.identifier];
+        [vc setCompanyId:_project.company.identifier];
         if ([sender isKindOfClass:[NSString class]] && [sender isEqualToString:kCompany]){
             [vc setCompanyMode:YES];
         } else {
             [vc setCompanyMode:NO];
         }
     }
-}
-
-- (void)setUpDatePicker {
-    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
-    [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
-    [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
 }
 
 - (void)back:(UIBarButtonItem*)backBarButton {
@@ -220,13 +250,254 @@
     return unsavedCount;
 }
 
+#pragma mark - BHReportCellDelegate Methods
+
+- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset {
+    if (picker.selectedAssets.count >= 10){
+        [[[UIAlertView alloc] initWithTitle:nil message:@"We're unable to select more than 10 photos per batch." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
+    // Allow 10 assets to be picked
+    return (picker.selectedAssets.count < 10);
+}
+
+- (void)takePhoto {
+    //saveToLibrary = YES;
+    UIImagePickerController *vc = [[UIImagePickerController alloc] init];
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
+        [vc setSourceType:UIImagePickerControllerSourceTypeCamera];
+        [vc setDelegate:self];
+        [self presentViewController:vc animated:YES completion:NULL];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We're unable to access a camera on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
+}
+
+- (void)choosePhoto {
+    //saveToLibrary = NO;
+    CTAssetsPickerController *controller = [[CTAssetsPickerController alloc] init];
+    controller.delegate = self;
+    [self presentViewController:controller animated:YES completion:NULL];
+}
+
+//for taking a photo
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    [self dismissViewControllerAnimated:YES completion:NULL];
+    Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    [newPhoto setTakenAt:[NSDate date]];
+    [newPhoto setImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
+    [_report addPhoto:newPhoto];
+    [_collectionView reloadData];
+    
+    //[self saveImage:newPhoto];
+}
+
+// for choosing a photo
+- (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
+    [self dismissViewControllerAnimated:YES completion:NULL];
+    for (id asset in assets) {
+        if (asset != nil) {
+            ALAssetRepresentation* representation = [asset defaultRepresentation];
+            UIImageOrientation orientation = UIImageOrientationUp;
+            NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
+            if (orientationValue != nil)
+                orientation = [orientationValue intValue];
+            
+            UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
+                                                 scale:[UIScreen mainScreen].scale orientation:orientation];
+            
+            Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [newPhoto setTakenAt:[asset valueForProperty:ALAssetPropertyDate]];
+            [newPhoto setImage:[self fixOrientation:image]];
+            [_report addPhoto:newPhoto];
+            //[self saveImage:newPhoto];
+        }
+    }
+    [_collectionView reloadData];
+    //[self redrawScrollView:_reportTableView];
+}
+
+- (UIImage *)fixOrientation:(UIImage*)image {
+    if (image.imageOrientation == UIImageOrientationUp) return image;
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+    [image drawInRect:(CGRect){0, 0, image.size}];
+    UIImage *correctedImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return correctedImage;
+}
+
+- (void)beginEditing {
+    self.navigationItem.rightBarButtonItem = doneButton;
+}
+
+- (void)doneEditing {
+    if ([_report.identifier isEqualToNumber:@0]){
+        self.navigationItem.rightBarButtonItem = addButton;
+    } else {
+        self.navigationItem.rightBarButtonItem = saveButton;
+    }
+    [self.view endEditing:YES];
+}
+
+- (void)showPhotoBrowserWithPhotos:(NSMutableArray *)browserPhotos withCurrentIndex:(NSUInteger)idx {
+    _browserPhotos = browserPhotos;
+    MWPhotoBrowser *browser = [[MWPhotoBrowser alloc] initWithDelegate:self];
+    if ([_project.demo isEqualToNumber:@YES]) {
+        browser.displayTrashButton = NO;
+    }
+    browser.displayActionButton = YES;
+    browser.displayNavArrows = NO;
+    browser.displaySelectionButtons = NO;
+    browser.zoomPhotosToFill = YES;
+    browser.alwaysShowControls = YES;
+    browser.enableGrid = YES;
+    browser.startOnGrid = NO;
+    [browser showNextPhotoAnimated:YES];
+    [browser showPreviousPhotoAnimated:YES];
+    [browser setCurrentPhotoIndex:idx];
+    [self.navigationController pushViewController:browser animated:YES];
+}
+
+-(void)removePhoto:(NSNotification*)notification {
+    Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
+    [_report removePhoto:photoToRemove];
+    [_collectionView reloadData];
+}
+
+- (NSUInteger)numberOfPhotosInPhotoBrowser:(MWPhotoBrowser *)photoBrowser {
+    return _browserPhotos.count;
+}
+
+- (id <MWPhoto>)photoBrowser:(MWPhotoBrowser *)photoBrowser photoAtIndex:(NSUInteger)index {
+    if (index < _browserPhotos.count)
+        return [_browserPhotos objectAtIndex:index];
+    return nil;
+}
+
+- (void)post {
+    if ([_project.demo isEqualToNumber:@YES]){
+        if ([_report.identifier isEqualToNumber:@0]){
+            [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to create new reports for demo projects." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        } else {
+            [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
+        
+    } else if (appDelegate.connected) {
+        
+        if ([_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [ProgressHUD show:@"Creating report..."];
+            [_report synchWithServer:^(BOOL complete) {
+                if (complete){
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        [ProgressHUD showSuccess:@"Report Added"];
+                        //[_parentVC.navigationController popViewControllerAnimated:YES];
+                    }];
+                } else {
+                    [ProgressHUD dismiss];
+                }
+            }];
+            
+        } else {
+            [ProgressHUD show:@"Saving report..."];
+            [_report synchWithServer:^(BOOL complete) {
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                    if (complete){
+                        [ProgressHUD showSuccess:@"Report saved"];
+                    } else {
+                        //increment the status
+                        [appDelegate.syncController update];
+                        [ProgressHUD dismiss];
+                    }
+                }];
+            }];
+        }
+    } else {
+        [_report setSaved:@NO];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [ProgressHUD showSuccess:@"Report saved"];
+            [appDelegate.syncController update];
+        }];
+    }
+}
+
+- (void)prefill {
+    NSLog(@"Prefilling from reportview vc");
+}
+
+#pragma mark - Date Picker
+
+- (void)setUpDatePicker {
+    [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+}
+
+- (void)showDatePicker{
+    if (overlayBackground == nil){
+        overlayBackground = [appDelegate addOverlayUnderNav:YES];
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(cancelDatePicker)];
+        tapGesture.numberOfTapsRequired = 1;
+        [overlayBackground addGestureRecognizer:tapGesture];
+        [self.view insertSubview:overlayBackground belowSubview:_datePickerContainer];
+        [self.view bringSubviewToFront:_datePickerContainer];
+        [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -_datePickerContainer.frame.size.height);
+            
+            if (IDIOM == IPAD)
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 56);
+            else
+                self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
+            
+        } completion:^(BOOL finished) {
+            
+        }];
+    } else {
+        [self cancelDatePicker];
+    }
+}
+
+- (IBAction)selectDate {
+    [self cancelDatePicker];
+    NSString *dateString = [formatter stringFromDate:self.datePicker.date];
+    BOOL duplicate = NO;
+    for (Report *report in _project.reports){
+        if ([report.type isEqualToString:_report.type] && [report.dateString isEqualToString:dateString]) duplicate = YES;
+    }
+    if (duplicate){
+        [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    } else {
+        _report.dateString = dateString;
+        self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
+        [self.collectionView reloadData];
+    }
+}
+
+- (IBAction)cancelDatePicker{
+    [UIView animateWithDuration:.35 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+        _datePickerContainer.transform = CGAffineTransformIdentity;
+        self.tabBarController.tabBar.transform = CGAffineTransformIdentity;
+        [overlayBackground setAlpha:0];
+    } completion:^(BOOL finished) {
+        overlayBackground = nil;
+        [overlayBackground removeFromSuperview];
+    }];
+}
+
+- (void)choosePersonnel {
+    [self performSegueWithIdentifier:@"PersonnelPicker" sender:kIndividual];
+}
+
+- (void)chooseCompany {
+    [self performSegueWithIdentifier:@"PersonnelPicker" sender:kCompany];
+}
+
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }

@@ -60,7 +60,7 @@
     [footerLabel setTextAlignment:NSTextAlignmentCenter];
     [footerLabel setBackgroundColor:[UIColor clearColor]];
     [footerLabel setTextColor:[UIColor lightGrayColor]];
-    [footerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+    [footerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
     self.tableView.tableFooterView = footerLabel;
     
     [self registerForKeyboardNotifications];
@@ -98,13 +98,11 @@
     return 1;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"SettingsCell";
     BHSettingsCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     [cell.textField setText:@""];
     [cell.textField setPlaceholder:@""];
     [cell.textLabel setText:@""];
@@ -114,6 +112,7 @@
     [cell.actionButton setHidden:YES];
     if (indexPath.section == 0){
         [cell.textField setTag:indexPath.row];
+        [cell.textField setEnabled:YES];
         switch (indexPath.row) {
             case 0:
             {
@@ -162,15 +161,13 @@
                 break;
         }
     } else if (indexPath.section == 1){
+        [cell.textField setEnabled:YES];
         if (indexPath.row == currentUser.alternates.count){
             cell.textField.placeholder = @"Any alternate email addresses?";
             [cell.actionButton addTarget:self action:@selector(createAlternate) forControlEvents:UIControlEventTouchUpInside];;
             addAlternateTextField = cell.textField;
+            addAlternateTextField.delegate = self;
             [cell.actionButton setHidden:NO];
-            cell.actionButton.layer.borderColor = [UIColor colorWithWhite:0 alpha:.3].CGColor;
-            cell.actionButton.layer.borderWidth = .5f;
-            cell.actionButton.layer.cornerRadius = 5.f;
-            cell.actionButton.clipsToBounds = YES;
             [cell.textLabel setText:@""];
         } else {
             Alternate *alternate = currentUser.alternates[indexPath.row];
@@ -181,12 +178,13 @@
         }
         
     } else {
+        [cell.textField setEnabled:NO];
         UISwitch *settingsSwitch = [[UISwitch alloc] init];
         cell.accessoryView = settingsSwitch;
         settingsSwitch.tag = indexPath.row;
         [settingsSwitch addTarget:self action:@selector(switchFlipped:) forControlEvents:UIControlEventValueChanged];
         [cell.actionButton setHidden:YES];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         switch (indexPath.row) {
             case 0:
             {
@@ -216,16 +214,16 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 30;
+    return 34;
 }
 
 - (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 30)];
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 34)];
     [headerView setBackgroundColor:[UIColor clearColor]];
     
-    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 3, width-10, 27)];
-    [headerLabel setTextColor:[UIColor lightGrayColor]];
-    [headerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredMyriadProFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, width-10, 34)];
+    [headerLabel setTextColor:[UIColor colorWithWhite:.77 alpha:1]];
+    [headerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption2 forFont:kLato] size:0]];
     switch (section) {
         case 0:
             headerLabel.text = @"Personal details".uppercaseString;
@@ -311,7 +309,8 @@
     NSLog(@"user parameters: %@",parameters);
     
     [manager PATCH:[NSString stringWithFormat:@"%@/users/%@",kApiBaseUrl,currentUser.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success updating user: %@",responseObject);
+        NSLog(@"Success updating user: %@",responseObject);
+        [currentUser populateFromDictionary:[responseObject objectForKey:@"user"]];
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [ProgressHUD dismiss];
             [self back];

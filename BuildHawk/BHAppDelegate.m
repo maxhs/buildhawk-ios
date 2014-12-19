@@ -22,13 +22,14 @@
 #import <Crashlytics/Crashlytics.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <RESideMenu/RESideMenu.h>
+#import "BHSyncViewController.h"
 
 #define MIXPANEL_TOKEN @"2e57104ead72acdd8a77ca963e32e74a"
 
-@interface BHAppDelegate () <RESideMenuDelegate> {
+@interface BHAppDelegate () <RESideMenuDelegate, UIViewControllerTransitioningDelegate> {
     UIView *overlayView;
     CGRect screen;
-    UILabel *statusLabel;
+    UIButton *statusButton;
 }
 @end
 
@@ -38,14 +39,14 @@
 @synthesize menu = _menu;
 @synthesize bundleName = _bundleName;
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
     [MagicalRecord setupAutoMigratingCoreDataStack];
     [self setupThirdPartyAnalytics];
     
     //create the sync controller singleton
     _syncController = [BHSyncController sharedController];
+    
     //assume we're connected to start
     _connected = YES;
     
@@ -55,14 +56,14 @@
             case AFNetworkReachabilityStatusReachableViaWWAN:
                 NSLog(@"Connected via WWAN");
                 _connected = YES;
-                if (statusLabel)
+                if (statusButton)
                     [self removeStatusMessage];
                 [_syncController syncAll];
                 break;
             case AFNetworkReachabilityStatusReachableViaWiFi:
                 NSLog(@"Connected via WIFI");
                 _connected = YES;
-                if (statusLabel)
+                if (statusButton)
                     [self removeStatusMessage];
                 [_syncController syncAll];
                 break;
@@ -78,7 +79,6 @@
                 break;
             default:
                 break;
-                
         }
     }];
     
@@ -87,26 +87,11 @@
     [_manager.requestSerializer setAuthorizationHeaderFieldWithUsername:@"buildhawk_mobile" password:@"aca344dc4b27b82f994094d8c9bab0af"];
     [_manager.requestSerializer setValue:(IDIOM == IPAD) ? @"2" : @"1" forHTTPHeaderField:@"device_type"];
     
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]) {
-        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
-    }
-    
-    //test to see whether we have a current user
-    UINavigationController *nav;
-    if (_currentUser){
-        //head straight into the app
-        BHDashboardViewController *vc = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Dashboard"];
-        nav = [[UINavigationController alloc] initWithRootViewController:vc];
-    } else {
-        //show the login UI
-        nav = (UINavigationController*)self.window.rootViewController;
-    }
-    
     // set the delegate's logged in/logged out flag
     [self updateLoggedInStatus];
     
     _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
-    RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:nav
+    RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:self.window.rootViewController
                                                                     leftMenuViewController:_menu
                                                                    rightMenuViewController:nil];
     sideMenuViewController.menuPreferredStatusBarStyle = 1; // UIStatusBarStyleLightContent
@@ -142,8 +127,6 @@
         [[UITabBar appearance] setTintColor:[UIColor whiteColor]];
         [[UITabBar appearance] setBarTintColor:[UIColor whiteColor]];
         [[UITabBar appearance] setSelectedImageTintColor:[UIColor colorWithWhite:0 alpha:1.0]];
-    } else {
-        
     }
     
     [[UITabBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackground"]];
@@ -341,35 +324,42 @@
 }
 
 - (void)displayStatusMessage:(NSString*)string {
-    CGFloat statusHeight = kOfflineStatusHeight;
-    if (!statusLabel){
-        statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
-        [statusLabel setBackgroundColor:kDarkerGrayColor];
-        [statusLabel setTextAlignment:NSTextAlignmentCenter];
-        [statusLabel setTextColor:[UIColor whiteColor]];
-        [statusLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
-        [self.window addSubview:statusLabel];
+    /*CGFloat statusHeight = kOfflineStatusHeight;
+    if (!statusButton){
+        statusButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [statusButton setFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
+        [statusButton setBackgroundColor:kDarkerGrayColor];
+        [statusButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+        [statusButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [statusButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [statusButton addTarget:self action:@selector(showSyncController) forControlEvents:UIControlEventTouchUpInside];
+        [self.window addSubview:statusButton];
     }
-    [statusLabel setText:string];
+    [statusButton setTitle:string forState:UIControlStateNormal];
     
     UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
     CGRect tabFrame = _activeTabBarController.tabBar.frame;
     tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - statusHeight;
     
     [UIView animateWithDuration:.5 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.00001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [statusLabel setFrame:CGRectMake(0, screenHeight()-statusHeight, screenWidth(), statusHeight)];
+        [statusButton setFrame:CGRectMake(0, screenHeight()-statusHeight, screenWidth(), statusHeight)];
         [_activeTabBarController.tabBar setFrame:tabFrame];
     } completion:^(BOOL finished) {
         
-    }];
+    }];*/
+}
+
+- (void)showSyncController {
+    //UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+    //BHSyncViewController *vc = [nav.storyboard instantiateViewControllerWithIdentifier:@"SynchView"];
 }
 
 - (void)prepareStatusLabelForTab {
-    CGFloat statusHeight = kOfflineStatusHeight;
+    /*CGFloat statusHeight = kOfflineStatusHeight;
     UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
     CGRect tabFrame = _activeTabBarController.tabBar.frame;
     tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - statusHeight;
-    [_activeTabBarController.tabBar setFrame:tabFrame];
+    [_activeTabBarController.tabBar setFrame:tabFrame];*/
 }
 
 - (void)removeStatusMessage{
@@ -378,7 +368,7 @@
     CGRect tabFrame = _activeTabBarController.tabBar.frame;
     tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height;
     [UIView animateWithDuration:.5 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.00001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [statusLabel setFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
+        [statusButton setFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
         [_activeTabBarController.tabBar setFrame:tabFrame];
     } completion:^(BOOL finished) {
         
@@ -395,8 +385,7 @@
     NSLog(@"Current user notification cettings: %@",[[UIApplication sharedApplication] currentUserNotificationSettings]);
 }
 
-- (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken
-{
+- (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken {
     [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
     [[NSUserDefaults standardUserDefaults] synchronize];
     if (_connected && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
