@@ -20,7 +20,7 @@
 
 @interface BHTaskViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
-@property (strong, nonatomic) Task *task;
+@property (strong, nonatomic) NSNumber *taskId;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;

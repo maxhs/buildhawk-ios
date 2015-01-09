@@ -201,7 +201,7 @@
         } else if (_task){
             [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
                 if ([vc isKindOfClass:[BHTaskViewController class]]){
-                    [(BHTaskViewController*)vc setTask:_task];
+                    [(BHTaskViewController*)vc setTaskId:_task.identifier];
                     [(BHTaskViewController*)vc drawItem];
                     [self.navigationController popToViewController:vc animated:YES];
                     *stop = YES;

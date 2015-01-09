@@ -19,6 +19,7 @@
 static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
+    CGRect mainScreen;
     NSString *forgotPasswordEmail;
     BHAppDelegate* delegate;
     NSMutableOrderedSet *projectSet;
@@ -47,7 +48,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 - (void)viewDidLoad {
     [super viewDidLoad];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-
+    mainScreen = [UIScreen mainScreen].bounds;
     [self textFieldTreatment:self.emailTextField];
     [self.emailTextField setPlaceholder:@"user@example.com"];
     [self textFieldTreatment:self.passwordTextField];
@@ -56,6 +57,23 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [_loginButton setEnabled:NO];
     [_loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
     [_loginButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLato] size:0]];
+    CGRect loginButtonFrame = _loginButton.frame;
+    loginButtonFrame.origin.y = mainScreen.size.height;
+    [_loginButton setFrame:loginButtonFrame];
+    
+    CGRect emailFrame = _emailTextField.frame;
+    emailFrame.origin.y = mainScreen.size.height/2 - emailFrame.size.height;
+    [_emailTextField setFrame:emailFrame];
+    
+    CGRect passwordFrame = _passwordTextField.frame;
+    passwordFrame.origin.y = mainScreen.size.height/2-1;
+    [_passwordTextField setFrame:passwordFrame];
+    
+    if (IDIOM != IPAD){
+        CGPoint imageViewCenterPoint = self.view.center;
+        imageViewCenterPoint.y -= 32.f;
+        _logoImageView.center = imageViewCenterPoint;
+    }
     
     [_forgotPasswordButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
     [_forgotPasswordButton setTitle:@"Forget your password?" forState:UIControlStateNormal];
@@ -229,7 +247,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [ProgressHUD show:@"Logging in..."];
     
     [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success logging in: %@",responseObject);
+        NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user) {
@@ -268,6 +286,8 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             } else if ([operation.responseString isEqualToString:@"No email"]) {
                 [self addShakeAnimationForView:self.emailTextField withDuration:.77];
                 //[self alert:@"Sorry, but we couldn't find an account for that email address."];
+            } else if ([operation.responseString isEqualToString:@"Invalid token"]) {
+                NSLog(@"Invalid token");
             } else {
                 [[[UIAlertView alloc] initWithTitle:@"Uh oh" message:@"Something went wrong while trying to log you in." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
@@ -333,11 +353,13 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
-                         _loginButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight-54);
-                         _emailTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
-                         _passwordTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
-                         _forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
-                         _logoImageView.transform = CGAffineTransformMakeTranslation(0, -logoY/2);
+                         if (IDIOM != IPAD){
+                             _loginButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight-54);
+                             _emailTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                             _passwordTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                             _forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                             _logoImageView.transform = CGAffineTransformMakeTranslation(0, -logoY/2);
+                         }
                      }
                      completion:^(BOOL finished) {
                          [backgroundTapGesture setEnabled:YES];

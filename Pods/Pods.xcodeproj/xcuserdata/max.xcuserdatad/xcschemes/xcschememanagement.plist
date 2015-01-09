@@ -14,6 +14,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>Pods-DateTools.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>Pods-LDProgressView.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -25,11 +30,6 @@
 			<false/>
 		</dict>
 		<key>Pods-Mixpanel.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>Pods-NewRelicAgent.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -57,52 +57,52 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>06BF31C8780663402E4B52C0</key>
+		<key>1F1FC3A35BC3E99E83982E63</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>0D8CF1F40E76357F3523C483</key>
+		<key>1F254363EB1B7A30CCD80499</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>1D44E1DA02150B851566CE04</key>
+		<key>1FC310730BC4FDBF11584F80</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>2A4B0B9CC8EB86C1FCBF1178</key>
+		<key>240019B7C68EDCD0E788ECC5</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>5F91FF83E86BFE2DF1B49A0D</key>
+		<key>5E2DCA4F052D88FF533C8C36</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>6326A3C3457CD46DA5903355</key>
+		<key>683E1D7429A0D9904B31E85F</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>796A02C1331B41134F9AAA50</key>
+		<key>6E82B9FF5F71B60F2C2BC6F6</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>AFEB3A5983937F4EBE2A48D8</key>
+		<key>7B383A23B2CE8835418FD3C7</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>C65F600427373DF3D16FAC0A</key>
+		<key>7C480D84D49EA0133969AC81</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>FE9D7EF560434CE06505A32A</key>
+		<key>DEF8D3029819E5FF1C5E1722</key>
 		<dict>
 			<key>primary</key>
 			<true/>

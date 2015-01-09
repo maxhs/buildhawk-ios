@@ -68,6 +68,8 @@
     BOOL activities; // for the activities/comments section to determine what to show
     UIButton *activityButton;
     UIButton *commentsButton;
+    
+    UIRefreshControl *refreshControl;
 }
 
 @end
@@ -78,8 +80,7 @@
 @synthesize row = _row;
 @synthesize project = _project;
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
@@ -108,6 +109,12 @@
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back)];
     self.navigationItem.leftBarButtonItem = backButton;
     
+    refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
+    [refreshControl setTintColor:[UIColor darkGrayColor]];
+    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
+    [self.tableView addSubview:refreshControl];
+    
     //basic setup
     [self registerForKeyboardNotifications];
     [self setUpTimeFormatters];
@@ -135,15 +142,18 @@
     }
 }
 
+- (void)handleRefresh {
+    [ProgressHUD show:@"Refreshing..."];
+    [self loadItem:YES];
+}
+
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 7;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 1){
         /*if (_item.criticalDate) return 1;
         else return 0;*/
@@ -208,7 +218,7 @@
 
             activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-            [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+            [activityButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
             NSString *activitiesTitle = _item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_item.activities.count];
             [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
             if (activities){
@@ -225,7 +235,7 @@
             
             commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-            [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+            [commentsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
             NSString *commentsTitle = _item.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_item.comments.count];
             [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
             if (activities){
@@ -259,20 +269,13 @@
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0){
         BHChecklistItemBodyCell *bodyCell = [tableView dequeueReusableCellWithIdentifier:@"ChecklistItemBodyCell"];
-        
         [bodyCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [bodyCell.bodyTextView setText:_item.body];
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
-        
-        if (IDIOM == IPAD){
-            [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
-        } else {
-            [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-        }
+        [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
         
         return bodyCell;
     } else if (indexPath.section == 1) {
@@ -923,8 +926,12 @@
                 }
             }];
             if (shouldReload)[[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+            [ProgressHUD dismiss];
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             [self.tableView reloadData];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [ProgressHUD dismiss];
+             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             NSLog(@"failure getting checklist item: %@",error.description);
         }];
     }
@@ -1191,7 +1198,8 @@
             [_reminder setUser:delegate.currentUser];
         }
         [_reminder setChecklistItem:_item];
-        [_reminder setProject:_item.project];
+        [_reminder setProject:_project];
+        NSLog(@"did we set the reminder proejct? %@",_reminder.project.name);
         [_item addReminder:_reminder];
         
         [_reminder synchWithServer:^(BOOL completed) {

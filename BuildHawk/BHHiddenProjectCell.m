@@ -35,14 +35,13 @@
     [_unhideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
     [_scrollView setContentSize:CGSizeMake(screenWidth()+88, 88)];
 
-    if (IDIOM == IPAD) {
-        [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-        [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
-    } else {
-        [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-        [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
-    }
+    [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+    [_subtitleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+
     [_projectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+    
+    //spent a couple of hours before figuring out I hadn't made the button userInteractionEnabled..
+    [_unhideButton setUserInteractionEnabled:YES];
 }
 
 - (void)scroll{
@@ -54,6 +53,6 @@
 }
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    _unhideButton.transform = CGAffineTransformMakeTranslation(-scrollView.contentOffset.x, 0);
+    _unhideButton.transform = CGAffineTransformMakeTranslation(-scrollView.contentOffset.x/2, 0);
 }
 @end

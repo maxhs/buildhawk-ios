@@ -832,9 +832,10 @@
         
         //reload the tableview after checking to make sure the phase (i.e. section) really exists
         if (item.category.phase.orderIndex.integerValue < self.tableView.numberOfSections){
-            [self.tableView beginUpdates];
+            /*[self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:item.category.phase.orderIndex.integerValue] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
+            [self.tableView endUpdates];*/
+            [self.tableView reloadData];
         }
     }
 }

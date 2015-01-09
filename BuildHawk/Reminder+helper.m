@@ -86,11 +86,15 @@
 
 - (void)synchWithServer:(synchCompletion)completed {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (self.checklistItem) {
+    if (self.checklistItem && ![self.checklistItem.identifier isEqualToNumber:@0]) {
         [parameters setObject:self.checklistItem.identifier forKey:@"checklist_item_id"];
     }
-    [parameters setObject:self.project.identifier forKey:@"project_id"];
-    
+    if (self.project && ![self.project.identifier isEqualToNumber:@0]){
+        [parameters setObject:self.project.identifier forKey:@"project_id"];
+    }
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+    }
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[self.reminderDate timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success creating a reminder: %@",responseObject);
         if ([responseObject objectForKey:@"failure"]){

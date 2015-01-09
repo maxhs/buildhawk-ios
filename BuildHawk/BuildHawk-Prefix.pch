@@ -15,7 +15,6 @@
     #import <SystemConfiguration/SystemConfiguration.h>
     #import <MagicalRecord/CoreData+MagicalRecord.h>
     #import <AFNetworking/AFHTTPRequestOperationManager.h>
-    #import <NewRelicAgent/NewRelic.h>
     #import "ProgressHUD.h"
     #import "Constants.h"
     #import "UIFontDescriptor+Custom.h"

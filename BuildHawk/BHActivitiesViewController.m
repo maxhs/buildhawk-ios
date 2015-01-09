@@ -262,7 +262,7 @@
         BHTaskViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
         if ([sender isKindOfClass:[Task class]]){
-            [vc setTask:(Task*)sender];
+            [vc setTaskId:[(Task*)sender identifier]];
         }
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];

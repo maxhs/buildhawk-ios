@@ -37,6 +37,8 @@
     BOOL iPhone5;
     BOOL loading;
     BOOL searching;
+    CGFloat width;
+    CGFloat height;
     NSMutableArray *filteredProjects;
     AFHTTPRequestOperationManager *manager;
     BHAppDelegate *delegate;
@@ -66,6 +68,13 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
     
     mixpanel = [Mixpanel sharedInstance];
     self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
@@ -534,7 +543,7 @@
         [cell.button.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
         [cell.button setTitle:@"VIEW DEMO PROJECT(S)" forState:UIControlStateNormal];
         [cell.button setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-        [cell.button setFrame:CGRectMake(screenWidth()/2-150, cell.frame.size.height/2-35, 300, 70)];
+        [cell.button setFrame:CGRectMake(width/2-150, 9, 300, 70)];
         [cell.button addTarget:self action:@selector(showDemoProjects) forControlEvents:UIControlEventTouchUpInside];
         
         return cell;
@@ -549,7 +558,7 @@
         [cell.button.titleLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
         [cell.button setTitle:@"HIDDEN PROJECTS" forState:UIControlStateNormal];
         [cell.button setTitleColor:[UIColor darkGrayColor] forState:UIControlStateNormal];
-        [cell.button setFrame:CGRectMake(screenWidth()/2-150, cell.frame.size.height/2-35, 300, 70)];
+        [cell.button setFrame:CGRectMake(width/2-150, 9, 300, 70)];
         [cell.button addTarget:self action:@selector(showHiddenProjects) forControlEvents:UIControlEventTouchUpInside];
     
         return cell;
@@ -982,8 +991,8 @@
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
+    [super viewWillDisappear:animated];
 }
 
 @end

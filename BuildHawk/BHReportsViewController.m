@@ -19,6 +19,8 @@
 @interface BHReportsViewController () <BHReportDelegate> {
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
+    CGFloat width;
+    CGFloat height;
     Project *_project;
     UIRefreshControl *refreshControl;
     BOOL daily;
@@ -44,28 +46,21 @@
     [super viewDidLoad];
     
     screen = [UIScreen mainScreen].bounds;
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
+    
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
     _project = [(BHTabBarViewController*)self.tabBarController project];
     
-    //add refresh control and set up the tableView
-    refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
-    [refreshControl setTintColor:[UIColor darkGrayColor]];
-    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
-    [self.tableView addSubview:refreshControl];
-    self.tableView.rowHeight = 90;
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-    
-    //ensure there's some space in between the filters and the top of the tableview
-    self.tableView.contentInset = UIEdgeInsetsMake(6, 0, self.tabBarController.tabBar.frame.size.height, 0);
-    
-    //set up the segmented control and action button segments
-    [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    [self sortButtonTreatment:_addReportButton];
-    [self sortButtonTreatment:_selectDateButton];
-    [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
-    [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
+
+    //set up the segmented control and action button segments as well as add refresh control and proper content inset to tableView
+    [self setUpView];
     
     if (IDIOM != IPAD){
         sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStylePlain target:self action:@selector(showSort)];
@@ -103,15 +98,6 @@
 - (void)reloadReports {
     _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_project.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
     [self.tableView reloadData];
-}
-
-- (void)sortButtonTreatment:(UIButton*)button {
-    button.layer.borderColor = [UIColor blackColor].CGColor;
-    button.layer.borderWidth = 1.f;
-    [button setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    button.layer.cornerRadius = 3.6f;
-    [button.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    button.clipsToBounds = YES;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -597,6 +583,42 @@
             [overlayBackground removeFromSuperview];
         }];
     }];
+}
+
+- (void)setUpView {
+    //add refresh control and set up the tableView
+    refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
+    [refreshControl setTintColor:[UIColor darkGrayColor]];
+    refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
+    [self.tableView addSubview:refreshControl];
+    self.tableView.rowHeight = 90.f;
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    
+    //ensure there's some space in between the filters and the top of the tableview
+    self.tableView.contentInset = UIEdgeInsetsMake(6+_topActionContainer.frame.size.height, 0, self.tabBarController.tabBar.frame.size.height, 0);
+    
+    [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
+    UIToolbar *backgroundToolbar = [[UIToolbar alloc] initWithFrame:_topActionContainer.frame];
+    [backgroundToolbar setBarStyle:UIBarStyleDefault];
+    [backgroundToolbar setTranslucent:YES];
+    [_topActionContainer addSubview:backgroundToolbar];
+    [_topActionContainer sendSubviewToBack:backgroundToolbar];
+    
+    if (IDIOM == IPAD){
+        [_selectDateButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+        [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+        [_addReportButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.05f]];
+    } else {
+        [_selectDateButton setFrame:CGRectMake(0, 0, width/2, _topActionContainer.frame.size.height)];
+        [_addReportButton setFrame:CGRectMake(width/2, 0, width/2, _topActionContainer.frame.size.height)];
+        [_selectDateButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoBold] size:0]];
+        [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoBold] size:0]];
+    }
+    
+    [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
+    [_selectDateButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.023f]];
+    [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {

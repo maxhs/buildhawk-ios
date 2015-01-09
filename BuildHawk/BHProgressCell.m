@@ -21,8 +21,13 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_itemLabel setFont:[UIFont fontWithName:kMyriadProLight size:20]];
-    [_progressLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
+    if (IDIOM == IPAD){
+        [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    } else {
+        [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    }
+    
+    [_progressLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

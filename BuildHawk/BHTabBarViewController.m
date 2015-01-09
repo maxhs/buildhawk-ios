@@ -30,8 +30,7 @@
     return self;
 }
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     self.title = self.project.name;
     self.automaticallyAdjustsScrollViewInsets = YES;

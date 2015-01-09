@@ -21,8 +21,19 @@
     if ([dictionary objectForKey:@"authentication_token"] && [dictionary objectForKey:@"authentication_token"] != [NSNull null]) {
         self.authToken = [dictionary objectForKey:@"authentication_token"];
     }
-    if ([dictionary objectForKey:@"mobile_token"] && [dictionary objectForKey:@"mobile_token"] != [NSNull null]) {
-        self.mobileToken = [dictionary objectForKey:@"mobile_token"];
+    if ([dictionary objectForKey:@"mobile_tokens"] && [dictionary objectForKey:@"mobile_tokens"] != [NSNull null]) {
+        for (NSDictionary *tokenDict in [dictionary objectForKey:@"mobile_tokens"]){
+            NSNumber *deviceType = [tokenDict objectForKey:@"device_type"];
+            if (IDIOM == IPAD){
+                if ([deviceType isEqualToNumber:@2]){
+                    self.mobileToken = [tokenDict objectForKey:@"token"];
+                }
+            } else {
+                if ([deviceType isEqualToNumber:@1]){
+                    self.mobileToken = [tokenDict objectForKey:@"token"];
+                }
+            }
+        }
     }
     if ([dictionary objectForKey:@"full_name"] && [dictionary objectForKey:@"full_name"] != [NSNull null]) {
         self.fullname = [dictionary objectForKey:@"full_name"];

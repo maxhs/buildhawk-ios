@@ -82,7 +82,7 @@
     [_activityLabel setFrame:frame];
     
     if ([activity.activityType isEqualToString:kComment]) {
-        [self.imageView setImage:[UIImage imageNamed:@"miniChat"]];
+        [self.imageView setImage:[UIImage imageNamed:@"chat"]];
         NSString *activityObject;
         if (activity.task){
             if (activity.task.body.length > 25){

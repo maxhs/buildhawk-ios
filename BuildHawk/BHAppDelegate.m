@@ -44,11 +44,14 @@
     [MagicalRecord setupAutoMigratingCoreDataStack];
     [self setupThirdPartyAnalytics];
     
+    [self hackForPreloadingKeyboard];
+    
     //create the sync controller singleton
     _syncController = [BHSyncController sharedController];
     
     //assume we're connected to start
     _connected = YES;
+    
     
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
@@ -260,7 +263,7 @@
                         [item populateFromDictionary:[responseObject objectForKey:@"task"]];
                         BHTaskViewController *taskVC = [nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
                         [taskVC setProject:item.project];
-                        [taskVC setTask:item];
+                        [taskVC setTaskId:item.identifier];
                         [nav pushViewController:taskVC animated:YES];
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                         //NSLog(@"Failed to load task: %@",error.description);
@@ -363,7 +366,7 @@
 }
 
 - (void)removeStatusMessage{
-    CGFloat statusHeight = kOfflineStatusHeight;
+    /*CGFloat statusHeight = kOfflineStatusHeight;
     UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
     CGRect tabFrame = _activeTabBarController.tabBar.frame;
     tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height;
@@ -372,7 +375,7 @@
         [_activeTabBarController.tabBar setFrame:tabFrame];
     } completion:^(BOOL finished) {
         
-    }];
+    }];*/
 }
 
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
@@ -381,8 +384,8 @@
 }
 
 - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings {
-    NSLog(@"didRegisterUserNotificationSettings: %@",notificationSettings);
-    NSLog(@"Current user notification cettings: %@",[[UIApplication sharedApplication] currentUserNotificationSettings]);
+    //NSLog(@"didRegisterUserNotificationSettings: %@",notificationSettings);
+    //NSLog(@"Current user notification cettings: %@",[[UIApplication sharedApplication] currentUserNotificationSettings]);
 }
 
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken {
@@ -439,8 +442,16 @@
     }
 }
 
+- (void)hackForPreloadingKeyboard {
+    UITextField *lagFreeField = [[UITextField alloc] init];
+    [self.window addSubview:lagFreeField];
+    [lagFreeField becomeFirstResponder];
+    [lagFreeField resignFirstResponder];
+    [lagFreeField removeFromSuperview];
+}
+
 - (void)setupThirdPartyAnalytics {
-    [NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
+    //[NewRelicAgent startWithApplicationToken:@"AA3d665c20df063e38a87cd6eac85c866368d682c1"];
     [Crashlytics startWithAPIKey:@"c52cd9c3cd08f8c9c0de3a248a813118655c8005"];
     [Mixpanel sharedInstanceWithToken:MIXPANEL_TOKEN];
     Mixpanel *mixpanel = [Mixpanel sharedInstance];

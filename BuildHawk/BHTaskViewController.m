@@ -61,6 +61,7 @@ typedef void(^RequestSuccess)(id result);
     CGFloat width;
     CGFloat height;
     UIEdgeInsets originalInsets;
+    Task *_task;
 }
 
 - (IBAction)assigneeButtonTapped;
@@ -73,7 +74,7 @@ typedef void(^RequestSuccess)(id result);
 
 @implementation BHTaskViewController
 
-@synthesize task = _task;
+@synthesize taskId = _taskId;
 @synthesize locationSet;
 @synthesize project = _project;
 
@@ -122,12 +123,16 @@ typedef void(^RequestSuccess)(id result);
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
+    if (_taskId && [_taskId isEqualToNumber:@0]) {
+        _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
+    }
+    
     if (!_task || [_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         _task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(sendItem)];
         [self.navigationItem setRightBarButtonItem:createButton];
     } else {
-        //_task = [_task MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+        _task = [_task MR_inContext:[NSManagedObjectContext MR_defaultContext]];
         [self redrawScrollView];
         [self loadItem];
         saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(sendItem)];
@@ -168,8 +173,10 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)drawItem {
     [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
-    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLatoBold] size:0]];
+    [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLato] size:0]];
     [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     
     if (_task.body.length) {
@@ -200,7 +207,7 @@ typedef void(^RequestSuccess)(id result);
             [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned to %lu personnel",(unsigned long)_task.assignees.count] forState:UIControlStateNormal];
         }
     } else {
-        [self.assigneeButton setTitle:@"ASSIGN" forState:UIControlStateNormal];
+        [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
     }
 }
 
@@ -678,12 +685,20 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)redrawScrollView {
+    // ensure the library and photo buttons are properly oriented on the iPad
+    CGRect libraryRect = _libraryButton.frame;
+    CGRect photoRect = _photoButton.frame;
+    if (IDIOM == IPAD && libraryRect.origin.x > _photosScrollView.frame.origin.x){
+        NSLog(@"need to reorient the photo and library buttons on ipad");
+        libraryRect.origin.x = 8;
+        photoRect.origin.x = 8 + photoRect.size.width + 8;
+    }
     _photosScrollView.delegate = self;
     [_photosScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     _photosScrollView.showsHorizontalScrollIndicator=NO;
 
     float imageSize = _photosScrollView.frame.size.height;
-    float space = 0;
+    float space = 1;
 
     int index = 0;
     for (Photo *photo in _task.photos) {
@@ -714,6 +729,8 @@ typedef void(^RequestSuccess)(id result);
     
     [UIView animateWithDuration:.3 delay:.7 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [self.photosScrollView setAlpha:1.0];
+        [_libraryButton setFrame:libraryRect];
+        [_photoButton setFrame:photoRect];
     } completion:^(BOOL finished) {
         self.photosScrollView.layer.shouldRasterize = YES;
         self.photosScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;

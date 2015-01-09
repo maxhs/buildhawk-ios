@@ -113,6 +113,7 @@
 
 - (void)handleRefresh {
     if (delegate.connected){
+        pastDueProjectReminders = nil;
         [ProgressHUD show:@"Refreshing project..."];
         [self loadProject];
     }
@@ -137,24 +138,25 @@
 }
 
 - (void)parseReminders {
-    [_project.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if (reminder.user && [reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-            [pastDueProjectReminders addObject:reminder];
-            *stop = YES;
-        }
-    }];
-    projectReminders = [NSMutableOrderedSet orderedSet];
-    [_project.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
-        if ([reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-            [projectReminders addObject:reminder];
-            *stop = YES;
-        }
-    }];
+    if (!pastDueProjectReminders) {
+        pastDueProjectReminders = [NSMutableOrderedSet orderedSet];
+
+        [_project.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+            if (reminder.user && [reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+                [pastDueProjectReminders addObject:reminder];
+            }
+        }];
+        projectReminders = [NSMutableOrderedSet orderedSet];
+        [_project.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+            if ([reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+                [projectReminders addObject:reminder];
+            }
+        }];
+    }
 }
 
 #pragma mark - Table view data source
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    pastDueProjectReminders = [NSMutableOrderedSet orderedSet];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [self parseReminders];
     }
@@ -845,7 +847,7 @@
         BHTaskViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
         if ([sender isKindOfClass:[Task class]]){
-            [vc setTask:(Task*)sender];
+            [vc setTaskId:[(Task*)sender identifier]];
         }
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];

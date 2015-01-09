@@ -54,6 +54,12 @@
 #define COCOAPODS_VERSION_MINOR_CTAssetsPickerController 8
 #define COCOAPODS_VERSION_PATCH_CTAssetsPickerController 0
 
+// DateTools
+#define COCOAPODS_POD_AVAILABLE_DateTools
+#define COCOAPODS_VERSION_MAJOR_DateTools 1
+#define COCOAPODS_VERSION_MINOR_DateTools 4
+#define COCOAPODS_VERSION_PATCH_DateTools 3
+
 // LDProgressView
 #define COCOAPODS_POD_AVAILABLE_LDProgressView
 #define COCOAPODS_VERSION_MAJOR_LDProgressView 1
@@ -83,12 +89,6 @@
 #define COCOAPODS_VERSION_MAJOR_Mixpanel_MPCategoryHelpers 2
 #define COCOAPODS_VERSION_MINOR_Mixpanel_MPCategoryHelpers 6
 #define COCOAPODS_VERSION_PATCH_Mixpanel_MPCategoryHelpers 2
-
-// NewRelicAgent
-#define COCOAPODS_POD_AVAILABLE_NewRelicAgent
-#define COCOAPODS_VERSION_MAJOR_NewRelicAgent 4
-#define COCOAPODS_VERSION_MINOR_NewRelicAgent 139
-#define COCOAPODS_VERSION_PATCH_NewRelicAgent 0
 
 // PSTCollectionView
 #define COCOAPODS_POD_AVAILABLE_PSTCollectionView

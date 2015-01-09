@@ -26,6 +26,12 @@
 		502CE1EF1A413CC70024BFFD /* cameraWhite@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1EC1A413CC70024BFFD /* cameraWhite@2x.png */; };
 		502CE1F01A413CC70024BFFD /* cameraWhite@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1ED1A413CC70024BFFD /* cameraWhite@3x.png */; };
 		5099E0651A368012007778AD /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5099E0641A368012007778AD /* Crashlytics.framework */; };
+		50BC67DF1A5F34400029AA3D /* chatWhite.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67DC1A5F34400029AA3D /* chatWhite.png */; };
+		50BC67E01A5F34400029AA3D /* chatWhite@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67DD1A5F34400029AA3D /* chatWhite@2x.png */; };
+		50BC67E11A5F34400029AA3D /* chatWhite@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67DE1A5F34400029AA3D /* chatWhite@3x.png */; };
+		50BC67E51A5F3F2C0029AA3D /* chat.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67E21A5F3F2C0029AA3D /* chat.png */; };
+		50BC67E61A5F3F2C0029AA3D /* chat@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67E31A5F3F2C0029AA3D /* chat@2x.png */; };
+		50BC67E71A5F3F2C0029AA3D /* chat@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67E41A5F3F2C0029AA3D /* chat@3x.png */; };
 		50FB5FA21A3F4134004D6062 /* reports.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5F9F1A3F4134004D6062 /* reports.png */; };
 		50FB5FA31A3F4134004D6062 /* reports@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FA01A3F4134004D6062 /* reports@2x.png */; };
 		50FB5FA41A3F4134004D6062 /* reports@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FA11A3F4134004D6062 /* reports@3x.png */; };
@@ -398,6 +404,12 @@
 		502CE1EC1A413CC70024BFFD /* cameraWhite@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cameraWhite@2x.png"; sourceTree = "<group>"; };
 		502CE1ED1A413CC70024BFFD /* cameraWhite@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cameraWhite@3x.png"; sourceTree = "<group>"; };
 		5099E0641A368012007778AD /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
+		50BC67DC1A5F34400029AA3D /* chatWhite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chatWhite.png; sourceTree = "<group>"; };
+		50BC67DD1A5F34400029AA3D /* chatWhite@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chatWhite@2x.png"; sourceTree = "<group>"; };
+		50BC67DE1A5F34400029AA3D /* chatWhite@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chatWhite@3x.png"; sourceTree = "<group>"; };
+		50BC67E21A5F3F2C0029AA3D /* chat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chat.png; sourceTree = "<group>"; };
+		50BC67E31A5F3F2C0029AA3D /* chat@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chat@2x.png"; sourceTree = "<group>"; };
+		50BC67E41A5F3F2C0029AA3D /* chat@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chat@3x.png"; sourceTree = "<group>"; };
 		50FB5F9F1A3F4134004D6062 /* reports.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = reports.png; sourceTree = "<group>"; };
 		50FB5FA01A3F4134004D6062 /* reports@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@2x.png"; sourceTree = "<group>"; };
 		50FB5FA11A3F4134004D6062 /* reports@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@3x.png"; sourceTree = "<group>"; };
@@ -1403,6 +1415,12 @@
 				F20FB2DB1A240DA00007C905 /* whiteK@2x.png */,
 				F20FB2DC1A240DA00007C905 /* whiteK.png */,
 				F20FB2DD1A240DA00007C905 /* whiteK@3x.png */,
+				50BC67E21A5F3F2C0029AA3D /* chat.png */,
+				50BC67E31A5F3F2C0029AA3D /* chat@2x.png */,
+				50BC67E41A5F3F2C0029AA3D /* chat@3x.png */,
+				50BC67DC1A5F34400029AA3D /* chatWhite.png */,
+				50BC67DD1A5F34400029AA3D /* chatWhite@2x.png */,
+				50BC67DE1A5F34400029AA3D /* chatWhite@3x.png */,
 				F260F81C19CDF33F000DD028 /* Navigation Elements */,
 				F260F81B19CDF315000DD028 /* New User Tour Screenshots */,
 				F20EBBEB19BBCEE500A97F3A /* success.png */,
@@ -1734,6 +1752,7 @@
 				F2A957E819DE27F200A3B471 /* mailButton.png in Resources */,
 				F21DD5F11964EA7B00EE1BD3 /* BHReminderCell.xib in Resources */,
 				F23AD641193E2C2200510290 /* BHSetReminderCell.xib in Resources */,
+				50BC67E51A5F3F2C0029AA3D /* chat.png in Resources */,
 				F203963717D2DD9C001CFF61 /* textField.png in Resources */,
 				F298A1C719526B3D005B13EA /* BHAddressBookCell.xib in Resources */,
 				F285ECD6197B5C7700B684E9 /* whiteTabBackgroundIPAD.png in Resources */,
@@ -1741,6 +1760,7 @@
 				F260F7FF19CD6235000DD028 /* reportsScreenshot.png in Resources */,
 				502CE1DD1A413A1F0024BFFD /* folderWhite@2x.png in Resources */,
 				502CE1DA1A413A1F0024BFFD /* folder@2x.png in Resources */,
+				50BC67DF1A5F34400029AA3D /* chatWhite.png in Resources */,
 				F292AC1117F9F2DE0020DE13 /* textButton.png in Resources */,
 				F292AC0417F9EFF70020DE13 /* BHAddCommentCell.xib in Resources */,
 				F260F81719CDF30C000DD028 /* synopsisiPad.png in Resources */,
@@ -1780,10 +1800,12 @@
 				F21F6EB11930F9A2003BC323 /* wideButton.png in Resources */,
 				F226819D187DE66800D78BDD /* partly@2x.png in Resources */,
 				F226815418622D8100D78BDD /* communicateOutlineDark.png in Resources */,
+				50BC67E11A5F34400029AA3D /* chatWhite@3x.png in Resources */,
 				50FB5FBB1A3F43AB004D6062 /* miniChat@2x.png in Resources */,
 				F285E95518E5E532008FFEC1 /* miniLibraryButton.png in Resources */,
 				50FB5FFB1A40E9BB004D6062 /* Lato-LigIta.ttf in Resources */,
 				F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */,
+				50BC67E01A5F34400029AA3D /* chatWhite@2x.png in Resources */,
 				502CE1E31A413AF80024BFFD /* camera@2x.png in Resources */,
 				50FB5FB61A3F41F0004D6062 /* tasks@3x.png in Resources */,
 				F2D6A2E7196E3432004A9742 /* BHPastDueReminderCell.xib in Resources */,
@@ -1812,6 +1834,7 @@
 				F28F9A5418A49EF3000A46D4 /* miniCameraButton@2x.png in Resources */,
 				F260F80619CD6441000DD028 /* detailScreenshot@2x.png in Resources */,
 				F292AC0E17F9F2DE0020DE13 /* callButton@2x.png in Resources */,
+				50BC67E61A5F3F2C0029AA3D /* chat@2x.png in Resources */,
 				502CE1EF1A413CC70024BFFD /* cameraWhite@2x.png in Resources */,
 				F277D46318D4DBBC00028ACD /* BHDashboardGroupCell.xib in Resources */,
 				F28F9A2618A33F5E000A46D4 /* icon-57.png in Resources */,
@@ -1862,6 +1885,7 @@
 				F29EF2E31815BD1100F737B7 /* navBarBackgroundTall@2x.png in Resources */,
 				F28F9A4C18A45989000A46D4 /* zoom.png in Resources */,
 				F203967517D3E361001CFF61 /* tabBarBackground.png in Resources */,
+				50BC67E71A5F3F2C0029AA3D /* chat@3x.png in Resources */,
 				50FB5FBC1A3F43AB004D6062 /* miniChat@3x.png in Resources */,
 				F21F6EB51930FB82003BC323 /* Default-iPad.png in Resources */,
 				F226815C186B699A00D78BDD /* backArrow.png in Resources */,

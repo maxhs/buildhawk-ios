@@ -61,14 +61,15 @@
     
     //set the project to be the tab bar project IF the project wasn't already set, i.e. if it was a buildhawk connect thing
     if (!_project){
-        _project = [(BHTabBarViewController*)self.tabBarController project];
+        _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
     //set the project title
     self.navigationItem.title = [NSString stringWithFormat:@"Tasks: %@",_project.name];
     
     //adjust the inset so that there's some space in between the segmented control (at the top) and the tab bar (at the bottom)
-    self.tableView.contentInset = UIEdgeInsetsMake(6, 0, self.tabBarController.tabBar.frame.size.height, 0);
+    CGFloat topInset = IDIOM == IPAD ? 14 : 6;
+    self.tableView.contentInset = UIEdgeInsetsMake(topInset, 0, self.tabBarController.tabBar.frame.size.height, 0);
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     self.tableView.rowHeight = 82;
     
@@ -696,7 +697,7 @@
         } else if (_tasks.count > self.tableView.indexPathForSelectedRow.row) {
             item = [_tasks objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
-        [vc setTask:item];
+        [vc setTaskId:item.identifier];
         if (_connectMode){
             [vc setConnectMode:YES];
         } else {

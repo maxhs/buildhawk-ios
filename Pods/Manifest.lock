@@ -21,6 +21,7 @@ PODS:
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
   - CTAssetsPickerController (2.8.0)
+  - DateTools (1.4.3)
   - LDProgressView (1.2.1)
   - MagicalRecord (2.2):
     - MagicalRecord/Core (= 2.2)
@@ -28,7 +29,6 @@ PODS:
   - Mixpanel (2.6.2):
     - Mixpanel/MPCategoryHelpers (= 2.6.2)
   - Mixpanel/MPCategoryHelpers (2.6.2)
-  - NewRelicAgent (4.139)
   - PSTCollectionView (1.2.3)
   - RESideMenu (4.0.7)
   - SDWebImage (3.7.1):
@@ -38,10 +38,10 @@ PODS:
 DEPENDENCIES:
   - AFNetworking
   - CTAssetsPickerController
+  - DateTools
   - LDProgressView
   - MagicalRecord
   - Mixpanel
-  - NewRelicAgent
   - PSTCollectionView
   - RESideMenu (~> 4.0.4)
   - SDWebImage
@@ -49,10 +49,10 @@ DEPENDENCIES:
 SPEC CHECKSUMS:
   AFNetworking: 0f54cb5d16ce38c1b76948faffb8d5fb705021c7
   CTAssetsPickerController: 32b02079e2dd41c76fbc63740f4638ced71b7d1b
+  DateTools: 7c2d233ea2d4bda3a717d0cd5f58da926a5998d0
   LDProgressView: e0ee70a7cd858ac8c04b319ef87854e7250fb357
   MagicalRecord: 2b471584fc9e3137f3d0a56967917baa4979e224
   Mixpanel: c075cedebda3328ce1ee29a18429e265ce967cd8
-  NewRelicAgent: fe89ea76bcbbe3d45c3adea698f9d786ea6e21ae
   PSTCollectionView: d9f466e4554cc83260ca9bde7beb27f308e8fd76
   RESideMenu: a9c1cd2e64e60e1d3166ddac01a83e215a0e4d30
   SDWebImage: 116e88633b5b416ea0ca4b334a4ac59cf72dd38d

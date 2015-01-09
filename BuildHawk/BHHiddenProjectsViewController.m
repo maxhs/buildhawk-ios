@@ -38,6 +38,8 @@
     loading = YES;
     _currentUser = [(BHAppDelegate*)[UIApplication sharedApplication].delegate currentUser];
     [self loadHiddenProjects];
+    [_noProjectsLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
+    [_noProjectsLabel setTextColor:[UIColor lightGrayColor]];
 }
 
 - (void)loadHiddenProjects {
@@ -72,7 +74,6 @@
 }
 
 - (void)back {
-    
     [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
         if ([self.presentingViewController isKindOfClass:[RESideMenu class]]){
             [[(UINavigationController*)[(RESideMenu*)self.presentingViewController contentViewController] viewControllers] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
@@ -90,54 +91,39 @@
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    if (loading){
+    if (loading || _currentUser.hiddenProjects.count == 0){
+        [_noProjectsLabel setHidden:NO];
+        [tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
         return 0;
-    } else if (_currentUser.hiddenProjects.count == 0){
-        return 1;
     } else {
+        [_noProjectsLabel setHidden:YES];
+        [tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
         return _currentUser.hiddenProjects.count;
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (!loading && _currentUser.hiddenProjects.count == 0){
-        UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"NothingCell"];
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
-        [cell.textLabel setText:@"No hidden projects..."];
-        [cell.textLabel setTextColor:[UIColor lightGrayColor]];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
-        [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
-        return cell;
-    } else {
-        static NSString *CellIdentifier = @"HiddenProjectCell";
-        Project *project = [_currentUser.hiddenProjects objectAtIndex:indexPath.row];
-        BHHiddenProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-        
-        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        
-        [cell.titleLabel setText:[project name]];
-        if (project.address.formattedAddress.length){
-            [cell.subtitleLabel setText:project.address.formattedAddress];
-        } else {
-            [cell.subtitleLabel setText:project.company.name];
-        }
-        
-        [cell.projectButton setTag:project.identifier.integerValue];
-        [cell.projectButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
-        //[cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
-        [cell.titleLabel setTextColor:kDarkGrayColor];
-        [cell.unhideButton setTag:project.identifier.integerValue];
-        [cell.unhideButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
-        return cell;
-    }
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString *CellIdentifier = @"HiddenProjectCell";
+    Project *project = [_currentUser.hiddenProjects objectAtIndex:indexPath.row];
+    BHHiddenProjectCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+    [cell.titleLabel setText:[project name]];
+    NSString *subtitleLabel = project.address.formattedAddress.length ? project.address.formattedAddress : project.company.name;
+    [cell.subtitleLabel setText:subtitleLabel];
+
+    [cell.projectButton setTag:project.identifier.integerValue];
+    [cell.projectButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
+    //[cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
+    [cell.titleLabel setTextColor:kDarkGrayColor];
+    [cell.unhideButton setTag:project.identifier.integerValue];
+    [cell.unhideButton addTarget:self action:@selector(confirmActivate:) forControlEvents:UIControlEventTouchUpInside];
+    return cell;
 }
 
 - (void)confirmActivate:(UIButton*)button {
@@ -208,13 +194,12 @@
     }
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-    NSLog(@"did select");
-    if ([cell isKindOfClass:[BHHiddenProjectCell class]]){
-        [(BHHiddenProjectCell*)cell scroll];
-    }
-}
+//- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+//    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+//    if ([cell isKindOfClass:[BHHiddenProjectCell class]]){
+//        //[(BHHiddenProjectCell*)cell scroll];
+//    }
+//}
 
 - (void)goToProject:(UIButton*)button {
     Project *selectedProject = [Project MR_findFirstByAttribute:@"identifier" withValue:[NSNumber numberWithInteger:button.tag]];
