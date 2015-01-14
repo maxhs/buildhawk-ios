@@ -275,13 +275,13 @@
         [bodyCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [bodyCell.bodyTextView setText:_item.body];
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
-        [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
         
         return bodyCell;
     } else if (indexPath.section == 1) {
         BHItemDeadlineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ItemDeadlineCell"];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
         [cell.deadlineLabel setTextColor:[UIColor blackColor]];
     
         if (_item.criticalDate){
@@ -327,7 +327,7 @@
             default:
                 break;
         }
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
         return cell;
     } else if (indexPath.section == 3) {
         
@@ -378,7 +378,7 @@
             [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
             addCommentTextView = addCommentCell.messageTextView;
             addCommentTextView.delegate = self;
-            [addCommentTextView setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+            [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLatoLight] size:0]];
             
             [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
             [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
@@ -1135,10 +1135,12 @@
     _selectButton.layer.borderWidth = 1.f;
     _selectButton.layer.cornerRadius = 3.f;
     _selectButton.clipsToBounds = YES;
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     _cancelButton.layer.borderColor = [UIColor colorWithWhite:1 alpha:.7].CGColor;
     _cancelButton.layer.borderWidth = 1.f;
     _cancelButton.layer.cornerRadius = 3.f;
     _cancelButton.clipsToBounds = YES;
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
 }
 
 - (void)showDatePicker {

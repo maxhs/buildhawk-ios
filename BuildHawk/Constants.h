@@ -89,13 +89,6 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kLatoBold @"Lato-Bold"
 #define kLatoBoldItalic @"Lato-BoldItalic"
 
-//User walkthrough
-#define kHasSeenDashboard @"hasSeenDashboard"
-#define kHasSeenDashboardDetail @"hasSeenDashboardDetail"
-#define kHasSeenTasklist @"hasSeenTasklist"
-#define kHasSeenReports @"hasSeenReports"
-#define kHasSeenChecklist @"hasSeenChecklist"
-
 //Reports
 #define kDaily @"Daily"
 #define kSafety @"Safety"

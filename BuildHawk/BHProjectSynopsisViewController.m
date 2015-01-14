@@ -82,11 +82,6 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-        [self slide1];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenDashboardDetail];
-    }
 }
 
 - (void)setUpFooter{
@@ -875,106 +870,9 @@
     }
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-}
-
-#pragma mark Intro Stuff
-- (void)slide1 {
-    BHOverlayView *phases = [[BHOverlayView alloc] initWithFrame:screen];
-    NSString *text = @"The summary view shows a high-level breakdown for the project.";
-    if (IDIOM == IPAD){
-        screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"synopsisiPad"]];
-        [screenshotView setFrame:CGRectMake(screenWidth()/2-355, 30, 710, 700)];
-        [phases configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
-    } else {
-        screenshotView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"detailScreenshot"]];
-        [screenshotView setFrame:CGRectMake(20, 30, 280, 330)];
-        [phases configureText:text atFrame:CGRectMake(20, screenshotView.frame.origin.y + screenshotView.frame.size.height + 10, screenWidth()-40, 100)];
-    }
-    [screenshotView setAlpha:0.0];
-    
-    [phases.tapGesture addTarget:self action:@selector(slide2:)];
-    [overlayBackground addSubview:phases];
-    
-    [overlayBackground addSubview:screenshotView];
-    [UIView animateWithDuration:.25 animations:^{
-        [phases setAlpha:1.0];
-    }completion:^(BOOL finished) {
-        [UIView animateWithDuration:.25 animations:^{
-            [screenshotView setAlpha:1.0];
-        }];
-    }];
-}
-
-- (void)slide2:(UITapGestureRecognizer*)sender {
-    BHOverlayView *percentages = [[BHOverlayView alloc] initWithFrame:screen];
-    NSString *text = @"Progress percentages are based on the number of completed items in each checklist phase.";
-    if (IDIOM == IPAD){
-        [percentages configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
-    } else {
-        [percentages configureText:text atFrame:CGRectMake(20, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-40, 100)];
-    }
-    
-    [percentages.tapGesture addTarget:self action:@selector(slide3:)];
-    
-    [UIView animateWithDuration:.25 animations:^{
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [sender.view removeFromSuperview];
-        [overlayBackground addSubview:percentages];
-        [UIView animateWithDuration:.25 animations:^{
-            [percentages setAlpha:1.0];
-        }];
-    }];
-}
-
-- (void)slide3:(UITapGestureRecognizer*)sender {
-    BHOverlayView *scroll = [[BHOverlayView alloc] initWithFrame:screen];
-    NSString *text = @"Scrolling down will show you recent documents as well as upcoming critical items.";
-    if (IDIOM == IPAD){
-        [scroll configureText:text atFrame:CGRectMake(screenWidth()/4, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()/2, 100)];
-    } else {
-        [scroll configureText:text atFrame:CGRectMake(20, screenshotView.frame.origin.y + screenshotView.frame.size.height + 0, screenWidth()-40, 100)];
-    }
-    
-    [scroll.tapGesture addTarget:self action:@selector(scroll:)];
-    
-    [UIView animateWithDuration:.25 animations:^{
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [sender.view removeFromSuperview];
-        [overlayBackground addSubview:scroll];
-        [UIView animateWithDuration:.25 animations:^{
-            [scroll setAlpha:1.0];
-        }];
-    }];
-}
-
-- (void)scroll:(UITapGestureRecognizer*)sender {
-    [UIView animateWithDuration:.25 animations:^{
-        [screenshotView setAlpha:0.0];
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [UIView animateWithDuration:.25 animations:^{
-            [overlayBackground setAlpha:0.0];
-            [sender.view removeFromSuperview];
-            [screenshotView removeFromSuperview];
-        }completion:^(BOOL finished) {
-            /*if (_project.recentDocuments.count > 0)[self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:5] atScrollPosition:UITableViewScrollPositionTop animated:YES];*/
-            [overlayBackground removeFromSuperview];
-        }];
-    }];
-}
-
-- (void)endIntro:(UITapGestureRecognizer*)sender {
-    [UIView animateWithDuration:.25 animations:^{
-        [overlayBackground setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [overlayBackground removeFromSuperview];
-    }];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

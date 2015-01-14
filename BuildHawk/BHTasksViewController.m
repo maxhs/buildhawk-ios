@@ -68,8 +68,8 @@
     self.navigationItem.title = [NSString stringWithFormat:@"Tasks: %@",_project.name];
     
     //adjust the inset so that there's some space in between the segmented control (at the top) and the tab bar (at the bottom)
-    CGFloat topInset = IDIOM == IPAD ? 14 : 6;
-    self.tableView.contentInset = UIEdgeInsetsMake(topInset, 0, self.tabBarController.tabBar.frame.size.height, 0);
+    //CGFloat topInset = IDIOM == IPAD ? 14 : 14;
+    self.tableView.contentInset = UIEdgeInsetsMake(14.f, 0, self.tabBarController.tabBar.frame.size.height, 0);
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     self.tableView.rowHeight = 82;
     
@@ -122,11 +122,6 @@
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    if (![[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenTasklist]){
-        overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-        [self slide1];
-        [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenTasklist];
-    }
     if (!_connectMode){
         self.tabBarController.navigationItem.rightBarButtonItem = addButton;
     }
@@ -537,13 +532,11 @@
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (_tasks.count > 0){
         if (showCompleted) return completedListItems.count;
         else if (showActive) return activeListItems.count;
@@ -556,8 +549,7 @@
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (_tasks.count > 0){
         static NSString *CellIdentifier = @"TaskCell";
         BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
@@ -626,8 +618,7 @@
     }
 }
 
--(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
-{
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         if (!loading && _tasks.count){
@@ -664,8 +655,7 @@
 
 #pragma mark - Table view delegate
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (_tasks.count){
         [self performSegueWithIdentifier:@"Task" sender:self];
     }
@@ -781,89 +771,6 @@
     }];
 }
 
-#pragma mark Intro Stuff
-
-- (void)slide1 {
-    BHOverlayView *tasklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    NSString *tasklistText = @"The tasklist is designed to be flexible: use it for anything from Requests for Information, to personal to-do list, to punch list items at the end of a job.";
-    if (IDIOM == IPAD){
-        tasklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tasklistiPad"]];
-        [tasklistScreenshot setFrame:CGRectMake(29, 30, 710, 700)];
-        [tasklist configureText:tasklistText atFrame:CGRectMake(100, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
-    } else {
-        tasklistScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"tasklistScreenshot"]];
-        [tasklistScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
-        [tasklist configureText:tasklistText atFrame:CGRectMake(20, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height, screenWidth()-40, 140)];
-    }
-    [tasklistScreenshot setAlpha:0.0];
-    [overlayBackground addSubview:tasklistScreenshot];
-    
-    [tasklist.tapGesture addTarget:self action:@selector(slide2:)];
-    [overlayBackground addSubview:tasklist];
-    
-    [UIView animateWithDuration:.25 animations:^{
-        [tasklist setAlpha:1.0];
-        [tasklistScreenshot setAlpha:1.0];
-    }];
-    
-}
-
-- (void)slide2:(UITapGestureRecognizer*)sender {
-    BHOverlayView *tasklist = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    NSString *tasklistText = @"Quickly filter items by status, location, or personnel assigned.";
-    if (IDIOM == IPAD){
-        [tasklist configureText:tasklistText atFrame:CGRectMake(100, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
-    } else {
-        [tasklist configureText:tasklistText atFrame:CGRectMake(20, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
-    }
-    [tasklist.tapGesture addTarget:self action:@selector(slide3:)];
-    
-    [UIView animateWithDuration:.25 animations:^{
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [sender.view removeFromSuperview];
-        [overlayBackground addSubview:tasklist];
-        [UIView animateWithDuration:.25 animations:^{
-            [tasklist setAlpha:1.0];
-        }];
-    }];
-}
-
-- (void)slide3:(UITapGestureRecognizer*)sender {
-    BHOverlayView *progress = [[BHOverlayView alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    NSString *tasklistText = @"Click the \"+\" to add a new task, or tap any row to view, edit or mark an item complete.";
-    if (IDIOM == IPAD){
-        [progress configureText:tasklistText atFrame:CGRectMake(100, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 20, screenWidth()-200, 100)];
-    } else {
-        [progress configureText:tasklistText atFrame:CGRectMake(20, tasklistScreenshot.frame.origin.y + tasklistScreenshot.frame.size.height + 10, screenWidth()-40, 100)];
-    }
-    [progress.tapGesture addTarget:self action:@selector(endIntro:)];
-    
-    [UIView animateWithDuration:.25 animations:^{
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [sender.view removeFromSuperview];
-        [overlayBackground addSubview:progress];
-        [UIView animateWithDuration:.25 animations:^{
-            [progress setAlpha:1.0];
-        }];
-    }];
-}
-
-- (void)endIntro:(UITapGestureRecognizer*)sender {
-    [UIView animateWithDuration:.35 animations:^{
-        [tasklistScreenshot setAlpha:0.0];
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [UIView animateWithDuration:.35 animations:^{
-            [overlayBackground setAlpha:0.0];
-        }completion:^(BOOL finished) {
-            [overlayBackground removeFromSuperview];
-            [tasklistScreenshot removeFromSuperview];
-        }];
-    }];
-}
-
 - (void)setupDateFormatter {
     dateFormatter = [[NSDateFormatter alloc] init];
     [dateFormatter setDateStyle:NSDateFormatterShortStyle];
@@ -875,9 +782,7 @@
     [ProgressHUD dismiss];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 @end

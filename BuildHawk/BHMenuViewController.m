@@ -277,22 +277,11 @@ static NSString *textPlaceholder = @"Text Message";
 
 - (IBAction)logout {
     [self cleanAndResetDB];
-    
-    //don't repeat the new user walkthroughs
-    BOOL checklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenChecklist];
-    BOOL dashboardDate = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboard];
-    BOOL summaryState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenDashboardDetail];
-    BOOL tasklistState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenTasklist];
-    BOOL reportState = [[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports];
     NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
     [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
     [NSUserDefaults resetStandardUserDefaults];
-    [[NSUserDefaults standardUserDefaults] setBool:checklistState forKey:kHasSeenChecklist];
-    [[NSUserDefaults standardUserDefaults] setBool:dashboardDate forKey:kHasSeenDashboard];
-    [[NSUserDefaults standardUserDefaults] setBool:summaryState forKey:kHasSeenDashboardDetail];
-    [[NSUserDefaults standardUserDefaults] setBool:tasklistState forKey:kHasSeenTasklist];
-    [[NSUserDefaults standardUserDefaults] setBool:reportState forKey:kHasSeenReports];
     [[NSUserDefaults standardUserDefaults] synchronize];
+    
     [delegate updateLoggedInStatus];
     [delegate.syncController cancelSynch];
     BHLoginViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"Login"];

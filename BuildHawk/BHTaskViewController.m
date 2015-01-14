@@ -94,7 +94,7 @@ typedef void(^RequestSuccess)(id result);
        
         [self shrinkButton:self.photoButton width:16 height:16];
         [self shrinkButton:self.libraryButton width:16 height:16];
-        [self shrinkButton:self.locationButton width:0 height:20];
+        [self shrinkButton:_locationButton width:0 height:20];
         [self shrinkButton:self.assigneeButton width:0 height:20];
         [self shrinkButton:self.completionButton width:0 height:30];
         CGRect itemTextRect = self.itemTextView.frame;
@@ -103,7 +103,7 @@ typedef void(^RequestSuccess)(id result);
         
         self.photoButton.transform = CGAffineTransformMakeTranslation(0, -34);
         self.libraryButton.transform = CGAffineTransformMakeTranslation(0, -34);
-        self.locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
+        _locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
         self.assigneeButton.transform = CGAffineTransformMakeTranslation(0, -70);
         self.photosScrollView.transform = CGAffineTransformMakeTranslation(0, -32);
     }
@@ -123,16 +123,16 @@ typedef void(^RequestSuccess)(id result);
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
-    if (_taskId && [_taskId isEqualToNumber:@0]) {
+    if (_taskId && ![_taskId isEqualToNumber:@0]) {
         _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
+    NSLog(@"do we have a task? %@",_task.body);
     
-    if (!_task || [_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+    if (!_task || [_task.identifier isEqualToNumber:@0]){
         _task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(sendItem)];
         [self.navigationItem setRightBarButtonItem:createButton];
     } else {
-        _task = [_task MR_inContext:[NSManagedObjectContext MR_defaultContext]];
         [self redrawScrollView];
         [self loadItem];
         saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(sendItem)];
@@ -196,9 +196,9 @@ typedef void(^RequestSuccess)(id result);
     }
     
     if (_task.location && _task.location.length) {
-        [self.locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",_task.location] forState:UIControlStateNormal];
+        [_locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",_task.location] forState:UIControlStateNormal];
     } else {
-        [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
+        [_locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     }
     if (_task.assignees.count) {
         if (_task.assignees.count == 1){
@@ -801,7 +801,9 @@ typedef void(^RequestSuccess)(id result);
             [locationActionSheet addButtonWithTitle:location];
         }
         [locationActionSheet addButtonWithTitle:kAddOther];
-        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder])locationActionSheet.destructiveButtonIndex = [locationActionSheet addButtonWithTitle:@"Remove location"];
+        if (![_locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+            locationActionSheet.destructiveButtonIndex = [locationActionSheet addButtonWithTitle:@"Remove location"];
+        }
         locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
         [locationActionSheet showInView:self.view];
     }
@@ -840,8 +842,8 @@ typedef void(^RequestSuccess)(id result);
         }
         
         NSString *strippedLocationString;
-        if (![self.locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-            strippedLocationString = [[self.locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+        if (![_locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
+            strippedLocationString = [[_locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
                                       [NSCharacterSet whitespaceCharacterSet]];
             if (strippedLocationString.length) {
                 [parameters setObject:strippedLocationString forKey:@"location"];
@@ -1069,7 +1071,7 @@ typedef void(^RequestSuccess)(id result);
         }
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
-        [self.locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
+        [_locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
         _task.location = nil;
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Reassign"]) {
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
@@ -1082,7 +1084,7 @@ typedef void(^RequestSuccess)(id result);
                 [addOtherAlertView show];
             } else {
                 [_task setLocation:buttonTitle];
-                [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",buttonTitle] forState:UIControlStateNormal];
+                [_locationButton setTitle:[NSString stringWithFormat:@"Location: %@",buttonTitle] forState:UIControlStateNormal];
             }
         }
     }
@@ -1143,7 +1145,7 @@ typedef void(^RequestSuccess)(id result);
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
             NSString *newLocationString = [[alertView textFieldAtIndex:0] text];
             [_task setLocation:newLocationString];
-            [self.locationButton setTitle:[NSString stringWithFormat:@"Location: %@",newLocationString] forState:UIControlStateNormal];
+            [_locationButton setTitle:[NSString stringWithFormat:@"Location: %@",newLocationString] forState:UIControlStateNormal];
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self sendItem];

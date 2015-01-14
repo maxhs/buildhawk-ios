@@ -245,9 +245,8 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 - (void)login:(NSMutableDictionary*)parameters{
     [ProgressHUD show:@"Logging in..."];
-    
     [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success logging in: %@",responseObject);
+        //NSLog(@"Success logging in: %@",responseObject);
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
         User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!user) {

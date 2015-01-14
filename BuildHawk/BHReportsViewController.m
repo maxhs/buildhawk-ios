@@ -76,15 +76,9 @@
     
     if (delegate.connected){
         if (_project.reports.count == 0){
-            if ([[NSUserDefaults standardUserDefaults] boolForKey:kHasSeenReports]){
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [ProgressHUD show:@"Fetching reports..."];
-                });
-            } else {
-                overlayBackground = [(BHAppDelegate*)[UIApplication sharedApplication].delegate addOverlayUnderNav:NO];
-                [self slide1];
-                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kHasSeenReports];
-            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [ProgressHUD show:@"Fetching reports..."];
+            });
         } else {
             dispatch_async(dispatch_get_main_queue(), ^{
                 [ProgressHUD show:@"Updating reports..."];
@@ -98,6 +92,15 @@
 - (void)reloadReports {
     _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_project.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
     [self.tableView reloadData];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if (IDIOM != IPAD){
+        CGRect segmentedControlFrame = _segmentedControl.frame;
+        segmentedControlFrame.origin.x = width + 8;
+        [_segmentedControl setFrame:segmentedControlFrame];
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -232,8 +235,8 @@
 
 - (void)showSort {
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        _segmentedControl.transform = CGAffineTransformMakeTranslation(-screenWidth(), 0);
-        _topActionContainer.transform = CGAffineTransformMakeTranslation(-screenWidth(), 0);
+        _segmentedControl.transform = CGAffineTransformMakeTranslation(-width, 0);
+        _topActionContainer.transform = CGAffineTransformMakeTranslation(-width, 0);
         self.tabBarController.navigationItem.rightBarButtonItem = hideSortButton;
     } completion:^(BOOL finished) {
         
@@ -361,7 +364,11 @@
             return [self generateNothingCellForIndexPath:indexPath];
         }
     }
+    CGRect photoButtonFrame = cell.photoButton.frame;
+    photoButtonFrame.origin.x = width-photoButtonFrame.size.width;
+    [cell.photoButton setFrame:photoButtonFrame];
     
+    NSLog(@"photo button x: %f",cell.photoButton.frame.origin.x);
     return cell;
 }
 
@@ -549,42 +556,6 @@
     }];
 }
 
-- (void)slide1 {
-    BHOverlayView *navigation = [[BHOverlayView alloc] initWithFrame:screen];
-    NSString *text = @"Filter by report type: Daily, Weekly, or Safety. Tap the calendar icon to jump to a specific date, or the plus to add a new report.";
-    if (IDIOM == IPAD){
-        reportsScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"reportiPad"]];
-        [reportsScreenshot setFrame:CGRectMake(screenWidth()/2-350, 40, 710, 700)];
-        [navigation configureText:text atFrame:CGRectMake(screenWidth()/4, reportsScreenshot.frame.origin.y+reportsScreenshot.frame.size.height, screenWidth()/2, 100)];
-    } else {
-        reportsScreenshot = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"reportsScreenshot"]];
-        [reportsScreenshot setFrame:CGRectMake(20, 20, 280, 330)];
-        [navigation configureText:text atFrame:CGRectMake(20, reportsScreenshot.frame.origin.y+reportsScreenshot.frame.size.height, screenWidth()-40, 100)];
-    }
-    [reportsScreenshot setAlpha:0.0];
-    [navigation.tapGesture addTarget:self action:@selector(endIntro:)];
-    [overlayBackground addSubview:navigation];
-    [overlayBackground addSubview:reportsScreenshot];
-    [UIView animateWithDuration:.25 animations:^{
-        [reportsScreenshot setAlpha:1.0];
-        [navigation setAlpha:1.0];
-    }];
-}
-
-- (void)endIntro:(UITapGestureRecognizer*)sender {
-    [UIView animateWithDuration:.35 animations:^{
-        [reportsScreenshot setAlpha:0.0];
-        [sender.view setAlpha:0.0];
-    }completion:^(BOOL finished) {
-        [UIView animateWithDuration:.35 animations:^{
-            [overlayBackground setAlpha:0.0];
-        }completion:^(BOOL finished) {
-            [reportsScreenshot removeFromSuperview];
-            [overlayBackground removeFromSuperview];
-        }];
-    }];
-}
-
 - (void)setUpView {
     //add refresh control and set up the tableView
     refreshControl = [[UIRefreshControl alloc] init];
@@ -606,16 +577,14 @@
     [_topActionContainer sendSubviewToBack:backgroundToolbar];
     
     if (IDIOM == IPAD){
-        [_selectDateButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
-        [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
         [_addReportButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.05f]];
     } else {
         [_selectDateButton setFrame:CGRectMake(0, 0, width/2, _topActionContainer.frame.size.height)];
         [_addReportButton setFrame:CGRectMake(width/2, 0, width/2, _topActionContainer.frame.size.height)];
-        [_selectDateButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoBold] size:0]];
-        [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoBold] size:0]];
     }
     
+    [_selectDateButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
     [_selectDateButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.023f]];
     [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
