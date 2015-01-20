@@ -19,9 +19,13 @@
 #import "SafetyTopic+helper.h"
 #import "Address+helper.h"
 #import "Report+helper.h"
+#import "BHSafetyTopicsCell.h"
+#import "BHSafetyTopicTransition.h"
+#import "BHSafetyTopicViewController.h"
+#import <AssetsLibrary/AssetsLibrary.h>
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 
-@interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, BHReportCellDelegate, CTAssetsPickerControllerDelegate, MWPhotoBrowserDelegate> {
+@interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate, BHReportCellDelegate, CTAssetsPickerControllerDelegate, MWPhotoBrowserDelegate> {
     BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
     CGFloat width;
@@ -43,8 +47,17 @@
     UIBarButtonItem *backButton;
     UIBarButtonItem *doneButton;
     
+    UIAlertView *addOtherAlertView;
+    UIAlertView *newTopicAlertView;
+    UIActionSheet *typePickerActionSheet;
+    UIActionSheet *personnelActionSheet;
+    UIActionSheet *topicsActionSheet;
+    
     CGFloat topInset;
     NSInteger currentPage;
+    ALAssetsLibrary *library;
+    BOOL saveToLibrary;
+    BHReportTableView *_activeTableView;
 }
 
 @end
@@ -60,11 +73,9 @@
 - (void)viewDidLoad {
     self.view.backgroundColor = kLighterGrayColor;
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
-        width = screenWidth();
-        height = screenHeight();
+        width = screenWidth(); height = screenHeight();
     } else {
-        width = screenHeight();
-        height = screenWidth();
+        width = screenHeight(); height = screenWidth();
     }
     
     [super viewDidLoad];
@@ -117,7 +128,7 @@
     //make sure we're showing the right report, at the right index
     self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
     NSInteger idx = [_reports indexOfObject:_report];
-    [self.collectionView setContentOffset:CGPointMake(width*idx, 0)];
+    [self.collectionView setContentOffset:CGPointMake(width * idx, 0)];
 }
 
 - (void)setUpFormatters {
@@ -138,7 +149,6 @@
 }
 
 #pragma mark <UICollectionViewDataSource>
-
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
     return 1;
 }
@@ -154,6 +164,12 @@
     _report = report;
     [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
     
+    // set the prefill accordingly
+    if (indexPath.row == _reports.count){
+        cell.canPrefill = NO;
+    } else {
+        cell.canPrefill = YES;
+    }
     return cell;
 }
 
@@ -175,12 +191,18 @@
         //changing the datasource, which changes as the collectionView is horizontally scrolled
         _report = _reports[currentPage];
         if ([_report.identifier isEqualToNumber:@0]){
+            //ensure the report has been properly fetched
             self.navigationItem.rightBarButtonItem = addButton;
+            _report = (Report*)[[NSManagedObjectContext MR_defaultContext] objectWithID:_report.objectID];
         } else {
             self.navigationItem.rightBarButtonItem = saveButton;
+            NSNumber *identifier = _report.identifier;
+            _report = [Report MR_findFirstByAttribute:@"identifier" withValue:identifier inContext:[NSManagedObjectContext MR_defaultContext]];
         }
         self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
     }
+    BHReportsCollectionCell *activeCell = (BHReportsCollectionCell*)_collectionView.visibleCells.firstObject;
+    _activeTableView = activeCell.reportTableView;
 }
 
 - (void)loadReport {
@@ -287,8 +309,7 @@
     [newPhoto setImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
     [_report addPhoto:newPhoto];
     [_collectionView reloadData];
-    
-    //[self saveImage:newPhoto];
+    [self saveImage:newPhoto];
 }
 
 // for choosing a photo
@@ -309,7 +330,7 @@
             [newPhoto setTakenAt:[asset valueForProperty:ALAssetPropertyDate]];
             [newPhoto setImage:[self fixOrientation:image]];
             [_report addPhoto:newPhoto];
-            //[self saveImage:newPhoto];
+            [self saveImage:newPhoto];
         }
     }
     [_collectionView reloadData];
@@ -323,6 +344,105 @@
     UIImage *correctedImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return correctedImage;
+}
+
+- (void)saveImage:(Photo*)photo {
+    [self saveImageToLibrary:photo.image];
+    if ([_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        
+    } else {
+        [self uploadPhotos:[NSOrderedSet orderedSetWithObject:photo] forReport:_report];
+    }
+}
+
+- (void)saveImageToLibrary:(UIImage*)originalImage {
+    if (saveToLibrary){
+        
+        if (!library) library = [[ALAssetsLibrary alloc] init];
+        
+        NSString *albumName = @"BuildHawk";
+        UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:0.5 orientation:UIImageOrientationUp];
+        
+        [library addAssetsGroupAlbumWithName:albumName
+                                 resultBlock:^(ALAssetsGroup *group) {
+                                     
+                                 }
+                                failureBlock:^(NSError *error) {
+                                    NSLog(@"error adding album");
+                                }];
+        
+        __block ALAssetsGroup* groupToAddTo;
+        [library enumerateGroupsWithTypes:ALAssetsGroupAlbum
+                               usingBlock:^(ALAssetsGroup *group, BOOL *stop) {
+                                   if ([[group valueForProperty:ALAssetsGroupPropertyName] isEqualToString:albumName]) {
+                                       
+                                       groupToAddTo = group;
+                                   }
+                               }
+                             failureBlock:^(NSError* error) {
+                                 NSLog(@"failed to enumerate albums:\nError: %@", [error localizedDescription]);
+                             }];
+        
+        [library writeImageToSavedPhotosAlbum:imageToSave.CGImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
+            if (error.code == 0) {
+                [library assetForURL:assetURL
+                         resultBlock:^(ALAsset *asset) {
+                             [groupToAddTo addAsset:asset];
+                         }
+                        failureBlock:^(NSError* error) {
+                            NSLog(@"failed to retrieve image asset:\nError: %@ ", [error localizedDescription]);
+                        }];
+            } else {
+                //NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
+            }
+        }];
+    }
+}
+
+- (void)uploadPhotos:(NSOrderedSet*)photoSet forReport:(Report*)report {
+    if ([_project.demo isEqualToNumber:@NO]){
+        
+        NSLog(@"existing report for photo upload? %@",report.identifier);
+        [report setSaved:@NO];
+        
+        for (Photo *photo in photoSet){
+            if (photo.image && [photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+                NSData *imageData = UIImageJPEGRepresentation(photo.image, 1);
+                
+                NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
+                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
+                    [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+                }
+                if (_project && _project.identifier){
+                    [photoParameters setObject:_project.identifier forKey:@"project_id"];
+                }
+                [photoParameters setObject:report.identifier forKey:@"report_id"];
+                [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+                [photoParameters setObject:kReports forKey:@"source"];
+                [photoParameters setObject:@YES forKey:@"mobile"];
+                [photoParameters setObject:[NSNumber numberWithDouble:[photo.takenAt timeIntervalSince1970]] forKey:@"taken_at"];
+                
+                [manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+                    
+                    [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+                    
+                } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                    NSLog(@"Success posting report photo to API: %@",responseObject);
+                    
+                    if (photoSet.lastObject == photo){
+                        [report populateWithDict:[responseObject objectForKey:@"report"]];
+                        
+                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                            //[[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadReport" object:nil userInfo:@{@"report_id":identifier}];
+                        }];
+                    }
+                } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                    NSLog(@"Failure posting image to API: %@",error.description);
+                    [appDelegate notifyError:error andOperation:operation andObject:photo];
+                }];
+            }
+        }
+    }
 }
 
 - (void)beginEditing {
@@ -383,15 +503,22 @@
         
     } else if (appDelegate.connected) {
         
+        //save the report to the default content first
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+        
         if ([_report.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [ProgressHUD show:@"Creating report..."];
             [_report synchWithServer:^(BOOL complete) {
                 if (complete){
+                    [_report setSaved:@YES];
                     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                         [ProgressHUD showSuccess:@"Report Added"];
-                        //[_parentVC.navigationController popViewControllerAnimated:YES];
+                        self.navigationItem.rightBarButtonItem = saveButton;
                     }];
                 } else {
+                    [_report setSaved:@NO];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+                    [appDelegate.syncController update];
                     [ProgressHUD dismiss];
                 }
             }];
@@ -401,8 +528,14 @@
             [_report synchWithServer:^(BOOL complete) {
                 [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                     if (complete){
-                        [ProgressHUD showSuccess:@"Report saved"];
+                        [_report setSaved:@YES];
+                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                            [ProgressHUD showSuccess:@"Report saved"];
+                        }];
+                        
                     } else {
+                        [_report setSaved:@NO];
+                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
                         //increment the status
                         [appDelegate.syncController update];
                         [ProgressHUD dismiss];
@@ -419,8 +552,189 @@
     }
 }
 
+#pragma mark - UIActionSheet Delegate
+-(void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+    [_report setSaved:@NO];
+    NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
+    if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]){
+        
+        //let the action sheet dismiss itself
+        
+    } else if (actionSheet == typePickerActionSheet){
+        BOOL duplicate = NO;
+        for (Report *report in _project.reports){
+            if ([report.type isEqualToString:buttonTitle] && [report.dateString isEqualToString:_report.dateString]) duplicate = YES;
+        }
+        if (!duplicate){
+            _report.type = buttonTitle;
+            self.title = [NSString stringWithFormat:@"%@ - %@",_report.type, _report.dateString];
+            [_collectionView reloadData];
+            if ([_report.type isEqualToString:kDaily]){
+                NSLog(@"should be loading weather");
+                //[self loadWeather:[formatter dateFromString:_report.dateString] forTableView:self.beforeTableView];
+            }
+        } else {
+            [[[UIAlertView alloc] initWithTitle:@"Duplicate Report" message:@"A report with that date and type already exists." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
+    } else if (actionSheet == personnelActionSheet){
+        if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:kCompany]){
+            [self chooseCompany];
+        } else {
+            [self choosePersonnel];
+        }
+    } else if (actionSheet == topicsActionSheet) {
+        NSString *title = [actionSheet buttonTitleAtIndex:buttonIndex];
+        if ([title isEqualToString:@"Cancel"]){
+            
+        } else if ([title isEqualToString:kAddNew]){
+            newTopicAlertView = [[UIAlertView alloc] initWithTitle:@"Custom safety topic:" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
+            newTopicAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+            [[newTopicAlertView textFieldAtIndex:0] setAutocapitalizationType:UITextAutocapitalizationTypeWords];
+            [newTopicAlertView show];
+        } else {
+            SafetyTopic *newTopic = [SafetyTopic MR_findFirstByAttribute:@"title" withValue:buttonTitle inContext:[NSManagedObjectContext MR_defaultContext]];
+            [_report addSafetyTopic:newTopic];
+            [_collectionView reloadData];
+        }
+    }
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (alertView == addOtherAlertView) {
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
+            ReportUser *user = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [user setFullname:[[alertView textFieldAtIndex:0] text]];
+            user.hours = [NSNumber numberWithFloat:0.f];
+            if (![_report.reportUsers containsObject:user]) {
+                user.report = _report;
+                [_report addReportUser:user];
+                [_collectionView reloadData];
+                //[_reportTableView reloadData];
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Already added!" message:@"Personnel already included" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
+        }
+    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
+        [self.navigationController popViewControllerAnimated:YES];
+    } else if (alertView == newTopicAlertView) {
+        SafetyTopic *topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        [topic setTitle:[[alertView textFieldAtIndex:0] text]];
+        if (![_report.safetyTopics containsObject:topic]) {
+            [_report addSafetyTopic:topic];
+            [_collectionView reloadData];
+        } else {
+            [[[UIAlertView alloc] initWithTitle:nil message:@"Safety topic already added." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        }
+    }
+}
+
+- (void)showReportTypePicker {
+    typePickerActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Report Type" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kDaily,kWeekly,kSafety, nil];
+    [typePickerActionSheet showInView:self.view];
+}
+
+#pragma mark - Personnel Section
+- (void)showPersonnelActionSheet {
+    personnelActionSheet = [[UIActionSheet alloc] initWithTitle:@"Who do you want to add?" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:kIndividual,kCompany, nil];
+    [personnelActionSheet showInView:self.view];
+}
+
 - (void)prefill {
-    NSLog(@"Prefilling from reportview vc");
+    if ([_report.identifier isEqualToNumber:@0]){
+        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithArray:_reports];
+        NSDate *newReportDate = [formatter dateFromString:_report.dateString];
+        [_reports enumerateObjectsUsingBlock:^(Report *thisReport, NSUInteger index, BOOL *stop) {
+            NSDate *thisReportDate = [formatter dateFromString:thisReport.dateString];
+            if ([newReportDate compare:thisReportDate] == NSOrderedDescending) {
+                [orderedReports insertObject:_report atIndex:index];
+                _reports = orderedReports.array.mutableCopy;
+                *stop = YES;
+            }
+        }];
+    }
+    NSUInteger currentIdx = [_reports indexOfObject:_report];
+    if (currentIdx != NSNotFound && currentIdx+1 != _reports.count) {
+        Report *previousReport = [_reports objectAtIndex:currentIdx+1];
+        
+        NSMutableOrderedSet *reportUsers = [NSMutableOrderedSet orderedSet];
+        
+        for (ReportUser *reportUser in previousReport.reportUsers){
+            ReportUser *newReportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newReportUser.fullname = reportUser.fullname;
+            newReportUser.userId = reportUser.userId;
+            newReportUser.hours = reportUser.hours;
+            [reportUsers addObject:newReportUser];
+        }
+        _report.reportUsers = reportUsers;
+        
+        NSMutableOrderedSet *reportSubs = [NSMutableOrderedSet orderedSet];
+        for (ReportSub *reportSub in previousReport.reportSubs){
+            ReportSub *newReportSub = [ReportSub MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            newReportSub.name = reportSub.name;
+            newReportSub.companyId = reportSub.companyId;
+            newReportSub.count = reportSub.count;
+            [reportSubs addObject:newReportSub];
+        }
+        _report.reportSubs = reportSubs;
+
+        [_collectionView reloadData];
+//        [_reportTableView beginUpdates];
+//        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
+//        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+//        [_reportTableView endUpdates];
+    }
+
+}
+
+#pragma mark - Safety Topic Section
+- (void)showSafetyTopic:(SafetyTopic*)topic fromCellRect:(CGRect)cellRect{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [ProgressHUD show:@"Fetching safety topic..."];
+    });
+    if (IDIOM == IPAD){
+        BHSafetyTopicViewController* vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"SafetyTopic"];
+        [vc setTitle:[NSString stringWithFormat:@"%@ - %@", _report.type, _report.dateString]];
+        [vc setSafetyTopic:topic];
+        self.popover = [[UIPopoverController alloc] initWithContentViewController:vc];
+        self.popover.delegate = self;
+        [self.popover presentPopoverFromRect:cellRect inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+        
+    } else {
+        [self showSafetyTopic:topic forReport:_report];
+    }
+}
+
+-(void)showSafetyTopic:(SafetyTopic*)safetyTopic forReport:(Report*)report {
+    BHSafetyTopicViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"SafetyTopic"];
+    [vc setSafetyTopic:safetyTopic];
+    [vc setTitle:[NSString stringWithFormat:@"%@ - %@", report.type, report.dateString]];
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+    nav.transitioningDelegate = self;
+    nav.modalPresentationStyle = UIModalPresentationCustom;
+    [self presentViewController:nav animated:YES completion:nil];
+}
+
+- (void)showTopicsActionSheet {
+    topicsActionSheet = [[UIActionSheet alloc] initWithTitle:@"Safety Topics" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
+    for (SafetyTopic *topic in _project.company.safetyTopics){
+        [topicsActionSheet addButtonWithTitle:topic.title];
+    }
+    [topicsActionSheet addButtonWithTitle:kAddNew];
+    topicsActionSheet.cancelButtonIndex = [topicsActionSheet addButtonWithTitle:@"Cancel"];
+    [topicsActionSheet showInView:self.view];
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented
+                                                                  presentingController:(UIViewController *)presenting
+                                                                      sourceController:(UIViewController *)source {
+    BHSafetyTopicTransition *animator = [BHSafetyTopicTransition new];
+    animator.presenting = YES;
+    return animator;
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
+    BHSafetyTopicTransition *animator = [BHSafetyTopicTransition new];
+    return animator;
 }
 
 #pragma mark - Date Picker
@@ -458,6 +772,7 @@
 }
 
 - (IBAction)selectDate {
+    NSLog(@"select date");
     [self cancelDatePicker];
     NSString *dateString = [formatter stringFromDate:self.datePicker.date];
     BOOL duplicate = NO;

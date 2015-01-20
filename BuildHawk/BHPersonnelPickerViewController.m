@@ -28,8 +28,8 @@
     UIAlertView *companyAlertView;
     User *selectedUser;
     Company *selectedCompany;
-    UIBarButtonItem *saveButton;
     UIBarButtonItem *doneButton;
+    UIBarButtonItem *cancelButton;
     NSArray *peopleArray;
     BOOL loading;
     BOOL searching;
@@ -71,9 +71,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
     
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
-    self.navigationItem.rightBarButtonItem = saveButton;
-    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
+    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(save)];
+    self.navigationItem.rightBarButtonItem = doneButton;
+    cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
 
     self.tableView.tableHeaderView = self.searchBar;
     
@@ -84,7 +84,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [searchTextField setBackgroundColor:[UIColor clearColor]];
             [searchTextField setTextColor:[UIColor blackColor]];
             [searchTextField setTintColor:[UIColor blackColor]];
-            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
             [searchTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
             break;
         }
@@ -189,7 +189,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }
     if (shouldReload) [self.tableView reloadData];
     
-    self.navigationItem.rightBarButtonItem = doneButton;
+    self.navigationItem.rightBarButtonItem = cancelButton;
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
@@ -223,7 +223,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     searching = NO;
     [self.searchBar setText:@""];
     [self.tableView reloadData];
-    self.navigationItem.rightBarButtonItem = saveButton;
+    self.navigationItem.rightBarButtonItem = doneButton;
 }
 
 #pragma mark - Table view data source

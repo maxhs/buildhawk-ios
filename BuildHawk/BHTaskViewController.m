@@ -37,7 +37,6 @@ typedef void(^RequestSuccess)(id result);
 
 @interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate> {
     BOOL saveToLibrary;
-    BOOL iPhone5;
     UIActionSheet *locationActionSheet;
     BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
@@ -78,42 +77,15 @@ typedef void(^RequestSuccess)(id result);
 @synthesize locationSet;
 @synthesize project = _project;
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     appDelegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [appDelegate manager];
     
-    if ([UIScreen mainScreen].bounds.size.height >= 568) {
-        iPhone5 = YES;
-    } else {
-        iPhone5 = NO;
-        self.emailButton.transform = CGAffineTransformMakeTranslation(0, -88);
-        self.callButton.transform = CGAffineTransformMakeTranslation(0, -88);
-        self.textButton.transform = CGAffineTransformMakeTranslation(0, -88);
-       
-        [self shrinkButton:self.photoButton width:16 height:16];
-        [self shrinkButton:self.libraryButton width:16 height:16];
-        [self shrinkButton:_locationButton width:0 height:20];
-        [self shrinkButton:self.assigneeButton width:0 height:20];
-        [self shrinkButton:self.completionButton width:0 height:30];
-        CGRect itemTextRect = self.itemTextView.frame;
-        itemTextRect.size.height = self.completionButton.frame.size.height;
-        [_itemTextView setFrame:itemTextRect];
-        
-        self.photoButton.transform = CGAffineTransformMakeTranslation(0, -34);
-        self.libraryButton.transform = CGAffineTransformMakeTranslation(0, -34);
-        _locationButton.transform = CGAffineTransformMakeTranslation(0, -50);
-        self.assigneeButton.transform = CGAffineTransformMakeTranslation(0, -70);
-        self.photosScrollView.transform = CGAffineTransformMakeTranslation(0, -32);
-    }
-    
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
-        width = screenWidth();
-        height = screenHeight();
+        width = screenWidth(); height = screenHeight();
     } else {
-        width = screenHeight();
-        height = screenWidth();
+        width = screenHeight(); height = screenWidth();
     }
     
     //show activities for this task by default
@@ -126,7 +98,6 @@ typedef void(^RequestSuccess)(id result);
     if (_taskId && ![_taskId isEqualToNumber:@0]) {
         _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
-    NSLog(@"do we have a task? %@",_task.body);
     
     if (!_task || [_task.identifier isEqualToNumber:@0]){
         _task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
@@ -172,11 +143,39 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)drawItem {
+    CGFloat originX = width/2 - _locationButton.frame.size.width/2;
+    
     [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    CGRect locationButtonRect = _locationButton.frame;
+    locationButtonRect.origin.x = originX;
+    [_locationButton setFrame:locationButtonRect];
+    
     [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLato] size:0]];
+    CGRect assigneeButtonRect = _assigneeButton.frame;
+    assigneeButtonRect.origin.x = originX;
+    [_assigneeButton setFrame:assigneeButtonRect];
+    
+    // reset action buttons, if necessary
+    CGFloat differential = _emailButton.frame.origin.x - originX;
+    NSLog(@"differential? %f",differential);
+    if (differential > 0){
+        _emailButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+        _callButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+        _textButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+    }
+    
+    CGFloat completionButtonWidth = _completionButton.frame.size.width;
+    CGRect itemTextViewRect = _itemTextView.frame;
+    itemTextViewRect.size.width = width - completionButtonWidth;
+    [_itemTextView setFrame:itemTextViewRect];
+    
+    CGRect completionButtonFrame = _completionButton.frame;
+    completionButtonFrame.origin.x = itemTextViewRect.size.width;
+    [_completionButton setFrame:completionButtonFrame];
+    
+    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     
     if (_task.body.length) {
@@ -209,6 +208,7 @@ typedef void(^RequestSuccess)(id result);
     } else {
         [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
     }
+    
 }
 
 - (void)shrinkButton:(UIButton*)button width:(int)buttonWidth height:(int)buttonHeight {
@@ -843,7 +843,7 @@ typedef void(^RequestSuccess)(id result);
         
         NSString *strippedLocationString;
         if (![_locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-            strippedLocationString = [[_locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"Location: " withString:@""] stringByTrimmingCharactersInSet:
+            strippedLocationString = [[_locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"LOCATION: " withString:@""] stringByTrimmingCharactersInSet:
                                       [NSCharacterSet whitespaceCharacterSet]];
             if (strippedLocationString.length) {
                 [parameters setObject:strippedLocationString forKey:@"location"];
@@ -1084,7 +1084,7 @@ typedef void(^RequestSuccess)(id result);
                 [addOtherAlertView show];
             } else {
                 [_task setLocation:buttonTitle];
-                [_locationButton setTitle:[NSString stringWithFormat:@"Location: %@",buttonTitle] forState:UIControlStateNormal];
+                [_locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",buttonTitle] forState:UIControlStateNormal];
             }
         }
     }
@@ -1092,9 +1092,9 @@ typedef void(^RequestSuccess)(id result);
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     //only allow editing if the cell represents a comment and IS NOT the add comment row (i.e. the first row)
-    if (indexPath.section == 0 && !activities && indexPath.row != 0){
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && indexPath.section == 0 && !activities && indexPath.row != 0){
         Comment *comment = _task.comments[indexPath.row - 1];
-        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsUberAdmin]){
+        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin]){
             return YES;
         } else {
             return NO;
@@ -1145,15 +1145,16 @@ typedef void(^RequestSuccess)(id result);
         if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
             NSString *newLocationString = [[alertView textFieldAtIndex:0] text];
             [_task setLocation:newLocationString];
-            [_locationButton setTitle:[NSString stringWithFormat:@"Location: %@",newLocationString] forState:UIControlStateNormal];
+            [_locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",newLocationString] forState:UIControlStateNormal];
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self sendItem];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
-        //[self loadItem];
-        //[self drawItem];
+        // only get rid of it if it's a new task
+        if ([_task.identifier isEqualToNumber:@0]){
+            [_task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
         [self dismiss];
-        [_task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self takePhoto];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Delete"]){
@@ -1179,13 +1180,13 @@ typedef void(^RequestSuccess)(id result);
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note
-{
+- (void)keyboardWillShow:(NSNotification *)note {
     NSDictionary* info = [note userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
+    CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
     if (!activities && _task.comments.count == 0){
         keyboardHeight += 66.f;
     }
@@ -1199,8 +1200,7 @@ typedef void(^RequestSuccess)(id result);
                      completion:nil];
 }
 
-- (void)keyboardWillHide:(NSNotification *)note
-{
+- (void)keyboardWillHide:(NSNotification *)note {
     NSDictionary* info = [note userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
@@ -1222,10 +1222,13 @@ typedef void(^RequestSuccess)(id result);
     }
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self.view endEditing:YES];
+}
+
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 @end

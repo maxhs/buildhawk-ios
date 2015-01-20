@@ -24,12 +24,14 @@
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
-        NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
-        self.createdAt = [NSDate dateWithTimeIntervalSince1970:_interval];
+    if ([dictionary objectForKey:@"created_at"] && [dictionary objectForKey:@"created_at"] != [NSNull null]) {
+        self.createdAt = [BHUtilities parseDateTime:[dictionary objectForKey:@"created_at"]];
     }
     if ([dictionary objectForKey:@"updated_at"] && [dictionary objectForKey:@"updated_at"] != [NSNull null]) {
-        self.updatedAt = [BHUtilities parseDate:[dictionary objectForKey:@"updated_at"]];
+        self.updatedAt = [BHUtilities parseDateTime:[dictionary objectForKey:@"updated_at"]];
+    }
+    if ([dictionary objectForKey:@"report_date"] && [dictionary objectForKey:@"report_date"] != [NSNull null]) {
+        self.reportDate = [BHUtilities parseDate:[dictionary objectForKey:@"report_date"]];
     }
     if ([dictionary objectForKey:@"report_type"] && [dictionary objectForKey:@"report_type"] != [NSNull null]) {
         self.type = [dictionary objectForKey:@"report_type"];
@@ -471,6 +473,7 @@
         if (self.precip.length) [parameters setObject:self.precip forKey:@"precip"];
         if (self.humidity.length) [parameters setObject:self.humidity forKey:@"humidity"];
         if (self.wind.length) [parameters setObject:self.wind forKey:@"wind"];
+        if (self.temp.length) [parameters setObject:self.temp forKey:@"temp"];
         if (self.weatherIcon.length) [parameters setObject:self.weatherIcon forKey:@"weather_icon"];
         if (self.body.length){
             [parameters setObject:self.body forKey:@"body"];
@@ -522,7 +525,6 @@
         AFHTTPRequestOperationManager *manager = [delegate manager];
         
         if ([self.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            NSLog(@"synching a new report");
             //fetch the images
             NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:self.photos];
             

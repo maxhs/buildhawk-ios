@@ -19,6 +19,8 @@
 static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 
 @interface BHLoginViewController () <UIAlertViewDelegate, UITextFieldDelegate> {
+    CGFloat width;
+    CGFloat height;
     CGRect mainScreen;
     NSString *forgotPasswordEmail;
     BHAppDelegate* delegate;
@@ -49,6 +51,8 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [super viewDidLoad];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     mainScreen = [UIScreen mainScreen].bounds;
+    height = mainScreen.size.height;
+    width = mainScreen.size.width;
     [self textFieldTreatment:self.emailTextField];
     [self.emailTextField setPlaceholder:@"user@example.com"];
     [self textFieldTreatment:self.passwordTextField];
@@ -69,13 +73,16 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     passwordFrame.origin.y = mainScreen.size.height/2-1;
     [_passwordTextField setFrame:passwordFrame];
     
-    if (IDIOM != IPAD){
+    if (IDIOM != IPAD && mainScreen.size.height < 568.f){
         CGPoint imageViewCenterPoint = self.view.center;
         imageViewCenterPoint.y -= 32.f;
         _logoImageView.center = imageViewCenterPoint;
+        CGRect forgotPasswordRect = _forgotPasswordButton.frame;
+        forgotPasswordRect.origin.y = height - 120.f;
+        [_forgotPasswordButton setFrame:forgotPasswordRect];
     }
     
-    [_forgotPasswordButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+    [_forgotPasswordButton setTitleColor:kPlaceholderTextColor forState:UIControlStateNormal];
     [_forgotPasswordButton setTitle:@"Forget your password?" forState:UIControlStateNormal];
     [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     
@@ -183,7 +190,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 }
 
 - (void)textFieldTreatment:(UITextField*)textField {
-    textField.layer.borderColor = [UIColor colorWithWhite:0 alpha:.1].CGColor;
+    textField.layer.borderColor = [UIColor colorWithWhite:.9 alpha:1].CGColor;
     textField.layer.borderWidth = .5f;
     UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 5, 21)];
     textField.leftView = paddingView;

@@ -12,6 +12,7 @@
 @interface BHUtilities : NSObject
 
 + (NSDate*)parseDate:(id)value;
++ (NSDate*)parseDateTime:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;
 + (BOOL)isIPhone5;

@@ -494,7 +494,7 @@
                                             </connections>
                                         </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="tEF-DI-kU0" userLabel="Photo Button">
-                                            <rect key="frame" x="388" y="209" width="70" height="70"/>
+                                            <rect key="frame" x="388" y="210" width="70" height="70"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
@@ -507,7 +507,7 @@
                                             </connections>
                                         </button>
                                         <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="yoR-Kg-WZb" userLabel="Library Button">
-                                            <rect key="frame" x="310" y="209" width="70" height="70"/>
+                                            <rect key="frame" x="310" y="210" width="70" height="70"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                             <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="17"/>
                                             <state key="normal" image="libraryButton.png">
@@ -642,8 +642,8 @@
                                 <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <inset key="contentInset" minX="0.0" minY="12" maxX="0.0" maxY="56"/>
-                                <inset key="scrollIndicatorInsets" minX="0.0" minY="12" maxX="0.0" maxY="56"/>
+                                <inset key="contentInset" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
+                                <inset key="scrollIndicatorInsets" minX="0.0" minY="0.0" maxX="0.0" maxY="56"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="NothingCell" id="Pqz-Va-bt1">
                                         <rect key="frame" x="0.0" y="22" width="768" height="44"/>
@@ -739,20 +739,20 @@
                                         </segments>
                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                     </segmentedControl>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Rcq-Ik-rSh">
-                                        <rect key="frame" x="454" y="8" width="150" height="44"/>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="iVr-fZ-cib">
+                                        <rect key="frame" x="612" y="10" width="151" height="40"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                        <state key="normal" title="SELECT DATE">
+                                        <state key="normal" title="+  REPORT">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </state>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="iVr-fZ-cib">
-                                        <rect key="frame" x="610" y="8" width="150" height="44"/>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Rcq-Ik-rSh">
+                                        <rect key="frame" x="460" y="1" width="150" height="59"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                        <state key="normal" title="+ REPORT">
+                                        <state key="normal" title="CALENDAR">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </state>
@@ -804,12 +804,12 @@
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="uxR-hx-hEt"/>
                     <connections>
                         <outlet property="addReportButton" destination="iVr-fZ-cib" id="RzZ-RX-6TZ"/>
+                        <outlet property="calendarButton" destination="Rcq-Ik-rSh" id="AJA-yr-3eY"/>
                         <outlet property="cancelButton" destination="CBp-XM-HbL" id="e7U-Uo-AMy"/>
                         <outlet property="datePicker" destination="2f8-FB-T91" id="FZu-UQ-DDg"/>
                         <outlet property="datePickerContainer" destination="tlC-lY-3Fb" id="JS6-3o-yaB"/>
                         <outlet property="segmentedControl" destination="q5h-kg-2Aj" id="2zn-2u-rhF"/>
                         <outlet property="selectButton" destination="Er7-JU-Wge" id="l9b-yR-Fgn"/>
-                        <outlet property="selectDateButton" destination="Rcq-Ik-rSh" id="fgP-v6-cV6"/>
                         <outlet property="tableView" destination="Ejx-lg-dbz" id="9vg-FE-gud"/>
                         <outlet property="topActionContainer" destination="9N9-5K-AJs" id="byC-FG-7yl"/>
                         <segue destination="3" kind="push" identifier="Report" id="v3P-e2-fpL"/>
@@ -885,7 +885,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" id="nKh-cx-GM2">
-                                                                        <rect key="frame" x="0.0" y="-2" width="3610" height="502"/>
+                                                                        <rect key="frame" x="0.0" y="-2" width="5146" height="502"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <subviews>
                                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="2hF-5W-u9t">
@@ -1032,8 +1032,8 @@
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" textAlignment="center" minimumFontSize="17" id="qny-ps-WFM" customClass="BHPersonnelCountTextField">
-                                                                        <rect key="frame" x="515" y="3" width="60" height="60"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="535" y="3" width="60" height="60"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                                         <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
@@ -1061,7 +1061,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cfI-cw-MpH">
-                                                                        <rect key="frame" x="48" y="6" width="670" height="54"/>
+                                                                        <rect key="frame" x="48" y="6" width="2206" height="54"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -1069,7 +1069,7 @@
                                                                     </label>
                                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Qwh-O0-jbm">
                                                                         <rect key="frame" x="720" y="11" width="44" height="44"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                         <state key="normal" image="blackX.png">
                                                                             <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -1113,7 +1113,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="c0D-cc-hv7" customClass="BHReportPhotoScrollView">
-                                                                        <rect key="frame" x="148" y="11" width="1862" height="76"/>
+                                                                        <rect key="frame" x="148" y="11" width="3398" height="76"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                         <connections>
@@ -1210,6 +1210,9 @@
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
+                                        <connections>
+                                            <action selector="cancelDatePicker" destination="3" eventType="touchUpInside" id="w41-Sm-Gxb"/>
+                                        </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="bY0-No-UAJ">
                                         <rect key="frame" x="389" y="2" width="156" height="54"/>
@@ -1219,6 +1222,9 @@
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
+                                        <connections>
+                                            <action selector="selectDate" destination="3" eventType="touchUpInside" id="D7b-OS-PI5"/>
+                                        </connections>
                                     </button>
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
@@ -1853,7 +1859,7 @@
                     <navigationItem key="navigationItem" id="CPi-fP-quB"/>
                     <connections>
                         <outlet property="tableView" destination="jJI-nT-BO1" id="BlK-1e-rmI"/>
-                        <segue destination="aNp-Zh-jY7" kind="push" identifier="GroupDetail" id="6tY-YJ-yab"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="ProjectSynopsis" id="6tY-YJ-yab"/>
                         <segue destination="4" kind="push" identifier="Project" id="Ycb-Pp-QFw"/>
                     </connections>
                 </viewController>
@@ -2131,7 +2137,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="8dj-4i-0Yn">
-                                                    <rect key="frame" x="0.0" y="0.0" width="768" height="100"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="768" height="146"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view opaque="NO" contentMode="scaleToFill" id="8cG-gh-8Wg">
@@ -2291,13 +2297,13 @@
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="vJz-hS-1H6"/>
-        <segue reference="dko-BE-dy7"/>
-        <segue reference="6tY-YJ-yab"/>
-        <segue reference="E4T-LB-k0Z"/>
-        <segue reference="tY6-jf-jEH"/>
-        <segue reference="eZr-X3-mJS"/>
         <segue reference="bd7-Rv-hQV"/>
+        <segue reference="eZr-X3-mJS"/>
+        <segue reference="dko-BE-dy7"/>
+        <segue reference="vJz-hS-1H6"/>
         <segue reference="Lue-dQ-dtC"/>
+        <segue reference="v3P-e2-fpL"/>
+        <segue reference="6tY-YJ-yab"/>
+        <segue reference="tY6-jf-jEH"/>
     </inferredMetricsTieBreakers>
 </document>

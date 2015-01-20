@@ -111,6 +111,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kLighterGrayColor [UIColor colorWithWhite:.925 alpha:1.0]
 #define kLightGrayColor [UIColor colorWithWhite:.90 alpha:.9]
 #define kSeparatorColor [UIColor colorWithWhite:.925 alpha:1]
+#define kPlaceholderTextColor [UIColor colorWithWhite:.7 alpha:1]
 
 #define kDarkerGrayColor [UIColor colorWithWhite:.06 alpha:0.9]
 #define kDarkGrayColor [UIColor colorWithWhite:.05 alpha:1.0]

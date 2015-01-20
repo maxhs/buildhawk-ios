@@ -291,21 +291,21 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RWh-Pv-4hJ" userLabel="Task Label">
-                                                    <rect key="frame" x="88" y="8" width="602" height="32"/>
+                                                    <rect key="frame" x="88" y="8" width="696" height="32"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="GOn-si-q3p" userLabel="Owner Label">
-                                                    <rect key="frame" x="88" y="33" width="602" height="24"/>
+                                                    <rect key="frame" x="88" y="33" width="696" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="FPW-Yc-J42" userLabel="Timestamp Label">
-                                                    <rect key="frame" x="88" y="52" width="602" height="24"/>
+                                                    <rect key="frame" x="88" y="52" width="696" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -376,12 +376,12 @@
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <view key="tableHeaderView" contentMode="scaleToFill" id="JbP-Vp-LgM">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="394"/>
-                                    <autoresizingMask key="autoresizingMask" heightSizable="YES" flexibleMaxY="YES"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="410"/>
+                                    <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" directionalLockEnabled="YES" text="Task..." id="ozM-yr-VWl">
                                             <rect key="frame" x="0.0" y="0.0" width="308" height="100"/>
-                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <inset key="scrollIndicatorInsets" minX="6" minY="4" maxX="0.0" maxY="0.0"/>
@@ -609,17 +609,6 @@
                         <rect key="frame" x="0.0" y="64" width="414" height="672"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="PFD-Cw-6rY" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="422" y="14" width="398" height="29"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <segments>
-                                    <segment title="Daily"/>
-                                    <segment title="Safety"/>
-                                    <segment title="Weekly"/>
-                                </segments>
-                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                            </segmentedControl>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="VS0-1K-JbD">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="672"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -649,7 +638,7 @@
                                                     </state>
                                                 </button>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="kKB-JN-TwP" userLabel="PhotoCountLabel">
-                                                    <rect key="frame" x="312" y="-1" width="25" height="25"/>
+                                                    <rect key="frame" x="311" y="0.0" width="25" height="25"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <nil key="highlightedColor"/>
@@ -683,8 +672,8 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <view contentMode="scaleToFill" id="UVy-ds-nfq">
-                                                    <rect key="frame" x="10" y="89" width="394" height="1"/>
-                                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                                    <rect key="frame" x="10" y="89" width="300" height="1"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                     <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                 </view>
                                             </subviews>
@@ -707,13 +696,13 @@
                             </tableView>
                             <view contentMode="scaleToFill" id="621-Uv-4G7">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="60"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Kt7-zE-7AT" userLabel="Select Date Button">
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Kt7-zE-7AT" userLabel="Calendar Button">
                                         <rect key="frame" x="7" y="14" width="194" height="29"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <state key="normal" title="SELECT DATE">
+                                        <state key="normal" title="CALENDAR">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </state>
@@ -768,18 +757,29 @@
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="PFD-Cw-6rY" customClass="BHDeselectableSegmentedControl">
+                                <rect key="frame" x="422" y="14" width="398" height="29"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <segments>
+                                    <segment title="Daily"/>
+                                    <segment title="Safety"/>
+                                    <segment title="Weekly"/>
+                                </segments>
+                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="GpF-2H-fqz"/>
                     <connections>
                         <outlet property="addReportButton" destination="JK1-PH-bCO" id="Lh0-9j-5gK"/>
+                        <outlet property="calendarButton" destination="Kt7-zE-7AT" id="m2n-MW-pe1"/>
                         <outlet property="cancelButton" destination="4p6-Ts-TtX" id="bwr-os-UVY"/>
                         <outlet property="datePicker" destination="HUc-Qx-jRB" id="IqO-NQ-dl5"/>
                         <outlet property="datePickerContainer" destination="xYv-KN-aiE" id="EfY-fq-dNM"/>
                         <outlet property="segmentedControl" destination="PFD-Cw-6rY" id="sj0-UY-evu"/>
                         <outlet property="selectButton" destination="TPb-MC-wNV" id="idc-vW-BtS"/>
-                        <outlet property="selectDateButton" destination="Kt7-zE-7AT" id="b97-MH-gVn"/>
                         <outlet property="tableView" destination="VS0-1K-JbD" id="zG2-xV-ePg"/>
                         <outlet property="topActionContainer" destination="621-Uv-4G7" id="Wtb-tJ-B2e"/>
                         <segue destination="3" kind="push" identifier="Report" id="7to-sF-Hdh"/>
@@ -855,7 +855,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" id="Tba-hi-5mv">
-                                                                        <rect key="frame" x="0.0" y="-2" width="3670" height="502"/>
+                                                                        <rect key="frame" x="0.0" y="-2" width="4084" height="502"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <subviews>
                                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="fbH-Yj-JEp">
@@ -997,7 +997,7 @@
                                                                 <subviews>
                                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="iSN-kY-lGt" userLabel="Remove Button">
                                                                         <rect key="frame" x="362" y="11" width="44" height="44"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                         <state key="normal" image="blackX.png">
                                                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -1005,14 +1005,14 @@
                                                                         </state>
                                                                     </button>
                                                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" minimumFontSize="10" id="CsF-RT-Gdg" userLabel="Person Label">
-                                                                        <rect key="frame" x="4" y="3" width="180" height="60"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="4" y="3" width="230" height="60"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="1" textAlignment="center" minimumFontSize="17" id="yEB-YB-nuS" customClass="BHPersonnelCountTextField">
-                                                                        <rect key="frame" x="204" y="3" width="60" height="60"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="270" y="3" width="60" height="60"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                                         <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
@@ -1031,15 +1031,15 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="dJu-WK-NPe">
-                                                                        <rect key="frame" x="48" y="6" width="2376" height="54"/>
-                                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="48" y="6" width="300" height="54"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                                         <nil key="highlightedColor"/>
                                                                     </label>
                                                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="fS0-WB-oCi">
-                                                                        <rect key="frame" x="2432" y="11" width="44" height="44"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="362" y="11" width="44" height="44"/>
+                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                                         <state key="normal" image="blackX.png">
                                                                             <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
@@ -1083,7 +1083,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="yek-ye-UiF" customClass="BHReportPhotoScrollView">
-                                                                        <rect key="frame" x="148" y="11" width="1922" height="76"/>
+                                                                        <rect key="frame" x="148" y="11" width="2336" height="76"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                         <connections>
@@ -1126,8 +1126,8 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <textView clipsSubviews="YES" contentMode="scaleToFill" id="M1Y-ti-vlO">
-                                                                        <rect key="frame" x="5" y="5" width="310" height="200"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="5" y="5" width="404" height="200"/>
+                                                                        <autoresizingMask key="autoresizingMask"/>
                                                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -1173,7 +1173,7 @@
                                         </date>
                                     </datePicker>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="5kp-gF-ujE">
-                                        <rect key="frame" x="2" y="2" width="156" height="54"/>
+                                        <rect key="frame" x="49" y="2" width="156" height="54"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                         <state key="normal" title="Cancel">
@@ -1185,7 +1185,7 @@
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="r7W-5T-7rb">
-                                        <rect key="frame" x="258" y="2" width="156" height="54"/>
+                                        <rect key="frame" x="209" y="2" width="156" height="54"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                         <state key="normal" title="Select">
@@ -1359,7 +1359,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" placeholder="Your email" minimumFontSize="17" id="EK6-57-ZkH">
-                                <rect key="frame" x="27" y="346" width="360" height="44"/>
+                                <rect key="frame" x="27" y="348" width="360" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -1739,7 +1739,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" minimumFontSize="17" id="IqQ-jr-toy">
-                                                    <rect key="frame" x="8" y="13" width="714" height="34"/>
+                                                    <rect key="frame" x="8" y="13" width="1128" height="34"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                                     <textInputTraits key="textInputTraits"/>
@@ -1894,7 +1894,7 @@
                     <navigationItem key="navigationItem" id="3vl-97-7Zi"/>
                     <connections>
                         <outlet property="tableView" destination="sPu-dS-Cfc" id="63b-NA-cpb"/>
-                        <segue destination="aNp-Zh-jY7" kind="push" identifier="GroupDetail" id="eeI-5R-PC5"/>
+                        <segue destination="aNp-Zh-jY7" kind="push" identifier="ProjectSynopsis" id="eeI-5R-PC5"/>
                         <segue destination="4" kind="push" identifier="Project" id="VUC-8h-3wE"/>
                     </connections>
                 </viewController>
@@ -2358,14 +2358,14 @@
         <simulatedScreenMetrics key="destination" type="retina4"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="bOL-sd-mqt"/>
-        <segue reference="7to-sF-Hdh"/>
+        <segue reference="eeI-5R-PC5"/>
         <segue reference="eDB-ws-svo"/>
+        <segue reference="7to-sF-Hdh"/>
+        <segue reference="bOL-sd-mqt"/>
+        <segue reference="r38-ht-gCd"/>
+        <segue reference="0zF-UE-phA"/>
         <segue reference="Uyg-Ck-Q13"/>
-        <segue reference="vI7-Ml-H9J"/>
         <segue reference="kFF-g5-AYt"/>
         <segue reference="POr-kh-1ho"/>
-        <segue reference="0zF-UE-phA"/>
-        <segue reference="r38-ht-gCd"/>
     </inferredMetricsTieBreakers>
 </document>

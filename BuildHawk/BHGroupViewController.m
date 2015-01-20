@@ -25,8 +25,7 @@
 @implementation BHGroupViewController
 @synthesize group = _group;
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
@@ -92,6 +91,8 @@
     [cell configureForProject:project andUser:delegate.currentUser];
     
     [cell.progressButton setTitle:project.progressPercentage forState:UIControlStateNormal];
+    [cell.progressButton setTag:indexPath.row];
+    [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
     [cell.projectButton setTag:indexPath.row];
     [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -102,8 +103,7 @@
 
 }
 
--(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
-{
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
         [ProgressHUD dismiss];
@@ -121,7 +121,7 @@
     if ([segue.identifier isEqualToString:@"Project"]) {
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:project];
-    } else if ([segue.identifier isEqualToString:@"GroupDetail"]) {
+    } else if ([segue.identifier isEqualToString:@"ProjectSynopsis"]) {
         BHProjectSynopsisViewController *detailVC = [segue destinationViewController];
         [detailVC setProject:project];
     }
@@ -130,6 +130,11 @@
 - (void)goToProject:(UIButton*)button {
     Project *selectedProject = [_group.projects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"Project" sender:selectedProject];
+}
+
+- (void)goToProjectDetail:(UIButton*)button {
+    Project *selectedProject = [_group.projects objectAtIndex:button.tag];
+    [self performSegueWithIdentifier:@"ProjectSynopsis" sender:selectedProject];
 }
 
 - (void)confirmHide:(UIButton*)button{

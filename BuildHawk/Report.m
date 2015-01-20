@@ -21,6 +21,7 @@
 
 @dynamic body;
 @dynamic createdAt;
+@dynamic reportDate;
 @dynamic dateString;
 @dynamic humidity;
 @dynamic identifier;

@@ -15,6 +15,7 @@
 
 @property (nonatomic, retain) NSString * body;
 @property (nonatomic, retain) NSDate * createdAt;
+@property (nonatomic, retain) NSDate * reportDate;
 @property (nonatomic, retain) NSString * dateString;
 @property (nonatomic, retain) NSString * humidity;
 @property (nonatomic, retain) NSNumber * identifier;

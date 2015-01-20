@@ -1271,10 +1271,10 @@
 				F25699CA19087F1C00ED9032 /* BHReportCell.m */,
 				F2C2009018FCE627003C401A /* BHSafetyTopicsCell.h */,
 				F2C2009118FCE627003C401A /* BHSafetyTopicsCell.m */,
-				F2A82B471A325553001304D2 /* BHReportsCollectionCell.h */,
-				F2A82B481A325553001304D2 /* BHReportsCollectionCell.m */,
 				F2C2008D18FCE617003C401A /* BHChooseTopicsViewCell.h */,
 				F2C2008E18FCE617003C401A /* BHChooseTopicsViewCell.m */,
+				F2A82B471A325553001304D2 /* BHReportsCollectionCell.h */,
+				F2A82B481A325553001304D2 /* BHReportsCollectionCell.m */,
 			);
 			name = Reports;
 			sourceTree = "<group>";
@@ -1347,13 +1347,13 @@
 		F2B29FC217D0F31B00F09C6F /* BuildHawk */ = {
 			isa = PBXGroup;
 			children = (
-				F21110C119CA501E00CC255D /* BuildHawk.xcdatamodeld */,
 				F203961817D12FA4001CFF61 /* Libraries */,
 				F2B29FCB17D0F31B00F09C6F /* BHAppDelegate.h */,
 				F2B29FCC17D0F31B00F09C6F /* BHAppDelegate.m */,
 				F2B29FD417D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard */,
 				F2926C4218345F500090710A /* MainStoryboard_iPad.storyboard */,
 				50FB5FCB1A40D66A004D6062 /* LaunchScreen.xib */,
+				F21110C119CA501E00CC255D /* BuildHawk.xcdatamodeld */,
 				F239BB9C17D875DE003097E6 /* Models */,
 				F228706617DE8C3200A88475 /* Cells */,
 				F2B29FF717D0FACE00F09C6F /* Project */,

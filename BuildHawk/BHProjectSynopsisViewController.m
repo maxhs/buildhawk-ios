@@ -379,7 +379,8 @@
             return progressCell;
         }
         break;
-        case 4: {
+        case 4:
+        {
             BHActivityCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ActivityCell"];
             [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             if (cell == nil) {

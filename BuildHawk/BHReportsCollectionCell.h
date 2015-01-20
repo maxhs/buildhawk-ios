@@ -10,6 +10,7 @@
 #import "BHReportViewController.h"
 #import "BHReportTableView.h"
 #import "Report+helper.h"
+#import "SafetyTopic+helper.h"
 #import "MWPhotoBrowser.h"
 
 @protocol BHReportCellDelegate <NSObject>
@@ -19,9 +20,11 @@
 - (void)doneEditing;
 - (void)post;
 @optional
+- (void)showReportTypePicker;
 - (void)chooseCompany;
-- (void)choosePersonnel;
-- (void)showSafetyTopic;
+- (void)showPersonnelActionSheet;
+- (void)showTopicsActionSheet;
+- (void)showSafetyTopic:(SafetyTopic*)topic fromCellRect:(CGRect)cellRect;
 - (void)showDatePicker;
 - (void)prefill;
 - (void)choosePhoto;

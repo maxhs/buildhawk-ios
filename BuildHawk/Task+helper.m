@@ -208,6 +208,7 @@
         
         [parameters setObject:self.body forKey:@"body"];
         if (self.location.length){
+            NSLog(@"what's self.location? %@",self.location);
             [parameters setObject:self.location forKey:@"location"];
         }
         if (self.assignees.count){

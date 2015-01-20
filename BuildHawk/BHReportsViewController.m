@@ -27,6 +27,7 @@
     BOOL safety;
     BOOL weekly;
     BOOL loading;
+    NSMutableArray *_reports;
     NSMutableArray *_filteredReports;
     UIBarButtonItem *sortButton;
     UIBarButtonItem *hideSortButton;
@@ -47,24 +48,24 @@
     
     screen = [UIScreen mainScreen].bounds;
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
-        width = screenWidth();
-        height = screenHeight();
+        width = screenWidth(); height = screenHeight();
     } else {
-        width = screenHeight();
-        height = screenWidth();
+        width = screenHeight(); height = screenWidth();
     }
     
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
-    _project = [(BHTabBarViewController*)self.tabBarController project];
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
+    _reports = [NSMutableArray arrayWithArray:_project.reports.array.mutableCopy];
     
-
     //set up the segmented control and action button segments as well as add refresh control and proper content inset to tableView
     [self setUpView];
     
     if (IDIOM != IPAD){
         sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStylePlain target:self action:@selector(showSort)];
         hideSortButton = [[UIBarButtonItem alloc] initWithTitle:@"Select" style:UIBarButtonItemStylePlain target:self action:@selector(hideSort)];
+        CGFloat segmentedHeight = _segmentedControl.frame.size.height;
+        [_segmentedControl setFrame:CGRectMake(8+width, 14, width-16, segmentedHeight)];
     }
     
     //set up the date picker stuff
@@ -75,7 +76,7 @@
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     
     if (delegate.connected){
-        if (_project.reports.count == 0){
+        if (_reports.count == 0){
             dispatch_async(dispatch_get_main_queue(), ^{
                 [ProgressHUD show:@"Fetching reports..."];
             });
@@ -117,10 +118,18 @@
 - (void)loadReports {
     if (delegate.connected){
         loading = YES;
-        [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success getting reports: %@",responseObject);
-            [self updateLocalReports:[responseObject objectForKey:@"reports"]];
+        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+        [parameters setObject:_project.identifier forKey:@"project_id"];
+        [parameters setObject:@10 forKey:@"count"];
+        if (_reports.count){
+            Report *lastReport = _reports.lastObject;
+            NSNumber *beforeDate = [NSNumber numberWithDouble:[lastReport.reportDate timeIntervalSince1970]];
+            [parameters setObject:beforeDate forKey:@"before_date"];
+        }
         
+        [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success getting reports: %@",responseObject);
+            [self updateLocalReports:[responseObject objectForKey:@"reports"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error getting reports: %@",error.description);
             [ProgressHUD dismiss];
@@ -144,23 +153,21 @@
                 NSLog(@"Report %@ - %@ has unsaved local changes",report.type, report.dateString);
             }
         }
-        
         [reportSet addObject:report];
     }
-    for (Report *report in _project.reports) {
-        if (![reportSet containsObject:report]) {
-            NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
-            [_project removeReport:report];
-            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-    }
+//    for (Report *report in _reports) {
+//        if (![reportSet containsObject:report]) {
+//            NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
+//            [_project removeReport:report];
+//            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+//        }
+//    }
     _project.reports = reportSet;
+    _reports = reportSet.array.mutableCopy;
     
     //save!
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        
         loading = NO;
-        
         if (self.isViewLoaded && self.view.window){
             if (safety) {
                 [self filter:kSafety];
@@ -189,7 +196,7 @@
     if (daily || weekly || safety){
         report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
     } else {
-        report = [_project.reports objectAtIndex:indexPathForDeletion.row];
+        report = [_reports objectAtIndex:indexPathForDeletion.row];
     }
     [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //will return success = true if the report was found and deleted or success = false if the report was not found, e.g. if it had already been deleted on the server side.
@@ -236,17 +243,19 @@
 - (void)showSort {
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         _segmentedControl.transform = CGAffineTransformMakeTranslation(-width, 0);
-        _topActionContainer.transform = CGAffineTransformMakeTranslation(-width, 0);
+        _calendarButton.transform = CGAffineTransformMakeTranslation(-width, 0);
+        _addReportButton.transform = CGAffineTransformMakeTranslation(-width, 0);
         self.tabBarController.navigationItem.rightBarButtonItem = hideSortButton;
     } completion:^(BOOL finished) {
-        
+        NSLog(@"segmented control: %@",_segmentedControl);
     }];
 }
 
 - (void)hideSort {
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         _segmentedControl.transform = CGAffineTransformIdentity;
-        _topActionContainer.transform = CGAffineTransformIdentity;
+        _calendarButton.transform = CGAffineTransformIdentity;
+        _addReportButton.transform = CGAffineTransformIdentity;
         self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
     } completion:^(BOOL finished) {
         
@@ -310,7 +319,7 @@
         _filteredReports = [NSMutableArray array];
     }
     [_filteredReports removeAllObjects];
-    for (Report *report in _project.reports){
+    for (Report *report in _reports){
         if ([report.type isEqualToString:type]){
             [_filteredReports addObject:report];
         }
@@ -336,8 +345,8 @@
             return 1;
         }
     } else {
-        if (_project.reports.count){
-            return _project.reports.count;
+        if (_reports.count){
+            return _reports.count;
         } else if (loading) {
             return 0;
         } else {
@@ -357,8 +366,8 @@
             return [self generateNothingCellForIndexPath:indexPath];
         }
     } else {
-        if (_project.reports.count){
-            Report *report = [_project.reports objectAtIndex:indexPath.row];
+        if (_reports.count){
+            Report *report = [_reports objectAtIndex:indexPath.row];
             [cell configureReport:report];
         } else if (!loading) {
             return [self generateNothingCellForIndexPath:indexPath];
@@ -367,8 +376,6 @@
     CGRect photoButtonFrame = cell.photoButton.frame;
     photoButtonFrame.origin.x = width-photoButtonFrame.size.width;
     [cell.photoButton setFrame:photoButtonFrame];
-    
-    NSLog(@"photo button x: %f",cell.photoButton.frame.origin.x);
     return cell;
 }
 
@@ -393,8 +400,8 @@
     Report *selectedReport;
     if ((daily || weekly || safety) && _filteredReports.count > indexPath.row){
         selectedReport = [_filteredReports objectAtIndex:indexPath.row];
-    } else if (_project.reports.count > indexPath.row) {
-        selectedReport = [_project.reports objectAtIndex:indexPath.row];
+    } else if (_reports.count > indexPath.row) {
+        selectedReport = [_reports objectAtIndex:indexPath.row];
     }
     if (selectedReport)
         [self performSegueWithIdentifier:@"Report" sender:selectedReport];
@@ -412,8 +419,8 @@
     Report *report;
     if (_filteredReports.count && (safety || weekly || daily)){
         report = [_filteredReports objectAtIndex:indexPath.row];
-    } else if (_project.reports.count) {
-        report = [_project.reports objectAtIndex:indexPath.row];
+    } else if (_reports.count) {
+        report = [_reports objectAtIndex:indexPath.row];
     }
     
     //ensure that there's a signed in user and ask whether they're the current author
@@ -487,7 +494,7 @@
             if (daily || safety || weekly){
                 [vc setReports:_filteredReports];
             } else {
-                [vc setReports:_project.reports.array.mutableCopy];
+                [vc setReports:_reports];
             }
         } else if ([sender isKindOfClass:[NSString class]]) {
         
@@ -540,12 +547,12 @@
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"MM/dd/yyyy"];
     NSString *selectedDateString = [formatter stringFromDate:self.datePicker.date];
-    [_project.reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
+    [_reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
         if ([report.dateString isEqualToString:selectedDateString]){
             [self performSegueWithIdentifier:@"Report" sender:report];
             *stop = YES;
         }
-        if (idx == _project.reports.count-1){
+        if (idx == _reports.count-1){
             Report *newReport = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             newReport.project = _project;
             newReport.dateString = selectedDateString;
@@ -569,24 +576,33 @@
     //ensure there's some space in between the filters and the top of the tableview
     self.tableView.contentInset = UIEdgeInsetsMake(6+_topActionContainer.frame.size.height, 0, self.tabBarController.tabBar.frame.size.height, 0);
     
-    [self.segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
-    UIToolbar *backgroundToolbar = [[UIToolbar alloc] initWithFrame:_topActionContainer.frame];
-    [backgroundToolbar setBarStyle:UIBarStyleDefault];
-    [backgroundToolbar setTranslucent:YES];
-    [_topActionContainer addSubview:backgroundToolbar];
-    [_topActionContainer sendSubviewToBack:backgroundToolbar];
-    
+    [_segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
+    [_segmentedControl setBackgroundColor:[UIColor clearColor]];
     if (IDIOM == IPAD){
-        [_addReportButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.05f]];
+        [_topActionContainer setBackgroundColor:kDarkerGrayColor];
+        [_addReportButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [_addReportButton setBackgroundColor:[UIColor colorWithWhite:1 alpha:.1]];
+        _addReportButton.layer.cornerRadius = 7.f;
+        _addReportButton.clipsToBounds = YES;
+        [_calendarButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [_segmentedControl setTintColor:[UIColor whiteColor]];
     } else {
-        [_selectDateButton setFrame:CGRectMake(0, 0, width/2, _topActionContainer.frame.size.height)];
+        UIToolbar *backgroundToolbar = [[UIToolbar alloc] initWithFrame:_topActionContainer.frame];
+        [backgroundToolbar setTranslucent:YES];
+        [_topActionContainer addSubview:backgroundToolbar];
+        [_topActionContainer sendSubviewToBack:backgroundToolbar];
+        [backgroundToolbar setBarStyle:UIBarStyleDefault];
+        [_addReportButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [_calendarButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [_calendarButton setFrame:CGRectMake(0, 0, width/2, _topActionContainer.frame.size.height)];
         [_addReportButton setFrame:CGRectMake(width/2, 0, width/2, _topActionContainer.frame.size.height)];
+        [_calendarButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.023f]];
+        [_segmentedControl setTintColor:[UIColor blackColor]];
     }
     
-    [_selectDateButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_calendarButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
-    [_selectDateButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
-    [_selectDateButton setBackgroundColor:[UIColor colorWithWhite:0 alpha:.023f]];
+    [_calendarButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
     [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
 }
 
