@@ -250,12 +250,28 @@
 								<reference key="IBUIFontDescription" ref="971558024"/>
 								<reference key="IBUIFont" ref="201208819"/>
 							</object>
+							<object class="IBUIButton" id="539777656">
+								<reference key="NSNextResponder" ref="669620636"/>
+								<int key="NSvFlags">257</int>
+								<string key="NSFrame">{{502, 0}, {88, 88}}</string>
+								<reference key="NSSuperview" ref="669620636"/>
+								<reference key="NSNextKeyView" ref="1063419042"/>
+								<string key="NSReuseIdentifierKey">_NS:9</string>
+								<bool key="IBUIOpaque">NO</bool>
+								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<int key="IBUIContentHorizontalAlignment">0</int>
+								<int key="IBUIContentVerticalAlignment">0</int>
+								<string key="IBUINormalTitle">Local</string>
+								<reference key="IBUINormalTitleShadowColor" ref="758490836"/>
+								<reference key="IBUIFontDescription" ref="971558024"/>
+								<reference key="IBUIFont" ref="201208819"/>
+							</object>
 							<object class="IBUIView" id="169975185">
 								<reference key="NSNextResponder" ref="669620636"/>
 								<int key="NSvFlags">290</int>
 								<string key="NSFrame">{{8, 87}, {398, 1}}</string>
 								<reference key="NSSuperview" ref="669620636"/>
-								<reference key="NSNextKeyView" ref="1063419042"/>
+								<reference key="NSNextKeyView" ref="539777656"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<reference key="IBUIBackgroundColor" ref="887049102"/>
 								<float key="IBUIAlpha">0.10000000149011612</float>
@@ -345,6 +361,14 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">localButton</string>
+						<reference key="source" ref="112748769"/>
+						<reference key="destination" ref="539777656"/>
+					</object>
+					<int key="connectionID">428</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">delegate</string>
 						<reference key="source" ref="391129824"/>
 						<reference key="destination" ref="112748769"/>
@@ -378,6 +402,7 @@
 							<reference ref="391129824"/>
 							<reference ref="1063419042"/>
 							<reference ref="169975185"/>
+							<reference ref="539777656"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -439,6 +464,11 @@
 						<reference key="parent" ref="391129824"/>
 						<string key="objectName">Alert Number</string>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">427</int>
+						<reference key="object" ref="539777656"/>
+						<reference key="parent" ref="112748769"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -458,12 +488,13 @@
 				<string key="420.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="421.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="422.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="427.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 			</dictionary>
 			<dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">426</int>
+			<int key="maxID">428</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes"/>
 		<int key="IBDocument.localizationMode">0</int>

@@ -83,6 +83,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 @end
 
 @implementation BHReportsCollectionCell
+@synthesize photoScrollView = _photoScrollView; // reference to 
 
 - (void)configureForReport:(NSNumber *)reportId withDateFormatter:(NSDateFormatter *)dateFormatter andNumberFormatter:(NSNumberFormatter *)number withTimeStampFormatter:(NSDateFormatter *)timeStamp withCommentFormatter:(NSDateFormatter *)comment withWidth:(CGFloat)w andHeight:(CGFloat)h {
     _report = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -90,8 +91,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     _project = _report.project;
     
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    
-    [self registerForKeyboardNotifications];
     
     formatter = dateFormatter;
     timeStampFormatter = timeStamp;
@@ -353,6 +352,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         BHReportPhotoCell *cell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
+        _photoScrollView = cell.photoScrollView;
         reportScrollView = cell.photoScrollView;
         photoButtonContainer = cell.photoButtonContainerView;
         [cell.photoButton addTarget:self action:@selector(takePhoto) forControlEvents:UIControlEventTouchUpInside];
@@ -787,11 +787,12 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 }
 
 -(void)textViewDidBeginEditing:(UITextView *)textView {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(beginEditing)]){
-        [self.delegate beginEditing];
-    }
     
-    [_report setSaved:@NO];
+    if (_report){
+        [_report setSaved:@NO];
+    }
+    NSLog(@"text view is beginning to edit");
+    
     if ([textView.text isEqualToString:kReportPlaceholder] || [textView.text isEqualToString:kWeatherPlaceholder] || [textView.text isEqualToString:kAddCommentPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor blackColor]];
@@ -835,11 +836,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     }
 }
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(beginEditing)]){
-        [self.delegate beginEditing];
-    }
-    
+- (void)textFieldDidBeginEditing:(UITextField *)textField {    
     [_report setSaved:@NO];
     if ([textField isKindOfClass:[BHPersonnelCountTextField class]]) {
         if ([(BHPersonnelCountTextField*)textField personnelType] == kUserHours){
@@ -875,10 +872,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 }
 
 -(void)doneEditing {
-    if (self.delegate && [self.delegate respondsToSelector:@selector(doneEditing)]){
-        [self.delegate doneEditing];
-    }
-    if (doneCommentButton.alpha > 0){
+    if (doneCommentButton.alpha > 0.f){
         [UIView animateWithDuration:.25 animations:^{
             doneCommentButton.alpha = 0.0;
         }];
@@ -980,47 +974,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     if (self.delegate && [self.delegate respondsToSelector:@selector(showPhotoBrowserWithPhotos:withCurrentIndex:)]){
         [self.delegate showPhotoBrowserWithPhotos:browserPhotos withCurrentIndex:button.tag];
     }
-}
-
-- (void)registerForKeyboardNotifications {
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWillShow:)
-                                                 name:UIKeyboardWillShowNotification object:nil];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(keyboardWillHide:)
-                                                 name:UIKeyboardWillHideNotification object:nil];
-}
-
-- (void)keyboardWillShow:(NSNotification *)notification {
-    NSDictionary* info = [notification userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    // TO DO ensure correct frame is being used (when rotated)
-    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                         _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                     }
-                     completion:nil];
-}
-
-- (void)keyboardWillHide:(NSNotification *)notification {
-    NSDictionary* info = [notification userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-                         _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                     }
-                     completion:nil];
 }
 
 - (void)prefill {

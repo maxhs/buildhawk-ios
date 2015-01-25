@@ -159,7 +159,6 @@ typedef void(^RequestSuccess)(id result);
     
     // reset action buttons, if necessary
     CGFloat differential = _emailButton.frame.origin.x - originX;
-    NSLog(@"differential? %f",differential);
     if (differential > 0){
         _emailButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
         _callButton.transform = CGAffineTransformMakeTranslation(-differential, 0);

@@ -23,6 +23,7 @@
     CGFloat height;
     Project *_project;
     UIRefreshControl *refreshControl;
+    BOOL canLoadMoreReports;
     BOOL daily;
     BOOL safety;
     BOOL weekly;
@@ -123,12 +124,19 @@
         [parameters setObject:@10 forKey:@"count"];
         if (_reports.count){
             Report *lastReport = _reports.lastObject;
+            NSLog(@"report date for last report: %@",lastReport.reportDate);
             NSNumber *beforeDate = [NSNumber numberWithDouble:[lastReport.reportDate timeIntervalSince1970]];
+            NSLog(@"double for last report: %f",[lastReport.reportDate timeIntervalSince1970]);
             [parameters setObject:beforeDate forKey:@"before_date"];
         }
         
         [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting reports: %@",responseObject);
+            //NSLog(@"Success getting reports: %@",responseObject);
+            if ([[responseObject objectForKey:@"reports"] isKindOfClass:[NSArray class]] && [(NSArray*)[responseObject objectForKey:@"reports"] count] > 10){
+                canLoadMoreReports = YES;
+            } else {
+                canLoadMoreReports = NO;
+            }
             [self updateLocalReports:[responseObject objectForKey:@"reports"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error getting reports: %@",error.description);
@@ -199,27 +207,38 @@
         report = [_reports objectAtIndex:indexPathForDeletion.row];
     }
     [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //will return success = true if the report was found and deleted or success = false if the report was not found, e.g. if it had already been deleted on the server side.
+
         //NSLog(@"Success deleting report: %@",responseObject);
         
-        //remove the report from all data sources
+        // First, remove the report from all data sources
+        [self.tableView beginUpdates];
+        
         [_project removeReport:report];
-        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         if (safety || weekly || daily){
             [_filteredReports removeObject:report];
-        }
-        
-        //update the UI
-        if (indexPathForDeletion && [self.tableView cellForRowAtIndexPath:indexPathForDeletion] != nil){
-            [self.tableView beginUpdates];
-            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
+            //Then update the UI
+            if (_filteredReports.count){
+                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            } else {
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+            }
         } else {
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+            [_reports removeObject:report];
+            //Then update the UI
+            if (_reports.count){
+                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            } else {
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+            }
         }
+        [self.tableView endUpdates];
         
-        [ProgressHUD dismiss];
-        indexPathForDeletion = nil;
+        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [ProgressHUD dismiss];
+            indexPathForDeletion = nil;
+        }];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         //NSLog(@"Error deleting notification: %@",error.description);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -231,6 +250,7 @@
 - (void)handleRefresh {
     if (delegate.connected){
         [ProgressHUD show:@"Refreshing..."];
+        [_reports removeAllObjects];
         [self loadReports];
     } else {
         [self reloadReports];
@@ -435,6 +455,23 @@
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         indexPathForDeletion = indexPath;
         [[[UIAlertView alloc] initWithTitle:@"Confirmation Needed" message:@"Are you sure you want to delete this report?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
+    }
+}
+
+#pragma mark - ScrollView Delegate
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == _tableView){
+        float bottomEdge = scrollView.contentOffset.y + scrollView.frame.size.height;
+        if (bottomEdge >= scrollView.contentSize.height) {
+            // at the bottom of the scrollView
+            if (canLoadMoreReports && !loading){
+                NSLog(@"infinite scroll loading more reports");
+                [self loadReports];
+            } else {
+                NSLog(@"shouldn't be loading more reports");
+            }
+        }
     }
 }
 

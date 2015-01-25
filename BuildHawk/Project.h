@@ -18,6 +18,7 @@
 @property (nonatomic, retain) NSNumber * demo;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSNumber * orderIndex;
+@property (nonatomic, retain) NSNumber * synchronized;
 @property (nonatomic, retain) NSString * name;
 @property (nonatomic, retain) id notifications;
 @property (nonatomic, retain) NSString * progressPercentage;

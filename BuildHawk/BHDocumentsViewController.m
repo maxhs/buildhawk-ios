@@ -201,8 +201,7 @@
     return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return 5;
 }
 
@@ -214,7 +213,12 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
-
+    
+    CGRect photoFrame = cell.photoButton.frame;
+    photoFrame.origin.y = 0;
+    photoFrame.size.width = cell.frame.size.height;
+    photoFrame.size.height = cell.frame.size.height;
+    [cell.photoButton setFrame:photoFrame];
     cell.backgroundColor = [UIColor whiteColor];
     cell.userInteractionEnabled = YES;
     

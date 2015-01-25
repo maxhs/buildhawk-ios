@@ -21,7 +21,15 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    if ([UIScreen mainScreen].bounds.size.width > 320.f){
+        [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    } else {
+        [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    }
+    _itemLabel.minimumScaleFactor = 10.0;
+    _itemLabel.adjustsFontSizeToFitWidth = YES;
+    _itemLabel.numberOfLines = 1;
+    
     [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
     [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
 }

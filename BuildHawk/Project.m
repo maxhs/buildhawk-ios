@@ -29,6 +29,7 @@
 @dynamic hidden;
 @dynamic demo;
 @dynamic identifier;
+@dynamic synchronized;
 @dynamic orderIndex;
 @dynamic name;
 @dynamic notifications;

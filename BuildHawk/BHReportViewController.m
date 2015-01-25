@@ -58,6 +58,7 @@
     ALAssetsLibrary *library;
     BOOL saveToLibrary;
     BHReportTableView *_activeTableView;
+    UIScrollView *photoScrollView;
 }
 
 @end
@@ -71,6 +72,7 @@
 @synthesize reportType = _reportType;
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
     self.view.backgroundColor = kLighterGrayColor;
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth(); height = screenHeight();
@@ -78,7 +80,7 @@
         width = screenHeight(); height = screenWidth();
     }
     
-    [super viewDidLoad];
+    [self registerForKeyboardNotifications];
     appDelegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [appDelegate manager];
     
@@ -163,13 +165,11 @@
     Report *report = _reports[indexPath.item];
     _report = report;
     [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
-    
+    photoScrollView = cell.photoScrollView;
+    NSLog(@"is there a photo scrollView? %@",photoScrollView);
+    [_collectionView.panGestureRecognizer requireGestureRecognizerToFail:photoScrollView.panGestureRecognizer];
     // set the prefill accordingly
-    if (indexPath.row == _reports.count){
-        cell.canPrefill = NO;
-    } else {
-        cell.canPrefill = YES;
-    }
+    cell.canPrefill = indexPath.row == _reports.count ? NO : YES;
     return cell;
 }
 
@@ -445,8 +445,50 @@
     }
 }
 
-- (void)beginEditing {
+- (void)registerForKeyboardNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWillShow:(NSNotification *)notification {
     self.navigationItem.rightBarButtonItem = doneButton;
+    
+    NSDictionary* info = [notification userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+    // TO DO ensure correct frame is being used (when rotated)
+    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    NSLog(@"keyboard height: %f",keyboardHeight);
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _activeTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         _activeTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                     }
+                     completion:nil];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    NSDictionary* info = [notification userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _activeTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                         _activeTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                     }
+                     completion:^(BOOL finished) {
+                         [self doneEditing];
+                     }];
 }
 
 - (void)doneEditing {
@@ -772,7 +814,6 @@
 }
 
 - (IBAction)selectDate {
-    NSLog(@"select date");
     [self cancelDatePicker];
     NSString *dateString = [formatter stringFromDate:self.datePicker.date];
     BOOL duplicate = NO;
@@ -810,6 +851,7 @@
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
+    [self.view endEditing:YES];
 }
 
 - (void)didReceiveMemoryWarning {

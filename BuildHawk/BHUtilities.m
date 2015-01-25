@@ -12,7 +12,7 @@
 
 + (NSDate*)parseDate:(id)value {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-    [dateFormat setDateFormat:@"yyyy-MM-dd"];
+    [dateFormat setDateFormat:@"yyyy-mm-dd"];
     NSDate *theDate;
     NSError *error;
     if (![dateFormat getObjectValue:&theDate forString:value range:nil error:&error]) {

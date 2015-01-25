@@ -57,10 +57,6 @@
     
     if (report.photos.count > 0){
         _photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
-//        _photoButton.imageView.layer.cornerRadius = 2.0;
-//        [_photoButton.imageView setBackgroundColor:[UIColor clearColor]];
-//        [_photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
-        
         Photo *firstPhoto = (Photo*)report.photos.firstObject;
         if (firstPhoto.image) {
             [_photoButton setImage:firstPhoto.image forState:UIControlStateNormal];
@@ -75,8 +71,10 @@
         [_photoCountBubble setBackgroundColor:[UIColor whiteColor]];
         _photoCountBubble.layer.cornerRadius = _photoCountBubble.frame.size.height/2;
         _photoCountBubble.layer.backgroundColor = [UIColor clearColor].CGColor;
+        CGRect photoCountBubbleFrame = _photoCountBubble.frame;
+        photoCountBubbleFrame.origin.x = _photoButton.frame.origin.x - photoCountBubbleFrame.size.width/2;
+        [_photoCountBubble setFrame:photoCountBubbleFrame];
         [_photoCountBubble setText:[NSString stringWithFormat:@"%lu",(unsigned long)report.photos.count]];
-        
         _photoCountBubble.hidden = NO;
     } else {
         _photoCountBubble.hidden = YES;

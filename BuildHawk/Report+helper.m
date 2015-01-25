@@ -227,11 +227,12 @@
 
 - (void)updateWithDict:(NSDictionary *)dictionary {
     //NSLog(@"update report dict: %@",dictionary);
-
     if ([dictionary objectForKey:@"updated_at"] && [dictionary objectForKey:@"updated_at"] != [NSNull null]) {
-        self.updatedAt = [BHUtilities parseDate:[dictionary objectForKey:@"updated_at"]];
+        self.updatedAt = [BHUtilities parseDateTime:[dictionary objectForKey:@"updated_at"]];
     }
-    
+    if ([dictionary objectForKey:@"report_date"] && [dictionary objectForKey:@"report_date"] != [NSNull null]) {
+        self.reportDate = [BHUtilities parseDate:[dictionary objectForKey:@"report_date"]];
+    }
     if ([dictionary objectForKey:@"report_type"] && [dictionary objectForKey:@"report_type"] != [NSNull null]) {
         self.type = [dictionary objectForKey:@"report_type"];
     }

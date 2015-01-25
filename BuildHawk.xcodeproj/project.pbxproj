@@ -25,6 +25,12 @@
 		502CE1EE1A413CC70024BFFD /* cameraWhite.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1EB1A413CC70024BFFD /* cameraWhite.png */; };
 		502CE1EF1A413CC70024BFFD /* cameraWhite@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1EC1A413CC70024BFFD /* cameraWhite@2x.png */; };
 		502CE1F01A413CC70024BFFD /* cameraWhite@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1ED1A413CC70024BFFD /* cameraWhite@3x.png */; };
+		503CD5811A6F85FB00F4FF85 /* local.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD57B1A6F85FB00F4FF85 /* local.png */; };
+		503CD5821A6F85FB00F4FF85 /* local@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD57C1A6F85FB00F4FF85 /* local@2x.png */; };
+		503CD5831A6F85FB00F4FF85 /* local@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD57D1A6F85FB00F4FF85 /* local@3x.png */; };
+		503CD58A1A70A36500F4FF85 /* hide.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD5871A70A36500F4FF85 /* hide.png */; };
+		503CD58B1A70A36500F4FF85 /* hide@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD5881A70A36500F4FF85 /* hide@2x.png */; };
+		503CD58C1A70A36500F4FF85 /* hide@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD5891A70A36500F4FF85 /* hide@3x.png */; };
 		5099E0651A368012007778AD /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5099E0641A368012007778AD /* Crashlytics.framework */; };
 		50BC67DF1A5F34400029AA3D /* chatWhite.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67DC1A5F34400029AA3D /* chatWhite.png */; };
 		50BC67E01A5F34400029AA3D /* chatWhite@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67DD1A5F34400029AA3D /* chatWhite@2x.png */; };
@@ -403,6 +409,12 @@
 		502CE1EB1A413CC70024BFFD /* cameraWhite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = cameraWhite.png; sourceTree = "<group>"; };
 		502CE1EC1A413CC70024BFFD /* cameraWhite@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cameraWhite@2x.png"; sourceTree = "<group>"; };
 		502CE1ED1A413CC70024BFFD /* cameraWhite@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "cameraWhite@3x.png"; sourceTree = "<group>"; };
+		503CD57B1A6F85FB00F4FF85 /* local.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = local.png; sourceTree = "<group>"; };
+		503CD57C1A6F85FB00F4FF85 /* local@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "local@2x.png"; sourceTree = "<group>"; };
+		503CD57D1A6F85FB00F4FF85 /* local@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "local@3x.png"; sourceTree = "<group>"; };
+		503CD5871A70A36500F4FF85 /* hide.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = hide.png; sourceTree = "<group>"; };
+		503CD5881A70A36500F4FF85 /* hide@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "hide@2x.png"; sourceTree = "<group>"; };
+		503CD5891A70A36500F4FF85 /* hide@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "hide@3x.png"; sourceTree = "<group>"; };
 		5099E0641A368012007778AD /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
 		50BC67DC1A5F34400029AA3D /* chatWhite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chatWhite.png; sourceTree = "<group>"; };
 		50BC67DD1A5F34400029AA3D /* chatWhite@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chatWhite@2x.png"; sourceTree = "<group>"; };
@@ -1412,6 +1424,12 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				503CD5871A70A36500F4FF85 /* hide.png */,
+				503CD5881A70A36500F4FF85 /* hide@2x.png */,
+				503CD5891A70A36500F4FF85 /* hide@3x.png */,
+				503CD57B1A6F85FB00F4FF85 /* local.png */,
+				503CD57C1A6F85FB00F4FF85 /* local@2x.png */,
+				503CD57D1A6F85FB00F4FF85 /* local@3x.png */,
 				F20FB2DB1A240DA00007C905 /* whiteK@2x.png */,
 				F20FB2DC1A240DA00007C905 /* whiteK.png */,
 				F20FB2DD1A240DA00007C905 /* whiteK@3x.png */,
@@ -1745,6 +1763,7 @@
 				F2B29FD617D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard in Resources */,
 				F22681AB187FB0ED00D78BDD /* sunny@2x.png in Resources */,
 				F260F80519CD6441000DD028 /* detailScreenshot.png in Resources */,
+				503CD58C1A70A36500F4FF85 /* hide@3x.png in Resources */,
 				F2A957E919DE27F200A3B471 /* mailButton@2x.png in Resources */,
 				F23AD64F193E381D00510290 /* whiteX.png in Resources */,
 				F226819F187DE66800D78BDD /* rainy@2x.png in Resources */,
@@ -1824,6 +1843,7 @@
 				F260F80019CD6235000DD028 /* reportsScreenshot@2x.png in Resources */,
 				F260F81619CDF30C000DD028 /* checklistiPad@2x.png in Resources */,
 				50FB5FF91A40E9BB004D6062 /* Lato-HaiIta.ttf in Resources */,
+				503CD58B1A70A36500F4FF85 /* hide@2x.png in Resources */,
 				F260F82619CE679F000DD028 /* reminders@2x.png in Resources */,
 				F25EDAA4195D0B21009C4386 /* BHActivityCell.xib in Resources */,
 				F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */,
@@ -1859,6 +1879,7 @@
 				F29EF2E81815BE1B00F737B7 /* navBarBackground.png in Resources */,
 				50FB5FA21A3F4134004D6062 /* reports.png in Resources */,
 				50FB5FB01A3F41F0004D6062 /* checklists@3x.png in Resources */,
+				503CD5811A6F85FB00F4FF85 /* local.png in Resources */,
 				F260F82519CE679F000DD028 /* reminders.png in Resources */,
 				F20FB2E01A240DA00007C905 /* whiteK@3x.png in Resources */,
 				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
@@ -1882,6 +1903,7 @@
 				F2A9580819E221D200A3B471 /* icon-180.png in Resources */,
 				50FB5FAF1A3F41F0004D6062 /* checklists@2x.png in Resources */,
 				F22681A8187FB0ED00D78BDD /* cloudy.png in Resources */,
+				503CD5831A6F85FB00F4FF85 /* local@3x.png in Resources */,
 				F29EF2E31815BD1100F737B7 /* navBarBackgroundTall@2x.png in Resources */,
 				F28F9A4C18A45989000A46D4 /* zoom.png in Resources */,
 				F203967517D3E361001CFF61 /* tabBarBackground.png in Resources */,
@@ -1908,9 +1930,11 @@
 				F203967917D3E4F6001CFF61 /* reportsSelected.png in Resources */,
 				50FB5FF41A40E9BB004D6062 /* Lato-Bla.ttf in Resources */,
 				F203967A17D3E4F6001CFF61 /* reportsSelected@2x.png in Resources */,
+				503CD5821A6F85FB00F4FF85 /* local@2x.png in Resources */,
 				50FB5FC81A3F448E004D6062 /* email@3x.png in Resources */,
 				F285E95918E5E5F6008FFEC1 /* libraryButton.png in Resources */,
 				F292AC1017F9F2DE0020DE13 /* cameraButton@2x.png in Resources */,
+				503CD58A1A70A36500F4FF85 /* hide.png in Resources */,
 				50FB5FB11A3F41F0004D6062 /* documents.png in Resources */,
 				F28F9A3618A34D43000A46D4 /* icon-76.png in Resources */,
 				F2C4455A196B688C0079AF62 /* contacts@2x.png in Resources */,

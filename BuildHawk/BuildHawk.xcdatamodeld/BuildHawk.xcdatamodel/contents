@@ -184,6 +184,7 @@
         <attribute name="notifications" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="synchronized" optional="YES" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
         <relationship name="activities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="project" inverseEntity="Activity" syncable="YES"/>
         <relationship name="address" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Address" inverseName="project" inverseEntity="Address" syncable="YES"/>
         <relationship name="checklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Checklist" inverseName="project" inverseEntity="Checklist" syncable="YES"/>
@@ -353,7 +354,7 @@
         <element name="Notification" positionX="27" positionY="153" width="128" height="195"/>
         <element name="Phase" positionX="45" positionY="180" width="128" height="240"/>
         <element name="Photo" positionX="36" positionY="171" width="128" height="388"/>
-        <element name="Project" positionX="0" positionY="0" width="128" height="480"/>
+        <element name="Project" positionX="0" positionY="0" width="128" height="495"/>
         <element name="Reminder" positionX="45" positionY="171" width="128" height="195"/>
         <element name="Report" positionX="0" positionY="0" width="128" height="420"/>
         <element name="ReportSub" positionX="36" positionY="162" width="128" height="118"/>

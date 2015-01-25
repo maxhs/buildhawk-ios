@@ -14,10 +14,7 @@
 #import "MWPhotoBrowser.h"
 
 @protocol BHReportCellDelegate <NSObject>
-
 @required
-- (void)beginEditing;
-- (void)doneEditing;
 - (void)post;
 @optional
 - (void)showReportTypePicker;
@@ -33,6 +30,7 @@
 @end
 
 @interface BHReportsCollectionCell : UICollectionViewCell
+@property (strong, nonatomic) UIScrollView *photoScrollView;
 @property (weak, nonatomic) IBOutlet BHReportTableView *reportTableView;
 @property (weak, nonatomic) id <BHReportCellDelegate> delegate;
 @property BOOL canPrefill;

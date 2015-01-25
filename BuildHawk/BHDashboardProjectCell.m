@@ -32,7 +32,7 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_scrollView setContentSize:CGSizeMake(screenWidth()+88, 88)];
+    [_scrollView setContentSize:CGSizeMake(screenWidth()+176, 88)];
     [_alertLabel setBackgroundColor:[UIColor redColor]];
     [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
     _alertLabel.layer.cornerRadius = 11.f;
@@ -47,8 +47,30 @@
     [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
     [_alertLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
     
-    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    CGRect hideRect = _hideButton.frame;
+    UIImageView *hideImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"hide"]];
+    [hideImageView setFrame:CGRectMake(hideRect.size.width/2-9, hideRect.size.height/2-18, 16, 16)];
+    [_hideButton addSubview:hideImageView];
+    
+    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_hideButton.titleLabel setNumberOfLines:0];
+    [_hideButton setTitle:@"Hide" forState:UIControlStateNormal];
+    [_hideButton setTitleEdgeInsets:UIEdgeInsetsMake(23, 0, 0, 0)];
+    [_hideButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_hideButton setBackgroundColor:[UIColor redColor]];
+    
+    CGRect localRect = _hideButton.frame;
+    UIImageView *localImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"local"]];
+    [localImageView setFrame:CGRectMake(localRect.size.width/2-10, localRect.size.height/2-20, 20, 20)];
+    [_localButton addSubview:localImageView];
+    [_localButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_localButton.titleLabel setNumberOfLines:0];
+    [_localButton setTitle:@"Local" forState:UIControlStateNormal];
+    [_localButton setTitleEdgeInsets:UIEdgeInsetsMake(23, 0, 0, 0)];
+    _localButton.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+    _localButton.contentHorizontalAlignment = UIControlContentVerticalAlignmentCenter;
+    [_localButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_localButton setBackgroundColor:kElectricBlue];
 }
 
 - (void)configureForProject:(Project*)project andUser:(User*)user {
@@ -79,6 +101,7 @@
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     _hideButton.transform = CGAffineTransformMakeTranslation(-scrollView.contentOffset.x, 0);
+    _localButton.transform = CGAffineTransformMakeTranslation(-scrollView.contentOffset.x, 0);
 }
 
 @end

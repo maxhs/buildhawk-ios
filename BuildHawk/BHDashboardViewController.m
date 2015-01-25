@@ -50,6 +50,7 @@
     Mixpanel *mixpanel;
     CGRect screen;
     Project *hiddenProject;
+    Project *projectToSynch;
     UIBarButtonItem *refreshButton;
     UIView *overlayBackground;
     UIImageView *dashboardScreenshot;
@@ -462,14 +463,13 @@
             }
             [cell.progressButton setTag:indexPath.row];
             [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
-            
             [cell.projectButton setTag:indexPath.row];
             [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
-            
             [cell.nameLabel setTextColor:kDarkGrayColor];
-            
             [cell.hideButton setTag:indexPath.row];
             [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
+            [cell.localButton setTag:indexPath.row];
+            [cell.localButton addTarget:self action:@selector(confirmSynch:) forControlEvents:UIControlEventTouchUpInside];
             cell.scrollView.scrollEnabled = YES;
             
         }
@@ -614,6 +614,13 @@
     return headerView;
 }
 
+- (void)confirmSynch:(UIButton*)button{
+    if (_projects.count){
+        projectToSynch = [_projects objectAtIndex:button.tag];
+        [[[UIAlertView alloc] initWithTitle:@"Confirm synchronization" message:@"This will download all project data onto your device, which may take several minutes." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Synchronize", nil] show];
+    }
+}
+
 - (void)confirmHide:(UIButton*)button{
     if (_projects.count){
         [[[UIAlertView alloc] initWithTitle:@"Are you sure?" message:@"Once hidden, a project will no longer be visible on your dashboard." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Hide", nil] show];
@@ -655,7 +662,13 @@
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Hide"]){
         [self hideProject];
+    } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Synchronize"]){
+        [self synchronize];
     }
+}
+
+- (void)synchronize {
+    NSLog(@"should be synching");
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {

@@ -794,7 +794,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
     }
     if (select){
-        if (!userAlertView){
+        if (userAlertView == nil){
             userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
         }
         
