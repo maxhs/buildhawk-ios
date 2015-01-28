@@ -168,6 +168,14 @@
         [author populateFromDictionary:[dictionary objectForKey:@"author"]];
         self.author = author;
     }
+    if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
+        Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"project_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!project){
+            project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        project.identifier = [dictionary objectForKey:@"project_id"];
+        self.project = project;
+    }
     
     if ([self.type isEqualToString:kDaily]){
         if ([dictionary objectForKey:@"daily_activities"] && [dictionary objectForKey:@"daily_activities"] != [NSNull null]) {

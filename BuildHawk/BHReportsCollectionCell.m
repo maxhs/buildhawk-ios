@@ -110,8 +110,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         [self loadWeather:[formatter dateFromString:_report.dateString]];
     }
     
-    //default to showing activities
-    activities = YES;
+    //default to showing comments and NOT activities
+    activities = NO;
     [_reportTableView reloadData];
 }
 
@@ -540,7 +540,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
             [activityButton setBackgroundColor:[UIColor whiteColor]];
         }
-        [activityButton setFrame:CGRectMake(0, 0, width/2, 40)];
+        [activityButton setFrame:CGRectMake(width/2, 0, width/2, 40)];
         [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
         [headerView addSubview:activityButton];
         
@@ -559,7 +559,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             [commentsButton setBackgroundColor:[UIColor clearColor]];
         }
         
-        [commentsButton setFrame:CGRectMake(width/2, 0, width/2, 40)];
+        [commentsButton setFrame:CGRectMake(0, 0, width/2, 40)];
         [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
         [headerView addSubview:commentsButton];
         
@@ -632,7 +632,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 [headerView setFrame:CGRectMake(0, 0, 0, 0)];
                 break;
             case 6:
-                NSLog(@"it's a safety report");
                 [headerView setFrame:CGRectMake(0, 0, 0, 0)];
                 break;
             case 7:
@@ -660,7 +659,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 } else {
                     [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
                 }
-                [activityButton setFrame:CGRectMake(width/4-50, 0, 100, 40)];
+                [activityButton setFrame:CGRectMake(width*3/4-50, 0, 100, 40)];
                 [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
                 [headerView addSubview:activityButton];
                 
@@ -674,7 +673,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                     [commentsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
                 }
                 
-                [commentsButton setFrame:CGRectMake(width*3/4-50, 0, 100, 40)];
+                [commentsButton setFrame:CGRectMake(width/4-50, 0, 100, 40)];
                 [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
                 [headerView addSubview:commentsButton];
                 

@@ -105,7 +105,7 @@
         [_report setDateString:_reportDateString];
         [_report setProject:_project];
         [_report setType:_reportType];
-        _reports = [NSArray arrayWithObject:_report];
+        _reports = [NSOrderedSet orderedSetWithObject:_report];
     } else {
         _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_initialReportId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
@@ -167,7 +167,9 @@
     [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
     photoScrollView = cell.photoScrollView;
     NSLog(@"is there a photo scrollView? %@",photoScrollView);
-    [_collectionView.panGestureRecognizer requireGestureRecognizerToFail:photoScrollView.panGestureRecognizer];
+    if (photoScrollView){
+        [_collectionView.panGestureRecognizer requireGestureRecognizerToFail:photoScrollView.panGestureRecognizer];
+    }
     // set the prefill accordingly
     cell.canPrefill = indexPath.row == _reports.count ? NO : YES;
     return cell;
@@ -683,7 +685,7 @@
 
 - (void)prefill {
     if ([_report.identifier isEqualToNumber:@0]){
-        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithArray:_reports];
+        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithOrderedSet:_reports];
         NSDate *newReportDate = [formatter dateFromString:_report.dateString];
         [_reports enumerateObjectsUsingBlock:^(Report *thisReport, NSUInteger index, BOOL *stop) {
             NSDate *thisReportDate = [formatter dateFromString:thisReport.dateString];

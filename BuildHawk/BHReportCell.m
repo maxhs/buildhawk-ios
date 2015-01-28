@@ -30,7 +30,11 @@
     [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
-    [_separatorView setBackgroundColor:kSeparatorColor];
+}
+
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -79,6 +83,14 @@
     } else {
         _photoCountBubble.hidden = YES;
         [_photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
+    }
+    
+    if ([report.type isEqualToString:kDaily]){
+        [self setBackgroundColor:kDailyReportColor];
+    } else if ([report.type isEqualToString:kWeekly]){
+        [self setBackgroundColor:kWeeklyReportColor];
+    } else if ([report.type isEqualToString:kSafety]){
+        [self setBackgroundColor:kSafetyReportColor];
     }
 }
 @end

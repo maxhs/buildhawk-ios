@@ -16,7 +16,6 @@
 @property (weak, nonatomic) IBOutlet UILabel *notesLabel;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UILabel *photoCountBubble;
-@property (weak, nonatomic) IBOutlet UIView *separatorView;
 
 - (void)configureReport:(Report*)report;
 @end

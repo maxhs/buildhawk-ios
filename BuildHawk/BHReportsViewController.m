@@ -28,8 +28,8 @@
     BOOL safety;
     BOOL weekly;
     BOOL loading;
-    NSMutableArray *_reports;
-    NSMutableArray *_filteredReports;
+    NSMutableOrderedSet *_reports;
+    NSMutableOrderedSet *_filteredReports;
     UIBarButtonItem *sortButton;
     UIBarButtonItem *hideSortButton;
     UIView *overlayBackground;
@@ -57,7 +57,8 @@
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
     _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
-    _reports = [NSMutableArray arrayWithArray:_project.reports.array.mutableCopy];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"report.project = %@",_project];
+    _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     
     //set up the segmented control and action button segments as well as add refresh control and proper content inset to tableView
     [self setUpView];
@@ -126,12 +127,12 @@
             Report *lastReport = _reports.lastObject;
             NSLog(@"report date for last report: %@",lastReport.reportDate);
             NSNumber *beforeDate = [NSNumber numberWithDouble:[lastReport.reportDate timeIntervalSince1970]];
-            NSLog(@"double for last report: %f",[lastReport.reportDate timeIntervalSince1970]);
             [parameters setObject:beforeDate forKey:@"before_date"];
         }
         
         [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting reports: %@",responseObject);
+            NSLog(@"reports count: %d",[(NSArray*)[responseObject objectForKey:@"reports"] count]);
             if ([[responseObject objectForKey:@"reports"] isKindOfClass:[NSArray class]] && [(NSArray*)[responseObject objectForKey:@"reports"] count] > 10){
                 canLoadMoreReports = YES;
             } else {
@@ -163,13 +164,7 @@
         }
         [reportSet addObject:report];
     }
-//    for (Report *report in _reports) {
-//        if (![reportSet containsObject:report]) {
-//            NSLog(@"Deleting a report that no longer exists: %@",report.dateString);
-//            [_project removeReport:report];
-//            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-//        }
-//    }
+    NSLog(@"report set count: %d",reportSet.count);
     _project.reports = reportSet;
     _reports = reportSet.array.mutableCopy;
     
@@ -394,8 +389,14 @@
         }
     }
     CGRect photoButtonFrame = cell.photoButton.frame;
-    photoButtonFrame.origin.x = width-photoButtonFrame.size.width;
+    CGFloat differential = width-photoButtonFrame.size.width;
+    photoButtonFrame.origin.x = differential;
     [cell.photoButton setFrame:photoButtonFrame];
+    
+    CGRect photoCountBubbleFrame = cell.photoCountBubble.frame;
+    photoCountBubbleFrame.origin.x = photoButtonFrame.origin.x + 1;
+    [cell.photoCountBubble setFrame:photoCountBubbleFrame];
+    
     return cell;
 }
 
@@ -468,8 +469,6 @@
             if (canLoadMoreReports && !loading){
                 NSLog(@"infinite scroll loading more reports");
                 [self loadReports];
-            } else {
-                NSLog(@"shouldn't be loading more reports");
             }
         }
     }
@@ -611,7 +610,7 @@
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     
     //ensure there's some space in between the filters and the top of the tableview
-    self.tableView.contentInset = UIEdgeInsetsMake(6+_topActionContainer.frame.size.height, 0, self.tabBarController.tabBar.frame.size.height, 0);
+    self.tableView.contentInset = UIEdgeInsetsMake(_topActionContainer.frame.size.height, 0, self.tabBarController.tabBar.frame.size.height, 0);
     
     [_segmentedControl addTarget:self action:@selector(segmentedControlTapped:) forControlEvents:UIControlEventValueChanged];
     [_segmentedControl setBackgroundColor:[UIColor clearColor]];
