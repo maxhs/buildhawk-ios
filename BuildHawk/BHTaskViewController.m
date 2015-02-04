@@ -88,8 +88,8 @@ typedef void(^RequestSuccess)(id result);
         width = screenHeight(); height = screenWidth();
     }
     
-    //show activities for this task by default
-    activities = YES;
+    //show comments for this task by default (by setting activities to NO)
+    activities = NO;
     
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
@@ -240,16 +240,14 @@ typedef void(^RequestSuccess)(id result);
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
     }
     else return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (activities) return _task.activities.count;
     else return _task.comments.count + 1;
 }
@@ -398,8 +396,25 @@ typedef void(^RequestSuccess)(id result);
     [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
     [headerLabel setTextAlignment:NSTextAlignmentCenter];
     [headerLabel setTextColor:[UIColor darkGrayColor]];
-    
     [headerLabel setText:@""];
+    
+    commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+    [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    
+    NSString *commentsTitle = _task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_task.comments.count];
+    [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
+    if (activities){
+        [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+        [commentsButton setBackgroundColor:[UIColor whiteColor]];
+    } else {
+        [commentsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [commentsButton setBackgroundColor:[UIColor clearColor]];
+    }
+    
+    [commentsButton setFrame:CGRectMake(0, 0, width/2, 40)];
+    [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
+    [headerView addSubview:commentsButton];
     
     activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
@@ -415,28 +430,9 @@ typedef void(^RequestSuccess)(id result);
         [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
         [activityButton setBackgroundColor:[UIColor whiteColor]];
     }
-    [activityButton setFrame:CGRectMake(0, 0, width/2, 40)];
+    [activityButton setFrame:CGRectMake(width/2, 0, width/2, 40)];
     [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
     [headerView addSubview:activityButton];
-    
-    commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    
-    [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
-
-    NSString *commentsTitle = _task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_task.comments.count];
-    [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
-    if (activities){
-        [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-        [commentsButton setBackgroundColor:[UIColor whiteColor]];
-    } else {
-        [commentsButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [commentsButton setBackgroundColor:[UIColor clearColor]];
-    }
-    
-    [commentsButton setFrame:CGRectMake(width/2, 0, width/2, 40)];
-    [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
-    [headerView addSubview:commentsButton];
 
     [headerView addSubview:headerLabel];
     return headerView;

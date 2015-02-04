@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "Task+helper.h"
 
 @interface BHTaskCell : UITableViewCell
 
@@ -14,5 +15,5 @@
 @property (weak, nonatomic) IBOutlet UILabel *ownerLabel;
 @property (weak, nonatomic) IBOutlet UILabel *createdLabel;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
-
+- (void)configureForTask:(Task*)task;
 @end

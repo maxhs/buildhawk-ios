@@ -166,7 +166,7 @@
     _report = report;
     [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
     photoScrollView = cell.photoScrollView;
-    NSLog(@"is there a photo scrollView? %@",photoScrollView);
+    
     if (photoScrollView){
         [_collectionView.panGestureRecognizer requireGestureRecognizerToFail:photoScrollView.panGestureRecognizer];
     }
@@ -464,9 +464,10 @@
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+    
     // TO DO ensure correct frame is being used (when rotated)
+    
     CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
-    NSLog(@"keyboard height: %f",keyboardHeight);
     [UIView animateWithDuration:duration
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState

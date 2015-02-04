@@ -553,7 +553,6 @@
     if (_tasks.count > 0){
         static NSString *CellIdentifier = @"TaskCell";
         BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
-    
         Task *task = nil;
         if (showCompleted) {
             task = [completedListItems objectAtIndex:indexPath.row];
@@ -566,40 +565,13 @@
         } else {
             task = [_tasks objectAtIndex:indexPath.row];
         }
-        
-        [cell.itemLabel setText:task.body];
+        [cell configureForTask:task];
         
         if (!dateFormatter){
             [self setupDateFormatter];
         }
         [cell.createdLabel setText:[dateFormatter stringFromDate:task.createdAt]];
-        
-        if (task.assignees.count && task.user){
-            NSString *assigneeString = task.assignees.count == 1 ? [(User*)task.assignees.firstObject fullname] : [NSString stringWithFormat:@"%lu assignees",(unsigned long)task.assignees.count];
-            [cell.ownerLabel setText:[NSString stringWithFormat:@"%@ \u2794 %@",task.user.fullname,assigneeString]];
-            
-        } else if (task.user) {
-            [cell.ownerLabel setText:task.user.fullname];
-        } else {
-            [cell.ownerLabel setText:@""];
-        }
-  
-        if (task.photos.count) {
-            if ([(Photo*)[task.photos firstObject] image]){
-                [cell.photoButton setImage:[(Photo*)[task.photos firstObject] image] forState:UIControlStateNormal];
-            } else {
-                [cell.photoButton sd_setImageWithURL:[NSURL URLWithString:[[task.photos firstObject] urlSmall]] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
-            }
-        } else {
-            [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
-        }
-        [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
-        /*cell.photoButton.imageView.layer.cornerRadius = 2.0;
-        [cell.photoButton.imageView setBackgroundColor:[UIColor clearColor]];
-        [cell.photoButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];*/
-        cell.photoButton.imageView.layer.shouldRasterize = YES;
-        cell.photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-
+    
         return cell;
     } else {
         UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:@"NothingCell"];

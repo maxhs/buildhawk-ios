@@ -57,17 +57,23 @@
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
     _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"report.project = %@",_project];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",_project.identifier];
     _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     
     //set up the segmented control and action button segments as well as add refresh control and proper content inset to tableView
     [self setUpView];
-    
-    if (IDIOM != IPAD){
+
+    if (IDIOM == IPAD){
+        self.tabBarController.navigationItem.rightBarButtonItem = nil;
+    } else {
         sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStylePlain target:self action:@selector(showSort)];
         hideSortButton = [[UIBarButtonItem alloc] initWithTitle:@"Select" style:UIBarButtonItemStylePlain target:self action:@selector(hideSort)];
         CGFloat segmentedHeight = _segmentedControl.frame.size.height;
         [_segmentedControl setFrame:CGRectMake(8+width, 14, width-16, segmentedHeight)];
+        CGRect segmentedControlFrame = _segmentedControl.frame;
+        segmentedControlFrame.origin.x = width + 8;
+        [_segmentedControl setFrame:segmentedControlFrame];
+        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
     }
     
     //set up the date picker stuff
@@ -97,24 +103,6 @@
     [self.tableView reloadData];
 }
 
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    if (IDIOM != IPAD){
-        CGRect segmentedControlFrame = _segmentedControl.frame;
-        segmentedControlFrame.origin.x = width + 8;
-        [_segmentedControl setFrame:segmentedControlFrame];
-    }
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-    if (IDIOM == IPAD){
-        self.tabBarController.navigationItem.rightBarButtonItem = nil;
-    } else {
-        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
-    }
-}
-
 #pragma mark - API
 
 - (void)loadReports {
@@ -125,14 +113,12 @@
         [parameters setObject:@10 forKey:@"count"];
         if (_reports.count){
             Report *lastReport = _reports.lastObject;
-            NSLog(@"report date for last report: %@",lastReport.reportDate);
             NSNumber *beforeDate = [NSNumber numberWithDouble:[lastReport.reportDate timeIntervalSince1970]];
             [parameters setObject:beforeDate forKey:@"before_date"];
         }
         
         [manager GET:[NSString stringWithFormat:@"%@/reports",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting reports: %@",responseObject);
-            NSLog(@"reports count: %d",[(NSArray*)[responseObject objectForKey:@"reports"] count]);
             if ([[responseObject objectForKey:@"reports"] isKindOfClass:[NSArray class]] && [(NSArray*)[responseObject objectForKey:@"reports"] count] > 10){
                 canLoadMoreReports = YES;
             } else {
@@ -164,7 +150,6 @@
         }
         [reportSet addObject:report];
     }
-    NSLog(@"report set count: %d",reportSet.count);
     _project.reports = reportSet;
     _reports = reportSet.array.mutableCopy;
     
@@ -262,7 +247,7 @@
         _addReportButton.transform = CGAffineTransformMakeTranslation(-width, 0);
         self.tabBarController.navigationItem.rightBarButtonItem = hideSortButton;
     } completion:^(BOOL finished) {
-        NSLog(@"segmented control: %@",_segmentedControl);
+
     }];
 }
 
@@ -331,7 +316,7 @@
 
 - (void)filter:(NSString*)type {
     if (!_filteredReports){
-        _filteredReports = [NSMutableArray array];
+        _filteredReports = [NSMutableOrderedSet orderedSet];
     }
     [_filteredReports removeAllObjects];
     for (Report *report in _reports){
@@ -394,8 +379,12 @@
     [cell.photoButton setFrame:photoButtonFrame];
     
     CGRect photoCountBubbleFrame = cell.photoCountBubble.frame;
-    photoCountBubbleFrame.origin.x = photoButtonFrame.origin.x + 1;
+    photoCountBubbleFrame.origin.x = photoButtonFrame.origin.x;
     [cell.photoCountBubble setFrame:photoCountBubbleFrame];
+    
+    CGRect reportNotesFrame = cell.notesLabel.frame;
+    reportNotesFrame.size.width = width - reportNotesFrame.origin.x - photoButtonFrame.size.width;
+    [cell.notesLabel setFrame:reportNotesFrame];
     
     return cell;
 }

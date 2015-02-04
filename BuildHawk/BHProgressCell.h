@@ -13,5 +13,6 @@
 
 @property (weak, nonatomic) IBOutlet UILabel *itemLabel;
 @property (weak, nonatomic) IBOutlet UILabel *progressLabel;
+@property (weak, nonatomic) IBOutlet LDProgressView *progressView;
 
 @end

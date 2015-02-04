@@ -53,23 +53,23 @@
     } else {
         [_activityLabel setText:activity.body];
     }
-    CGRect frame = _activityLabel.frame;
-    frame.origin.x = 10;
-    if (IDIOM != IPAD){
-        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
-    }
-    [_activityLabel setFrame:frame];
+//    CGRect frame = _activityLabel.frame;
+//    frame.origin.x = 10;
+//    if (IDIOM != IPAD){
+//        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
+//    }
+//    [_activityLabel setFrame:frame];
 }
 
 - (void)configureForComment:(Comment*)comment {
     [self.imageView setImage:nil];
     [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" - %@",comment.body,comment.user.fullname]];
-    CGRect frame = _activityLabel.frame;
-    frame.origin.x = 10;
-    if (IDIOM != IPAD){
-        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
-    }
-    [_activityLabel setFrame:frame];
+//    CGRect frame = _activityLabel.frame;
+//    frame.origin.x = 10;
+//    if (IDIOM != IPAD){
+//        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
+//    }
+//    [_activityLabel setFrame:frame];
 }
 
 - (void)configureActivityForSynopsis:(Activity *)activity {

@@ -68,7 +68,6 @@
     BOOL activities; // for the activities/comments section to determine what to show
     UIButton *activityButton;
     UIButton *commentsButton;
-    
     UIRefreshControl *refreshControl;
 }
 
@@ -82,7 +81,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth();
         height = screenHeight();
@@ -97,6 +95,7 @@
 
     // load the item!
     [self loadItem:YES];
+    activities = NO; // show comments by default (instead of activities)
 
     //setup communication notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
@@ -118,13 +117,18 @@
     //basic setup
     [self registerForKeyboardNotifications];
     [self setUpTimeFormatters];
-    activities = YES; //show activities by default (instead of comments)
     [self setUpTimePicker];
     photosArray = [NSMutableArray array];
     self.tableView.backgroundColor = [UIColor whiteColor];
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
     saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(save)];
-    self.navigationItem.rightBarButtonItem = saveButton;    
+    self.navigationItem.rightBarButtonItem = saveButton;
+    
+    //set up date picker frame(s)
+    CGRect datePickerContainerRect = _datePickerContainer.frame;
+    datePickerContainerRect.origin.y = height;
+    datePickerContainerRect.size.width = width;
+    [_datePickerContainer setFrame:datePickerContainerRect];
 }
 
 - (void)setUpTimeFormatters {
@@ -216,23 +220,6 @@
         {
             [headerLabel setText:@""];
 
-            activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
-            [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-            [activityButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
-            NSString *activitiesTitle = _item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_item.activities.count];
-            [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
-            if (activities){
-                [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-                [activityButton setBackgroundColor:kDarkGrayColor];
-            } else {
-                [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
-                [activityButton setBackgroundColor:[UIColor whiteColor]];
-            }
-            [activityButton setFrame:CGRectMake(0, 1, width/2, 38)];
-            [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
-            
-            [headerView addSubview:activityButton];
-            
             commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
             [commentsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
@@ -246,10 +233,25 @@
                 [commentsButton setBackgroundColor:kDarkGrayColor];
             }
             
-            [commentsButton setFrame:CGRectMake(width/2, 1, width/2, 38)];
+            [commentsButton setFrame:CGRectMake(0, 1, width/2, 38)];
             [commentsButton addTarget:self action:@selector(showComments) forControlEvents:UIControlEventTouchUpInside];
             [headerView addSubview:commentsButton];
             
+            activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
+            [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
+            [activityButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+            NSString *activitiesTitle = _item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_item.activities.count];
+            [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
+            if (activities){
+                [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [activityButton setBackgroundColor:kDarkGrayColor];
+            } else {
+                [activityButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+                [activityButton setBackgroundColor:[UIColor whiteColor]];
+            }
+            [activityButton setFrame:CGRectMake(width/2, 1, width/2, 38)];
+            [activityButton addTarget:self action:@selector(showActivities) forControlEvents:UIControlEventTouchUpInside];
+            [headerView addSubview:activityButton];
         }
             break;
         default:
@@ -276,6 +278,11 @@
         [bodyCell.bodyTextView setText:_item.body];
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
         [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+        CGSize size = [bodyCell.bodyTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
+        
+        CGRect textViewRect = bodyCell.bodyTextView.frame;
+        textViewRect.size = size;
+        [bodyCell.bodyTextView setFrame:textViewRect];
         
         return bodyCell;
     } else if (indexPath.section == 1) {
@@ -378,7 +385,7 @@
             [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
             addCommentTextView = addCommentCell.messageTextView;
             addCommentTextView.delegate = self;
-            [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLatoLight] size:0]];
+            [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
             
             [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
             [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
@@ -406,10 +413,18 @@
     }
 }
 
+- (CGFloat)calculateHeightForItemBody {
+    UITextView *sizingTextView = [[UITextView alloc] init];
+    [sizingTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [sizingTextView setText:_item.body];
+    CGSize size = [sizingTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
+    return size.height+10.f; // add a little buffer
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     switch (indexPath.section) {
         case 0:
-            return 120;
+            return [self calculateHeightForItemBody];
             break;
         case 1:
             return 60;
@@ -478,8 +493,7 @@
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note
-{
+- (void)keyboardWillShow:(NSNotification *)note {
     NSDictionary *info = [note userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
@@ -495,8 +509,7 @@
                      completion:nil];
 }
 
-- (void)keyboardWillHide:(NSNotification *)note
-{
+- (void)keyboardWillHide:(NSNotification *)note {
     NSDictionary *info = [note userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
@@ -529,7 +542,7 @@
             
             [comment synchWithServer:^(BOOL completed) {
                 if (completed){
-                    NSLog(@"Success synching comment with server");
+                    //NSLog(@"Success synching comment with server");
                 }
             }];
             addCommentTextView.text = kAddCommentPlaceholder;
@@ -1145,7 +1158,7 @@
 
 - (void)showDatePicker {
     if (_datePicker == nil) {
-        _datePicker = [[BHDatePicker alloc] initWithFrame:CGRectMake(0, _cancelButton.frame.size.height + _cancelButton.frame.origin.y+24, _datePickerContainer.frame.size.width, 162)];
+        _datePicker = [[BHDatePicker alloc] initWithFrame:CGRectMake(0, _cancelButton.frame.size.height + _cancelButton.frame.origin.y+7, _datePickerContainer.frame.size.width, 162)];
         [_datePickerContainer addSubview:_datePicker];
     }
     
@@ -1161,7 +1174,7 @@
         [self.view insertSubview:overlayBackground belowSubview:_datePickerContainer];
         [self.view bringSubviewToFront:_datePickerContainer];
         [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-            _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -(_datePickerContainer.frame.size.height+_selectButton.frame.size.height));
+            _datePickerContainer.transform = CGAffineTransformMakeTranslation(0, -(_datePickerContainer.frame.size.height+_selectButton.frame.size.height*2));
             
         } completion:^(BOOL finished) {
             

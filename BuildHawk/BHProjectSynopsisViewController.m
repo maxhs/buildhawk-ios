@@ -41,6 +41,8 @@
     AFHTTPRequestOperationManager *manager;
     UIScrollView *documentsScrollView;
     CGRect screen;
+    CGFloat width;
+    CGFloat height;
     NSMutableArray *browserPhotos;
     UIView *overlayBackground;
     UIImageView *screenshotView;
@@ -65,6 +67,13 @@
     
     self.navigationItem.hidesBackButton = NO;
     self.navigationItem.title = _project.name;
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
     screen = [UIScreen mainScreen].bounds;
     
     refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
@@ -78,10 +87,6 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self loadProject];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
 }
 
 - (void)setUpFooter{
@@ -327,56 +332,39 @@
         }
             break;
         case 3: {
-            BHProgressCell *progressCell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
-            [progressCell setSelectionStyle:UITableViewCellSelectionStyleNone];
-    
+            BHProgressCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ProgressCell"];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
             Phase *phase = [_project.phases objectAtIndex:indexPath.row];
             
-            [progressCell.itemLabel setText:phase.name];
+            [cell.itemLabel setText:phase.name];
             CGFloat progress_count = [phase.progressCount floatValue];
             CGFloat all = [phase.itemCount floatValue];
-            [progressCell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
-            
-            LDProgressView *progressView;
-            // reuse the cell's ldprogress view, if it exists
-            for (UIView *view in progressCell.subviews){
-                if ([view isKindOfClass:[LDProgressView class]]){
-                    progressView = (LDProgressView*)view;
-                }
+            [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
+        
+            CGFloat progressBarHeight = 7.f;
+            if (IDIOM == IPAD) {
+                [cell.progressView setFrame:CGRectMake(screen.size.width-320, cell.contentView.frame.size.height/2-progressBarHeight/2, 300, progressBarHeight)];
+            } else {
+                CGFloat barStartX = cell.progressLabel.frame.origin.x+cell.progressLabel.frame.size.width + 23.f;
+                CGFloat progressWidth = width - 10 - barStartX;
+                [cell.progressView setFrame:CGRectMake(barStartX, cell.contentView.frame.size.height/2-progressBarHeight/2, progressWidth, progressBarHeight)];
             }
-            
-            if (!progressView){
-                CGFloat progressBarHeight = 7.f;
-                if (IDIOM == IPAD) {
-                    progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(screen.size.width-320, progressCell.contentView.frame.size.height/2-progressBarHeight/2, 300, progressBarHeight)];
-                } else {
-                    progressView = [[LDProgressView alloc] initWithFrame:CGRectMake(screen.size.width-105, progressCell.contentView.frame.size.height/2-progressBarHeight/2, 100, progressBarHeight)];
-                }
-                [progressCell addSubview:progressView];
-            }
-            
-            //reset the progress view back to 0, without animation, if it's already there
-            progressView.animate = @NO;
-            [progressView setProgress:0.f];
-            progressView.animate = @YES;
             
             if (progress_count && all){
-                progressView.progress = (progress_count/all);
+                cell.progressView.progress = (progress_count/all);
             } else {
-                progressView.progress = 0.f;
+                cell.progressView.progress = 0.f;
             }
             
-            progressView.color = kBlueColor;
-            progressView.showText = @NO;
-            
-            progressView.borderRadius = @1;
-            progressView.showBackground = @NO;
-            progressView.backgroundColor = [UIColor colorWithWhite:.87 alpha:1];
-            progressView.showBackgroundInnerShadow = @NO;
-            progressView.type = LDProgressSolid;
-            
-            progressCell.selectionStyle = UITableViewCellSelectionStyleNone;
-            return progressCell;
+            cell.progressView.color = kBlueColor;
+            cell.progressView.showText = @NO;
+            cell.progressView.borderRadius = @1;
+            cell.progressView.showBackground = @NO;
+            cell.progressView.backgroundColor = [UIColor colorWithWhite:.93 alpha:1];
+            cell.progressView.showBackgroundInnerShadow = @NO;
+            cell.progressView.type = LDProgressSolid;
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            return cell;
         }
         break;
         case 4:
@@ -663,10 +651,9 @@
     documentsScrollView.pagingEnabled = YES;
     documentsScrollView.delegate = self;
     int index = 0;
-    int width = 105;
     CGRect photoRect = CGRectMake(5,5,100,100);
     for (Photo *photo in _project.recentDocuments) {
-        if (index > 0) photoRect.origin.x += width;
+        if (index > 0) photoRect.origin.x += 105;
         
         /*
         __weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
