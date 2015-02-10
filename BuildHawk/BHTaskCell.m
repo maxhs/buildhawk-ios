@@ -23,17 +23,10 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    if ([UIScreen mainScreen].bounds.size.width > 320.f){
-        [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
-    } else {
-        [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
-    }
+    [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
     _itemLabel.minimumScaleFactor = 10.0;
     _itemLabel.adjustsFontSizeToFitWidth = YES;
     _itemLabel.numberOfLines = 1;
-    
-    [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
-    [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
 }
 
 - (void)configureForTask:(Task *)task {
@@ -62,9 +55,17 @@
     _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     
     if ([task.completed isEqualToNumber:@YES]){
-        [self setBackgroundColor:kCompletedTasksColor];
+        [_itemLabel setTextColor:[UIColor lightGrayColor]];
+        [_createdLabel setTextColor:[UIColor lightGrayColor]];
+        [_ownerLabel setTextColor:[UIColor lightGrayColor]];
+        [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+        [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
     } else {
-        [self setBackgroundColor:kActiveTasksColor];
+        [_itemLabel setTextColor:kElectricBlue];
+        [_createdLabel setTextColor:[UIColor blackColor]];
+        [_ownerLabel setTextColor:[UIColor blackColor]];
+        [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProItalic] size:0]];
+        [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProItalic] size:0]];
     }
 }
 

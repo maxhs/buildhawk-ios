@@ -111,9 +111,9 @@ typedef void(^RequestSuccess)(id result);
         
         if (IDIOM == IPAD && _task.user.fullname){
             if (_task.user.company.name.length){
-                [self.navigationItem setTitle:[NSString stringWithFormat:@"Created By: %@ (%@) - %@",_task.user.fullname,_task.user.company.name,[commentFormatter stringFromDate:_task.createdAt]]];
+                [self.navigationItem setTitle:[NSString stringWithFormat:@"%@ (%@) - %@",_task.user.fullname,_task.user.company.name,[commentFormatter stringFromDate:_task.createdAt]]];
             } else {
-                [self.navigationItem setTitle:[NSString stringWithFormat:@"Created By: %@ - %@",_task.user.fullname,[commentFormatter stringFromDate:_task.createdAt]]];
+                [self.navigationItem setTitle:[NSString stringWithFormat:@"%@ - %@",_task.user.fullname,[commentFormatter stringFromDate:_task.createdAt]]];
             }
         } else {
             [self.navigationItem setTitle:[NSString stringWithFormat:@"%@",[commentFormatter stringFromDate:_task.createdAt]]];
@@ -143,27 +143,32 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)drawItem {
-    CGFloat originX = width/2 - _locationButton.frame.size.width/2;
+    if (IDIOM == IPAD){
+        
+    } else {
+        CGFloat originX = width/2 - _locationButton.frame.size.width/2;
+        CGRect locationButtonRect = _locationButton.frame;
+        locationButtonRect.origin.x = originX;
+        [_locationButton setFrame:locationButtonRect];
+        
+        CGRect assigneeButtonRect = _assigneeButton.frame;
+        assigneeButtonRect.origin.x = originX;
+        [_assigneeButton setFrame:assigneeButtonRect];
     
+        // reset action buttons, if necessary
+        CGFloat differential = _emailButton.frame.origin.x - originX;
+        if (differential > 0){
+            _emailButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+            _callButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+            _textButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+        }
+    }
+    
+    // set location and assignee titles and colors
     [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    CGRect locationButtonRect = _locationButton.frame;
-    locationButtonRect.origin.x = originX;
-    [_locationButton setFrame:locationButtonRect];
-    
     [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
     [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    CGRect assigneeButtonRect = _assigneeButton.frame;
-    assigneeButtonRect.origin.x = originX;
-    [_assigneeButton setFrame:assigneeButtonRect];
-    
-    // reset action buttons, if necessary
-    CGFloat differential = _emailButton.frame.origin.x - originX;
-    if (differential > 0){
-        _emailButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
-        _callButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
-        _textButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
-    }
     
     CGFloat completionButtonWidth = _completionButton.frame.size.width;
     CGRect itemTextViewRect = _itemTextView.frame;
@@ -262,7 +267,7 @@ typedef void(^RequestSuccess)(id result);
         
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
-        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneCommentButton = addCommentCell.doneButton;
         return addCommentCell;
@@ -393,14 +398,14 @@ typedef void(^RequestSuccess)(id result);
     headerLabel.layer.cornerRadius = 3.f;
     headerLabel.clipsToBounds = YES;
     [headerLabel setBackgroundColor:[UIColor clearColor]];
-    [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
     [headerLabel setTextAlignment:NSTextAlignmentCenter];
     [headerLabel setTextColor:[UIColor darkGrayColor]];
     [headerLabel setText:@""];
     
     commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
     
     NSString *commentsTitle = _task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_task.comments.count];
     [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
@@ -418,7 +423,7 @@ typedef void(^RequestSuccess)(id result);
     
     activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-    [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
     
     NSString *activitiesTitle = _task.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_task.activities.count];
     [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
@@ -703,8 +708,6 @@ typedef void(^RequestSuccess)(id result);
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
             [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
-        } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         }
         
         [_photosScrollView addSubview:imageButton];
@@ -792,8 +795,8 @@ typedef void(^RequestSuccess)(id result);
     } else {
         [_task setSaved:@NO];
         locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-        for (NSString *location in locationSet.allObjects) {
-            [locationActionSheet addButtonWithTitle:location];
+        for (Location *location in locationSet) {
+            [locationActionSheet addButtonWithTitle:location.name];
         }
         [locationActionSheet addButtonWithTitle:kAddOther];
         if (![_locationButton.titleLabel.text isEqualToString:locationPlaceholder]){

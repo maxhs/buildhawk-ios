@@ -15,7 +15,8 @@
 #import "BHTabBarViewController.h"
 
 @interface BHPhotosViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, MWPhotoBrowserDelegate, UIActionSheetDelegate> {
-    BOOL iPad;
+    CGFloat width;
+    CGFloat height;
     CGRect screen;
     NSMutableArray *sectionArray;
     NSMutableArray *compositePhotos;
@@ -46,8 +47,7 @@
     return self;
 }
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     [self.collectionView reloadData];
     screen = [UIScreen mainScreen].bounds;
@@ -58,10 +58,14 @@
     sortByUser = NO;
     sortByDate = NO;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
-    if (IDIOM == IPAD) {
-        iPad = YES;
-    } else
-        iPad = NO;
+    
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
 }
 - (void)viewWillAppear:(BOOL)animated {
     [self.tabBarController.tabBar setFrame:CGRectMake(0, screen.size.height, screen.size.width, 49)];
@@ -69,8 +73,7 @@
     [super viewWillAppear:animated];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
@@ -283,7 +286,7 @@
     if (IDIOM == IPAD){
         return CGSizeMake(screenWidth()/7,screenWidth()/7);
     } else {
-        return CGSizeMake(screenWidth()/3,screenWidth()/3);
+        return CGSizeMake(width/3,width/3);
     }
 }
 

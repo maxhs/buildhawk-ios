@@ -80,6 +80,9 @@
     mixpanel = [Mixpanel sharedInstance];
     self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     self.navigationController.interactivePopGestureRecognizer.enabled = NO;
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.14]];
+    self.tableView.tableFooterView = [UIView new];
     
     //only ask for push notifications when a user has successfully logged in
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
@@ -438,7 +441,6 @@
         }
 
         if (_projects.count == 0 && !loading){
-            //cell.scrollView.scrollEnabled = NO;
             [cell.scrollView setUserInteractionEnabled:NO];
             [cell.projectButton setUserInteractionEnabled:NO];
             [cell.progressButton setHidden:YES];
@@ -465,7 +467,6 @@
             [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
             [cell.projectButton setTag:indexPath.row];
             [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
-            [cell.nameLabel setTextColor:kDarkGrayColor];
             [cell.hideButton setTag:indexPath.row];
             [cell.hideButton addTarget:self action:@selector(confirmHide:) forControlEvents:UIControlEventTouchUpInside];
             [cell.localButton setTag:indexPath.row];
@@ -485,6 +486,7 @@
         
         Group *group = [_currentUser.company.groups objectAtIndex:indexPath.row];
         [cell.nameLabel setText:group.name];
+        [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
     
         [cell.groupCountLabel setHidden:NO];
         if (group.projects.count > 0)
@@ -494,8 +496,6 @@
         else
             [cell.groupCountLabel setText:@"No projects"];
         
-        [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
-        [cell.nameLabel setTextColor:kDarkGrayColor];
         return cell;
         
     } else if (indexPath.section == 2) {
@@ -580,7 +580,7 @@
 
     UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(7, 0, screenWidth()-7, 40)];
     headerLabel.backgroundColor = [UIColor clearColor];
-    [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
+    [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:18]];
     headerLabel.textColor = [UIColor whiteColor];
     headerLabel.numberOfLines = 0;
     headerLabel.textAlignment = NSTextAlignmentCenter;

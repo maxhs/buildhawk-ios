@@ -185,7 +185,7 @@
     headerLabel.layer.cornerRadius = 3.f;
     headerLabel.clipsToBounds = YES;
     [headerLabel setBackgroundColor:[UIColor clearColor]];
-    [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+    [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
     [headerLabel setTextAlignment:NSTextAlignmentCenter];
     [headerLabel setTextColor:[UIColor darkGrayColor]];
     switch (section) {
@@ -222,7 +222,7 @@
 
             commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-            [commentsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+            [commentsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
             NSString *commentsTitle = _item.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_item.comments.count];
             [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
             if (activities){
@@ -239,7 +239,7 @@
             
             activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-            [activityButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+            [activityButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
             NSString *activitiesTitle = _item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_item.activities.count];
             [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
             if (activities){
@@ -890,8 +890,6 @@
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
             [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
-        } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         } else {
             [imageButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
         }

@@ -23,7 +23,6 @@
 @property (strong, nonatomic) NSString *reportType;
 @property (strong, nonatomic) NSNumber *initialReportId;
 @property (strong, nonatomic) NSNumber *projectId;
-@property (strong, nonatomic) NSOrderedSet *reports;
 @property (weak, nonatomic) IBOutlet UIDatePicker *datePicker;
 @property (weak, nonatomic) IBOutlet UIView *datePickerContainer;
 @property (weak, nonatomic) IBOutlet UIButton *cancelButton;

@@ -99,7 +99,7 @@
         
         //set the delete button with the identifier as the tag
         cell.deleteButton.tag = reminder.identifier.integerValue;
-        [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         [cell.deleteButton addTarget:self action:@selector(confirmDeleteReminder:) forControlEvents:UIControlEventTouchUpInside];
         return cell;
     } else {

@@ -261,7 +261,7 @@
                     cell.reminderButton.tag = row;
                     [cell.reminderButton addTarget:self action:@selector(goToReminder:) forControlEvents:UIControlEventTouchUpInside];
                     cell.deleteButton.tag = row;
-                    [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:13]];
+                    [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:13]];
                     [cell.deleteButton addTarget:self action:@selector(confirmDeleteReminder:) forControlEvents:UIControlEventTouchUpInside];
                     
                     return cell;
@@ -283,7 +283,7 @@
                 cell.reminderButton.tag = indexPath.row;
                 [cell.reminderButton addTarget:self action:@selector(goToReminder:) forControlEvents:UIControlEventTouchUpInside];
                 cell.deleteButton.tag = indexPath.row;
-                [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:13]];
+                [cell.deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:13]];
                 [cell.deleteButton addTarget:self action:@selector(confirmDeleteReminder:) forControlEvents:UIControlEventTouchUpInside];
                 
                 return cell;
@@ -522,7 +522,7 @@
     headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, screen.size.width, 40)];
     headerLabel.backgroundColor = [UIColor clearColor];
     headerLabel.textColor = [UIColor whiteColor];
-    headerLabel.font = [UIFont fontWithName:kMyriadProRegular size:16];
+    headerLabel.font = [UIFont fontWithName:kMyriadPro size:16];
     headerLabel.numberOfLines = 0;
     headerLabel.textAlignment = NSTextAlignmentCenter;
     [headerView addSubview:headerLabel];
@@ -533,7 +533,7 @@
             [headerLabel setText:@"REMINDERS"];
             if (projectReminders.count > 3){
                 UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
-                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:12]];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:12]];
                 [allButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                 [allButton setFrame:CGRectMake(screen.size.width-44, 0, 44, 40)];
                 [allButton setTitle:@"ALL" forState:UIControlStateNormal];
@@ -547,7 +547,7 @@
             [headerLabel setText:@"UPCOMING DEADLINES"];
             if (_project.upcomingItems.count > 3){
                 UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
-                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:12]];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:12]];
                 [allButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                 [allButton setFrame:CGRectMake(screen.size.width-44, 0, 44, 40)];
                 [allButton setTitle:@"ALL" forState:UIControlStateNormal];
@@ -561,7 +561,7 @@
             [headerLabel setText:@"LATEST ACTIVITY"];
             if (_project.activities.count > 3){
                 UIButton *allButton = [UIButton buttonWithType:UIButtonTypeCustom];
-                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:12]];
+                [allButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:12]];
                 [allButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
                 [allButton setFrame:CGRectMake(screen.size.width-44, 0, 44, 40)];
                 [allButton setTitle:@"ALL" forState:UIControlStateNormal];
@@ -666,8 +666,6 @@
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
             [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
-        } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         }
         
         [imageButton setFrame:photoRect];

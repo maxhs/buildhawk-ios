@@ -38,7 +38,7 @@
     loading = YES;
     _currentUser = [(BHAppDelegate*)[UIApplication sharedApplication].delegate currentUser];
     [self loadHiddenProjects];
-    [_noProjectsLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProIt] size:0]];
+    [_noProjectsLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProItalic] size:0]];
     [_noProjectsLabel setTextColor:[UIColor lightGrayColor]];
 }
 

@@ -119,11 +119,11 @@
     }
     [[UITabBarItem appearance] setTitleTextAttributes: @{
                                                          //NSForegroundColorAttributeName : [UIColor whiteColor],
-                                                         NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:tabFontSize],
+                                                         NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:tabFontSize],
                                                          } forState:UIControlStateNormal];
     [[UITabBarItem appearance] setTitleTextAttributes:@{
                  NSForegroundColorAttributeName : [UIColor colorWithWhite:0 alpha:1],
-                            NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:tabFontSize],
+                            NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:tabFontSize],
                                                         } forState:UIControlStateSelected];
     
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
@@ -137,7 +137,7 @@
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
      setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
     
-    [[UISegmentedControl appearance] setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:kMyriadProRegular size:15]} forState:UIControlStateNormal];
+    [[UISegmentedControl appearance] setTitleTextAttributes:@{NSFontAttributeName:[UIFont fontWithName:kMyriadPro size:15]} forState:UIControlStateNormal];
     [[UISegmentedControl appearance] setContentPositionAdjustment:UIOffsetMake(0, 1) forSegmentType:UISegmentedControlSegmentAny barMetrics:UIBarMetricsDefault];
     
     /*for (NSString* family in [UIFont familyNames]){
@@ -159,11 +159,11 @@
 - (void)setDefaultAppearances {
     [[UINavigationBar appearance] setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:22],
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:22],
                                                            NSForegroundColorAttributeName : [UIColor blackColor]
                                                            }];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:16],
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:16],
                                                            NSForegroundColorAttributeName : [UIColor blackColor]
                                                            } forState:UIControlStateNormal];
     [[UIBarButtonItem appearance] setTintColor:[UIColor blackColor]];
@@ -173,12 +173,12 @@
     [[UINavigationBar appearance] setBackgroundImage:[UIImage imageNamed:@"navBarBackgroundTall"] forBarMetrics:UIBarMetricsDefault];
     [[UINavigationBar appearance] setTintColor:[UIColor whiteColor]];
     [[UINavigationBar appearance] setTitleTextAttributes:@{
-                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:22],
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:22],
                                                            NSForegroundColorAttributeName : [UIColor whiteColor]
                                                            }];
     [[UINavigationBar appearance] setTitleVerticalPositionAdjustment:1.f forBarMetrics:UIBarMetricsDefault];
     [[UIBarButtonItem appearance] setTitleTextAttributes:@{
-                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadProRegular size:16],
+                                                           NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:16],
                                                            NSForegroundColorAttributeName : [UIColor whiteColor]
                                                            } forState:UIControlStateNormal];
     [[UIBarButtonItem appearance] setTintColor:[UIColor whiteColor]];
@@ -334,7 +334,7 @@
         [statusButton setBackgroundColor:kDarkerGrayColor];
         [statusButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
         [statusButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [statusButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [statusButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         [statusButton addTarget:self action:@selector(showSyncController) forControlEvents:UIControlEventTouchUpInside];
         [self.window addSubview:statusButton];
     }

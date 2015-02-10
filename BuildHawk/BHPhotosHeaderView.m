@@ -30,6 +30,6 @@
 
 - (void) configureForTitle:(NSString *)title {
     [self.headerLabel setText:title];
-    [self.headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
+    [self.headerLabel setFont:[UIFont fontWithName:kMyriadPro size:18]];
 }
 @end

@@ -168,7 +168,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 - (void)drawDemoButton {
     demoButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [demoButton setFrame:CGRectMake(0, screenHeight()-44, screenWidth(), 44)];
-    [demoButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [demoButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     [demoButton setTitle:@"VIEW DEMO PROJECT" forState:UIControlStateNormal];
     [demoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [demoButton setBackgroundColor:kBlueColor];

@@ -32,7 +32,7 @@
     [super awakeFromNib];
     [_unhideButton setBackgroundColor:[UIColor redColor]];
     [_unhideButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    [_unhideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
+    [_unhideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
     [_scrollView setContentSize:CGSizeMake(screenWidth()+88, 88)];
 
     [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];

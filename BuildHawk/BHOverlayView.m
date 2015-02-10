@@ -27,7 +27,7 @@
     _label = [[UILabel alloc] initWithFrame:frame];
     [_label setText:text];
     [_label setTextAlignment:NSTextAlignmentLeft];
-    [_label setFont:[UIFont fontWithName:kMyriadProRegular size:18]];
+    [_label setFont:[UIFont fontWithName:kMyriadPro size:18]];
     _label.layer.shadowColor = [UIColor blackColor].CGColor;
     _label.layer.shadowOpacity = .15f;
     _label.layer.shadowRadius = .25f;

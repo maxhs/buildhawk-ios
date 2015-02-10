@@ -59,6 +59,7 @@
     BOOL saveToLibrary;
     BHReportTableView *_activeTableView;
     UIScrollView *photoScrollView;
+    NSMutableArray *_reports;
 }
 
 @end
@@ -66,7 +67,6 @@
 @implementation BHReportViewController
 
 @synthesize initialReportId = _initialReportId;
-@synthesize reports = _reports;
 @synthesize projectId = _projectId;
 @synthesize reportDateString = _reportDateString;
 @synthesize reportType = _reportType;
@@ -99,16 +99,20 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"ReportPersonnel" object:nil];
     
-    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
-    if (_reportDateString.length){
+    if (_reportDateString) {
         _report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [_report setDateString:_reportDateString];
-        [_report setProject:_project];
-        [_report setType:_reportType];
-        _reports = [NSOrderedSet orderedSetWithObject:_report];
-    } else {
+        _report.author.identifier = [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId];
+        _report.project = _project;
+        _report.dateString = _reportDateString;
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+        NSLog(@"did we create a new report? %@",_report.dateString);
+    } else if (_initialReportId) {
         _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_initialReportId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
+    
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",_project.identifier];
+    _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     
     [self setUpFormatters];
     [self setUpDatePicker];
@@ -156,17 +160,19 @@
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
+    NSLog(@"loading %lu reports in collection view",(unsigned long)_reports.count);
     return _reports.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
+    NSLog(@"cell for item: %ld",(long)indexPath.item);
     BHReportsCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"ReportsCollectionCell" forIndexPath:indexPath];
     cell.delegate = self;
     Report *report = _reports[indexPath.item];
-    _report = report;
+    NSLog(@"do we have a report? %@",report.dateString);
+    
     [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
     photoScrollView = cell.photoScrollView;
-    
     if (photoScrollView){
         [_collectionView.panGestureRecognizer requireGestureRecognizerToFail:photoScrollView.panGestureRecognizer];
     }
@@ -686,7 +692,7 @@
 
 - (void)prefill {
     if ([_report.identifier isEqualToNumber:@0]){
-        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithOrderedSet:_reports];
+        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithArray:_reports];
         NSDate *newReportDate = [formatter dateFromString:_report.dateString];
         [_reports enumerateObjectsUsingBlock:^(Report *thisReport, NSUInteger index, BOOL *stop) {
             NSDate *thisReportDate = [formatter dateFromString:thisReport.dateString];

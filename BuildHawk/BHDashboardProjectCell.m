@@ -36,30 +36,24 @@
     [_alertLabel setBackgroundColor:[UIColor redColor]];
     [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
     _alertLabel.layer.cornerRadius = 11.f;
-    
-    if (IDIOM == IPAD) {
-        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
-    } else {
-        [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
-    }
-    
-    [_addressLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
-    [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
     [_alertLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
     
+    [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    
+    // hide button
     CGRect hideRect = _hideButton.frame;
     UIImageView *hideImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"hide"]];
     [hideImageView setFrame:CGRectMake(hideRect.size.width/2-9, hideRect.size.height/2-18, 16, 16)];
     [_hideButton addSubview:hideImageView];
-    
     [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_hideButton.titleLabel setNumberOfLines:0];
     [_hideButton setTitle:@"Hide" forState:UIControlStateNormal];
     [_hideButton setTitleEdgeInsets:UIEdgeInsetsMake(23, 0, 0, 0)];
     [_hideButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_hideButton setBackgroundColor:[UIColor redColor]];
-    
     CGRect localRect = _hideButton.frame;
+    
+    // local button
     UIImageView *localImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"local"]];
     [localImageView setFrame:CGRectMake(localRect.size.width/2-10, localRect.size.height/2-20, 20, 20)];
     [_localButton addSubview:localImageView];
@@ -78,11 +72,10 @@
     [_progressButton setHidden:NO];
     [_scrollView setUserInteractionEnabled:YES];
     
-    [_nameLabel setText:[project name]];
-    if (project.address.formattedAddress){
-        [_addressLabel setText:project.address.formattedAddress];
-        [_addressLabel sizeToFit];
-    }
+    NSMutableAttributedString *nameString = [[NSMutableAttributedString alloc] initWithString:project.name attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]}];
+    NSAttributedString *addressString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@",project.address.formattedAddress] attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProLight] size:0], NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+    [nameString appendAttributedString:addressString];
+    [_nameLabel setAttributedText:nameString];
     
     __block int reminderCount = 0;
     [user.pastDueReminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {

@@ -46,7 +46,6 @@
 #pragma mark - Basic Setup
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     screen = [UIScreen mainScreen].bounds;
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth(); height = screenHeight();
@@ -64,7 +63,7 @@
     [self setUpView];
 
     if (IDIOM == IPAD){
-        self.tabBarController.navigationItem.rightBarButtonItem = nil;
+        
     } else {
         sortButton = [[UIBarButtonItem alloc] initWithTitle:@"Sort" style:UIBarButtonItemStylePlain target:self action:@selector(showSort)];
         hideSortButton = [[UIBarButtonItem alloc] initWithTitle:@"Select" style:UIBarButtonItemStylePlain target:self action:@selector(hideSort)];
@@ -73,7 +72,6 @@
         CGRect segmentedControlFrame = _segmentedControl.frame;
         segmentedControlFrame.origin.x = width + 8;
         [_segmentedControl setFrame:segmentedControlFrame];
-        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
     }
     
     //set up the date picker stuff
@@ -96,6 +94,15 @@
         [self loadReports];
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReports) name:@"ReloadReports" object:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    if (IDIOM == IPAD){
+        self.tabBarController.navigationItem.rightBarButtonItem = nil;
+    } else {
+        self.tabBarController.navigationItem.rightBarButtonItem = sortButton;
+    }
 }
 
 - (void)reloadReports {
@@ -165,9 +172,7 @@
                 [self filter:kDaily];
             } else {
                 //begin to update the UI if the view is still visible
-                [self.tableView beginUpdates];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationNone];
-                [self.tableView endUpdates];
+                [self.tableView reloadData];
             }
         }
         
@@ -379,7 +384,7 @@
     [cell.photoButton setFrame:photoButtonFrame];
     
     CGRect photoCountBubbleFrame = cell.photoCountBubble.frame;
-    photoCountBubbleFrame.origin.x = photoButtonFrame.origin.x;
+    photoCountBubbleFrame.origin.x = photoButtonFrame.origin.x-photoCountBubbleFrame.size.width/2;
     [cell.photoCountBubble setFrame:photoCountBubbleFrame];
     
     CGRect reportNotesFrame = cell.notesLabel.frame;
@@ -505,7 +510,6 @@
 }
 
 #pragma mark - Navigation
-
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     if ([[segue identifier] isEqualToString:@"Report"]){
@@ -516,14 +520,15 @@
         //seguing to an existing report
         if ([sender isKindOfClass:[Report class]]){
             [vc setInitialReportId:[(Report*)sender identifier]];
-            if (daily || safety || weekly){
-                [vc setReports:_filteredReports];
-            } else {
-                [vc setReports:_reports];
+            if (daily){
+                [vc setReportType:kDaily];
+            } else if (safety){
+                [vc setReportType:kSafety];
+            } else if (weekly){
+                [vc setReportType:kWeekly];
             }
         } else if ([sender isKindOfClass:[NSString class]]) {
-        
-        //seguing to a new report
+            //seguing to a new report
             NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
             [formatter setDateFormat:@"MM/dd/yyyy"];
             [vc setReportDateString:[formatter stringFromDate:[NSDate date]]];
@@ -560,7 +565,7 @@
                 self.tabBarController.tabBar.transform = CGAffineTransformMakeTranslation(0, 49);
             
         } completion:^(BOOL finished) {
-            
+            NSLog(@"container: %@",_datePickerContainer);
         }];
     } else {
         [self cancelDatePicker];
@@ -582,7 +587,7 @@
             newReport.project = _project;
             newReport.dateString = selectedDateString;
             newReport.type = kDaily;
-            [self performSegueWithIdentifier:@"Report" sender:newReport];
+            //[self performSegueWithIdentifier:@"Report" sender:newReport];
             *stop = YES;
         };
     }];
@@ -596,7 +601,8 @@
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
     self.tableView.rowHeight = 90.f;
-    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+    [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
+    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.37]];
     
     //ensure there's some space in between the filters and the top of the tableview
     self.tableView.contentInset = UIEdgeInsetsMake(_topActionContainer.frame.size.height, 0, self.tabBarController.tabBar.frame.size.height, 0);
@@ -625,10 +631,18 @@
         [_segmentedControl setTintColor:[UIColor blackColor]];
     }
     
-    [_calendarButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
-    [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_calendarButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLatoLight] size:0]];
+    [_addReportButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLatoLight] size:0]];
     [_calendarButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
     [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
+    
+    CGRect datePickerContainerRect = _datePickerContainer.frame;
+    datePickerContainerRect.origin.y = height;
+    datePickerContainerRect.size.width = width;
+    [_datePickerContainer setFrame:datePickerContainerRect];
+    CGRect datePickerRect = _datePicker.frame;
+    datePickerRect.size.width = width;
+    [_datePicker setFrame:datePickerRect];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {

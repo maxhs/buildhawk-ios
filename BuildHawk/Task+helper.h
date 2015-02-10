@@ -10,6 +10,7 @@
 #import "Photo+helper.h"
 #import "User+helper.h"
 #import "Activity+helper.h"
+#import "Location+helper.h"
 
 typedef void(^synchCompletion)(BOOL completed);
 

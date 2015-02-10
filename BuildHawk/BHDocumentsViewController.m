@@ -44,6 +44,9 @@
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     Project *_project;
+    CGFloat height;
+    CGFloat width;
+    CGFloat rowHeight;
 }
 
 @end
@@ -51,10 +54,18 @@
 @implementation BHDocumentsViewController
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
     _project = [(BHTabBarViewController*)self.tabBarController project];
     self.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",[_project name]];
     [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
     [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
     if ([BHUtilities isIPhone5]) {
         iPhone5 = YES;
     } else {
@@ -69,10 +80,11 @@
     sortedByUser = [NSMutableArray array];
     sourceArray = [NSMutableArray array];
 
+    rowHeight = (height - self.navigationController.navigationBar.frame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - self.tabBarController.tabBar.frame.size.height)/5;
+    _tableView.rowHeight = rowHeight;
     
     sortByDate = NO;
     sortByUser = NO;
-    [super viewDidLoad];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     refreshControl = [[UIRefreshControl alloc] init];
@@ -107,13 +119,7 @@
     tabFrame.origin.y = screenHeight()-tabFrame.size.height - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - (delegate.connected ? 0 : kOfflineStatusHeight);
     [UIView animateWithDuration:.25 animations:^{
         [self.tabBarController.tabBar setFrame:tabFrame];
-        //self.tabBarController.tabBar.alpha = 1.0;
     }];
-}
-
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 - (void)loadPhotos {
@@ -205,22 +211,30 @@
     return 5;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"PhotoPickerCell";
     BHPhotoPickerCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
-    
-    CGRect photoFrame = cell.photoButton.frame;
-    photoFrame.origin.y = 0;
-    photoFrame.size.width = cell.frame.size.height;
-    photoFrame.size.height = cell.frame.size.height;
-    [cell.photoButton setFrame:photoFrame];
     cell.backgroundColor = [UIColor whiteColor];
     cell.userInteractionEnabled = YES;
+    
+    CGRect photoFrame = cell.photoButton.frame;
+    photoFrame.origin.y = 4;
+    photoFrame.origin.x = 4;
+    photoFrame.size.width = rowHeight - 8;
+    photoFrame.size.height = rowHeight - 8;
+    [cell.photoButton setFrame:photoFrame];
+    
+    CGRect bucketLabelFrame = cell.bucketLabel.frame;
+    bucketLabelFrame.origin.x = cell.photoButton.frame.size.width + 14.f;
+    [cell.bucketLabel setFrame:bucketLabelFrame];
+    
+    CGRect countLabelFrame = cell.countLabel.frame;
+    countLabelFrame.origin.x = cell.photoButton.frame.size.width + 14.f;
+    [cell.countLabel setFrame:countLabelFrame];
     
     if (IDIOM == IPAD){
         [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
@@ -244,7 +258,7 @@
             if (iPad){
                 imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlLarge]];
             } else if (photosArray.count > 0) {
-                imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlSmall]];
+                imageUrl = [NSURL URLWithString:[(Photo*)photosArray.lastObject urlMedium]];
             } else {
                 imageUrl = nil;
             }
@@ -322,8 +336,7 @@
             break;
     }
     if (imageUrl) {
-        cell.countLabel.transform = CGAffineTransformIdentity;
-        cell.bucketLabel.transform = CGAffineTransformIdentity;
+
         [cell.photoButton sd_setImageWithURL:imageUrl forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL){
             [cell.photoButton setTag:0];
             cell.photoButton.userInteractionEnabled = NO;
@@ -335,7 +348,6 @@
         }];
     } else {
         [cell.photoButton setImage:[UIImage imageNamed:@"whiteIcon"] forState:UIControlStateNormal];
-        
         [UIView animateWithDuration:.25 animations:^{
             [cell.bucketLabel setAlpha:1.0];
             [cell.countLabel setAlpha:1.0];
@@ -362,12 +374,6 @@
     button.layer.shouldRasterize = YES;
     button.layer.rasterizationScale = [UIScreen mainScreen].scale;
 }
-
-- (CGFloat) tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (iPad) return (screen.size.height-64-52)/5;
-    else return (screen.size.height-64-49)/5;
-}
-
 
 - (void)sortByDate {
     NSSortDescriptor *sortDescriptor = [[NSSortDescriptor alloc] initWithKey:@"createdOn" ascending:YES];
@@ -406,9 +412,7 @@
 }
 
 #pragma mark - Table view delegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.row == 1){
         [self performSegueWithIdentifier:@"Folders" sender:indexPath];
     } else {
@@ -541,13 +545,17 @@
     tabFrame.origin.y = screenHeight();
     [UIView animateWithDuration:.25 animations:^{
         [self.tabBarController.tabBar setFrame:tabFrame];
-        //self.tabBarController.tabBar.alpha = 0.0;
     }];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     [ProgressHUD dismiss];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 
 @end

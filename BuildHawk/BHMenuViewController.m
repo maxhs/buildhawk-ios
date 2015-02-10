@@ -52,7 +52,7 @@ static NSString *textPlaceholder = @"Text Message";
     
     [_logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
     [_logoutButton setBackgroundColor:kDarkGrayColor];
-    [_logoutButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    [_logoutButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
     
     if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
         iPhone5 = YES;
@@ -159,13 +159,13 @@ static NSString *textPlaceholder = @"Text Message";
         UILabel *nameLabel = [[UILabel alloc] initWithFrame:CGRectMake(76, 32, cell.frame.size.width-80, 27)];
         [nameLabel setText:_currentUser.fullname];
         [nameLabel setBackgroundColor:[UIColor clearColor]];
-        [nameLabel setFont:[UIFont fontWithName:kMyriadProRegular size:19]];
+        [nameLabel setFont:[UIFont fontWithName:kMyriadPro size:19]];
         [nameLabel setTextColor:[UIColor whiteColor]];
         [nameLabel setNumberOfLines:0];
         
         UILabel *settingsLabel = [[UILabel alloc] initWithFrame:CGRectMake(76, 52, cell.frame.size.width-80, 27)];
         [settingsLabel setText:@"Tap to edit settings"];
-        [settingsLabel setFont:[UIFont fontWithName:kMyriadProIt size:16]];
+        [settingsLabel setFont:[UIFont fontWithName:kMyriadProItalic size:16]];
         [settingsLabel setBackgroundColor:[UIColor clearColor]];
         [settingsLabel setTextColor:[UIColor whiteColor]];
         [settingsLabel setNumberOfLines:0];

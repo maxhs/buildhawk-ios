@@ -23,7 +23,7 @@
 {
     [super awakeFromNib];
     // Initialization code
-    [_personnelTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+    [_personnelTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

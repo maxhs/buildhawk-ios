@@ -27,7 +27,7 @@
 @property (nonatomic, retain) NSString * source;
 @property (nonatomic, retain) NSString * urlLarge;
 @property (nonatomic, retain) NSString * urlSmall;
-@property (nonatomic, retain) NSString * urlThumb;
+@property (nonatomic, retain) NSString * urlMedium;
 @property (nonatomic, retain) NSString * userName;
 @property (nonatomic, retain) NSOrderedSet * activities;
 @property (nonatomic, retain) ChecklistItem *checklistItem;

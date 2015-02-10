@@ -162,8 +162,8 @@
     }
     
     //add the location to the list of possible locations:
-    if (notificationTask.location.length){
-        [locationSet addObject:notificationTask.location];
+    if (notificationTask.locations.count){
+        [locationSet addObjectsFromArray:notificationTask.locations.array];
     }
 }
 
@@ -174,13 +174,14 @@
         [locationSet removeAllObjects];
         [assigneeSet removeAllObjects];
         
-        for (Task *item in _tasks){
-            if (item.location.length) {
-                [locationSet addObject:item.location];
+        for (Task *task in _tasks){
+            for (Location *location in task.locations){
+                [locationSet addObject:location];
             }
+           
             if (!_connectMode) {
-                if (item.assignees.count > 0){
-                    [assigneeSet addObject:item.assignees.firstObject];
+                if (task.assignees.count > 0){
+                    [assigneeSet addObject:task.assignees.firstObject];
                 }
             }
         }
@@ -334,12 +335,12 @@
         if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
             locationAlertController = [UIAlertController alertControllerWithTitle:@"Filter by location:" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
             
-            for (NSString *location in locationSet.allObjects) {
-                UIAlertAction *locationAction = [UIAlertAction actionWithTitle:location style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            for (Location *location in locationSet.allObjects) {
+                UIAlertAction *locationAction = [UIAlertAction actionWithTitle:location.name style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
                     NSPredicate *testForLocation = [NSPredicate predicateWithFormat:@"location like %@",location];
-                    for (Task *item in _tasks)
-                        if([testForLocation evaluateWithObject:item])
-                            [locationListItems addObject:item];
+                    for (Task *task in _tasks)
+                        if([testForLocation evaluateWithObject:task])
+                            [locationListItems addObject:task];
                     lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
                     [self.tableView reloadData];
                 }];

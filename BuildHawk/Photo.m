@@ -29,7 +29,7 @@
 @dynamic source;
 @dynamic urlLarge;
 @dynamic urlSmall;
-@dynamic urlThumb;
+@dynamic urlMedium;
 @dynamic userName;
 @dynamic checklistItem;
 @dynamic project;

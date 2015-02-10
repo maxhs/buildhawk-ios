@@ -34,12 +34,12 @@
     // Initialization code
     [_deleteButton setBackgroundColor:[UIColor redColor]];
     [_reminderButton setBackgroundColor:[UIColor colorWithWhite:.925 alpha:1]];
-    [_reminderDatetimeLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
-    [_statusLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
-    [_reminderLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+    [_reminderDatetimeLabel setFont:[UIFont fontWithName:kMyriadPro size:16]];
+    [_statusLabel setFont:[UIFont fontWithName:kMyriadPro size:16]];
+    [_reminderLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
     
-    [_reminderButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
-    [_deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+    [_reminderButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:16]];
+    [_deleteButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:16]];
     
     _tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(swipeScrollView)];
     _tapGesture.numberOfTapsRequired = 1;

@@ -25,22 +25,19 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_reportLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0]];
-    [_reportLabel setTextColor:[UIColor whiteColor]];
-    _reportLabel.layer.shadowColor = [UIColor blackColor].CGColor;
-    _reportLabel.layer.shadowOffset = CGSizeMake(.7f, .3f);
-    _reportLabel.layer.shadowOpacity = .77f;
-    _reportLabel.layer.shadowRadius = 2.3f;
+    [_reportLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
+    [_reportLabel setTextColor:[UIColor blackColor]];
     
     [_authorLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoItalic] size:0]];
     [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
+    [_photoCountBubble setBackgroundColor:kDarkerGrayColor];
+    [_photoCountBubble setTextColor:[UIColor whiteColor]];
 }
 
 - (void)prepareForReuse {
     [super prepareForReuse];
-    
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -78,12 +75,8 @@
                 _photoButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
             }];
         }
-        [_photoCountBubble setBackgroundColor:[UIColor whiteColor]];
         _photoCountBubble.layer.cornerRadius = _photoCountBubble.frame.size.height/2;
         _photoCountBubble.layer.backgroundColor = [UIColor clearColor].CGColor;
-        CGRect photoCountBubbleFrame = _photoCountBubble.frame;
-        photoCountBubbleFrame.origin.x = _photoButton.frame.origin.x - photoCountBubbleFrame.size.width/2;
-        [_photoCountBubble setFrame:photoCountBubbleFrame];
         [_photoCountBubble setText:[NSString stringWithFormat:@"%lu",(unsigned long)report.photos.count]];
         _photoCountBubble.hidden = NO;
     } else {

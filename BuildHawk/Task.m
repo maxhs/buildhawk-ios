@@ -34,5 +34,6 @@
 @dynamic tasklist;
 @dynamic reminders;
 @dynamic saved;
+@dynamic locations;
 
 @end

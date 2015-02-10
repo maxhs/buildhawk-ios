@@ -240,7 +240,7 @@
         switch (indexPath.row) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
-                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
                 [cell.imageView setImage:[UIImage imageNamed:@"contacts"]];
                 [cell.personnelTextField setUserInteractionEnabled:NO];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -439,7 +439,7 @@
         [contactInfoLabel setTextColor:[UIColor darkGrayColor]];
         [contactInfoLabel setText:@"CONTACT INFO"];
         [contactInfoLabel setTextAlignment:NSTextAlignmentCenter];
-        [contactInfoLabel setFont:[UIFont fontWithName:kMyriadProRegular size:16]];
+        [contactInfoLabel setFont:[UIFont fontWithName:kMyriadPro size:16]];
         contactInfoLabel.numberOfLines = 0;
         [headerView addSubview:contactInfoLabel];
         

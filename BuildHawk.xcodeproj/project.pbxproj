@@ -38,6 +38,8 @@
 		50BC67E51A5F3F2C0029AA3D /* chat.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67E21A5F3F2C0029AA3D /* chat.png */; };
 		50BC67E61A5F3F2C0029AA3D /* chat@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67E31A5F3F2C0029AA3D /* chat@2x.png */; };
 		50BC67E71A5F3F2C0029AA3D /* chat@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50BC67E41A5F3F2C0029AA3D /* chat@3x.png */; };
+		50D6EC1D1A82FE9D00DAE52E /* Location.m in Sources */ = {isa = PBXBuildFile; fileRef = 50D6EC1C1A82FE9C00DAE52E /* Location.m */; };
+		50D6EC201A82FEB200DAE52E /* Location+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 50D6EC1F1A82FEB200DAE52E /* Location+helper.m */; };
 		50FB5FA21A3F4134004D6062 /* reports.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5F9F1A3F4134004D6062 /* reports.png */; };
 		50FB5FA31A3F4134004D6062 /* reports@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FA01A3F4134004D6062 /* reports@2x.png */; };
 		50FB5FA41A3F4134004D6062 /* reports@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FA11A3F4134004D6062 /* reports@3x.png */; };
@@ -422,6 +424,10 @@
 		50BC67E21A5F3F2C0029AA3D /* chat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = chat.png; sourceTree = "<group>"; };
 		50BC67E31A5F3F2C0029AA3D /* chat@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chat@2x.png"; sourceTree = "<group>"; };
 		50BC67E41A5F3F2C0029AA3D /* chat@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "chat@3x.png"; sourceTree = "<group>"; };
+		50D6EC1B1A82FE9C00DAE52E /* Location.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Location.h; sourceTree = "<group>"; };
+		50D6EC1C1A82FE9C00DAE52E /* Location.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Location.m; sourceTree = "<group>"; };
+		50D6EC1E1A82FEB200DAE52E /* Location+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Location+helper.h"; sourceTree = "<group>"; };
+		50D6EC1F1A82FEB200DAE52E /* Location+helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Location+helper.m"; sourceTree = "<group>"; };
 		50FB5F9F1A3F4134004D6062 /* reports.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = reports.png; sourceTree = "<group>"; };
 		50FB5FA01A3F4134004D6062 /* reports@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@2x.png"; sourceTree = "<group>"; };
 		50FB5FA11A3F4134004D6062 /* reports@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@3x.png"; sourceTree = "<group>"; };
@@ -1160,6 +1166,10 @@
 				F2C4450C19654B7F0079AF62 /* Task.m */,
 				F2EA26CD19116C3800EEF2CC /* Task+helper.h */,
 				F2EA26CE19116C3800EEF2CC /* Task+helper.m */,
+				50D6EC1B1A82FE9C00DAE52E /* Location.h */,
+				50D6EC1C1A82FE9C00DAE52E /* Location.m */,
+				50D6EC1E1A82FEB200DAE52E /* Location+helper.h */,
+				50D6EC1F1A82FEB200DAE52E /* Location+helper.m */,
 				F2EA2677190EFD7000EEF2CC /* Comment.h */,
 				F2EA2678190EFD7000EEF2CC /* Comment.m */,
 				F2EA26B219101FED00EEF2CC /* Comment+helper.h */,
@@ -2059,6 +2069,7 @@
 				F291F4B617F0B33000A27B46 /* BHChecklistItemViewController.m in Sources */,
 				F2D6A30B1971929F004A9742 /* BHCompaniesViewController.m in Sources */,
 				F292ABF317F9E5590020DE13 /* BHChecklistItemBodyCell.m in Sources */,
+				50D6EC201A82FEB200DAE52E /* Location+helper.m in Sources */,
 				F25699DD1908F9F800ED9032 /* Project+helper.m in Sources */,
 				F277D46618D4E0CD00028ACD /* BHGroupViewController.m in Sources */,
 				F28F9A0B189C6A27000A46D4 /* BHFoldersViewController.m in Sources */,
@@ -2067,6 +2078,7 @@
 				F26364D819D2366C00E9966A /* BHSyncViewController.m in Sources */,
 				F26537061948D1CE00E21EB4 /* ReportSub.m in Sources */,
 				F298A1C519526B34005B13EA /* BHAddressBookCell.m in Sources */,
+				50D6EC1D1A82FE9D00DAE52E /* Location.m in Sources */,
 				F23AD63A193E2B6E00510290 /* BHItemContactCell.m in Sources */,
 				F204CCA119D5C16D009AC71B /* BHSyncController.m in Sources */,
 				F298A1C219526249005B13EA /* BHAddressBookPickerViewController.m in Sources */,

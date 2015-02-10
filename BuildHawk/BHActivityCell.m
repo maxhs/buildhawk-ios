@@ -33,8 +33,8 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_activityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
-    [_timestampLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_activityLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
+    [_timestampLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
     if (IDIOM != IPAD){
         origWidth = _activityLabel.frame.size.width;

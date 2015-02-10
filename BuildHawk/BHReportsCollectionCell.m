@@ -86,7 +86,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 @synthesize photoScrollView = _photoScrollView; // reference to 
 
 - (void)configureForReport:(NSNumber *)reportId withDateFormatter:(NSDateFormatter *)dateFormatter andNumberFormatter:(NSNumberFormatter *)number withTimeStampFormatter:(NSDateFormatter *)timeStamp withCommentFormatter:(NSDateFormatter *)comment withWidth:(CGFloat)w andHeight:(CGFloat)h {
-    _report = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+    if (reportId){
+        _report = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+    }
     [_reportTableView setReport:_report];
     _project = _report.project;
     
@@ -382,7 +384,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         [cell.reportBodyTextView setFrame:reportNotesFrame];
         
         reportBodyTextView = cell.reportBodyTextView;
-        [reportBodyTextView setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
+        [reportBodyTextView setFont:[UIFont fontWithName:kMyriadPro size:17]];
         
         return cell;
     } else {
@@ -396,7 +398,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 addCommentTextView.tag = indexPath.section;
                 addCommentTextView = addCommentCell.messageTextView;
                 addCommentTextView.delegate = self;
-                [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+                [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
                 [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
                 doneCommentButton = addCommentCell.doneButton;
                 _reportTableView = tableView;
@@ -520,7 +522,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         headerLabel.layer.cornerRadius = 3.f;
         headerLabel.clipsToBounds = YES;
         [headerLabel setBackgroundColor:[UIColor clearColor]];
-        [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         [headerLabel setTextAlignment:NSTextAlignmentCenter];
         [headerLabel setTextColor:[UIColor darkGrayColor]];
         
@@ -528,7 +530,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         
         activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
         [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-        [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         
         NSString *activitiesTitle = tableView.report.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)tableView.report.activities.count];
         [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
@@ -547,7 +549,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
         
         [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-        [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         
         NSString *commentsTitle = tableView.report.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)tableView.report.comments.count];
         [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
@@ -571,7 +573,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
         [headerView setBackgroundColor:[UIColor whiteColor]];
         UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0,0, width,38)];
         [headerLabel setBackgroundColor:kLightestGrayColor];
-        [headerLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+        [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         [headerLabel setTextAlignment:NSTextAlignmentCenter];
         [headerLabel setTextColor:[UIColor darkGrayColor]];
         
@@ -605,7 +607,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerLabelOffset, 0, width*.4, 34)];
                 [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
                 [countLabel setText:@"# HOURS"];
-                [countLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+                [countLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
                 [countLabel setTextColor:[UIColor lightGrayColor]];
                 [countLabel setBackgroundColor:[UIColor whiteColor]];
                 [headerView addSubview:countLabel];
@@ -622,7 +624,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 UILabel *countLabel = [[UILabel alloc] initWithFrame:CGRectMake(centerLabelOffset, 0, width*.4, 34)];
                 [countLabel setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin];
                 [countLabel setText:@"# ON SITE"];
-                [countLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+                [countLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
                 [countLabel setTextColor:[UIColor lightGrayColor]];
                 [headerView addSubview:countLabel];
             }
@@ -652,7 +654,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 }
                 activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
                 [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-                [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+                [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
                 [activityButton setTitle:@"ACTIVITY" forState:UIControlStateNormal];
                 if (activities){
                     [activityButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -665,7 +667,7 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 
                 commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
                 [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-                [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadProRegular size:14]];
+                [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
                 [commentsButton setTitle:@"COMMENTS" forState:UIControlStateNormal];
                 if (activities){
                     [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -926,8 +928,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             [imageButton setImage:photo.image forState:UIControlStateNormal];
         } else if (photo.urlSmall.length){
             [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
-        } else if (photo.urlThumb.length){
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlThumb] forState:UIControlStateNormal placeholderImage:[UIImage imageNamed:@"whiteIcon"]];
         }
         [imageButton setTag:[_report.photos indexOfObject:photo]];
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),reportScrollView.frame.size.height/2-imageSize/2,imageSize, imageSize)];

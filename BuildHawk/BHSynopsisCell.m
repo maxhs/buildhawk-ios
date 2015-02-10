@@ -19,11 +19,10 @@
     return self;
 }
 
-- (void)awakeFromNib
-{
+- (void)awakeFromNib {
     [super awakeFromNib];
-    [_deadlineTextLabel setFont:[UIFont fontWithName:kMyriadProRegular size:17]];
-    [_deadlineTimeLabel setFont:[UIFont fontWithName:kMyriadProIt size:16]];
+    [_deadlineTextLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
+    [_deadlineTimeLabel setFont:[UIFont fontWithName:kMyriadProItalic size:16]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

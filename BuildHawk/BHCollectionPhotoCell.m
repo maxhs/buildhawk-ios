@@ -12,8 +12,7 @@
 
 @implementation BHCollectionPhotoCell
 
-- (id)initWithFrame:(CGRect)frame
-{
+- (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
@@ -30,9 +29,18 @@
 }
 */
 
--(void)configureForPhoto:(Photo*)photo{
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    [_photoButton setAlpha:0.f];
+}
+
+- (void)configureForPhoto:(Photo*)photo{
     [self.photoButton setBackgroundColor:[UIColor clearColor]];
-    [self.photoButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal];
+    [self.photoButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+        [UIView animateWithDuration:.23 animations:^{
+            [self.photoButton setAlpha:1.0];
+        }];
+    }];
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
 }

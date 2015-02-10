@@ -85,6 +85,21 @@
         self.assignees = orderedUsers;
     }
     
+    if ([dictionary objectForKey:@"locations"] && [dictionary objectForKey:@"locations"] != [NSNull null]) {
+        NSMutableOrderedSet *orderedLocations = [NSMutableOrderedSet orderedSet];
+        NSLog(@"task locations %@",[dictionary objectForKey:@"locations"]);
+        for (id dict in [dictionary objectForKey:@"locations"]){
+            NSPredicate *locationPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+            Location *location = [Location MR_findFirstWithPredicate:locationPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!location){
+                location = [Location MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+            [location populateFromDictionary:dict];
+            [orderedLocations addObject:location];
+        }
+        self.locations = orderedLocations;
+    }
+    
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
         NSMutableOrderedSet *orderedComments = [NSMutableOrderedSet orderedSet];
         //NSLog(@"task comments %@",[dictionary objectForKey:@"comments"]);

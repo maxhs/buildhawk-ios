@@ -21,15 +21,15 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_windLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_windTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_precipLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_precipTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_humidityLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_humidityTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_tempLabel setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_tempTextField setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
-    [_dailySummaryTextView setFont:[UIFont fontWithName:kMyriadProRegular size:15]];
+    [_windLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_windTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_precipLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_precipTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_humidityLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_humidityTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_tempLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_tempTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_dailySummaryTextView setFont:[UIFont fontWithName:kMyriadPro size:15]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated

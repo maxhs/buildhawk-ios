@@ -56,7 +56,7 @@ typedef enum {
 
 - (void)commonInit {
     self.tintColor = [UIColor whiteColor];
-    self.font = [UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProRegular] size:0];
+    self.font = [UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0];
     self.calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
     [self setLocale:[NSLocale currentLocale]];
     self.picker = [[UIPickerView alloc] initWithFrame:self.bounds];

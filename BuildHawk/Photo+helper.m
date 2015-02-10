@@ -30,8 +30,8 @@
     if ([dictionary objectForKey:@"url_large"] && [dictionary objectForKey:@"url_large"] != [NSNull null]) {
         self.urlLarge = [dictionary objectForKey:@"url_large"];
     }
-    if ([dictionary objectForKey:@"url_thumb"] && [dictionary objectForKey:@"url_thumb"] != [NSNull null]) {
-        self.urlThumb = [dictionary objectForKey:@"url_thumb"];
+    if ([dictionary objectForKey:@"url_medium"] && [dictionary objectForKey:@"url_medium"] != [NSNull null]) {
+        self.urlMedium = [dictionary objectForKey:@"url_medium"];
     }
     if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];
@@ -94,8 +94,8 @@
     if ([dictionary objectForKey:@"url_large"] && [dictionary objectForKey:@"url_large"] != [NSNull null]) {
         self.urlLarge = [dictionary objectForKey:@"url_large"];
     }
-    if ([dictionary objectForKey:@"url_thumb"] && [dictionary objectForKey:@"url_thumb"] != [NSNull null]) {
-        self.urlThumb = [dictionary objectForKey:@"url_thumb"];
+    if ([dictionary objectForKey:@"url_medium"] && [dictionary objectForKey:@"url_medium"] != [NSNull null]) {
+        self.urlMedium = [dictionary objectForKey:@"url_medium"];
     }
     if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];

@@ -60,7 +60,7 @@
     [footerLabel setTextAlignment:NSTextAlignmentCenter];
     [footerLabel setBackgroundColor:[UIColor clearColor]];
     [footerLabel setTextColor:[UIColor lightGrayColor]];
-    [footerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProRegular] size:0]];
+    [footerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
     self.tableView.tableFooterView = footerLabel;
     
     [self registerForKeyboardNotifications];
@@ -182,7 +182,7 @@
         settingsSwitch.tag = indexPath.row;
         [settingsSwitch addTarget:self action:@selector(switchFlipped:) forControlEvents:UIControlEventValueChanged];
         [cell.actionButton setHidden:YES];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProRegular] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
         switch (indexPath.row) {
             case 0:
             {

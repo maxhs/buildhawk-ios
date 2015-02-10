@@ -7,6 +7,7 @@
 //
 
 #import "BHDashboardGroupCell.h"
+#import "Constants.h"
 
 @implementation BHDashboardGroupCell
 
@@ -19,23 +20,14 @@
     return self;
 }
 
-- (void)awakeFromNib
-{
+- (void)awakeFromNib {
     [super awakeFromNib];
-    if (IDIOM == IPAD) {
-        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:27]];
-        [_groupCountLabel setFont:[UIFont fontWithName:kMyriadProLight size:18]];
-    } else {
-        [_nameLabel setFont:[UIFont fontWithName:kMyriadProLight size:23]];
-        [_groupCountLabel setFont:[UIFont fontWithName:kMyriadProLight size:17]];
-    }
+    [_nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+    [_groupCountLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProLight] size:0]];
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
 }
 
 @end

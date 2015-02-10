@@ -27,6 +27,7 @@
 @property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) NSOrderedSet *reminders;
+@property (nonatomic, retain) NSOrderedSet *locations;
 @property (nonatomic, retain) Project *project;
 @property (nonatomic, retain) User *user;
 @property (nonatomic, retain) Tasklist *tasklist;
