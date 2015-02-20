@@ -59,7 +59,6 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     UIView *photoButtonContainer;
     UIButton *commentsButton;
     UIButton *activityButton;
-    UIRefreshControl *refreshControl;
     UIButton *doneCommentButton;
     Project *_project;
     Report *_report;
@@ -85,9 +84,12 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 @implementation BHReportsCollectionCell
 @synthesize photoScrollView = _photoScrollView; // reference to 
 
-- (void)configureForReport:(NSNumber *)reportId withDateFormatter:(NSDateFormatter *)dateFormatter andNumberFormatter:(NSNumberFormatter *)number withTimeStampFormatter:(NSDateFormatter *)timeStamp withCommentFormatter:(NSDateFormatter *)comment withWidth:(CGFloat)w andHeight:(CGFloat)h {
-    if (reportId){
-        _report = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+- (void)configureForReport:(Report *)report withDateFormatter:(NSDateFormatter *)dateFormatter andNumberFormatter:(NSNumberFormatter *)number withTimeStampFormatter:(NSDateFormatter *)timeStamp withCommentFormatter:(NSDateFormatter *)comment withWidth:(CGFloat)w andHeight:(CGFloat)h {
+    if ([report.identifier isEqualToNumber:@0]){
+        NSPredicate *newReportPredicate = [NSPredicate predicateWithFormat:@"dateString == %@ and type == %@",report.dateString, report.type];
+        _report = [Report MR_findFirstWithPredicate:newReportPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
+    } else {
+        _report = [Report MR_findFirstByAttribute:@"identifier" withValue:report.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     [_reportTableView setReport:_report];
     _project = _report.project;
@@ -102,40 +104,16 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     height = h;
     mainScreen = CGRectMake(0, 0, width, h);
     
-    //set up the refresh controls
-    refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl setTintColor:kDarkGrayColor];
-    [refreshControl addTarget:self action:@selector(refreshReport) forControlEvents:UIControlEventValueChanged];
-    [_reportTableView addSubview:refreshControl];
-    
     if (!_report.wind.length){
         [self loadWeather:[formatter dateFromString:_report.dateString]];
     }
     
-    //default to showing comments and NOT activities
-    activities = NO;
     [_reportTableView reloadData];
-}
-
-- (void)refreshReport {
-    [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_reportTableView.report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success fetching report after refresh: %@",responseObject);
-        [_reportTableView.report populateWithDict:[responseObject objectForKey:@"report"]];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [_reportTableView reloadData];
-        }];
-        [refreshControl endRefreshing];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Error fetching report: %@",error.description);
-        [refreshControl endRefreshing];
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to refresh this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }];
+    [self registerForKeyboardNotifications];
 }
 
 #pragma mark - Table view data source
-
-- (NSInteger)numberOfSectionsInTableView:(BHReportTableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(BHReportTableView *)tableView {
     return 10;
 }
 
@@ -473,9 +451,9 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             break;
         case 8:
             if (IDIOM == IPAD){
-                return 360;
+                return 400;
             } else {
-                return 210;
+                return 270;
             }
             break;
         default:
@@ -787,12 +765,52 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:9] withRowAnimation:UITableViewRowAnimationFade];
 }
 
--(void)textViewDidBeginEditing:(UITextView *)textView {
+- (void)registerForKeyboardNotifications {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillShow:)
+                                                 name:UIKeyboardWillShowNotification object:nil];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(keyboardWillHide:)
+                                                 name:UIKeyboardWillHideNotification object:nil];
+}
+
+- (void)keyboardWillShow:(NSNotification *)notification {
+    NSDictionary* info = [notification userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+    CGRect convertedKeyboardFrame = [_reportTableView convertRect:keyboardValue.CGRectValue fromView:[(BHAppDelegate*)[UIApplication sharedApplication].delegate window]];
+    CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                     }
+                     completion:nil];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    NSDictionary* info = [notification userInfo];
+    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    [UIView animateWithDuration:duration
+                          delay:0
+                        options:curve | UIViewAnimationOptionBeginFromCurrentState
+                     animations:^{
+                         _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                         _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                     } completion:^(BOOL finished) {
+                         [self doneEditing];
+                     }];
+}
+
+-(void)textViewDidBeginEditing:(UITextView *)textView {
     if (_report){
         [_report setSaved:@NO];
     }
-    NSLog(@"text view is beginning to edit");
     
     if ([textView.text isEqualToString:kReportPlaceholder] || [textView.text isEqualToString:kWeatherPlaceholder] || [textView.text isEqualToString:kAddCommentPlaceholder]) {
         [textView setText:@""];

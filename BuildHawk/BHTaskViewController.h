@@ -23,11 +23,14 @@
 @property (strong, nonatomic) NSNumber *taskId;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
+@property (weak, nonatomic) IBOutlet UILabel *locationLabel;
+@property (weak, nonatomic) IBOutlet UILabel *assigneeLabel;
 @property (weak, nonatomic) IBOutlet UIButton *locationButton;
 @property (weak, nonatomic) IBOutlet UIButton *assigneeButton;
 @property (weak, nonatomic) IBOutlet UITextView *itemTextView;
 @property (weak, nonatomic) IBOutlet UIButton *completionButton;
 @property (weak, nonatomic) IBOutlet UIScrollView *photosScrollView;
+@property (weak, nonatomic) IBOutlet UIView *photoBackgroundView;
 @property (weak, nonatomic) IBOutlet UIButton *emailButton;
 @property (weak, nonatomic) IBOutlet UIButton *callButton;
 @property (weak, nonatomic) IBOutlet UIButton *textButton;

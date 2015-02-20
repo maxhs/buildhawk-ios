@@ -11,6 +11,18 @@
 #import "Project.h"
 #import "Task.h"
 #import "Report+helper.h"
+#import "ReportSub+helper.h"
+
+@protocol BHPersonnelPickerDelegate <NSObject>
+
+@optional
+- (void)userAdded:(User*)user;
+- (void)userRemoved:(User*)user;
+- (void)reportSubAdded:(ReportSub*)reportSub;
+- (void)reportSubRemoved:(ReportSub*)reportSub;
+- (void)reportUserAdded:(ReportUser*)reportUser;
+- (void)reportUserRemoved:(ReportUser*)reportUser;
+@end
 
 @interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate>
 
@@ -21,6 +33,7 @@
 @property (strong, nonatomic) NSNumber *projectId;
 @property (strong, nonatomic) NSNumber *taskId;
 @property (strong, nonatomic) NSNumber *reportId;
+@property (weak, nonatomic) id<BHPersonnelPickerDelegate>personnelDelegate;
 @property BOOL phone;
 @property BOOL email;
 @property BOOL text;

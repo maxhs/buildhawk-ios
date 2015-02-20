@@ -20,11 +20,10 @@
 @property (nonatomic, retain) NSDate * completedAt;
 @property (nonatomic, retain) NSDate * createdAt;
 @property (nonatomic, retain) NSNumber * identifier;
-@property (nonatomic, retain) NSString * location;
+@property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *activities;
 @property (nonatomic, retain) NSOrderedSet *assignees;
 @property (nonatomic, retain) NSOrderedSet *comments;
-@property (nonatomic, retain) Notification *notification;
 @property (nonatomic, retain) NSOrderedSet *photos;
 @property (nonatomic, retain) NSOrderedSet *reminders;
 @property (nonatomic, retain) NSOrderedSet *locations;

@@ -35,5 +35,5 @@
 @property (weak, nonatomic) id <BHReportCellDelegate> delegate;
 @property BOOL canPrefill;
 
-- (void)configureForReport:(NSNumber*)reportId withDateFormatter:(NSDateFormatter*)dateFormatter andNumberFormatter:(NSNumberFormatter*)numberFormatter withTimeStampFormatter:(NSDateFormatter*)timeStampFormatter withCommentFormatter:(NSDateFormatter*)commentFormatter withWidth:(CGFloat)width andHeight:(CGFloat)height;
+- (void)configureForReport:(Report*)report withDateFormatter:(NSDateFormatter*)dateFormatter andNumberFormatter:(NSNumberFormatter*)numberFormatter withTimeStampFormatter:(NSDateFormatter*)timeStampFormatter withCommentFormatter:(NSDateFormatter*)commentFormatter withWidth:(CGFloat)width andHeight:(CGFloat)height;
 @end

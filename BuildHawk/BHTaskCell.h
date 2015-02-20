@@ -11,6 +11,7 @@
 
 @interface BHTaskCell : UITableViewCell
 
+@property (weak, nonatomic) IBOutlet UIView *colorView;
 @property (weak, nonatomic) IBOutlet UILabel *itemLabel;
 @property (weak, nonatomic) IBOutlet UILabel *ownerLabel;
 @property (weak, nonatomic) IBOutlet UILabel *createdLabel;

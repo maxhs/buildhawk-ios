@@ -28,8 +28,7 @@
     UIAlertView *companyAlertView;
     User *selectedUser;
     Company *selectedCompany;
-    UIBarButtonItem *doneButton;
-    UIBarButtonItem *cancelButton;
+    UIBarButtonItem *doneBarButtonItem;
     NSArray *peopleArray;
     BOOL loading;
     BOOL searching;
@@ -71,9 +70,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
     
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(save)];
-    self.navigationItem.rightBarButtonItem = doneButton;
-    cancelButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(doneEditing)];
+    doneBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
 
     self.tableView.tableHeaderView = self.searchBar;
     
@@ -128,11 +125,10 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)loadPersonnel {
     [ProgressHUD show:@"Fetching personnel..."];
-    [manager GET:[NSString stringWithFormat:@"%@/projects/%@",kApiBaseUrl,_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"projects/%@/users",_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success loading project personnel: %@",responseObject);
-        [_project updateFromDictionary:[responseObject objectForKey:@"project"]];
+        [_project updateFromDictionary:responseObject];
         loading = NO;
-        
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             //NSLog(@"%u success with saving project subs",success);
             [ProgressHUD dismiss];
@@ -188,8 +184,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         [filteredUsers addObjectsFromArray:_project.users.array];
     }
     if (shouldReload) [self.tableView reloadData];
-    
-    self.navigationItem.rightBarButtonItem = cancelButton;
+    self.navigationItem.rightBarButtonItem = doneBarButtonItem;
 }
 
 - (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar {
@@ -223,7 +218,33 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     searching = NO;
     [self.searchBar setText:@""];
     [self.tableView reloadData];
-    self.navigationItem.rightBarButtonItem = doneButton;
+}
+
+- (void)removeAll {
+    if (_task) {
+        if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(userRemoved:)]){
+            [_task.assignees enumerateObjectsUsingBlock:^(User *user, NSUInteger idx, BOOL *stop) {
+                [self.personnelDelegate userRemoved:user];
+            }];
+        }
+        
+    } else if (_report){
+        if (_companyMode){
+            if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportSubRemoved:)]){
+                NSLog(@"company mode remove all from report");
+                [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
+                    [self.personnelDelegate reportSubRemoved:reportSub];
+                }];
+            }
+        } else {
+            if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportUserRemoved:)]){
+                NSLog(@"report user mode remove all from report");
+                [_report.reportUsers enumerateObjectsUsingBlock:^(ReportUser *reportUser, NSUInteger idx, BOOL *stop) {
+                    [self.personnelDelegate reportUserRemoved:reportUser];
+                }];
+            }
+        }
+    }
 }
 
 #pragma mark - Table view data source
@@ -617,7 +638,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                    [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
 
                 } else if (self.phone) {
-                    
                     if (selectedUser.phone.length) {
                         [self.navigationController popViewControllerAnimated:YES];
                         [[NSNotificationCenter defaultCenter] postNotificationName:@"PlaceCall" object:nil userInfo:@{@"number":selectedUser.phone}];
@@ -675,7 +695,18 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                         *stop = YES;
                     }
                 }];
-                remove ? [_task removeAssignee:selectedUser] : [_task addAssignee:selectedUser];
+                if (remove){
+                    [_task removeAssignee:selectedUser];
+                    if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(userRemoved:)]){
+                        [self.personnelDelegate userRemoved:selectedUser];
+                    }
+                } else {
+                    [_task addAssignee:selectedUser];
+                    if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(userAdded:)]){
+                        [self.personnelDelegate userAdded:selectedUser];
+                    }
+                }
+            
                 [self.tableView reloadRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
             }
         }
@@ -769,6 +800,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [_report removeReportSubcontractor:reportSub];
             [reportSub MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             NSLog(@"should be removing a report sub");
+            if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportSubRemoved:)]){
+                [self.personnelDelegate reportSubRemoved:reportSub];
+            }
             select = NO;
             break;
         }
@@ -784,15 +818,18 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 }
 
 - (void)selectUser {
-    BOOL select = YES;
-    for (ReportUser *reportUser in _report.reportUsers) {
+    __block BOOL select = YES;
+    [_report.reportUsers enumerateObjectsUsingBlock:^(ReportUser *reportUser, NSUInteger idx, BOOL *stop) {
         if ([selectedUser.identifier isEqualToNumber:reportUser.userId]){
             [_report removeReportUser:reportUser];
             [reportUser MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportUserRemoved:)]){
+                [self.personnelDelegate reportUserRemoved:reportUser];
+            }
             select = NO;
-            break;
+            *stop = YES;
         }
-    }
+    }];
     if (select){
         if (userAlertView == nil){
             userAlertView = [[UIAlertView alloc] initWithTitle:@"# of Hours Worked" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
@@ -800,7 +837,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         
         //resign all other first responders, otherwise the keyboard may not come up properly because something else is mysteriously the first responder
         [self.view endEditing:YES];
-        
         userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
         [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
         [userAlertView show];
@@ -839,6 +875,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     reportUser.fullname = selectedUser.fullname;
     reportUser.userId = selectedUser.identifier;
     [_report addReportUser:reportUser];
+    if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportUserAdded:)]){
+        [self.personnelDelegate reportUserAdded:reportUser];
+    }
     [self.tableView reloadData];
 }
 
@@ -848,6 +887,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     reportSub.name = selectedCompany.name;
     reportSub.companyId = selectedCompany.identifier;
     [_report addReportSubcontractor:reportSub];
+    if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportSubAdded:)]){
+        [self.personnelDelegate reportSubAdded:reportSub];
+    }
     [self.tableView reloadData];
 }
 
@@ -895,6 +937,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
+    [self save];
     self.email = NO;
     self.phone = NO;
 }

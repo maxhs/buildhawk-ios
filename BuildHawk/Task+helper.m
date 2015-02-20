@@ -13,6 +13,7 @@
 #import "Project+helper.h"
 #import "Photo+helper.h"
 #import "BHAppDelegate.h"
+#import "NSArray+toSentence.h"
 
 @implementation Task (helper)
 
@@ -23,9 +24,6 @@
     }
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"] != [NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
-    }
-    if ([dictionary objectForKey:@"location"] && [dictionary objectForKey:@"location"] != [NSNull null]) {
-        self.location = [dictionary objectForKey:@"location"];
     }
     if ([dictionary objectForKey:@"project"] && [dictionary objectForKey:@"project"] != [NSNull null]) {
         NSDictionary *projectDict = [dictionary objectForKey:@"project"];
@@ -87,7 +85,7 @@
     
     if ([dictionary objectForKey:@"locations"] && [dictionary objectForKey:@"locations"] != [NSNull null]) {
         NSMutableOrderedSet *orderedLocations = [NSMutableOrderedSet orderedSet];
-        NSLog(@"task locations %@",[dictionary objectForKey:@"locations"]);
+        //NSLog(@"task locations %@",[dictionary objectForKey:@"locations"]);
         for (id dict in [dictionary objectForKey:@"locations"]){
             NSPredicate *locationPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
             Location *location = [Location MR_findFirstWithPredicate:locationPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -205,6 +203,14 @@
     self.assignees = set;
 }
 
+- (NSString *)assigneesToSentence {
+    NSMutableArray *names = [NSMutableArray arrayWithCapacity:self.assignees.count];
+    [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+        [names addObject:assignee.fullname];
+    }];
+    return [names toSentence];
+}
+
 -(void)addActivity:(Activity *)activity {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
     [set addObject:activity];
@@ -216,27 +222,50 @@
     self.activities = set;
 }
 
+-(void)addLocation:(Location *)location {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.locations];
+    [set addObject:location];
+    self.locations = set;
+}
+-(void)removeLocation:(Location *)location {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.locations];
+    [set removeObject:location];
+    self.locations = set;
+}
+
+- (NSString *)locationsToSentence {
+    NSMutableArray *names = [NSMutableArray arrayWithCapacity:self.locations.count];
+    [self.locations enumerateObjectsUsingBlock:^(Location *location, NSUInteger idx, BOOL *stop) {
+        [names addObject:location.name];
+    }];
+    return [names toSentence];
+}
+
 - (void)synchWithServer:(synchCompletion)complete {
     if (self && self.body){
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
         
         [parameters setObject:self.body forKey:@"body"];
-        if (self.location.length){
-            NSLog(@"what's self.location? %@",self.location);
-            [parameters setObject:self.location forKey:@"location"];
-        }
-        if (self.assignees.count){
-            NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
-            [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
-                if ([assignee.identifier isEqualToNumber:@0]){
-                    [assignee MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-                } else {
-                    [assigneeIds addObject:assignee.identifier];
-                }
-            }];
-            [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"assignee_ids"];
-        }
+        
+        NSMutableArray *locationIds = [NSMutableArray arrayWithCapacity:self.locations.count];
+        [self.locations enumerateObjectsUsingBlock:^(Location *location, NSUInteger idx, BOOL *stop) {
+            if (![location.identifier isEqualToNumber:@0]){
+                [locationIds addObject:location.identifier];
+            }
+        }];
+        [parameters setObject:locationIds forKey:@"location_ids"];
+        
+        NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
+        [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+            if ([assignee.identifier isEqualToNumber:@0]){
+                [assignee MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            } else {
+                [assigneeIds addObject:assignee.identifier];
+            }
+        }];
+        [parameters setObject:assigneeIds forKey:@"assignee_ids"];
+        
         if ([self.completed isEqualToNumber:@YES]){
             [parameters setObject:@YES forKey:@"completed"];
             [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];

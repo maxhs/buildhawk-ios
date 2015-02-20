@@ -38,7 +38,7 @@
 @end
 
 @interface MWPhotoBrowser : UIViewController <UIScrollViewDelegate, UIActionSheetDelegate, MFMailComposeViewControllerDelegate>
-
+@property (strong, nonatomic) Project *project;
 @property (nonatomic, weak) IBOutlet id<MWPhotoBrowserDelegate> delegate;
 @property (nonatomic) BOOL zoomPhotosToFill;
 @property (nonatomic) BOOL displayNavArrows;

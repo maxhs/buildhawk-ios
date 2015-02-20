@@ -25,6 +25,7 @@
 #import "Comment+helper.h"
 #import "BHAppDelegate.h"
 #import "BHActivityCell.h"
+#import "BHLocationsViewController.h"
 
 static NSString *assigneePlaceholder = @"Assign task";
 static NSString *locationPlaceholder = @"Select location";
@@ -35,7 +36,7 @@ typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *erro
 typedef void(^RequestFailure)(NSError *error);
 typedef void(^RequestSuccess)(id result);
 
-@interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate> {
+@interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate, BHLocationsDelegate, BHPersonnelPickerDelegate> {
     BOOL saveToLibrary;
     UIActionSheet *locationActionSheet;
     BHAppDelegate *appDelegate;
@@ -46,7 +47,6 @@ typedef void(^RequestSuccess)(id result);
     UIBarButtonItem *saveButton;
     UIBarButtonItem *createButton;
     UIBarButtonItem *doneEditingButton;
-    UIAlertView *addOtherAlertView;
     NSInteger photoIdx;
     NSMutableArray *browserPhotos;
     UITextView *addCommentTextView;
@@ -136,6 +136,22 @@ typedef void(^RequestSuccess)(id result);
     [self.itemTextView setText:itemPlaceholder];
     library = [[ALAssetsLibrary alloc] init];
     
+    // set location and assignee titles and colors
+    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [_locationButton setBackgroundColor:kLightestGrayColor];
+    [_locationLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoLight] size:0]];
+    [_locationLabel setTextColor:[UIColor darkGrayColor]];
+    [_locationLabel setText:@"LOCATION(S)"];
+    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+    [_assigneeButton setBackgroundColor:kLightestGrayColor];
+    [_assigneeLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoLight] size:0]];
+    [_assigneeLabel setTextColor:[UIColor darkGrayColor]];
+    [_assigneeLabel setText:@"ASSIGNEE(S)"];
+    
+    [_photoBackgroundView setBackgroundColor:kLightestGrayColor];
+    
     //notifications
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(assignTask:) name:@"AssignTask" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
@@ -147,14 +163,6 @@ typedef void(^RequestSuccess)(id result);
         
     } else {
         CGFloat originX = width/2 - _locationButton.frame.size.width/2;
-        CGRect locationButtonRect = _locationButton.frame;
-        locationButtonRect.origin.x = originX;
-        [_locationButton setFrame:locationButtonRect];
-        
-        CGRect assigneeButtonRect = _assigneeButton.frame;
-        assigneeButtonRect.origin.x = originX;
-        [_assigneeButton setFrame:assigneeButtonRect];
-    
         // reset action buttons, if necessary
         CGFloat differential = _emailButton.frame.origin.x - originX;
         if (differential > 0){
@@ -163,12 +171,6 @@ typedef void(^RequestSuccess)(id result);
             _textButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
         }
     }
-    
-    // set location and assignee titles and colors
-    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
-    [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
-    [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
     
     CGFloat completionButtonWidth = _completionButton.frame.size.width;
     CGRect itemTextViewRect = _itemTextView.frame;
@@ -179,8 +181,8 @@ typedef void(^RequestSuccess)(id result);
     completionButtonFrame.origin.x = itemTextViewRect.size.width;
     [_completionButton setFrame:completionButtonFrame];
     
-    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
-    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     
     if (_task.body.length) {
         [self.itemTextView setText:_task.body];
@@ -191,27 +193,15 @@ typedef void(^RequestSuccess)(id result);
     if ([_task.completed isEqualToNumber:@YES]) {
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [self.completionButton setTitle:@"Completed" forState:UIControlStateNormal];
+        [self.completionButton setTitle:@"COMPLETED" forState:UIControlStateNormal];
     } else {
         [self.completionButton setBackgroundColor:[UIColor whiteColor]];
         [self.completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [self.completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
+        [self.completionButton setTitle:@"MARK COMPLETE" forState:UIControlStateNormal];
     }
     
-    if (_task.location && _task.location.length) {
-        [_locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",_task.location] forState:UIControlStateNormal];
-    } else {
-        [_locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
-    }
-    if (_task.assignees.count) {
-        if (_task.assignees.count == 1){
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"ASSIGNED: %@",[(User*)[_task.assignees firstObject] fullname]] forState:UIControlStateNormal];
-        } else {
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned to %lu personnel",(unsigned long)_task.assignees.count] forState:UIControlStateNormal];
-        }
-    } else {
-        [self.assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
-    }
+    [self setLocationString];
+    [self setAssigneeString];
     
 }
 
@@ -248,8 +238,7 @@ typedef void(^RequestSuccess)(id result);
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
-    }
-    else return 1;
+    } else return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -452,20 +441,6 @@ typedef void(^RequestSuccess)(id result);
     activities = NO;
     [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
 }
-
-/*- (void)assignTask:(NSNotification*)notification {
-    NSDictionary *info = [notification userInfo];
-    if ([info objectForKey:@"user"]){
-        User *user = [info objectForKey:@"user"];
-        NSOrderedSet *assigneeSet = [NSOrderedSet orderedSetWithObject:user];
-        _task.assignees = assigneeSet;
-        if (user.fullname.length){
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.fullname] forState:UIControlStateNormal];
-        } else if (user.firstName.length){
-            [self.assigneeButton setTitle:[NSString stringWithFormat:@"Assigned: %@",user.firstName] forState:UIControlStateNormal];
-        }
-    }
-}*/
 
 - (IBAction)completionTapped{
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
@@ -763,7 +738,7 @@ typedef void(^RequestSuccess)(id result);
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-
+    [browser setProject:_project];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
@@ -794,25 +769,67 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's location." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         [_task setSaved:@NO];
-        locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Choose Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-        for (Location *location in locationSet) {
-            [locationActionSheet addButtonWithTitle:location.name];
-        }
-        [locationActionSheet addButtonWithTitle:kAddOther];
-        if (![_locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-            locationActionSheet.destructiveButtonIndex = [locationActionSheet addButtonWithTitle:@"Remove location"];
-        }
-        locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];
-        [locationActionSheet showInView:self.view];
+        [self performSegueWithIdentifier:@"SetLocation" sender:nil];
     }
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
-    BHPersonnelPickerViewController *vc = [segue destinationViewController];
-    [vc setProjectId:_project.identifier];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
+        BHPersonnelPickerViewController *vc = [segue destinationViewController];
+        vc.personnelDelegate = self;
+        [vc setProjectId:_project.identifier];
         [vc setTaskId:_task.identifier];
+    } else if ([segue.identifier isEqualToString:@"SetLocation"]){
+        BHLocationsViewController *vc = [segue destinationViewController];
+        vc.locationsDelegate = self;
+        [vc setTaskId:_task.identifier];
+    }
+}
+
+- (void)locationAdded:(Location *)location {
+    [_task addLocation:location];
+    [self setLocationString];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        
+    }];
+}
+
+- (void)locationRemoved:(Location *)location {
+    [_task removeLocation:location];
+    [self setLocationString];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        
+    }];
+}
+
+- (void)setLocationString {
+    if (_task.locations.count == 1) {
+        [_locationButton setTitle:[(Location*)_task.locations.firstObject name] forState:UIControlStateNormal];
+    } else if (_task.locations.count) {
+        [_locationButton setTitle:_task.locationsToSentence forState:UIControlStateNormal];
+    } else {
+        [_locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
+    }
+}
+
+- (void)userAdded:(User *)user {
+    [_task addAssignee:user];
+    [self setLocationString];
+}
+
+- (void)userRemoved:(User *)user {
+    [_task removeAssignee:user];
+    [self setAssigneeString];
+}
+
+- (void)setAssigneeString {
+    if (_task.assignees.count == 1) {
+        [_assigneeButton setTitle:[(User*)_task.assignees.firstObject fullname] forState:UIControlStateNormal];
+    } else if (_task.assignees.count) {
+        [_assigneeButton setTitle:_task.assigneesToSentence forState:UIControlStateNormal];
+    } else {
+        [_assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
     }
 }
 
@@ -838,18 +855,7 @@ typedef void(^RequestSuccess)(id result);
         if (_connectMode){
             [_task setApproved:@NO];
         }
-        
-        NSString *strippedLocationString;
-        if (![_locationButton.titleLabel.text isEqualToString:locationPlaceholder]){
-            strippedLocationString = [[_locationButton.titleLabel.text stringByReplacingOccurrencesOfString:@"LOCATION: " withString:@""] stringByTrimmingCharactersInSet:
-                                      [NSCharacterSet whitespaceCharacterSet]];
-            if (strippedLocationString.length) {
-                [parameters setObject:strippedLocationString forKey:@"location"];
-                _task.location = strippedLocationString;
-            }
-        } else {
-            _task.location = nil;
-        }
+
         
         BOOL isNew;
         if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
@@ -1068,23 +1074,8 @@ typedef void(^RequestSuccess)(id result);
             }
         }
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user may not have an email address on file with BuildHawk" delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Remove location"]) {
-        [_locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
-        _task.location = nil;
     } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Reassign"]) {
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
-    } else if (actionSheet == locationActionSheet && ![[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Cancel"]) {
-        NSString *buttonTitle = [actionSheet buttonTitleAtIndex:buttonIndex];
-        if (buttonTitle.length) {
-            if ([buttonTitle isEqualToString:kAddOther]) {
-                addOtherAlertView = [[UIAlertView alloc] initWithTitle:@"Add another location" message:@"Enter location name(s):" delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
-                addOtherAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
-                [addOtherAlertView show];
-            } else {
-                [_task setLocation:buttonTitle];
-                [_locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",buttonTitle] forState:UIControlStateNormal];
-            }
-        }
     }
 }
 
@@ -1139,13 +1130,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (alertView == addOtherAlertView) {
-        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Submit"]) {
-            NSString *newLocationString = [[alertView textFieldAtIndex:0] text];
-            [_task setLocation:newLocationString];
-            [_locationButton setTitle:[NSString stringWithFormat:@"LOCATION: %@",newLocationString] forState:UIControlStateNormal];
-        }
-    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
+    if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self sendItem];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         // only get rid of it if it's a new task

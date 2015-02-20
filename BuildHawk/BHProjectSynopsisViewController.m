@@ -702,7 +702,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-
+    [browser setProject:_project];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];

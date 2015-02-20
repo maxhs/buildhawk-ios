@@ -22,6 +22,8 @@
     UIWebView *webView;
 }
 
+@synthesize project = _project;
+
 #pragma mark - Init
 
 - (id)init {
@@ -186,16 +188,23 @@
     if (self.displayActionButton) {
         _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"zoom"] style:UIBarButtonItemStylePlain target:self action:@selector(actionButtonPressed:)];
         _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -10);
+        
+        UIBarButtonItem *exportButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(export)];
+        
         if (self.displayTrashButton){
             UIBarButtonItem *trashButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash target:self action:@selector(confirmRemove)];
-            self.navigationItem.rightBarButtonItems = @[trashButton, _actionButton];
+            self.navigationItem.rightBarButtonItems = @[trashButton, exportButton, _actionButton];
         } else {
-            self.navigationItem.rightBarButtonItem = _actionButton;
+            self.navigationItem.rightBarButtonItems = @[exportButton, _actionButton];
         }
     }
-    
+
     [self reloadData];
     [super viewDidLoad];
+}
+
+- (void)export {
+    [self emailPhoto];
 }
 
 - (void)confirmRemove {
@@ -358,7 +367,6 @@
     _toolbar = nil;
     _previousButton = nil;
     _nextButton = nil;
-    _progressHUD = nil;
     [super viewDidUnload];
 }
 
@@ -1552,41 +1560,25 @@
 
 #pragma mark - Action Progress
 
-- (MBProgressHUD *)progressHUD {
-    if (!_progressHUD) {
-        _progressHUD = [[MBProgressHUD alloc] initWithView:self.view];
-        _progressHUD.minSize = CGSizeMake(120, 120);
-        _progressHUD.minShowTime = 1;
-        // The sample image is based on the
-        // work by: http://www.pixelpressicons.com
-        // licence: http://creativecommons.org/licenses/by/2.5/ca/
-        self.progressHUD.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"MWPhotoBrowser.bundle/images/Checkmark.png"]];
-        [self.view addSubview:_progressHUD];
-    }
-    return _progressHUD;
-}
-
 - (void)showProgressHUDWithMessage:(NSString *)message {
-    self.progressHUD.labelText = message;
-    self.progressHUD.mode = MBProgressHUDModeIndeterminate;
-    [self.progressHUD show:YES];
+    [ProgressHUD show:message];
     self.navigationController.navigationBar.userInteractionEnabled = NO;
 }
 
 - (void)hideProgressHUD:(BOOL)animated {
-    [self.progressHUD hide:animated];
+    [ProgressHUD dismiss];
     self.navigationController.navigationBar.userInteractionEnabled = YES;
 }
 
 - (void)showProgressHUDCompleteMessage:(NSString *)message {
-    if (message) {
-        if (self.progressHUD.isHidden) [self.progressHUD show:YES];
-        self.progressHUD.labelText = message;
-        self.progressHUD.mode = MBProgressHUDModeCustomView;
-        [self.progressHUD hide:YES afterDelay:1.5];
-    } else {
-        [self.progressHUD hide:YES];
-    }
+//    if (message) {
+//        if (self.progressHUD.isHidden) [self.progressHUD show:YES];
+//        self.progressHUD.labelText = message;
+//        self.progressHUD.mode = MBProgressHUDModeCustomView;
+//        [self.progressHUD hide:YES afterDelay:1.5];
+//    } else {
+//        [self.progressHUD hide:YES];
+//    }
     self.navigationController.navigationBar.userInteractionEnabled = YES;
 }
 
@@ -1632,22 +1624,32 @@
 - (void)emailPhoto {
     id <MWPhoto> photo = [self photoAtIndex:_currentPageIndex];
     if ([photo underlyingImage]) {
-        [self showProgressHUDWithMessage:[NSString stringWithFormat:@"%@\u2026" , NSLocalizedString(@"Preparing", @"Displayed with ellipsis as 'Preparing...' when an item is in the process of being prepared")]];
-        [self performSelector:@selector(actuallyEmailPhoto:) withObject:photo afterDelay:0];
+        [ProgressHUD show:@"Preparing document..."];
+        dispatch_async(dispatch_get_main_queue(), ^(void){
+            [self actuallyEmailPhoto:photo];
+        });
     }
 }
 
-- (void)actuallyEmailPhoto:(id<MWPhoto>)photo {
+- (void)actuallyEmailPhoto:(MWPhoto*)photo {
     if ([photo underlyingImage]) {
         MFMailComposeViewController *emailer = [[MFMailComposeViewController alloc] init];
         emailer.mailComposeDelegate = self;
-        [emailer setSubject:NSLocalizedString(@"Photo", nil)];
-        [emailer addAttachmentData:UIImagePNGRepresentation([photo underlyingImage]) mimeType:@"png" fileName:@"Photo.png"];
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        [emailer setSubject:[NSString stringWithFormat:@"%@ \"%@\"",_project.name, photo.photo.fileName]];
+        if ([photo.photo.original rangeOfString:@"pdf"].location == NSNotFound){
+            [emailer addAttachmentData:UIImagePNGRepresentation([photo underlyingImage]) mimeType:@"png" fileName:photo.photo.fileName];
+        } else {
+            NSData *pdfData = [NSData dataWithContentsOfURL:[NSURL URLWithString:photo.photo.original]];
+            [emailer addAttachmentData:pdfData mimeType:@"application/pdf" fileName:photo.photo.fileName];
+        }
+        
+        if (IDIOM == IPAD) {
             emailer.modalPresentationStyle = UIModalPresentationPageSheet;
         }
-        [self presentViewController:emailer animated:YES completion:nil];
-        [self hideProgressHUD:NO];
+        [self presentViewController:emailer animated:YES completion:^{
+            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+            [self hideProgressHUD:NO];
+        }];
     }
 }
 

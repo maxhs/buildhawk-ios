@@ -61,7 +61,7 @@
         [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
         [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
     } else {
-        [_itemLabel setTextColor:kElectricBlue];
+        [_itemLabel setTextColor:[UIColor blackColor]];
         [_createdLabel setTextColor:[UIColor blackColor]];
         [_ownerLabel setTextColor:[UIColor blackColor]];
         [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProItalic] size:0]];

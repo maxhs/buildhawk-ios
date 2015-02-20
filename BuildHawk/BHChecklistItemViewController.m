@@ -620,7 +620,6 @@
     NSString *destinationEmail = [notification.userInfo objectForKey:@"email"];
     if (destinationEmail && destinationEmail.length){
         if ([MFMailComposeViewController canSendMail]) {
-            //if (IDIOM != IPAD) [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
             MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
             [controller setSubject:[NSString stringWithFormat:@"%@",_item.body]];
@@ -644,7 +643,9 @@
 {
     //if (result == MFMailComposeResultSent) {}
     //if (IDIOM != IPAD) [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
-    [self dismissViewControllerAnimated:YES completion:nil];
+    [self dismissViewControllerAnimated:YES completion:^{
+        //[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    }];
 }
 
 - (void)sendText:(NSNotification*)notification {
@@ -1015,7 +1016,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-    
+    [browser setProject:_project];
     [browser setCurrentPhotoIndex:idx];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];

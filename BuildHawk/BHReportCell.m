@@ -28,11 +28,10 @@
     [_reportLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
     [_reportLabel setTextColor:[UIColor blackColor]];
     
-    [_authorLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
-    [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
-    [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoItalic] size:0]];
-    [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
-    [_photoCountBubble setBackgroundColor:kDarkerGrayColor];
+    [_authorLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+    [_personnelLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+    [_notesLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+    [_photoCountBubble setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     [_photoCountBubble setTextColor:[UIColor whiteColor]];
 }
 
@@ -85,11 +84,16 @@
     }
     
     if ([report.type isEqualToString:kDaily]){
-        [self setBackgroundColor:kDailyReportColor];
+        [_colorView setBackgroundColor:kDailyReportColor];
+        [_photoCountBubble setBackgroundColor:kDailyReportColor];
     } else if ([report.type isEqualToString:kWeekly]){
-        [self setBackgroundColor:kWeeklyReportColor];
+        [_colorView setBackgroundColor:kWeeklyReportColor];
+        [_photoCountBubble setBackgroundColor:kWeeklyReportColor];
     } else if ([report.type isEqualToString:kSafety]){
-        [self setBackgroundColor:kSafetyReportColor];
+        [_colorView setBackgroundColor:kSafetyReportColor];
+        [_photoCountBubble setBackgroundColor:kSafetyReportColor];
     }
+    
+    [_colorView setFrame:CGRectMake(0, 0, 8, self.frame.size.height)];
 }
 @end

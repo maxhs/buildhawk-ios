@@ -72,7 +72,7 @@
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
     Photo *photo = [_photosArray objectAtIndex:indexPath.row];
-    [cell.docLabel setText:photo.name];
+    [cell.docLabel setText:photo.fileName];
     
     [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
     cell.photoButton.imageView.clipsToBounds = YES;
@@ -127,7 +127,7 @@
         BHWebViewController *vc = [segue destinationViewController];
         Photo *photo = [_photosArray objectAtIndex:indexPath.row];
         [vc setPhoto:photo];
-        if (photo.name) [vc setTitle:photo.name];
+        if (photo.fileName) [vc setTitle:photo.fileName];
     }
 }
 
@@ -153,7 +153,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = YES;
-    
+    [browser setProject:project];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];

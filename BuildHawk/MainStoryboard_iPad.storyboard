@@ -230,7 +230,7 @@
                                     <subviews>
                                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleAspectFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Ard-so-aFe">
                                             <rect key="frame" x="0.0" y="0.0" width="109" height="109"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                             <state key="normal">
                                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
@@ -597,11 +597,66 @@
                         <outlet property="taskContainerView" destination="v94-GW-Bch" id="tXH-5x-yPa"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="PersonnelPicker" id="bd7-Rv-hQV"/>
+                        <segue destination="p01-q5-6Vw" kind="push" identifier="SelectLocation" id="he4-Ze-veJ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w2d-zW-wTP" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="5348" y="1550"/>
+        </scene>
+        <!--Locations View Controller-->
+        <scene sceneID="s0C-Ic-iOG">
+            <objects>
+                <viewController storyboardIdentifier="Locations" id="p01-q5-6Vw" customClass="BHLocationsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Tlm-Wl-ZWJ">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="8sk-gr-i1Y">
+                                <rect key="frame" x="5" y="0.0" width="768" height="960"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="YWv-me-Tk6">
+                                    <size key="itemSize" width="50" height="50"/>
+                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
+                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
+                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
+                                </collectionViewFlowLayout>
+                                <searchBar key="backgroundView" contentMode="redraw" id="aP8-fH-ZSR">
+                                    <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                    <textInputTraits key="textInputTraits"/>
+                                    <connections>
+                                        <outlet property="delegate" destination="p01-q5-6Vw" id="6ED-hC-CAs"/>
+                                    </connections>
+                                </searchBar>
+                                <cells>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="LocationCell" id="snO-iA-6pw" customClass="BHLocationCell">
+                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                                            <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                        </view>
+                                    </collectionViewCell>
+                                </cells>
+                                <connections>
+                                    <outlet property="dataSource" destination="p01-q5-6Vw" id="cqA-pQ-IeM"/>
+                                    <outlet property="delegate" destination="p01-q5-6Vw" id="bff-cq-2mO"/>
+                                </connections>
+                            </collectionView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="WOR-Oy-hdF"/>
+                    <connections>
+                        <outlet property="collectionView" destination="8sk-gr-i1Y" id="Nxd-nU-Rin"/>
+                        <outlet property="searchBar" destination="aP8-fH-ZSR" id="Ocz-4V-5CF"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="4jI-wp-AHd" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="6220" y="1550"/>
         </scene>
         <!--Web View Controller-->
         <scene sceneID="U3X-5R-x2S">
@@ -660,6 +715,11 @@
                                             <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
+                                                <view contentMode="scaleToFill" id="4dz-6m-AAt">
+                                                    <rect key="frame" x="0.0" y="0.0" width="8" height="90"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" heightSizable="YES"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                </view>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="SQh-KC-MDO" userLabel="Report Title Label">
                                                     <rect key="frame" x="10" y="5" width="670" height="21"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -696,7 +756,7 @@
                                                     </state>
                                                 </button>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="QGa-fx-eDC" userLabel="Count Label">
-                                                    <rect key="frame" x="674" y="32" width="25" height="25"/>
+                                                    <rect key="frame" x="673" y="21" width="31" height="31"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                                     <nil key="highlightedColor"/>
@@ -705,6 +765,7 @@
                                         </tableViewCellContentView>
                                         <connections>
                                             <outlet property="authorLabel" destination="FRD-J7-mZC" id="wjb-mX-Ve5"/>
+                                            <outlet property="colorView" destination="4dz-6m-AAt" id="euq-O2-4iV"/>
                                             <outlet property="notesLabel" destination="xpI-Ds-fdE" id="PNt-yD-nSw"/>
                                             <outlet property="personnelLabel" destination="DHE-BY-SO4" id="IT5-Tg-aAK"/>
                                             <outlet property="photoButton" destination="XjX-rz-SqQ" id="Oj6-EX-2Gm"/>
@@ -737,7 +798,7 @@
                                         <rect key="frame" x="612" y="10" width="151" height="40"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                        <state key="normal" title="+  REPORT">
+                                        <state key="normal" image="plusWhite.png">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </state>
@@ -746,7 +807,7 @@
                                         <rect key="frame" x="460" y="1" width="150" height="59"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxX="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="13"/>
-                                        <state key="normal" title="CALENDAR">
+                                        <state key="normal" image="calendarWhite.png">
                                             <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </state>
@@ -879,7 +940,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" id="nKh-cx-GM2">
-                                                                        <rect key="frame" x="0.0" y="-2" width="6682" height="502"/>
+                                                                        <rect key="frame" x="0.0" y="-2" width="8986" height="502"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <subviews>
                                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="2hF-5W-u9t">
@@ -1055,7 +1116,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cfI-cw-MpH">
-                                                                        <rect key="frame" x="48" y="6" width="3742" height="54"/>
+                                                                        <rect key="frame" x="48" y="6" width="6046" height="54"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -1107,7 +1168,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="c0D-cc-hv7" customClass="BHReportPhotoScrollView">
-                                                                        <rect key="frame" x="148" y="11" width="4934" height="76"/>
+                                                                        <rect key="frame" x="148" y="11" width="7238" height="76"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                         <connections>
@@ -1144,14 +1205,14 @@
                                                                 <outlet property="photoScrollView" destination="c0D-cc-hv7" id="Lmf-1N-4CJ"/>
                                                             </connections>
                                                         </tableViewCell>
-                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportSectionCell" rowHeight="210" id="txB-lw-ZnZ" customClass="BHReportSectionCell">
+                                                        <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ReportSectionCell" rowHeight="270" id="txB-lw-ZnZ" customClass="BHReportSectionCell">
                                                             <autoresizingMask key="autoresizingMask"/>
                                                             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="txB-lw-ZnZ" id="Zdt-CX-f8B">
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <textView clipsSubviews="YES" contentMode="scaleToFill" id="EX8-Ji-TTH">
-                                                                        <rect key="frame" x="5" y="5" width="758" height="200"/>
-                                                                        <autoresizingMask key="autoresizingMask" flexibleMaxY="YES"/>
+                                                                        <rect key="frame" x="5" y="5" width="758" height="260"/>
+                                                                        <autoresizingMask key="autoresizingMask"/>
                                                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -1227,9 +1288,7 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Reports" image="reports.png" id="uxM-Tr-aoB"/>
-                    <navigationItem key="navigationItem" id="BTQ-xq-3Y3">
-                        <barButtonItem key="backBarButtonItem" title="Cancel" id="6PZ-wH-pmM"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" id="BTQ-xq-3Y3"/>
                     <connections>
                         <outlet property="cancelButton" destination="42S-X7-OMy" id="LqC-9f-nVE"/>
                         <outlet property="collectionView" destination="zMF-Zm-lr0" id="ue4-tz-sOl"/>
@@ -2272,6 +2331,7 @@
     </scenes>
     <resources>
         <image name="blackX.png" width="44" height="44"/>
+        <image name="calendarWhite.png" width="20" height="20"/>
         <image name="cameraButton.png" width="70" height="70"/>
         <image name="checklists.png" width="15" height="15"/>
         <image name="documents.png" width="15" height="15"/>
@@ -2279,6 +2339,7 @@
         <image name="libraryButton.png" width="70" height="70"/>
         <image name="logo.png" width="250" height="50"/>
         <image name="mailButton.png" width="97" height="70"/>
+        <image name="plusWhite.png" width="20" height="20"/>
         <image name="reports.png" width="15" height="15"/>
         <image name="tasks.png" width="15" height="15"/>
         <image name="textButton.png" width="97" height="70"/>
@@ -2291,13 +2352,13 @@
         <simulatedScreenMetrics key="destination"/>
     </simulatedMetricsContainer>
     <inferredMetricsTieBreakers>
-        <segue reference="bd7-Rv-hQV"/>
-        <segue reference="eZr-X3-mJS"/>
-        <segue reference="dko-BE-dy7"/>
         <segue reference="vJz-hS-1H6"/>
-        <segue reference="Lue-dQ-dtC"/>
-        <segue reference="v3P-e2-fpL"/>
+        <segue reference="dko-BE-dy7"/>
+        <segue reference="eZr-X3-mJS"/>
         <segue reference="6tY-YJ-yab"/>
         <segue reference="tY6-jf-jEH"/>
+        <segue reference="v3P-e2-fpL"/>
+        <segue reference="b6Y-cM-cBh"/>
+        <segue reference="Lue-dQ-dtC"/>
     </inferredMetricsTieBreakers>
 </document>

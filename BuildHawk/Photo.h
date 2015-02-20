@@ -20,7 +20,7 @@
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) id image;
-@property (nonatomic, retain) NSString * name;
+@property (nonatomic, retain) NSString * fileName;
 @property (nonatomic, retain) NSString * original;
 @property (nonatomic, retain) NSString * phase;
 @property (nonatomic, retain) NSString * photoPhase;

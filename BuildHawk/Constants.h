@@ -13,6 +13,7 @@ static inline int screenHeight(){ return [UIScreen mainScreen].bounds.size.heigh
 static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width; }
 #define IDIOM    UI_USER_INTERFACE_IDIOM()
 #define IPAD     UIUserInterfaceIdiomPad
+#define SYSTEM_VERSION     [[[UIDevice currentDevice] systemVersion] floatValue]
 
 #define kApiBaseUrl @"https://buildhawk.com/api/v3"
 #define kBaseUrl @"https://buildhawk.com"
@@ -125,9 +126,9 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kDarkShade2 [UIColor colorWithRed:(126.0/255.0) green:(144.0/255.0) blue:(162.0/255.0) alpha:1.0]
 #define kDarkShade1 [UIColor colorWithRed:(163.0/255.0) green:(178.0/255.0) blue:(192.0/255.0) alpha:1.0]
 
-#define kDailyReportColor [UIColor colorWithRed:(85.0/255.0) green:(140.0/255.0) blue:(200.0/255.0) alpha:.5f]
-#define kWeeklyReportColor [UIColor colorWithRed:(129.0/255.0) green:(207.0/255.0) blue:(51.0/255.0) alpha:.87f]
-#define kSafetyReportColor [UIColor colorWithRed:(255.0/255.0) green:(170.0/255.0) blue:(48.0/255.0) alpha:.77f]
+#define kDailyReportColor [UIColor colorWithRed:(0.0/255.0) green:(128.0/255.0) blue:(255.0/255.0) alpha:.95f]
+#define kWeeklyReportColor [UIColor colorWithRed:(129.0/255.0) green:(207.0/255.0) blue:(51.0/255.0) alpha:.95f]
+#define kSafetyReportColor [UIColor colorWithRed:(255.0/255.0) green:(170.0/255.0) blue:(48.0/255.0) alpha:.95f]
 
 #define kCompletedTasksColor [UIColor colorWithRed:(129.0/255.0) green:(207.0/255.0) blue:(51.0/255.0) alpha:.87f]
 #define kActiveTasksColor [UIColor colorWithRed:(255.0/255.0) green:(170.0/255.0) blue:(48.0/255.0) alpha:.77f]

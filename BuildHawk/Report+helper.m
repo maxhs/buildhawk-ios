@@ -487,48 +487,46 @@
         if (self.body.length){
             [parameters setObject:self.body forKey:@"body"];
         }
-        if (self.reportUsers.count) {
-            NSMutableArray *userArray = [NSMutableArray array];
-            for (ReportUser *reportUser in self.reportUsers) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (![reportUser.userId isEqualToNumber:[NSNumber numberWithInt:0]]) {
-                    [dict setObject:reportUser.userId forKey:@"id"];
-                }
-                if (reportUser.fullname.length) {
-                    [dict setObject:reportUser.fullname forKey:@"full_name"];
-                }
-                if (reportUser.hours) {
-                    [dict setObject:reportUser.hours forKey:@"hours"];
-                }
-                [userArray addObject:dict];
-            }
-            if (userArray.count)[parameters setObject:userArray forKey:@"report_users"];
-        }
         
-        if (self.reportSubs.count) {
-            NSMutableArray *subArray = [NSMutableArray array];
-            for (ReportSub *reportSub in self.reportSubs) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
-                if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
-                if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
-                [subArray addObject:dict];
-                
+        NSMutableArray *userArray = [NSMutableArray array];
+        for (ReportUser *reportUser in self.reportUsers) {
+            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+            if (![reportUser.userId isEqualToNumber:[NSNumber numberWithInt:0]]) {
+                [dict setObject:reportUser.userId forKey:@"id"];
             }
-            if (subArray.count)[parameters setObject:subArray forKey:@"report_companies"];
-        }
-        if (self.safetyTopics.count) {
-            NSMutableArray *topicsArray = [NSMutableArray array];
-            for (SafetyTopic *topic in self.safetyTopics) {
-                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-                if (![topic.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.identifier forKey:@"id"];
-                if (![topic.topicId isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.topicId forKey:@"topic_id"];
-                if (topic.title.length) [dict setObject:topic.title forKey:@"title"];
-                [dict setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
-                [topicsArray addObject:dict];
+            if (reportUser.fullname.length) {
+                [dict setObject:reportUser.fullname forKey:@"full_name"];
             }
-            if (topicsArray.count)[parameters setObject:topicsArray forKey:@"safety_topics"];
+            if (reportUser.hours) {
+                [dict setObject:reportUser.hours forKey:@"hours"];
+            }
+            [userArray addObject:dict];
         }
+        [parameters setObject:userArray forKey:@"report_users"];
+        
+        NSMutableArray *subArray = [NSMutableArray array];
+        for (ReportSub *reportSub in self.reportSubs) {
+            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+            if (![reportSub.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:reportSub.identifier forKey:@"id"];
+            if (reportSub.name.length) [dict setObject:reportSub.name forKey:@"name"];
+            if (reportSub.count) [dict setObject:reportSub.count forKey:@"count"];
+            [subArray addObject:dict];
+            
+        }
+        [parameters setObject:subArray forKey:@"report_companies"];
+        
+        
+        NSMutableArray *topicsArray = [NSMutableArray array];
+        for (SafetyTopic *topic in self.safetyTopics) {
+            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+            if (![topic.identifier isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.identifier forKey:@"id"];
+            if (![topic.topicId isEqualToNumber:[NSNumber numberWithInt:0]]) [dict setObject:topic.topicId forKey:@"topic_id"];
+            if (topic.title.length) [dict setObject:topic.title forKey:@"title"];
+            [dict setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+            [topicsArray addObject:dict];
+        }
+        [parameters setObject:topicsArray forKey:@"safety_topics"];
+        
         
         BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
         AFHTTPRequestOperationManager *manager = [delegate manager];

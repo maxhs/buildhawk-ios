@@ -23,7 +23,6 @@
 @dynamic completedAt;
 @dynamic createdAt;
 @dynamic identifier;
-@dynamic location;
 @dynamic activities;
 @dynamic assignees;
 @dynamic comments;

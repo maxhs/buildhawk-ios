@@ -31,6 +31,7 @@
 #import "BHAppDelegate.h"
 #import "BHOverlayView.h"
 #import "BHSafetyTopicTransition.h"
+#import "BHAlert.h"
 
 @interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIAlertViewDelegate, UIViewControllerTransitioningDelegate> {
     CGRect searchContainerRect;
@@ -668,7 +669,12 @@
 }
 
 - (void)synchronize {
-    NSLog(@"should be synching");
+    [BHAlert show:[NSString stringWithFormat:@"Downloading the latest data for \"%@\"",projectToSynch.name] withTime:3.3f];
+    [manager GET:[NSString stringWithFormat:@"projects/%@/synch",projectToSynch.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success synch-loading full project: %@",responseObject);
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error loading full project: %@",error.description);
+    }];
 }
 
 -(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {

@@ -28,9 +28,9 @@
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *activeListItems;
     NSMutableArray *completedListItems;
-    NSMutableArray *locationListItems;
+    NSMutableOrderedSet *locationListItems;
     NSMutableSet *locationSet;
-    NSMutableArray *assigneeListItems;
+    NSMutableOrderedSet *assigneeListItems;
     NSMutableSet *assigneeSet;
     UIActionSheet *locationActionSheet;
     UIActionSheet *assigneeActionSheet;
@@ -84,8 +84,8 @@
     
     completedListItems = [NSMutableArray array];
     activeListItems = [NSMutableArray array];
-    locationListItems = [NSMutableArray array];
-    assigneeListItems = [NSMutableArray array];
+    locationListItems = [NSMutableOrderedSet orderedSet];
+    assigneeListItems = [NSMutableOrderedSet orderedSet];
     locationSet = [NSMutableSet set];
     assigneeSet = [NSMutableSet set];
     refreshControl = [[UIRefreshControl alloc] init];
@@ -132,7 +132,6 @@
 }
 
 - (void)newTaskCreated:(Task *)newTask {
-    //NSLog(@"new task created: %@",newTask.photos.firstObject);
     [_tasks insertObject:newTask atIndex:0];
     [self drawTasklist];
 }
@@ -337,10 +336,11 @@
             
             for (Location *location in locationSet.allObjects) {
                 UIAlertAction *locationAction = [UIAlertAction actionWithTitle:location.name style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-                    NSPredicate *testForLocation = [NSPredicate predicateWithFormat:@"location like %@",location];
-                    for (Task *task in _tasks)
-                        if([testForLocation evaluateWithObject:task])
+                    [_tasks enumerateObjectsUsingBlock:^(Task *task, NSUInteger idx, BOOL *stop) {
+                        if ([task.locations containsObject:location]){
                             [locationListItems addObject:task];
+                        }
+                    }];
                     lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
                     [self.tableView reloadData];
                 }];
@@ -391,10 +391,11 @@
                     NSString *assigneeName = [(User*)assignee fullname];
                     UIAlertAction *assigneeAction = [UIAlertAction actionWithTitle:assigneeName style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
                         
-                        NSPredicate *testForFullName = [NSPredicate predicateWithFormat:@"fullname like %@",assigneeName];
-                        for (Task *task in _tasks)
-                            if (task.assignees.count && [testForFullName evaluateWithObject:task.assignees.firstObject])
+                        [_tasks enumerateObjectsUsingBlock:^(Task *task, NSUInteger idx, BOOL *stop) {
+                            if ([task.assignees containsObject:assignee]){
                                 [assigneeListItems addObject:task];
+                            }
+                        }];
                         
                         lastSegmentIndex = self.segmentedControl.selectedSegmentIndex;
                         [self.tableView reloadData];

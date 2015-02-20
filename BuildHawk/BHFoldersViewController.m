@@ -180,7 +180,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = YES;
-
+    [browser setProject:project];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];

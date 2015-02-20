@@ -25,7 +25,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
 
-@interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate, BHReportCellDelegate, CTAssetsPickerControllerDelegate, MWPhotoBrowserDelegate> {
+@interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate, BHReportCellDelegate, CTAssetsPickerControllerDelegate, MWPhotoBrowserDelegate, BHPersonnelPickerDelegate> {
     BHAppDelegate *appDelegate;
     AFHTTPRequestOperationManager *manager;
     CGFloat width;
@@ -46,6 +46,7 @@
     UIBarButtonItem *addButton;
     UIBarButtonItem *backButton;
     UIBarButtonItem *doneButton;
+    UIBarButtonItem *refreshButton;
     
     UIAlertView *addOtherAlertView;
     UIAlertView *newTopicAlertView;
@@ -59,7 +60,7 @@
     BOOL saveToLibrary;
     BHReportTableView *_activeTableView;
     UIScrollView *photoScrollView;
-    NSMutableArray *_reports;
+    NSMutableOrderedSet *_reports;
 }
 
 @end
@@ -90,37 +91,38 @@
     saveButton = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStylePlain target:self action:@selector(post)];
     addButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(post)];
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
+    refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshReport)];
     
     if (self.navigationController.viewControllers.firstObject == self){
         backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back:)];
-        self.navigationItem.leftBarButtonItem = backButton;
+        self.navigationItem.leftBarButtonItems = @[backButton, refreshButton];
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updatePersonnel:) name:@"ReportPersonnel" object:nil];
+    
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    _reports = _project.reports.mutableCopy;
     
     if (_reportDateString) {
         _report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         _report.author.identifier = [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId];
         _report.project = _project;
         _report.dateString = _reportDateString;
+        _report.type = _reportType;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
-        NSLog(@"did we create a new report? %@",_report.dateString);
+        [_reports insertObject:_report atIndex:0];
+        NSLog(@"new report: %@, %@",_report.dateString, _report.type);
     } else if (_initialReportId) {
         _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_initialReportId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
-    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
-    NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",_project.identifier];
-    _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
-    
     [self setUpFormatters];
     [self setUpDatePicker];
     
-    [_collectionView.collectionViewLayout invalidateLayout];
     topInset = [[UIApplication sharedApplication] statusBarFrame].size.height + self.navigationController.navigationBar.frame.size.height;
     [_collectionView setDirectionalLockEnabled:YES];
-    [_collectionView setContentSize:CGSizeMake(width, height-topInset)];
+    [_collectionView setContentSize:CGSizeMake(width, height - topInset)];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -154,28 +156,39 @@
     [numberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
 }
 
+- (void)refreshReport {
+    [manager GET:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,_report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        //NSLog(@"Success fetching report after refresh: %@",responseObject);
+        [_report populateWithDict:[responseObject objectForKey:@"report"]];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [_collectionView reloadData];
+        }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Error fetching report: %@",error.description);
+        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to refresh this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }];
+}
+
 #pragma mark <UICollectionViewDataSource>
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
     return 1;
 }
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    NSLog(@"loading %lu reports in collection view",(unsigned long)_reports.count);
     return _reports.count;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    NSLog(@"cell for item: %ld",(long)indexPath.item);
     BHReportsCollectionCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"ReportsCollectionCell" forIndexPath:indexPath];
     cell.delegate = self;
     Report *report = _reports[indexPath.item];
-    NSLog(@"do we have a report? %@",report.dateString);
-    
-    [cell configureForReport:report.identifier withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
+    [cell configureForReport:report withDateFormatter:formatter andNumberFormatter:numberFormatter withTimeStampFormatter:timeStampFormatter withCommentFormatter:commentFormatter withWidth:width andHeight:height];
     photoScrollView = cell.photoScrollView;
+    
     if (photoScrollView){
         [_collectionView.panGestureRecognizer requireGestureRecognizerToFail:photoScrollView.panGestureRecognizer];
     }
+    
     // set the prefill accordingly
     cell.canPrefill = indexPath.row == _reports.count ? NO : YES;
     return cell;
@@ -234,11 +247,42 @@
     [_collectionView reloadData];
 }
 
+- (void)reportUserAdded:(ReportUser *)reportUser {
+    [_report addReportUser:reportUser];
+    NSLog(@"Added report user: %@",reportUser);
+    [_activeTableView reloadData];
+    //[_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationNone];
+    //[self setLocationString];
+}
+
+- (void)reportUserRemoved:(ReportUser *)reportUser {
+    [_report removeReportUser:reportUser];
+    NSLog(@"Removed report user: %@",reportUser);
+    [_activeTableView reloadData];
+    //[_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationNone];
+    //[self setAssigneeString];
+}
+
+- (void)reportSubAdded:(ReportSub *)reportSub {
+    [_report addReportSubcontractor:reportSub];
+    NSLog(@"Added report sub: %@",reportSub);
+    [_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationNone];
+    //[self setLocationString];
+}
+
+- (void)reportSubRemoved:(ReportSub *)reportSub {
+    [_report removeReportSubcontractor:reportSub];
+    NSLog(@"Removed report sub: %@",reportSub);
+    [_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationNone];
+    //[self setAssigneeString];
+}
+
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     [super prepareForSegue:segue sender:sender];
     
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]){
         BHPersonnelPickerViewController *vc = [segue destinationViewController];
+        vc.personnelDelegate = self;
         [vc setProjectId:_project.identifier];
         [vc setReportId:_report.identifier];
         [vc setCompanyId:_project.company.identifier];
@@ -465,15 +509,12 @@
 
 - (void)keyboardWillShow:(NSNotification *)notification {
     self.navigationItem.rightBarButtonItem = doneButton;
-    
     NSDictionary* info = [notification userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    
-    // TO DO ensure correct frame is being used (when rotated)
-    
-    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+    CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
+    CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
     [UIView animateWithDuration:duration
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
@@ -525,6 +566,7 @@
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];
     [browser setCurrentPhotoIndex:idx];
+    [browser setProject:_project];
     [self.navigationController pushViewController:browser animated:YES];
 }
 
@@ -692,13 +734,13 @@
 
 - (void)prefill {
     if ([_report.identifier isEqualToNumber:@0]){
-        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithArray:_reports];
+        NSMutableOrderedSet *orderedReports = [NSMutableOrderedSet orderedSetWithOrderedSet:_reports];
         NSDate *newReportDate = [formatter dateFromString:_report.dateString];
         [_reports enumerateObjectsUsingBlock:^(Report *thisReport, NSUInteger index, BOOL *stop) {
             NSDate *thisReportDate = [formatter dateFromString:thisReport.dateString];
             if ([newReportDate compare:thisReportDate] == NSOrderedDescending) {
                 [orderedReports insertObject:_report atIndex:index];
-                _reports = orderedReports.array.mutableCopy;
+                _reports = orderedReports.mutableCopy;
                 *stop = YES;
             }
         }];

@@ -21,8 +21,8 @@
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
-    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
-        self.name = [dictionary objectForKey:@"name"];
+    if ([dictionary objectForKey:@"image_file_name"] && [dictionary objectForKey:@"image_file_name"] != [NSNull null]) {
+        self.fileName = [dictionary objectForKey:@"image_file_name"];
     }
     if ([dictionary objectForKey:@"url_small"] && [dictionary objectForKey:@"url_small"] != [NSNull null]) {
         self.urlSmall = [dictionary objectForKey:@"url_small"];
@@ -85,8 +85,8 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_taken"] doubleValue];
         self.takenAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
-    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
-        self.name = [dictionary objectForKey:@"name"];
+    if ([dictionary objectForKey:@"image_file_name"] && [dictionary objectForKey:@"image_file_name"] != [NSNull null]) {
+        self.fileName = [dictionary objectForKey:@"image_file_name"];
     }
     if ([dictionary objectForKey:@"url_small"] && [dictionary objectForKey:@"url_small"] != [NSNull null]) {
         self.urlSmall = [dictionary objectForKey:@"url_small"];
@@ -99,9 +99,6 @@
     }
     if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];
-    }
-    if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {
-        self.name = [dictionary objectForKey:@"name"];
     }
     if ([dictionary objectForKey:@"date_string"] && [dictionary objectForKey:@"date_string"] != [NSNull null]) {
         self.dateString = [dictionary objectForKey:@"date_string"];
@@ -128,7 +125,6 @@
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
-    
     //only need to synch if it's a new image, i.e. its identifier is 0
     if (self.image && [self.identifier isEqualToNumber:@0]){
         NSData *imageData = UIImageJPEGRepresentation(self.image, 1);

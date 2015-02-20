@@ -223,8 +223,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-
-    browser.navigationController.navigationItem.rightBarButtonItems = @[[[UIBarButtonItem alloc] initWithTitle:@"Test" style:UIBarButtonItemStylePlain target:self action:@selector(save)]];
+    [browser setProject:_project];
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
     [browser showPreviousPhotoAnimated:YES];

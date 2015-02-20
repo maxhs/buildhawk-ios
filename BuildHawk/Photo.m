@@ -22,7 +22,7 @@
 @dynamic folder;
 @dynamic identifier;
 @dynamic image;
-@dynamic name;
+@dynamic fileName;
 @dynamic original;
 @dynamic phase;
 @dynamic photoPhase;

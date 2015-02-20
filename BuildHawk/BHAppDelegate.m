@@ -52,7 +52,6 @@
     //assume we're connected to start
     _connected = YES;
     
-    
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
         switch (status) {
@@ -218,8 +217,8 @@
 }
 
 -(UIImage *)blurredSnapshotNav {
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(self.window.frame.size.width, self.window.frame.size.height-64), NO, self.window.screen.scale);
-    [self.window drawViewHierarchyInRect:CGRectMake(0, -64, self.window.frame.size.width, self.window.frame.size.height-64) afterScreenUpdates:NO];
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(self.window.frame.size.width, self.window.frame.size.height), NO, self.window.screen.scale);
+    [self.window drawViewHierarchyInRect:CGRectMake(0, -64, self.window.frame.size.width, self.window.frame.size.height) afterScreenUpdates:YES];
     UIImage *snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
     UIImage *blurredSnapshotImage = [snapshotImage applyDarkEffect];
     UIGraphicsEndImageContext();
