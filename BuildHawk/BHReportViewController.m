@@ -24,6 +24,7 @@
 #import "BHSafetyTopicViewController.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <CTAssetsPickerController/CTAssetsPickerController.h>
+#import "BHTaskViewController.h"
 
 @interface BHReportViewController () <UIActionSheetDelegate, UIAlertViewDelegate, UIPopoverControllerDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIViewControllerTransitioningDelegate, BHReportCellDelegate, CTAssetsPickerControllerDelegate, MWPhotoBrowserDelegate, BHPersonnelPickerDelegate> {
     BHAppDelegate *appDelegate;
@@ -249,32 +250,22 @@
 
 - (void)reportUserAdded:(ReportUser *)reportUser {
     [_report addReportUser:reportUser];
-    NSLog(@"Added report user: %@",reportUser);
     [_activeTableView reloadData];
-    //[_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationNone];
-    //[self setLocationString];
 }
 
 - (void)reportUserRemoved:(ReportUser *)reportUser {
     [_report removeReportUser:reportUser];
-    NSLog(@"Removed report user: %@",reportUser);
     [_activeTableView reloadData];
-    //[_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationNone];
-    //[self setAssigneeString];
 }
 
 - (void)reportSubAdded:(ReportSub *)reportSub {
     [_report addReportSubcontractor:reportSub];
-    NSLog(@"Added report sub: %@",reportSub);
     [_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationNone];
-    //[self setLocationString];
 }
 
 - (void)reportSubRemoved:(ReportSub *)reportSub {
     [_report removeReportSubcontractor:reportSub];
-    NSLog(@"Removed report sub: %@",reportSub);
     [_activeTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationNone];
-    //[self setAssigneeString];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -325,6 +316,37 @@
 }
 
 #pragma mark - BHReportCellDelegate Methods
+- (void)showActivity:(NSNumber *)activityId {
+    Activity *activity = [Activity MR_findFirstByAttribute:@"identifier" withValue:activityId inContext:[NSManagedObjectContext MR_defaultContext]];
+    
+    if (activity.task){
+        [ProgressHUD show:@"Loading..."];
+        BHTaskViewController *taskVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Task"];
+        [taskVC setTaskId:activity.task.identifier];
+        [taskVC setProject:activity.task.project];
+        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:taskVC];
+        [self presentViewController:nav animated:YES completion:nil];
+    } else if (activity.report){
+        if (![activity.report.identifier isEqualToNumber:_report.identifier]){
+            [ProgressHUD show:@"Loading..."];
+            BHReportViewController *singleReportVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Report"];
+            [singleReportVC setInitialReportId:activity.report.identifier];
+            //set the reports so that the check for unsaved changes method catches
+            //[singleReportVC setReports:@[activity.report].mutableCopy];
+            [singleReportVC setProjectId:activity.report.project.identifier];
+            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:singleReportVC];
+            [self presentViewController:nav animated:YES completion:NULL];
+        }
+    } else if (activity.checklistItem){
+        [ProgressHUD show:@"Loading..."];
+        BHChecklistItemViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"ChecklistItem"];
+        [vc setItem:activity.checklistItem];
+        [vc setProject:_project];
+        UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+        [self presentViewController:nav animated:YES completion:NULL];
+    }
+}
+
 
 - (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset {
     if (picker.selectedAssets.count >= 10){
@@ -508,37 +530,41 @@
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification {
-    self.navigationItem.rightBarButtonItem = doneButton;
-    NSDictionary* info = [notification userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
-    CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _activeTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                         _activeTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                     }
-                     completion:nil];
+    if (notification) {
+        self.navigationItem.rightBarButtonItem = doneButton;
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+        CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
+        CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _activeTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                             _activeTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         }
+                         completion:nil];
+    }
 }
 
 - (void)keyboardWillHide:(NSNotification *)notification {
-    NSDictionary* info = [notification userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _activeTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-                         _activeTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                     }
-                     completion:^(BOOL finished) {
-                         [self doneEditing];
-                     }];
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _activeTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                             _activeTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                         }
+                         completion:^(BOOL finished) {
+                             [self doneEditing];
+                         }];
+    }
 }
 
 - (void)doneEditing {

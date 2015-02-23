@@ -73,8 +73,12 @@
     [_scrollView setUserInteractionEnabled:YES];
     
     NSMutableAttributedString *nameString = [[NSMutableAttributedString alloc] initWithString:project.name attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]}];
-    NSAttributedString *addressString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@",project.address.formattedAddress] attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProLight] size:0], NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-    [nameString appendAttributedString:addressString];
+    
+    //don't crash if there's no address
+    if (project.address.formattedAddress.length){
+        NSAttributedString *addressString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@",project.address.formattedAddress] attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProLight] size:0], NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        [nameString appendAttributedString:addressString];
+    }
     [_nameLabel setAttributedText:nameString];
     
     __block int reminderCount = 0;

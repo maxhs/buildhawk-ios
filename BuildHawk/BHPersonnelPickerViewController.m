@@ -20,6 +20,7 @@
 #import "BHSearchModalTransition.h"
 #import "BHCompaniesViewController.h"
 
+// TO DO Rebuild this en
 @interface BHPersonnelPickerViewController () <UIAlertViewDelegate, UIViewControllerTransitioningDelegate> {
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *filteredUsers;
@@ -332,9 +333,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                         [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
                             if ([company.identifier isEqualToNumber:reportSub.companyId]){
                                 [cell.connectNameLabel setText:company.name];
-                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProSemibold] size:0]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
                                 [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
-                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
                                 [cell.nameLabel setText:@""];
                                 *stop = YES;
                             }
@@ -420,9 +421,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
                 if ([company.identifier isEqualToNumber:reportSub.companyId]){
                     [cell.connectNameLabel setText:company.name];
-                    [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
+                    [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
                     [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
-                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
                     [cell.nameLabel setText:@""];
                     *stop = YES;
                 }
@@ -440,7 +441,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [cell.nameLabel setNumberOfLines:0];
             [cell.nameLabel setTextColor:[UIColor blackColor]];
             [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
-            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
+            [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
         } else if (indexPath.row == company.projectUsers.count + 1){
             [cell.connectNameLabel setText:@""];
             [cell.connectDetailLabel setText:@""];
@@ -906,33 +907,36 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 }
 
 - (void)willShowKeyboard:(NSNotification*)notification {
-    NSDictionary* keyboardInfo = [notification userInfo];
-    NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameBeginUserInfoKey];
-    CGFloat keyboardHeight = [keyboardFrameBegin CGRectValue].size.height;
-    duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    animationCurve = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:(animationCurve << 16)
-                     animations:^{
-                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
-                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
-                     }
-                     completion:NULL];
+    if (notification) {
+        NSDictionary* keyboardInfo = [notification userInfo];
+        NSValue* keyboardFrameBegin = [keyboardInfo valueForKey:UIKeyboardFrameBeginUserInfoKey];
+        CGFloat keyboardHeight = [keyboardFrameBegin CGRectValue].size.height;
+        duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        animationCurve = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:(animationCurve << 16)
+                         animations:^{
+                             self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
+                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
+                         }
+                         completion:NULL];
+    }
 }
 
-- (void)willHideKeyboard:(NSNotification *)notification
-{
-    duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    animationCurve = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:(animationCurve << 16)
-                     animations:^{
-                         self.tableView.contentInset = UIEdgeInsetsZero;
-                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
-                     }
-                     completion:NULL];
+- (void)willHideKeyboard:(NSNotification *)notification {
+    if (notification) {
+        duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        animationCurve = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:(animationCurve << 16)
+                         animations:^{
+                             self.tableView.contentInset = UIEdgeInsetsZero;
+                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero;
+                         }
+                         completion:NULL];
+    }
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

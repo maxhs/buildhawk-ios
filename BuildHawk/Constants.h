@@ -70,6 +70,8 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kIndividual @"Individual"
 #define kCompany @"Company"
 #define kAddCommentPlaceholder @"Add a comment..."
+#define kChoosePersonnelPlaceholder @"ADD / EDIT"
+#define kPrefillPersonnelPlaceholder @"PRE-FILL FROM LAST REPORT"
 
 #define kHelveticaNeueLight @"HelveticaNeue-Light"
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"

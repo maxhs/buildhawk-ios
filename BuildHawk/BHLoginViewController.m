@@ -349,46 +349,50 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note {
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         if (IDIOM != IPAD){
-                             _loginButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight-54);
-                             _emailTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
-                             _passwordTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
-                             _forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
-                             _logoImageView.transform = CGAffineTransformMakeTranslation(0, -logoY/2);
+- (void)keyboardWillShow:(NSNotification *)notification {
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+        CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             if (IDIOM != IPAD){
+                                 _loginButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight-54);
+                                 _emailTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                                 _passwordTextField.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                                 _forgotPasswordButton.transform = CGAffineTransformMakeTranslation(0, -keyboardHeight/2);
+                                 _logoImageView.transform = CGAffineTransformMakeTranslation(0, -logoY/2);
+                             }
                          }
-                     }
-                     completion:^(BOOL finished) {
-                         [backgroundTapGesture setEnabled:YES];
-                     }];
+                         completion:^(BOOL finished) {
+                             [backgroundTapGesture setEnabled:YES];
+                         }];
+    }
 }
 
-- (void)keyboardWillHide:(NSNotification *)note {
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _loginButton.transform = CGAffineTransformIdentity;
-                         _emailTextField.transform = CGAffineTransformIdentity;
-                         _passwordTextField.transform = CGAffineTransformIdentity;
-                         _forgotPasswordButton.transform = CGAffineTransformIdentity;
-                         _logoImageView.transform = CGAffineTransformIdentity;
-                     }
-                     completion:^(BOOL finished) {
-                         [backgroundTapGesture setEnabled:NO];
-                     }];
+- (void)keyboardWillHide:(NSNotification *)notification {
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _loginButton.transform = CGAffineTransformIdentity;
+                             _emailTextField.transform = CGAffineTransformIdentity;
+                             _passwordTextField.transform = CGAffineTransformIdentity;
+                             _forgotPasswordButton.transform = CGAffineTransformIdentity;
+                             _logoImageView.transform = CGAffineTransformIdentity;
+                         }
+                         completion:^(BOOL finished) {
+                             [backgroundTapGesture setEnabled:NO];
+                         }];
+    }
 }
 
 

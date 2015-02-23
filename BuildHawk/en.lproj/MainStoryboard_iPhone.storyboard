@@ -291,21 +291,21 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="RWh-Pv-4hJ" userLabel="Task Label">
-                                                    <rect key="frame" x="90" y="6" width="508" height="32"/>
+                                                    <rect key="frame" x="90" y="6" width="602" height="32"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="GOn-si-q3p" userLabel="Owner Label">
-                                                    <rect key="frame" x="90" y="33" width="508" height="24"/>
+                                                    <rect key="frame" x="90" y="33" width="602" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="FPW-Yc-J42" userLabel="Timestamp Label">
-                                                    <rect key="frame" x="90" y="52" width="508" height="24"/>
+                                                    <rect key="frame" x="90" y="52" width="602" height="24"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" name="HelveticaNeue-Light" family="Helvetica Neue" pointSize="16"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -540,7 +540,7 @@
                         <outlet property="taskContainerView" destination="JbP-Vp-LgM" id="PKr-PQ-po5"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
                         <segue destination="xov-V5-hTJ" kind="push" identifier="PersonnelPicker" id="c9h-8D-Hu8"/>
-                        <segue destination="kcR-dn-rxH" kind="push" identifier="SetLocation" id="cea-b4-FvI"/>
+                        <segue destination="kcR-dn-rxH" kind="push" identifier="SelectLocation" id="cea-b4-FvI"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w2d-zW-wTP" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -702,7 +702,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <view contentMode="scaleToFill" id="etJ-wL-g07">
-                                                    <rect key="frame" x="0.0" y="0.0" width="6" height="136"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="6" height="182"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" heightSizable="YES"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 </view>
@@ -765,40 +765,6 @@
                                     <outlet property="delegate" destination="PYU-kZ-OjC" id="oFo-EX-U9G"/>
                                 </connections>
                             </tableView>
-                            <view contentMode="scaleToFill" id="621-Uv-4G7">
-                                <rect key="frame" x="0.0" y="0.0" width="414" height="54"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Kt7-zE-7AT" userLabel="Calendar Button">
-                                        <rect key="frame" x="0.0" y="0.0" width="138" height="54"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <state key="normal" image="calendar.png">
-                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                        </state>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="f5y-uU-7U7" userLabel="Sort Button">
-                                        <rect key="frame" x="138" y="0.0" width="138" height="54"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <state key="normal" image="sort.png">
-                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                        </state>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JK1-PH-bCO" userLabel="Add Report Button">
-                                        <rect key="frame" x="276" y="0.0" width="138" height="54"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <state key="normal" image="plus.png">
-                                            <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                                            <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                        </state>
-                                    </button>
-                                </subviews>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                            </view>
                             <view contentMode="scaleToFill" id="xYv-KN-aiE">
                                 <rect key="frame" x="0.0" y="672" width="414" height="210"/>
                                 <autoresizingMask key="autoresizingMask"/>
@@ -837,17 +803,60 @@
                                 </subviews>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="PFD-Cw-6rY" customClass="BHDeselectableSegmentedControl">
-                                <rect key="frame" x="422" y="14" width="398" height="29"/>
-                                <autoresizingMask key="autoresizingMask"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <segments>
-                                    <segment title="Daily"/>
-                                    <segment title="Safety"/>
-                                    <segment title="Weekly"/>
-                                </segments>
-                                <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
-                            </segmentedControl>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" id="htY-Ck-0he">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="54"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" id="621-Uv-4G7">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="54"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <subviews>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Kt7-zE-7AT" userLabel="Calendar Button">
+                                                <rect key="frame" x="0.0" y="0.0" width="138" height="54"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <state key="normal" image="calendar.png">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                </state>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="f5y-uU-7U7" userLabel="Sort Button">
+                                                <rect key="frame" x="138" y="0.0" width="138" height="54"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <state key="normal" image="sort.png">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                </state>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="JK1-PH-bCO" userLabel="Add Report Button">
+                                                <rect key="frame" x="276" y="0.0" width="138" height="54"/>
+                                                <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <state key="normal" image="plus.png">
+                                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <color key="titleShadowColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                                </state>
+                                            </button>
+                                        </subviews>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                    </view>
+                                    <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" id="PFD-Cw-6rY" customClass="BHDeselectableSegmentedControl">
+                                        <rect key="frame" x="422" y="10" width="398" height="29"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                        <segments>
+                                            <segment title="Daily"/>
+                                            <segment title="Safety"/>
+                                            <segment title="Weekly"/>
+                                        </segments>
+                                        <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
+                                    </segmentedControl>
+                                </subviews>
+                                <connections>
+                                    <outlet property="delegate" destination="PYU-kZ-OjC" id="1Zc-Q6-IzL"/>
+                                </connections>
+                            </scrollView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -863,6 +872,7 @@
                         <outlet property="sortButton" destination="f5y-uU-7U7" id="t1l-YG-696"/>
                         <outlet property="tableView" destination="VS0-1K-JbD" id="zG2-xV-ePg"/>
                         <outlet property="topActionContainer" destination="621-Uv-4G7" id="Wtb-tJ-B2e"/>
+                        <outlet property="topContainerScrollView" destination="htY-Ck-0he" id="sb7-dG-eGe"/>
                         <segue destination="3" kind="push" identifier="Report" id="7to-sF-Hdh"/>
                     </connections>
                 </viewController>
@@ -936,7 +946,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" id="Tba-hi-5mv">
-                                                                        <rect key="frame" x="0.0" y="-2" width="6154" height="502"/>
+                                                                        <rect key="frame" x="0.0" y="-2" width="6568" height="502"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <subviews>
                                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="fbH-Yj-JEp">
@@ -1164,7 +1174,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="yek-ye-UiF" customClass="BHReportPhotoScrollView">
-                                                                        <rect key="frame" x="148" y="11" width="4406" height="76"/>
+                                                                        <rect key="frame" x="148" y="11" width="4820" height="76"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                         <connections>
@@ -2448,12 +2458,12 @@
     <inferredMetricsTieBreakers>
         <segue reference="Uyg-Ck-Q13"/>
         <segue reference="eZr-X3-mJS"/>
-        <segue reference="eeI-5R-PC5"/>
-        <segue reference="Cv8-k3-7jn"/>
-        <segue reference="POr-kh-1ho"/>
-        <segue reference="0zF-UE-phA"/>
-        <segue reference="7to-sF-Hdh"/>
-        <segue reference="bOL-sd-mqt"/>
+        <segue reference="c9h-8D-Hu8"/>
         <segue reference="r38-ht-gCd"/>
+        <segue reference="eeI-5R-PC5"/>
+        <segue reference="POr-kh-1ho"/>
+        <segue reference="Cv8-k3-7jn"/>
+        <segue reference="7to-sF-Hdh"/>
+        <segue reference="0zF-UE-phA"/>
     </inferredMetricsTieBreakers>
 </document>

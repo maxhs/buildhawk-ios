@@ -358,8 +358,8 @@
             [self presentViewController:locationAlertController animated:YES completion:nil];
         } else {
             locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-            for (NSString *location in locationSet.allObjects) {
-                [locationActionSheet addButtonWithTitle:location];
+            for (Location *location in locationSet.allObjects) {
+                [locationActionSheet addButtonWithTitle:location.name];
             }
             if (IDIOM != IPAD){
                 locationActionSheet.cancelButtonIndex = [locationActionSheet addButtonWithTitle:@"Cancel"];

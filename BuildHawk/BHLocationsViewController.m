@@ -20,6 +20,7 @@
     BOOL searching;
     UIBarButtonItem *cancelButton;
     NSString *searchText;
+    Project *_project;
 }
 
 @end
@@ -32,10 +33,13 @@
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = delegate.manager;
     _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId  inContext:[NSManagedObjectContext MR_defaultContext]];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@",_task.project.identifier];
+    if (_projectId){
+        _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    }
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@",_project.identifier];
     _locations = [NSMutableOrderedSet orderedSetWithArray:[Location MR_findAllWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]]];
     _filteredLocations = [NSMutableOrderedSet orderedSetWithOrderedSet:_locations];
-    _tableView.rowHeight = 70.f;
+    _tableView.rowHeight = 54.f;
     [_tableView reloadData];
     
     searching = NO;
@@ -87,20 +91,24 @@
 }
 
 - (void)createNewLocation {
-    
     [ProgressHUD show:@"Creating new location..."];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:_taskId forKey:@"task_id"];
-    [parameters setObject:_task.project.identifier forKey:@"project_id"];
+    [parameters setObject:_project.identifier forKey:@"project_id"];
     [parameters setObject:searchText forKey:@"name"];
     [manager POST:@"locations" parameters:@{@"location":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success creating a new location: %@",responseObject);
         Location *newLocation = [Location MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [newLocation populateFromDictionary:[responseObject objectForKey:@"location"]];
         [_locations addObject:newLocation];
-        searching = NO;
-        [ProgressHUD dismiss];
-        [self.tableView reloadData];
+        [_task addLocation:newLocation];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            searching = NO;
+            [ProgressHUD dismiss];
+            [self.searchBar setText:@""];
+            [self.searchBar endEditing:YES];
+            [self.tableView reloadData];
+        }];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [ProgressHUD dismiss];
         [[[UIAlertView alloc] initWithTitle:@"Location error" message:@"Sorry, but something went wrong while trying to create this location. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -110,7 +118,7 @@
 
 #pragma mark <UITableViewDelegate>
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (searching && _filteredLocations.count == 0){
+    if (searching && _filteredLocations.count == 0 && searchText.length){
         [self createNewLocation];
     } else {
         Location *location = searching ? _filteredLocations[indexPath.item] : _locations[indexPath.item];

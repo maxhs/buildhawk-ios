@@ -30,7 +30,6 @@
     NSMutableOrderedSet *_reports;
     NSMutableOrderedSet *_filteredReports;
     UIBarButtonItem *refreshButton;
-    UIBarButtonItem *_hideSortButton;
     UIView *overlayBackground;
     UIImageView *reportsScreenshot;
     CGRect screen;
@@ -57,22 +56,22 @@
     _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",_project.identifier];
     _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
-    
-    //set up the segmented control and action button segments as well as add refresh control and proper content inset to tableView
-    [self setUpView];
 
     if (IDIOM == IPAD){
         
     } else {
         refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
         [_sortButton addTarget:self action:@selector(showSort) forControlEvents:UIControlEventTouchUpInside];
-        _hideSortButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(hideSort)];
         CGFloat segmentedHeight = _segmentedControl.frame.size.height;
-        [_segmentedControl setFrame:CGRectMake(8+width, 14, width-16, segmentedHeight)];
+        [_segmentedControl setFrame:CGRectMake(8+width, 12, width-16, segmentedHeight)];
         CGRect segmentedControlFrame = _segmentedControl.frame;
         segmentedControlFrame.origin.x = width + 8;
         [_segmentedControl setFrame:segmentedControlFrame];
+        [_topContainerScrollView setContentSize:CGSizeMake(width*2, _topContainerScrollView.frame.size.height)];
     }
+    
+    //set up the segmented control and action button segments as well as add refresh control and proper content inset to tableView
+    [self setUpView];
     
     //set up the date picker stuff
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
@@ -82,15 +81,10 @@
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     
     if (delegate.connected){
-        if (_reports.count == 0){
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [ProgressHUD show:@"Fetching reports..."];
-            });
-        } else {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [ProgressHUD show:@"Updating reports..."];
-            });
-        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *message = _reports.count == 0 ? @"Fetching reports..." : @"Updating reports...";
+            [ProgressHUD show:message];
+        });
         [self loadReports];
     }
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReports) name:@"ReloadReports" object:nil];
@@ -239,12 +233,8 @@
 #pragma mark - Sorting & filtering
 
 - (void)showSort {
-    self.tabBarController.navigationItem.rightBarButtonItems = @[refreshButton,_hideSortButton];
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        _segmentedControl.transform = CGAffineTransformMakeTranslation(-width, 0);
-        _calendarButton.transform = CGAffineTransformMakeTranslation(-width, 0);
-        _addReportButton.transform = CGAffineTransformMakeTranslation(-width, 0);
-        _sortButton.transform = CGAffineTransformMakeTranslation(-width, 0);
+        [_topContainerScrollView setContentOffset:CGPointMake(width, 0)];
         
     } completion:^(BOOL finished) {
         
@@ -252,14 +242,10 @@
 }
 
 - (void)hideSort {
-    self.tabBarController.navigationItem.rightBarButtonItems = nil;
     self.tabBarController.navigationItem.rightBarButtonItem = refreshButton;
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        _segmentedControl.transform = CGAffineTransformIdentity;
-        _calendarButton.transform = CGAffineTransformIdentity;
-        _addReportButton.transform = CGAffineTransformIdentity;
-        _sortButton.transform = CGAffineTransformIdentity;
-        
+        [_topContainerScrollView setContentOffset:CGPointZero];
+
     } completion:^(BOOL finished) {
         
     }];
@@ -519,7 +505,6 @@
             }
         } else if ([sender isKindOfClass:[NSString class]]) {
             NSString *senderString = (NSString*)sender;
-            NSLog(@"sender string: %@",senderString);
             if ([senderString rangeOfString:@"/"].location == NSNotFound){
                 NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
                 [formatter setDateFormat:@"MM/dd/yyyy"];
@@ -606,10 +591,11 @@
         _addReportButton.clipsToBounds = YES;
         [_segmentedControl setTintColor:[UIColor whiteColor]];
     } else {
-        UIToolbar *backgroundToolbar = [[UIToolbar alloc] initWithFrame:_topActionContainer.frame];
+        CGRect topContainerFrame = CGRectMake(0, 0, _topContainerScrollView.contentSize.width, _topContainerScrollView.contentSize.height);
+        UIToolbar *backgroundToolbar = [[UIToolbar alloc] initWithFrame:topContainerFrame];
         [backgroundToolbar setTranslucent:YES];
-        [_topActionContainer addSubview:backgroundToolbar];
-        [_topActionContainer sendSubviewToBack:backgroundToolbar];
+        [_topContainerScrollView addSubview:backgroundToolbar];
+        [_topContainerScrollView sendSubviewToBack:backgroundToolbar];
         [backgroundToolbar setBarStyle:UIBarStyleDefault];
         [_calendarButton setFrame:CGRectMake(0, 0, width/3, _topActionContainer.frame.size.height)];
         [_sortButton setFrame:CGRectMake(width/3, 0, width/3, _topActionContainer.frame.size.height)];
@@ -621,7 +607,12 @@
     [_addReportButton addTarget:self action:@selector(newReport) forControlEvents:UIControlEventTouchUpInside];
     
     CGRect datePickerContainerRect = _datePickerContainer.frame;
-    datePickerContainerRect.origin.y = height - self.tabBarController.navigationController.navigationBar.frame.size.height - 20.f;
+    if (IDIOM == IPAD){
+        datePickerContainerRect.origin.y = height;
+    } else {
+        datePickerContainerRect.origin.y = height - self.tabBarController.navigationController.navigationBar.frame.size.height - 20.f;
+    }
+    
     datePickerContainerRect.size.width = width;
     [_datePickerContainer setFrame:datePickerContainerRect];
     CGRect datePickerRect = _datePicker.frame;
@@ -637,7 +628,7 @@
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     [ProgressHUD dismiss];
-    self.tabBarController.navigationItem.rightBarButtonItems = nil;
+    self.tabBarController.navigationItem.rightBarButtonItem = nil;
 }
 
 - (void)didReceiveMemoryWarning {

@@ -12,6 +12,7 @@
 #import "Report+helper.h"
 #import "SafetyTopic+helper.h"
 #import "MWPhotoBrowser.h"
+#import "Activity+helper.h"
 
 @protocol BHReportCellDelegate <NSObject>
 @required
@@ -27,6 +28,7 @@
 - (void)choosePhoto;
 - (void)takePhoto;
 - (void)showPhotoBrowserWithPhotos:(NSMutableArray*)browserPhotos withCurrentIndex:(NSUInteger)idx;
+- (void)showActivity:(NSNumber *)activityId;
 @end
 
 @interface BHReportsCollectionCell : UICollectionViewCell

@@ -139,17 +139,19 @@ typedef void(^RequestSuccess)(id result);
     // set location and assignee titles and colors
     [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_locationButton setBackgroundColor:kLightestGrayColor];
     [_locationLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoLight] size:0]];
     [_locationLabel setTextColor:[UIColor darkGrayColor]];
     [_locationLabel setText:@"LOCATION(S)"];
     [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_assigneeButton setBackgroundColor:kLightestGrayColor];
     [_assigneeLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoLight] size:0]];
     [_assigneeLabel setTextColor:[UIColor darkGrayColor]];
     [_assigneeLabel setText:@"ASSIGNEE(S)"];
     
+    if (IDIOM != IPAD){
+        [_locationButton setBackgroundColor:kLightestGrayColor];
+        [_assigneeButton setBackgroundColor:kLightestGrayColor];
+    }
     [_photoBackgroundView setBackgroundColor:kLightestGrayColor];
     
     //notifications
@@ -346,8 +348,17 @@ typedef void(^RequestSuccess)(id result);
     } else {
         if (addCommentTextView.text.length) {
             [ProgressHUD show:@"Adding comment..."];
-            NSDictionary *commentDict = @{@"task_id":_task.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
-            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+            }
+            if (![_task.identifier isEqualToNumber:@0]){
+                [parameters setObject:_task.identifier forKey:@"task_id"];
+            }
+            if (addCommentTextView.text.length){
+                [parameters setObject:addCommentTextView.text forKey:@"body"];
+            }
+            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"success creating a comment for task: %@",responseObject);
 
                 Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
@@ -769,7 +780,7 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's location." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         [_task setSaved:@NO];
-        [self performSegueWithIdentifier:@"SetLocation" sender:nil];
+        [self performSegueWithIdentifier:@"SelectLocation" sender:nil];
     }
 }
 
@@ -780,9 +791,10 @@ typedef void(^RequestSuccess)(id result);
         vc.personnelDelegate = self;
         [vc setProjectId:_project.identifier];
         [vc setTaskId:_task.identifier];
-    } else if ([segue.identifier isEqualToString:@"SetLocation"]){
+    } else if ([segue.identifier isEqualToString:@"SelectLocation"]){
         BHLocationsViewController *vc = [segue destinationViewController];
         vc.locationsDelegate = self;
+        [vc setProjectId:_project.identifier];
         [vc setTaskId:_task.identifier];
     }
 }
@@ -1163,38 +1175,42 @@ typedef void(^RequestSuccess)(id result);
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note {
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
-    CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
-    if (!activities && _task.comments.count == 0){
-        keyboardHeight += 66.f;
+- (void)keyboardWillShow:(NSNotification *)notification {
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+        CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
+        CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
+        if (!activities && _task.comments.count == 0){
+            keyboardHeight += 66.f;
+        }
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         }
+                         completion:nil];
     }
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                     }
-                     completion:nil];
 }
 
-- (void)keyboardWillHide:(NSNotification *)note {
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         self.tableView.contentInset = originalInsets;
-                         self.tableView.scrollIndicatorInsets = originalInsets;
-                     }
-                     completion:nil];
+- (void)keyboardWillHide:(NSNotification *)notification {
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             self.tableView.contentInset = originalInsets;
+                             self.tableView.scrollIndicatorInsets = originalInsets;
+                         }
+                         completion:nil];
+    }
 }
 
 - (void)dismiss {

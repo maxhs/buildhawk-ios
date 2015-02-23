@@ -229,7 +229,7 @@
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleAspectFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" id="Ard-so-aFe">
-                                            <rect key="frame" x="0.0" y="0.0" width="109" height="109"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="108" height="108"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="15"/>
                                             <state key="normal">
@@ -597,7 +597,7 @@
                         <outlet property="taskContainerView" destination="v94-GW-Bch" id="tXH-5x-yPa"/>
                         <outlet property="textButton" destination="Dd1-ni-Lao" id="447-DE-OVd"/>
                         <segue destination="XFP-TZ-PCg" kind="push" identifier="PersonnelPicker" id="bd7-Rv-hQV"/>
-                        <segue destination="p01-q5-6Vw" kind="push" identifier="SelectLocation" id="he4-Ze-veJ"/>
+                        <segue destination="s2G-22-AYX" kind="push" identifier="SelectLocation" id="3If-Rn-dwW"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="w2d-zW-wTP" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -605,58 +605,50 @@
             <point key="canvasLocation" x="5348" y="1550"/>
         </scene>
         <!--Locations View Controller-->
-        <scene sceneID="s0C-Ic-iOG">
+        <scene sceneID="Z60-nW-S9b">
             <objects>
-                <viewController storyboardIdentifier="Locations" id="p01-q5-6Vw" customClass="BHLocationsViewController" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="Tlm-Wl-ZWJ">
+                <viewController storyboardIdentifier="Locations" id="s2G-22-AYX" customClass="BHLocationsViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Z21-GI-lAn">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="8sk-gr-i1Y">
-                                <rect key="frame" x="5" y="0.0" width="768" height="960"/>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="R0q-Pq-JUX">
+                                <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="YWv-me-Tk6">
-                                    <size key="itemSize" width="50" height="50"/>
-                                    <size key="headerReferenceSize" width="0.0" height="0.0"/>
-                                    <size key="footerReferenceSize" width="0.0" height="0.0"/>
-                                    <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
-                                </collectionViewFlowLayout>
-                                <searchBar key="backgroundView" contentMode="redraw" id="aP8-fH-ZSR">
-                                    <rect key="frame" x="0.0" y="0.0" width="768" height="960"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <searchBar key="tableHeaderView" contentMode="redraw" id="q0j-Vq-YRo">
+                                    <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                     <textInputTraits key="textInputTraits"/>
                                     <connections>
-                                        <outlet property="delegate" destination="p01-q5-6Vw" id="6ED-hC-CAs"/>
+                                        <outlet property="delegate" destination="s2G-22-AYX" id="JCz-gs-log"/>
                                     </connections>
                                 </searchBar>
-                                <cells>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="LocationCell" id="snO-iA-6pw" customClass="BHLocationCell">
-                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="LocationCell" id="aew-kP-yUD" customClass="BHLocationCell">
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                            <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="aew-kP-yUD" id="eMZ-4w-LoC">
                                             <autoresizingMask key="autoresizingMask"/>
-                                            <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
-                                        </view>
-                                    </collectionViewCell>
-                                </cells>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </prototypes>
                                 <connections>
-                                    <outlet property="dataSource" destination="p01-q5-6Vw" id="cqA-pQ-IeM"/>
-                                    <outlet property="delegate" destination="p01-q5-6Vw" id="bff-cq-2mO"/>
+                                    <outlet property="dataSource" destination="s2G-22-AYX" id="fjF-i5-RrR"/>
+                                    <outlet property="delegate" destination="s2G-22-AYX" id="rcq-hJ-kj5"/>
                                 </connections>
-                            </collectionView>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
-                    <navigationItem key="navigationItem" id="WOR-Oy-hdF"/>
+                    <navigationItem key="navigationItem" id="mmI-cf-XPp"/>
                     <connections>
-                        <outlet property="collectionView" destination="8sk-gr-i1Y" id="Nxd-nU-Rin"/>
-                        <outlet property="searchBar" destination="aP8-fH-ZSR" id="Ocz-4V-5CF"/>
+                        <outlet property="searchBar" destination="q0j-Vq-YRo" id="Yft-XS-K0C"/>
+                        <outlet property="tableView" destination="R0q-Pq-JUX" id="4M3-Pl-iR1"/>
                     </connections>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="4jI-wp-AHd" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="IGf-4f-jPp" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="6220" y="1550"/>
+            <point key="canvasLocation" x="6276" y="1550"/>
         </scene>
         <!--Web View Controller-->
         <scene sceneID="U3X-5R-x2S">
@@ -940,7 +932,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <view contentMode="scaleToFill" id="nKh-cx-GM2">
-                                                                        <rect key="frame" x="0.0" y="-2" width="8986" height="502"/>
+                                                                        <rect key="frame" x="0.0" y="-2" width="9754" height="502"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <subviews>
                                                                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="No data" id="2hF-5W-u9t">
@@ -1116,7 +1108,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="cfI-cw-MpH">
-                                                                        <rect key="frame" x="48" y="6" width="6046" height="54"/>
+                                                                        <rect key="frame" x="48" y="6" width="6814" height="54"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                                         <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -1168,7 +1160,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="c0D-cc-hv7" customClass="BHReportPhotoScrollView">
-                                                                        <rect key="frame" x="148" y="11" width="7238" height="76"/>
+                                                                        <rect key="frame" x="148" y="11" width="8006" height="76"/>
                                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                                         <connections>
@@ -1211,7 +1203,7 @@
                                                                 <autoresizingMask key="autoresizingMask"/>
                                                                 <subviews>
                                                                     <textView clipsSubviews="YES" contentMode="scaleToFill" id="EX8-Ji-TTH">
-                                                                        <rect key="frame" x="5" y="5" width="758" height="260"/>
+                                                                        <rect key="frame" x="5" y="5" width="758" height="390"/>
                                                                         <autoresizingMask key="autoresizingMask"/>
                                                                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                                                         <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
@@ -2190,7 +2182,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="8dj-4i-0Yn">
-                                                    <rect key="frame" x="0.0" y="0.0" width="768" height="146"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="768" height="192"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <view opaque="NO" contentMode="scaleToFill" id="8cG-gh-8Wg">
@@ -2355,10 +2347,10 @@
         <segue reference="vJz-hS-1H6"/>
         <segue reference="dko-BE-dy7"/>
         <segue reference="eZr-X3-mJS"/>
+        <segue reference="bd7-Rv-hQV"/>
         <segue reference="6tY-YJ-yab"/>
         <segue reference="tY6-jf-jEH"/>
         <segue reference="v3P-e2-fpL"/>
-        <segue reference="b6Y-cM-cBh"/>
         <segue reference="Lue-dQ-dtC"/>
     </inferredMetricsTieBreakers>
 </document>

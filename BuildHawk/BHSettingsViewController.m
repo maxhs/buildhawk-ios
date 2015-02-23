@@ -444,9 +444,9 @@
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
+- (void)keyboardWillShow:(NSNotification *)notification {
+    if (notification) {
+    NSDictionary* info = [notification userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
     NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
@@ -459,6 +459,7 @@
                          self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight+44, 0);
                      }
                      completion:nil];
+    }
 }
 
 - (void)keyboardWillHide:(NSNotification *)note

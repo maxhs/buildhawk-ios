@@ -9,9 +9,10 @@
 #import <UIKit/UIKit.h>
 #import "Report+helper.h"
 
-@interface BHReportsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>
+@interface BHReportsViewController : UIViewController <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate, UIScrollViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (weak, nonatomic) IBOutlet UIScrollView *topContainerScrollView;
 @property (weak, nonatomic) IBOutlet UIView *topActionContainer;
 @property (weak, nonatomic) IBOutlet UIButton *calendarButton;
 @property (weak, nonatomic) IBOutlet UIButton *sortButton;

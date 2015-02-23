@@ -246,6 +246,7 @@
         for (Project *p in _currentUser.projects){
             if (![projectSet containsObject:p] && ![hiddenSet containsObject:p] && ![groupSet containsObject:p]){
                 NSLog(@"Deleting a project that no longer exists: %@",p.name);
+                [_currentUser removeProject:p];
                 [p MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
@@ -261,7 +262,6 @@
                     NSNumber *second = b.orderIndex;
                     return [first compare:second];
                 }].mutableCopy;
-                //_projects = [NSMutableArray arrayWithArray:_currentUser.projects.array];
                 loading = NO;
                 [self.tableView reloadData];
                 [ProgressHUD dismiss];
@@ -822,8 +822,7 @@
     }];
 }
 
-- (void)registerForKeyboardNotifications
-{
+- (void)registerForKeyboardNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification object:nil];
@@ -833,36 +832,39 @@
                                                  name:UIKeyboardWillHideNotification object:nil];
 }
 
-- (void)keyboardWillShow:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    CGFloat keyboardHeight = keyboardValue.CGRectValue.size.height;
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                     }
-                     completion:nil];
+- (void)keyboardWillShow:(NSNotification *)notification{
+    if (notification){
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+        CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
+        CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         }
+                         completion:nil];
+    }
 }
 
-- (void)keyboardWillHide:(NSNotification *)note
-{
-    NSDictionary* info = [note userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-                         self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                     }
-                     completion:nil];
+- (void)keyboardWillHide:(NSNotification *)notification {
+    if (notification){
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                         }
+                         completion:nil];
+    }
 }
 
 - (void)showDemoProjects {

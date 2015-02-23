@@ -675,21 +675,27 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
     } else {
         if (addCommentTextView.text.length) {
             [ProgressHUD show:@"Adding comment..."];
-            NSDictionary *commentDict = @{@"report_id":_reportTableView.report.identifier,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId],@"body":addCommentTextView.text};
-            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentDict} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+            }
+            if (![_reportTableView.report.identifier isEqualToNumber:@0]){
+                [parameters setObject:_reportTableView.report.identifier forKey:@"report_id"];
+            }
+            if (addCommentTextView.text.length){
+                [parameters setObject:addCommentTextView.text forKey:@"body"];
+            }
+            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"success creating a comment for task: %@",responseObject);
                 
+                //redraw the tableview
+                activities = NO;
+                NSIndexPath *indexPathForNewComment = [NSIndexPath indexPathForRow:1 inSection:9];
+                [_reportTableView beginUpdates];
                 Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                 [comment populateFromDictionary:[responseObject objectForKey:@"comment"]];
-                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_reportTableView.report.comments];
-                [set insertObject:comment atIndex:0];
-                [_reportTableView.report setComments:set];
-                
-                //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:0];
-                
-                [_reportTableView beginUpdates];
-                [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:9] withRowAnimation:UITableViewRowAnimationFade];
-                //[self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                [_report addComment:comment];
+                [_reportTableView insertRowsAtIndexPaths:@[indexPathForNewComment] withRowAnimation:UITableViewRowAnimationFade];
                 [_reportTableView endUpdates];
                 
                 addCommentTextView.text = kAddCommentPlaceholder;
@@ -715,39 +721,19 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             }
         }
     } else if (indexPath.section == tableView.numberOfSections - 1){
-        Activity *activity;
-        if ([tableView.report.type isEqualToString:kDaily]){
-            activity = tableView.report.dailyActivities[indexPath.row];
-        } else {
-            activity = tableView.report.activities[indexPath.row];
-        }
-        
-        /*if (activity.task){
-            [ProgressHUD show:@"Loading..."];
-            BHTaskViewController *taskVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Task"];
-            [taskVC setTask:activity.task];
-            [taskVC setProject:activity.task.project];
-            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:taskVC];
-            [self presentViewController:nav animated:YES completion:nil];
-        } else if (activity.report){
-            if (![activity.report.identifier isEqualToNumber:tableView.report.identifier]){
-                [ProgressHUD show:@"Loading..."];
-                BHReportViewController *singleReportVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Report"];
-                [singleReportVC setReport:activity.report];
-                //set the reports so that the check for unsaved changes method catches
-                [singleReportVC setReports:@[activity.report].mutableCopy];
-                [singleReportVC setProject:activity.report.project];
-                UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:singleReportVC];
-                [self presentViewController:nav animated:YES completion:NULL];
+        if (activities){
+            Activity *activity;
+            if ([tableView.report.type isEqualToString:kDaily]){
+                activity = tableView.report.dailyActivities[indexPath.row];
+            } else {
+                activity = tableView.report.activities[indexPath.row];
             }
-        } else if (activity.checklistItem){
-            [ProgressHUD show:@"Loading..."];
-            BHChecklistItemViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"ChecklistItem"];
-            [vc setItem:activity.checklistItem];
-            [vc setProject:_project];
-            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
-            [self presentViewController:nav animated:YES completion:NULL];
-        }*/
+            if (activity && self.delegate && [self.delegate respondsToSelector:@selector(showActivity:)]){
+                [self.delegate showActivity:activity.identifier];
+            }
+        } else {
+            //comment cell
+        }
     }
 }
 
@@ -776,35 +762,39 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification {
-    NSDictionary* info = [notification userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
-    CGRect convertedKeyboardFrame = [_reportTableView convertRect:keyboardValue.CGRectValue fromView:[(BHAppDelegate*)[UIApplication sharedApplication].delegate window]];
-    CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                         _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
-                     }
-                     completion:nil];
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
+        CGRect convertedKeyboardFrame = [_reportTableView convertRect:keyboardValue.CGRectValue fromView:[(BHAppDelegate*)[UIApplication sharedApplication].delegate window]];
+        CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                             _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight, 0);
+                         }
+                         completion:nil];
+    }
 }
 
 - (void)keyboardWillHide:(NSNotification *)notification {
-    NSDictionary* info = [notification userInfo];
-    NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
-    UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
-    [UIView animateWithDuration:duration
-                          delay:0
-                        options:curve | UIViewAnimationOptionBeginFromCurrentState
-                     animations:^{
-                         _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-                         _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
-                     } completion:^(BOOL finished) {
-                         [self doneEditing];
-                     }];
+    if (notification) {
+        NSDictionary* info = [notification userInfo];
+        NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+        UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+        [UIView animateWithDuration:duration
+                              delay:0
+                            options:curve | UIViewAnimationOptionBeginFromCurrentState
+                         animations:^{
+                             _reportTableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+                             _reportTableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, 0, 0);
+                         } completion:^(BOOL finished) {
+                             [self doneEditing];
+                         }];
+    }
 }
 
 -(void)textViewDidBeginEditing:(UITextView *)textView {

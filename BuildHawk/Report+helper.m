@@ -456,6 +456,19 @@
     self.photos = set;
 }
 
+
+-(void)addComment:(Comment *)comment {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.comments];
+    [set insertObject:comment atIndex:0];
+    self.comments = set;
+}
+
+-(void)removeComment:(Comment *)comment {
+    NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.comments];
+    [set removeObject:comment];
+    self.comments = set;
+}
+
 - (void)addReportSubcontractor:(ReportSub *)reportSubcontractor {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.reportSubs];
     [set addObject:reportSubcontractor];

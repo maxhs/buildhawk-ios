@@ -16,6 +16,7 @@
 #import "ReportUser+helper.h"
 #import "ReportSub.h"
 #import "Subcontractor.h"
+#import "Comment+helper.h"
 
 typedef void(^synchCompletion)(BOOL completed);
 
@@ -31,6 +32,8 @@ typedef void(^synchCompletion)(BOOL completed);
 - (void) clearReportUsers;
 - (void) addPhoto:(Photo*)photo;
 - (void) removePhoto:(Photo*)photo;
+- (void) addComment:(Comment*)comment;
+- (void) removeComment:(Comment*)comment;
 - (void) addReportSubcontractor:(ReportSub*)reportSubcontractor;
 - (void) removeReportSubcontractor:(ReportSub*)reportSubcontractor;
 - (void) clearReportSubcontractors;
