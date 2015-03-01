@@ -26,7 +26,6 @@
     if ([dictionary objectForKey:@"count"] && [dictionary objectForKey:@"count"] != [NSNull null]) {
         self.count = [dictionary objectForKey:@"count"];
     }
-    
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {

@@ -13,13 +13,6 @@
 #import "Report+helper.h"
 #import "Folder+helper.h"
 
-@interface BHActivityCell () {
-    CGFloat origX;
-    CGFloat origWidth;
-}
-
-@end
-
 @implementation BHActivityCell
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
@@ -36,10 +29,10 @@
     [_activityLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
     [_timestampLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
-    if (IDIOM != IPAD){
-        origWidth = _activityLabel.frame.size.width;
-    }
-    origX = _activityLabel.frame.origin.x;
+}
+- (void)prepareForReuse {
+    [super prepareForReuse];
+    [_activityLabel setAlpha:0.0];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {
@@ -53,36 +46,42 @@
     } else {
         [_activityLabel setText:activity.body];
     }
-//    CGRect frame = _activityLabel.frame;
-//    frame.origin.x = 10;
-//    if (IDIOM != IPAD){
-//        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
-//    }
-//    [_activityLabel setFrame:frame];
+    CGRect frame = _activityLabel.frame;
+    frame.origin.x = 10;
+    if (IDIOM != IPAD){
+        frame.size.width = screenWidth()-30-_timestampLabel.frame.size.width;
+    }
+    [_activityLabel setFrame:frame];
+    [UIView animateWithDuration:.23 animations:^{
+        [_activityLabel setAlpha:1.0];
+    }];
 }
 
 - (void)configureForComment:(Comment*)comment {
     [self.imageView setImage:nil];
     [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" - %@",comment.body,comment.user.fullname]];
-//    CGRect frame = _activityLabel.frame;
-//    frame.origin.x = 10;
-//    if (IDIOM != IPAD){
-//        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
-//    }
-//    [_activityLabel setFrame:frame];
+    CGRect frame = _activityLabel.frame;
+    frame.origin.x = 10;
+    if (IDIOM != IPAD){
+        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
+    }
+    [_activityLabel setFrame:frame];
+    [UIView animateWithDuration:.23 animations:^{
+        [_activityLabel setAlpha:1.0];
+    }];
 }
 
 - (void)configureActivityForSynopsis:(Activity *)activity {
     //NSLog(@"Configure for activity synopsis: %@",activity);
-    CGRect frame = _activityLabel.frame;
-    frame.origin.x = origX;
-    if (IDIOM != IPAD){
-        frame.size.width = origWidth;
-    }
-    [_activityLabel setFrame:frame];
+//    CGRect frame = _activityLabel.frame;
+//    frame.origin.x = origX;
+//    if (IDIOM != IPAD){
+//        frame.size.width = origWidth;
+//    }
+//    [_activityLabel setFrame:frame];
     
     if ([activity.activityType isEqualToString:kComment]) {
-        [self.imageView setImage:[UIImage imageNamed:@"chat"]];
+        [self.imageView setImage:[UIImage imageNamed:@"miniChat"]];
         NSString *activityObject;
         if (activity.task){
             if (activity.task.body.length > 25){
@@ -198,5 +197,9 @@
     } else {
         [_activityLabel setText:activity.body];
     }
+    
+    [UIView animateWithDuration:.23 animations:^{
+        [_activityLabel setAlpha:1.0];
+    }];
 }
 @end

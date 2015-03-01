@@ -8,12 +8,15 @@
 
 #import <UIKit/UIKit.h>
 #import "Project+helper.h"
-
+@protocol BHCompaniesDelegate <NSObject>
+- (void)addedCompanyWithId:(NSNumber*)companyId;
+@end
 @interface BHCompaniesViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (strong, nonatomic) NSString *searchTerm;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) NSArray *searchResults;
+@property (weak, nonatomic) id<BHCompaniesDelegate>companiesDelegate;
 
 @end

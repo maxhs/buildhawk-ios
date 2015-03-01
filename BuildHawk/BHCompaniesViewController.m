@@ -20,7 +20,6 @@
 @end
 
 @implementation BHCompaniesViewController
-
 @synthesize searchTerm = _searchTerm;
 @synthesize project = _project;
 @synthesize searchResults = _searchResults;
@@ -48,17 +47,20 @@
     }
     [parameters setObject:_project.identifier forKey:@"project_id"];
     [manager POST:[NSString stringWithFormat:@"%@/companies/add",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success adding a company to project companies: %@",responseObject);
-        
+        //NSLog(@"Success adding a company to project companies: %@",responseObject);
         Company *company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [company populateFromDictionary:[responseObject objectForKey:@"company"]];
         [_project addCompany:company];
-     
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"AddCompany" object:nil userInfo:@{@"company":company}];
-        
-        [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
-            [ProgressHUD dismiss];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            NSLog(@"Success creating a new company with identifier: %@",company.identifier);
+            if (self.companiesDelegate && [self.companiesDelegate respondsToSelector:@selector(addedCompanyWithId:)]){
+                [self.companiesDelegate addedCompanyWithId:company.identifier];
+            }
+            [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+                [ProgressHUD dismiss];
+            }];
         }];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [ProgressHUD dismiss];
         [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Something went wrong while trying to add this company. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -68,13 +70,11 @@
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return _searchResults.count + 1;
 }
 
@@ -99,7 +99,6 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    
     if (indexPath.row == _searchResults.count){
         [self addCompany];
     } else {
@@ -111,9 +110,13 @@
             }
             [company populateFromDictionary:companyDict];
             [_project addCompany:company];
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"AddCompany" object:nil userInfo:@{@"company":company}];
-            [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
-                
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                if (self.companiesDelegate && [self.companiesDelegate respondsToSelector:@selector(addedCompanyWithId:)]){
+                    [self.companiesDelegate addedCompanyWithId:company.identifier];
+                }
+                [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+                    
+                }];
             }];
         }
     }

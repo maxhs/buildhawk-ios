@@ -10,8 +10,7 @@
 
 @implementation BHChooseTopicsViewCell
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
         // Initialization code
@@ -22,8 +21,8 @@
 - (void)awakeFromNib {
     [super awakeFromNib];
     [_chooseTopicsButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_chooseTopicsButton setTitle:@"Add topic" forState:UIControlStateNormal];
-    [_chooseTopicsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    [_chooseTopicsButton setTitle:@"ADD TOPIC" forState:UIControlStateNormal];
+    [_chooseTopicsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

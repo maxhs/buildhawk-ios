@@ -28,7 +28,7 @@
 - (void)choosePhoto;
 - (void)takePhoto;
 - (void)showPhotoBrowserWithPhotos:(NSMutableArray*)browserPhotos withCurrentIndex:(NSUInteger)idx;
-- (void)showActivity:(NSNumber *)activityId;
+- (void)showActivityWithId:(NSNumber *)activityId;
 @end
 
 @interface BHReportsCollectionCell : UICollectionViewCell

@@ -31,8 +31,8 @@
     [self.datePickerButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
     [_datePickerButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_typePickerButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_datePickerButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:18]];
-    [_typePickerButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:18]];
+    [_datePickerButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
+    [_typePickerButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
 }
 
 - (void)buttonTreatment:(UIButton*)button {

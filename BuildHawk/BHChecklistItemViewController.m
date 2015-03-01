@@ -133,8 +133,8 @@
 
 - (void)setUpTimeFormatters {
     commentFormatter = [[NSDateFormatter alloc] init];
-    [commentFormatter setDateStyle:NSDateFormatterShortStyle];
-    [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
+    [commentFormatter setDateFormat:@"MM/dd/yy\nh:mm a"];
+    
     formatter = [[NSDateFormatter alloc] init];
     [formatter setLocale:[NSLocale currentLocale]];
     [formatter setDateStyle:NSDateFormatterShortStyle];
@@ -400,13 +400,13 @@
             }
             if (activities){
                 Activity *activity = _item.activities[indexPath.row];
-                [activityCell configureForActivity:activity];
                 [activityCell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
+                [activityCell configureForActivity:activity];
             } else {
                 //offset the index becuase the first row is going to be an add comment cell
                 Comment *comment = _item.comments[indexPath.row-1];
+                [activityCell.timestampLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
                 [activityCell configureForComment:comment];
-                [activityCell.timestampLabel setText:[formatter stringFromDate:comment.createdAt]];
             }
             return activityCell;
         }

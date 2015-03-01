@@ -146,7 +146,7 @@
     }
     
     if ([dictionary objectForKey:@"report_topics"] && [dictionary objectForKey:@"report_topics"] != [NSNull null]) {
-        NSMutableOrderedSet *orderedTopic = [NSMutableOrderedSet orderedSet];
+        NSMutableOrderedSet *orderedTopics = [NSMutableOrderedSet orderedSet];
         for (id topicDict in [dictionary objectForKey:@"report_topics"]){
             //NSLog(@"topic dict: %@",topicDict);
             NSPredicate *topicPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [topicDict objectForKey:@"id"]];
@@ -155,9 +155,10 @@
                 topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
             [topic populateWithDict:topicDict];
-            [orderedTopic addObject:topic];
+            [orderedTopics addObject:topic];
         }
-        self.safetyTopics = orderedTopic;
+
+        self.safetyTopics = orderedTopics;
     }
     
     if ([dictionary objectForKey:@"author"] && [dictionary objectForKey:@"author"] != [NSNull null]) {
@@ -577,7 +578,6 @@
                 complete(NO);
             }];
         } else {
-            NSLog(@"saving an existing report: %@",self.identifier);
             [manager PATCH:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl,self.identifier] parameters:@{@"report":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"Success synching report: %@",responseObject);
                 if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoReport]){

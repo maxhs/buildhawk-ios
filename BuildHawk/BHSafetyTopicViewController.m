@@ -31,6 +31,7 @@
     [infoTextView setTextColor:[UIColor blackColor]];
     [infoTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     [infoTextView setScrollEnabled:NO];
+    infoTextView.editable = NO;
     textViewHeight = [infoTextView sizeThatFits:CGSizeMake(self.tableView.frame.size.width-8, CGFLOAT_MAX)].height;
     [infoTextView setFrame:CGRectMake(4, 0, self.tableView.frame.size.width-8, textViewHeight)];
 }

@@ -316,7 +316,7 @@
 }
 
 #pragma mark - BHReportCellDelegate Methods
-- (void)showActivity:(NSNumber *)activityId {
+- (void)showActivityWithId:(NSNumber *)activityId {
     Activity *activity = [Activity MR_findFirstByAttribute:@"identifier" withValue:activityId inContext:[NSManagedObjectContext MR_defaultContext]];
     
     if (activity.task){
@@ -327,16 +327,16 @@
         UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:taskVC];
         [self presentViewController:nav animated:YES completion:nil];
     } else if (activity.report){
-        if (![activity.report.identifier isEqualToNumber:_report.identifier]){
-            [ProgressHUD show:@"Loading..."];
-            BHReportViewController *singleReportVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Report"];
-            [singleReportVC setInitialReportId:activity.report.identifier];
-            //set the reports so that the check for unsaved changes method catches
-            //[singleReportVC setReports:@[activity.report].mutableCopy];
-            [singleReportVC setProjectId:activity.report.project.identifier];
-            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:singleReportVC];
-            [self presentViewController:nav animated:YES completion:NULL];
-        }
+//        if (![activity.report.identifier isEqualToNumber:_report.identifier]){
+//            [ProgressHUD show:@"Loading..."];
+//            BHReportViewController *singleReportVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"Report"];
+//            [singleReportVC setInitialReportId:activity.report.identifier];
+//            //set the reports so that the check for unsaved changes method catches
+//            //[singleReportVC setReports:@[activity.report].mutableCopy];
+//            [singleReportVC setProjectId:activity.report.project.identifier];
+//            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:singleReportVC];
+//            [self presentViewController:nav animated:YES completion:NULL];
+//        }
     } else if (activity.checklistItem){
         [ProgressHUD show:@"Loading..."];
         BHChecklistItemViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"ChecklistItem"];
@@ -475,8 +475,6 @@
 
 - (void)uploadPhotos:(NSOrderedSet*)photoSet forReport:(Report*)report {
     if ([_project.demo isEqualToNumber:@NO]){
-        
-        NSLog(@"existing report for photo upload? %@",report.identifier);
         [report setSaved:@NO];
         
         for (Photo *photo in photoSet){
@@ -630,42 +628,38 @@
             [_report synchWithServer:^(BOOL complete) {
                 if (complete){
                     [_report setSaved:@YES];
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        [ProgressHUD showSuccess:@"Report Added"];
-                        self.navigationItem.rightBarButtonItem = saveButton;
-                    }];
+                    self.navigationItem.rightBarButtonItem = saveButton;
+                    [ProgressHUD showSuccess:@"Report Added"];
                 } else {
                     [_report setSaved:@NO];
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
                     [appDelegate.syncController update];
                     [ProgressHUD dismiss];
                 }
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+                [_collectionView reloadData];
             }];
             
         } else {
             [ProgressHUD show:@"Saving report..."];
             [_report synchWithServer:^(BOOL complete) {
-                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    if (complete){
-                        [_report setSaved:@YES];
-                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                            [ProgressHUD showSuccess:@"Report saved"];
-                        }];
-                        
-                    } else {
-                        [_report setSaved:@NO];
-                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
-                        //increment the status
-                        [appDelegate.syncController update];
-                        [ProgressHUD dismiss];
-                    }
-                }];
+                if (complete){
+                    [_report setSaved:@YES];
+                    [ProgressHUD showSuccess:@"Report saved"];
+                } else {
+                    [_report setSaved:@NO];
+                    //increment the status
+                    [appDelegate.syncController update];
+                    [ProgressHUD dismiss];
+                }
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+                [_collectionView reloadData];
             }];
         }
     } else {
         [_report setSaved:@NO];
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [ProgressHUD showSuccess:@"Report saved"];
+            [_activeTableView reloadData];
             [appDelegate.syncController update];
         }];
     }
@@ -797,10 +791,6 @@
         _report.reportSubs = reportSubs;
 
         [_collectionView reloadData];
-//        [_reportTableView beginUpdates];
-//        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:3] withRowAnimation:UITableViewRowAnimationFade];
-//        [_reportTableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
-//        [_reportTableView endUpdates];
     }
 
 }

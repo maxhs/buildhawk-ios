@@ -117,6 +117,8 @@
             [self loadChecklist];
             [ProgressHUD show:@"Loading Checklist..."];
         }
+    } else {
+        [self.tableView reloadData];
     }
     
     if (indexPathToExpand){
@@ -362,8 +364,7 @@
     }
 }
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if (tableView == self.searchDisplayController.searchResultsTableView) return 1;
     else if (completed) return _checklist.completedPhases.count;
     else if (active) return _checklist.activePhases.count;
@@ -680,10 +681,11 @@
                 id item = [openRows objectAtIndex:indexPath.row-1];
                 if ([item isKindOfClass:[Cat class]]){
                     Cat *category = [openRows objectAtIndex:indexPath.row-1];
+                    //TESTING
+                    [self loadCategory:category];
+                    //
                     if ([category.expanded isEqualToNumber:@YES]){
-                        NSMutableArray *deleteIndexPaths = [NSMutableArray array];
                         NSInteger subIdx = [openRows indexOfObject:category];
-                        
                         NSMutableArray *deletionArray;
                         if (completed){
                             deletionArray = category.completedItems;
@@ -694,26 +696,21 @@
                         } else {
                             deletionArray = category.items.mutableCopy;
                         }
+                        
+                        NSMutableArray *deleteIndexPaths = [NSMutableArray array];
                         for (NSInteger idx = subIdx; idx < (deletionArray.count+subIdx); idx ++){
                             NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
                             [deleteIndexPaths addObject:newIndexPath];
                         }
                         
-                        [openRows removeObjectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange([openRows indexOfObject:category]+1, deletionArray.count)]];
-                        
-                        category.expanded = @NO;
-                        
                         [self.tableView beginUpdates];
+                        [openRows removeObjectsAtIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange([openRows indexOfObject:category] + 1, deletionArray.count)]];
+                        category.expanded = @NO;
                         [self.tableView deleteRowsAtIndexPaths:deleteIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                         [self.tableView endUpdates];
+                        
                     } else {
-                        //TESTING
-                        [self loadCategory:category];
-                        //
                         category.expanded = @YES;
-                        NSMutableArray *newIndexPaths = [NSMutableArray array];
-                        NSInteger catIdx = [openRows indexOfObject:category];
-                        int itemIdx = 0;
                         NSArray *insertionArray;
                         if (completed) {
                             insertionArray = category.completedItems;
@@ -725,14 +722,16 @@
                             insertionArray = category.items.array;
                         }
                         
+                        NSMutableArray *newIndexPaths = [NSMutableArray array];
+                        NSInteger catIdx = [openRows indexOfObject:category];
+                        int itemIdx = 0;
+                        [self.tableView beginUpdates];
                         for (NSInteger idx = catIdx; idx < (insertionArray.count+catIdx); idx ++){
                             NSIndexPath *newIndexPath = [NSIndexPath indexPathForRow:idx+2 inSection:indexPath.section];
                             [newIndexPaths addObject:newIndexPath];
                             [openRows insertObject:[insertionArray objectAtIndex:itemIdx] atIndex:idx+1];
                             itemIdx++;
                         }
-                        
-                        [self.tableView beginUpdates];
                         [self.tableView insertRowsAtIndexPaths:newIndexPaths withRowAnimation:UITableViewRowAnimationFade];
                         [self.tableView endUpdates];
                         

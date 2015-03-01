@@ -20,8 +20,10 @@
 #import "BHSearchModalTransition.h"
 #import "BHCompaniesViewController.h"
 
-// TO DO Rebuild this en
-@interface BHPersonnelPickerViewController () <UIAlertViewDelegate, UIViewControllerTransitioningDelegate> {
+static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
+
+// TO DO Rebuild this entire thing
+@interface BHPersonnelPickerViewController () <UIAlertViewDelegate, UIViewControllerTransitioningDelegate, BHCompaniesDelegate> {
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *filteredUsers;
     NSMutableArray *filteredSubcontractors;
@@ -42,9 +44,11 @@
     Task *_task;
     Company *_company;
 }
+@property (strong, nonatomic) Project *project;
+@property (strong, nonatomic) Task *task;
+@property (strong, nonatomic) Report *report;
+@property (strong, nonatomic) Company *company;
 @end
-
-static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 @implementation BHPersonnelPickerViewController
 @synthesize phone, email;
@@ -52,10 +56,14 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 @synthesize companyId = _companyId;
 @synthesize taskId = _taskId;
 @synthesize reportId = _reportId;
+@synthesize report = _report;
+@synthesize project = _project;
+@synthesize company = _company;
+@synthesize task = _task;
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
+    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     [self.view setBackgroundColor:kDarkerGrayColor];
     self.tableView.rowHeight = 60;
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
@@ -65,12 +73,15 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         filteredUsers = [NSMutableArray array];
     }
     
-    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
-    _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_reportId inContext:[NSManagedObjectContext MR_defaultContext]];
     _company = [Company MR_findFirstByAttribute:@"identifier" withValue:_companyId inContext:[NSManagedObjectContext MR_defaultContext]];
-    _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
+    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    if (_reportId) {
+        _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+    } else if (_taskId){
+        _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
+    }
     
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    
     doneBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
 
     self.tableView.tableHeaderView = self.searchBar;
@@ -94,8 +105,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }
     companySet = [NSMutableOrderedSet orderedSet];
     [self pinParentCompanyToTop];
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addCompany:) name:@"AddCompany" object:nil];
     [self registerKeyboardNotifications];
 }
 
@@ -105,16 +114,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }
     [companySet removeObject:_project.company];
     [companySet insertObject:_project.company atIndex:0];
-}
-
-- (void)addCompany:(NSNotification*)notification {
-    _companyMode = YES;
-    Company *company = [notification.userInfo objectForKey:@"company"];
-    if (company){
-        [companySet addObject:company];
-    }
-    [self endSearch];
-    [self.tableView reloadData];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -131,7 +130,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         [_project updateFromDictionary:responseObject];
         loading = NO;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            //NSLog(@"%u success with saving project subs",success);
             [ProgressHUD dismiss];
             [self processPersonnel];
         }];
@@ -219,6 +217,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     searching = NO;
     [self.searchBar setText:@""];
     [self.tableView reloadData];
+    self.navigationItem.rightBarButtonItem = nil;
 }
 
 - (void)removeAll {
@@ -335,7 +334,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                                 [cell.connectNameLabel setText:company.name];
                                 [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
                                 [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
-                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+                                [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
                                 [cell.nameLabel setText:@""];
                                 *stop = YES;
                             }
@@ -419,11 +418,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         if (_companyMode){
             [cell.nameLabel setText:company.name];
             [_report.reportSubs enumerateObjectsUsingBlock:^(ReportSub *reportSub, NSUInteger idx, BOOL *stop) {
-                if ([company.identifier isEqualToNumber:reportSub.companyId]){
+
+                if (reportSub.companyId && [company.identifier isEqualToNumber:reportSub.companyId]){
                     [cell.connectNameLabel setText:company.name];
                     [cell.connectNameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
                     [cell.connectDetailLabel setText:[NSString stringWithFormat:@"%@ personnel on-site",reportSub.count]];
-                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+                    [cell.connectDetailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
                     [cell.nameLabel setText:@""];
                     *stop = YES;
                 }
@@ -560,6 +560,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)searchCompany:(NSArray*)array {
     BHCompaniesViewController *vc = [[self storyboard] instantiateViewControllerWithIdentifier:@"Companies"];
+    vc.companiesDelegate = self;
     [vc setTitle:@"Did you mean?"];
     [vc setSearchTerm:searchText];
     [vc setSearchResults:array];
@@ -572,6 +573,26 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }];
 }
 
+- (void)addedCompanyWithId:(NSNumber *)companyId {
+    _companyMode = YES;
+    Company *company = [Company MR_findFirstByAttribute:@"identifier" withValue:companyId inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (company){
+            [companySet addObject:company];
+        
+        if (_report){
+            ReportSub *reportSub = [ReportSub MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            reportSub.companyId = company.identifier;
+            reportSub.name = company.name;
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            [_report addReportSubcontractor:reportSub];
+            NSLog(@"new report sub: %@",reportSub);
+        }
+        [self endSearch];
+        [self.tableView reloadData];
+        [self selectCompany];
+    }
+}
+
 - (void)addCompany {
     [ProgressHUD show:@"Creating company..."];
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
@@ -580,14 +601,17 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     }
     [parameters setObject:_project.identifier forKey:@"project_id"];
     [manager POST:[NSString stringWithFormat:@"%@/companies/add",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success adding a company to project companies: %@",responseObject);
-        
+        //NSLog(@"Success adding a company to project companies: %@",responseObject);
         Company *company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [company populateFromDictionary:[responseObject objectForKey:@"company"]];
         [_project addCompany:company];
-        [companySet insertObject:company atIndex:0];
-        [self endSearch];
-        [self.tableView reloadData];
+        
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [companySet insertObject:company atIndex:0];
+            [self endSearch];
+            [self.tableView reloadData];
+        }];
+        
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         [ProgressHUD dismiss];
         [[[UIAlertView alloc] initWithTitle:@"Error" message:@"Something went wrong while trying to add this company. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
@@ -794,13 +818,13 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
-- (void)selectCompany{
+- (void)selectCompany {
     BOOL select = YES;
     for (ReportSub *reportSub in _report.reportSubs) {
-        if ([selectedCompany.identifier isEqualToNumber:reportSub.companyId]){
+        if (reportSub.companyId && [selectedCompany.identifier isEqualToNumber:reportSub.companyId]){
             [_report removeReportSubcontractor:reportSub];
             [reportSub MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            NSLog(@"should be removing a report sub");
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
             if (self.personnelDelegate && [self.personnelDelegate respondsToSelector:@selector(reportSubRemoved:)]){
                 [self.personnelDelegate reportSubRemoved:reportSub];
             }
@@ -917,10 +941,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                               delay:0
                             options:(animationCurve << 16)
                          animations:^{
-                             self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
-                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight+27, 0);
+                             self.tableView.contentInset = UIEdgeInsetsMake(0, 0, keyboardHeight + 27, 0);
+                             self.tableView.scrollIndicatorInsets = UIEdgeInsetsMake(0, 0, keyboardHeight + 27, 0);
                          }
-                         completion:NULL];
+                         completion:^(BOOL finished) {
+                             self.navigationItem.rightBarButtonItem = nil;
+                         }];
     }
 }
 

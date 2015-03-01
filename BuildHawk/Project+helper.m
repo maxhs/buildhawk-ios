@@ -303,7 +303,12 @@
             }
             [set addObject:company];
         }
-
+        for (Company *company in self.companies){
+            if (![set containsObject:company]){
+                NSLog(@"Deleting a company that no longer exists: %@",company.name);
+                [company MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            }
+        }
         self.companies = set;
     }
     
