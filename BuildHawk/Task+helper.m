@@ -173,7 +173,7 @@
 
 -(void)addComment:(Comment *)comment {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.comments];
-    [set addObject:comment];
+    [set insertObject:comment atIndex:0];
     self.comments = set;
 }
 -(void)removeComment:(Comment *)comment {
@@ -242,55 +242,102 @@
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
-    if (self && self.body){
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-        
-        [parameters setObject:self.body forKey:@"body"];
-        
-        NSMutableArray *locationIds = [NSMutableArray arrayWithCapacity:self.locations.count];
-        [self.locations enumerateObjectsUsingBlock:^(Location *location, NSUInteger idx, BOOL *stop) {
-            if (![location.identifier isEqualToNumber:@0]){
-                [locationIds addObject:location.identifier];
-            }
-        }];
-        [parameters setObject:locationIds forKey:@"location_ids"];
-        
-        NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
-        [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
-            if ([assignee.identifier isEqualToNumber:@0]){
-                [assignee MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            } else {
-                [assigneeIds addObject:assignee.identifier];
-            }
-        }];
-        [parameters setObject:assigneeIds forKey:@"assignee_ids"];
-        
-        if ([self.completed isEqualToNumber:@YES]){
-            [parameters setObject:@YES forKey:@"completed"];
-            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
-        } else {
-            [parameters setObject:@NO forKey:@"completed"];
+    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    [parameters setObject:self.body forKey:@"body"];
+    NSMutableArray *locationIds = [NSMutableArray arrayWithCapacity:self.locations.count];
+    [self.locations enumerateObjectsUsingBlock:^(Location *location, NSUInteger idx, BOOL *stop) {
+        if (![location.identifier isEqualToNumber:@0]){
+            [locationIds addObject:location.identifier];
         }
-        
-        [delegate.manager PATCH:[NSString stringWithFormat:@"%@/tasks/%@", kApiBaseUrl, self.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    }];
+    [parameters setObject:locationIds forKey:@"location_ids"];
+    
+    NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.assignees.count];
+    [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+        if ([assignee.identifier isEqualToNumber:@0]){
+            [assignee MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        } else {
+            [assigneeIds addObject:assignee.identifier];
+        }
+    }];
+    [parameters setObject:assigneeIds forKey:@"assignee_ids"];
+    
+    if ([self.completed isEqualToNumber:@YES]){
+        [parameters setObject:@YES forKey:@"completed"];
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
+    } else {
+        [parameters setObject:@NO forKey:@"completed"];
+    }
+    NSMutableOrderedSet *imageSet = [NSMutableOrderedSet orderedSetWithCapacity:self.photos.count];
+    [self.photos enumerateObjectsUsingBlock:^(Photo *photo, NSUInteger idx, BOOL *stop) {
+        if (photo.image){
+            [imageSet addObject:photo.image];
+        }
+    }];
+    if ([self.identifier isEqualToNumber:@0] && self.project.identifier){
+        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+        [delegate.manager POST:@"tasks" parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId], @"project_id":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success synching task: %@",responseObject);
+            [self populateFromDictionary:[responseObject objectForKey:@"task"]];
+            [self setSaved:@YES];
+            [self synchImages:imageSet];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            complete(YES);
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            if (!delegate.connected){
+                [self setSaved:@NO]; //only mark as unsaved if the failure is connectivity related
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            }
+            complete(NO);
+            NSLog(@"Failed to synch-create task: %@",error.description);
+        }];
+    } else {
+        [delegate.manager PATCH:[NSString stringWithFormat:@"tasks/%@", self.identifier] parameters:@{@"task":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success synching task: %@",responseObject);
             if ([responseObject objectForKey:@"message"] && [[responseObject objectForKey:@"message"] isEqualToString:kNoTask]){
                 [self MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             } else {
                 [self populateFromDictionary:[responseObject objectForKey:@"task"]];
                 [self setSaved:@YES];
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":self}];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
             }
             complete(YES);
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        
             if (!delegate.connected){
-                //only mark as unsaved if the failure is connectivity related
-                [self setSaved:@NO];
+                [self setSaved:@NO]; //only mark as unsaved if the failure is connectivity related
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
             }
             complete(NO);
-            NSLog(@"Failed to synch task: %@",error.description);
+            NSLog(@"Failed to synch-update task: %@",error.description);
+        }];
+    }
+}
+
+- (void)synchImages:(NSMutableOrderedSet*)imageSet{
+    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
+    [photoParameters setObject:self.identifier forKey:@"task_id"];
+    [photoParameters setObject:@YES forKey:@"mobile"];
+    [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+    [photoParameters setObject:kTasklist forKey:@"source"];
+    
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
+        [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+    }
+    if (self.project.identifier){
+        [photoParameters setObject:self.project.identifier forKey:@"project_id"];
+    }
+    
+    for (UIImage *image in imageSet){
+        NSData *imageData = UIImageJPEGRepresentation(image, 0.5);
+        [delegate.manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            NSLog(@"Success posting photo for new task: %@",responseObject);
+            [self populateFromDictionary:[responseObject objectForKey:@"task"]];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            //NSLog(@"Failure posting new task image to API: %@",error.description);
         }];
     }
 }

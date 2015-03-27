@@ -9,11 +9,6 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>Pods-CTAssetsPickerController.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>Pods-DateTools.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -57,52 +52,47 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>1F1FC3A35BC3E99E83982E63</key>
+		<key>016BDE1174F6BE7034A4A7AA</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>1F254363EB1B7A30CCD80499</key>
+		<key>093D16D4FB703C4489A5C212</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>1FC310730BC4FDBF11584F80</key>
+		<key>14D9FCF20D1EDA3931219DF3</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>240019B7C68EDCD0E788ECC5</key>
+		<key>3E9AF4AE857DAA0B80CB28CC</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>5E2DCA4F052D88FF533C8C36</key>
+		<key>705A083E2433F726B74910C8</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>683E1D7429A0D9904B31E85F</key>
+		<key>74A0EC80F524E0529178B3A4</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>6E82B9FF5F71B60F2C2BC6F6</key>
+		<key>8C37AA5D07824601FD3509DD</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>7B383A23B2CE8835418FD3C7</key>
+		<key>BC390E5B94B55B5B0624FD57</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>7C480D84D49EA0133969AC81</key>
-		<dict>
-			<key>primary</key>
-			<true/>
-		</dict>
-		<key>DEF8D3029819E5FF1C5E1722</key>
+		<key>CA8CEB2F80D65FA35D447C40</key>
 		<dict>
 			<key>primary</key>
 			<true/>

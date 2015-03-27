@@ -12,19 +12,16 @@
 #import "Checklist+helper.h"
 #import "ChecklistItem+helper.h"
 #import "Report+helper.h"
+#import "Comment+helper.h"
+#import "Reminder+helper.h"
 
 typedef void(^synchCompletion)(BOOL);
 
 @implementation BHSyncController{
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
+    BOOL synching;
 }
-
-@synthesize tasks = _tasks;
-@synthesize checklistItems = _checklistItems;
-@synthesize reports = _reports;
-@synthesize photos = _photos;
-@synthesize synchCount = _synchCount;
 
 + (id)sharedController {
     static BHSyncController *sharedController = nil;
@@ -39,7 +36,7 @@ typedef void(^synchCompletion)(BOOL);
     if (self = [super init]) {
         delegate = [UIApplication sharedApplication].delegate;
         manager = delegate.manager;
-        
+        synching = NO;
         //run timer every 30 minutes
         [NSTimer scheduledTimerWithTimeInterval:1800 target:self selector:@selector(executeTimer) userInfo:nil repeats:YES];
     }
@@ -51,37 +48,44 @@ typedef void(^synchCompletion)(BOOL);
 }
 
 - (void)fetchObjectsThatNeedSyncing {
-    _synchCount = 0;
-    _tasks = [Task MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
-    _checklistItems = [ChecklistItem MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
-    _reports = [Report MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
-    _photos = [Photo MR_findByAttribute:@"identifier" withValue:@0 inContext:[NSManagedObjectContext MR_defaultContext]];
-    NSLog(@"Unsaved tasks: %lu, checklist items: %lu, reports: %lu, photos: %lu",(unsigned long)_tasks.count, (unsigned long)_checklistItems.count, (unsigned long)_reports.count, (unsigned long)_photos.count);
-    
-    _synchCount += _tasks.count;
-    _synchCount += _checklistItems.count;
-    _synchCount += _reports.count;
-    _synchCount += _photos.count;
+    self.synchCount = 0;
+    self.tasks = [Task MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.checklistItems = [ChecklistItem MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.reports = [Report MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.photos = [Photo MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.users = [User MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.reminders = [Reminder MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.comments = [Comment MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.projects = [Project MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.synchCount += self.tasks.count;
+    self.synchCount += self.checklistItems.count;
+    self.synchCount += self.reports.count;
+    self.synchCount += self.photos.count;
+    self.synchCount += self.users.count;
+    self.synchCount += self.reminders.count;
+    self.synchCount += self.comments.count;
+    self.synchCount += self.projects.count;
 }
 
 - (void)syncAll{
     [self fetchObjectsThatNeedSyncing];
-    if (_synchCount <= 0){
+    if (synching) return;
+    if (self.synchCount <= 0 || !delegate.connected){
         return;
     } else {
-        NSString *updateString = (_synchCount == 1) ? @"1 object" : [NSString stringWithFormat:@"%d objects",_synchCount];
-        [delegate displayStatusMessage:[NSString stringWithFormat:@"Updating %@...",updateString]];
+        NSString *updateString = (_synchCount == 1) ? @"1 object" : [NSString stringWithFormat:@"%lu objects",(unsigned long)self.synchCount];
+        [delegate displayStatusMessage:[NSString stringWithFormat:@"Updating %@. Tap for progress.",updateString]];
     }
     
-    if (_tasks.count && delegate.connected) {
+    if (self.tasks.count && delegate.connected) {
         NSLog(@"Should be syncing %lu tasks",(unsigned long)_tasks.count);
-        for (Task *task in _tasks){
+        for (Task *taskForId in _tasks){
+            synching = YES;
+            Task *task = [taskForId MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [task synchWithServer:^(BOOL completed) {
-                _synchCount--;
+                self.synchCount--;
                 if (completed){
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        [self updateSynchCount];
-                    }];
+                    [self updateSynchCount];
                 }
             }];
         }
@@ -89,13 +93,14 @@ typedef void(^synchCompletion)(BOOL);
     
     if (_checklistItems.count){
         NSLog(@"Should be syncing %lu checklist items",(unsigned long)_checklistItems.count);
-        for (ChecklistItem *item in _checklistItems){
+        for (ChecklistItem *itemForId in _checklistItems){
+            synching = YES;
+            ChecklistItem *item = [itemForId MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [item synchWithServer:^(BOOL completed) {
-                _synchCount--;
+                self.synchCount--;
                 if (completed){
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        [self updateSynchCount];
-                    }];
+                    NSLog(@"Successfully saved checklist item");
+                    [self updateSynchCount];
                 }
             }];
         }
@@ -103,14 +108,13 @@ typedef void(^synchCompletion)(BOOL);
     
     if (_reports.count){
         NSLog(@"Should be syncing %lu reports",(unsigned long)_reports.count);
-        for (Report *report in _reports){
+        for (Report *reportForId in _reports){
+            synching = YES;
+            Report *report = [reportForId MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [report synchWithServer:^(BOOL completed) {
-                _synchCount--;
+                self.synchCount--;
                 if (completed){
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        [self updateSynchCount];
-                        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadReports" object:nil];
-                    }];
+                    [self updateSynchCount];
                 }
             }];
         }
@@ -118,13 +122,59 @@ typedef void(^synchCompletion)(BOOL);
     
     if (_photos.count){
         NSLog(@"Should be syncing %lu photos",(unsigned long)_photos.count);
-        for (Photo *photo in _photos){
+        for (Photo *photoForId in _photos){
+            synching = YES;
+            Photo *photo = [photoForId MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [photo synchWithServer:^(BOOL completed) {
-                _synchCount--;
+                self.synchCount--;
                 if (completed){
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        [self updateSynchCount];
-                    }];
+                    NSLog(@"Successfully saved photo");
+                    [self updateSynchCount];
+                }
+            }];
+        }
+    }
+    
+    if (_users.count){
+        NSLog(@"Should be syncing %lu users",(unsigned long)_users.count);
+        for (User *userForId in self.users){
+            synching = YES;
+            User *user = [userForId MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+            [user synchWithServer:^(BOOL completed) {
+                self.synchCount--;
+                if (completed){
+                    NSLog(@"Successfully saved user");
+                    [self updateSynchCount];
+                }
+            }];
+        }
+    }
+    
+    if (_comments.count){
+        NSLog(@"Should be syncing %lu comments",(unsigned long)_comments.count);
+        for (Comment *c in self.comments){
+            synching = YES;
+            Comment *comment = [c MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+            [comment synchWithServer:^(BOOL completed) {
+                self.synchCount--;
+                if (completed){
+                    NSLog(@"Successfully saved comment");
+                    [self updateSynchCount];
+                }
+            }];
+        }
+    }
+    
+    if (_reminders.count){
+        NSLog(@"Should be syncing %lu reminders",(unsigned long)_reminders.count);
+        for (Reminder *r in self.reminders){
+            synching = YES;
+            Reminder *reminder = [r MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+            [reminder synchWithServer:^(BOOL completed) {
+                self.synchCount--;
+                if (completed){
+                    NSLog(@"Successfully saved reminder");
+                    [self updateSynchCount];
                 }
             }];
         }
@@ -151,23 +201,55 @@ typedef void(^synchCompletion)(BOOL);
 }
 
 - (void)updateSynchCount {
-    if (_synchCount <= 0){
+    [self fetchObjectsThatNeedSyncing];
+    if (self.synchCount <= 0 && delegate.connected){
+        synching = NO;
         [delegate removeStatusMessage];
+        [delegate.synchViewController setItemsToSync:nil];
+        [delegate.synchViewController setTitle:@"0 items to synchronize"];
+        [delegate.synchViewController.cancelAllButton setEnabled:NO];
+        [delegate.synchViewController dismiss];
     } else {
-        if (delegate.connected){
-            NSString *updateString = (_synchCount == 1) ? @"1 object" : [NSString stringWithFormat:@"%d objects",_synchCount];
-            [delegate displayStatusMessage:[NSString stringWithFormat:@"Updating %@...",updateString]];
+        if (self.synchCount) {
+            if (delegate.connected){
+                NSString *updateString = (_synchCount == 1) ? @"1 object" : [NSString stringWithFormat:@"%ld objects",(long)_synchCount];
+                [delegate displayStatusMessage:[NSString stringWithFormat:@"Updating %@. Tap for progress.",updateString]];
+            } else {
+                NSString *updateString = (_synchCount == 1) ? @"1 object needs" : [NSString stringWithFormat:@"%ld objects need",(long)_synchCount];
+                [delegate displayStatusMessage:[NSString stringWithFormat:@"%@ to be synchronized",updateString]];
+            }
         } else {
-            NSString *updateString = (_synchCount == 1) ? @"1 object needs" : [NSString stringWithFormat:@"%d objects need",_synchCount];
-            [delegate displayStatusMessage:[NSString stringWithFormat:@"%@ to be synchronized",updateString]];
+            [delegate displayStatusMessage:kDeviceOfflineMessage];
+        }
+        if (delegate.synchViewController){
+            NSMutableOrderedSet *itemsToSync = [NSMutableOrderedSet orderedSetWithArray:_tasks];
+            [itemsToSync addObjectsFromArray:_projects];
+            [itemsToSync addObjectsFromArray:_checklistItems];
+            [itemsToSync addObjectsFromArray:_reports];
+            [itemsToSync addObjectsFromArray:_reminders];
+            [itemsToSync addObjectsFromArray:_comments];
+            [itemsToSync addObjectsFromArray:_users];
+            [delegate.synchViewController setItemsToSync:itemsToSync];
+            [delegate.synchViewController setTitle:[NSString stringWithFormat:@"Synching %lu items",(unsigned long)itemsToSync.count]];
+            [delegate.synchViewController.cancelAllButton setEnabled:YES];
         }
     }
+    [delegate.synchViewController.tableView reloadData];
 }
 
 - (void)cancelSynch {
+    if (self.syncDelegate && [self.syncDelegate respondsToSelector:@selector(cancelSync)]){
+        [self.syncDelegate cancelSync];
+    }
+    [ProgressHUD show:@"Canceling synchronization..."];
+    synching = NO;
     NSArray *reports = [Report MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
     NSArray *tasks = [Task MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
     NSArray *checklistItems = [ChecklistItem MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSArray *photos = [Photo MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSArray *comments = [Comment MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSArray *reminders = [Reminder MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSArray *projects = [Project MR_findByAttribute:@"saved" withValue:@NO inContext:[NSManagedObjectContext MR_defaultContext]];
     
     [reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
         [report setSaved:@YES];
@@ -178,8 +260,22 @@ typedef void(^synchCompletion)(BOOL);
     [checklistItems enumerateObjectsUsingBlock:^(ChecklistItem *item, NSUInteger idx, BOOL *stop) {
         [item setSaved:@YES];
     }];
+    [photos enumerateObjectsUsingBlock:^(Photo *photo, NSUInteger idx, BOOL *stop) {
+        [photo setSaved:@YES];
+    }];
+    [comments enumerateObjectsUsingBlock:^(Comment *comment, NSUInteger idx, BOOL *stop) {
+        [comment setSaved:@YES];
+    }];
+    [reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+        [reminder setSaved:@YES];
+    }];
+    [projects enumerateObjectsUsingBlock:^(Project *project, NSUInteger idx, BOOL *stop) {
+        [project setSaved:@YES];
+    }];
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
-    [self updateSynchCount];
+    [self setSynchCount:0];
+    [delegate.syncController update];
+    [delegate hideSyncController];
 }
 
 @end

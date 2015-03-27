@@ -15,13 +15,22 @@ typedef enum {
     kIncrement = 1
 } SynchDirection;
 
+@protocol BHSyncDelegate <NSObject>
+- (void)cancelSync;
+@end
+
 @interface BHSyncController : NSObject
 
 @property (strong, nonatomic) NSArray *tasks;
 @property (strong, nonatomic) NSArray *reports;
 @property (strong, nonatomic) NSArray *checklistItems;
 @property (strong, nonatomic) NSArray *photos;
-@property int synchCount;
+@property (strong, nonatomic) NSArray *users;
+@property (strong, nonatomic) NSArray *comments;
+@property (strong, nonatomic) NSArray *reminders;
+@property (strong, nonatomic) NSArray *projects;
+@property NSInteger synchCount;
+@property (weak, nonatomic) id<BHSyncDelegate>syncDelegate;
 
 + (id)sharedController;
 - (void)syncAll;

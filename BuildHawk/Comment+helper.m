@@ -43,15 +43,11 @@
 
 - (void)synchWithServer:(synchCompletion)complete {
     AFHTTPRequestOperationManager *manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    
     NSMutableDictionary *commentParameters = [NSMutableDictionary dictionary];
-    // Standard Stuff //
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [commentParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
     }
     [commentParameters setObject:self.body forKey:@"body"];
-    // *** //
-    
     if (self.activity && ![self.activity.identifier isEqualToNumber:@0]){
         [commentParameters setObject:self.report.identifier forKey:@"activity_id"];
     } else if (self.checklistItem && ![self.checklistItem.identifier isEqualToNumber:@0]) {
@@ -64,10 +60,12 @@
     
     [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":commentParameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success synching a new comment with the API: %@",responseObject);
-        Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        Comment *comment = [self MR_inContext:[NSManagedObjectContext MR_defaultContext]];
         [comment populateFromDictionary:[responseObject objectForKey:@"comment"]];
+        [comment setSaved:@YES];
         complete(YES);
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        [self setSaved:@NO];
         complete(NO);
     }];
 }

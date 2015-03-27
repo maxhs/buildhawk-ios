@@ -32,10 +32,10 @@
 #import "BHOverlayView.h"
 #import "BHSafetyTopicTransition.h"
 #import "BHAlert.h"
+#import <SDWebImage/SDWebImageManager.h>
 
-@interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIAlertViewDelegate, UIViewControllerTransitioningDelegate> {
+@interface BHDashboardViewController () <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate, UIAlertViewDelegate, UIViewControllerTransitioningDelegate, BHSyncDelegate> {
     CGRect searchContainerRect;
-    BOOL iPhone5;
     BOOL loading;
     BOOL searching;
     CGFloat width;
@@ -106,11 +106,6 @@
     
     screen = [UIScreen mainScreen].bounds;
     filteredProjects = [NSMutableArray array];
-
-    if (IDIOM != IPAD){
-        if (screen.size.height == 568) iPhone5 = YES;
-        else iPhone5 = NO;
-    }
     
     NSDate *now = [NSDate date];
     NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
@@ -231,13 +226,10 @@
         NSMutableOrderedSet *hiddenSet = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *projectDict in projectsArray) {
             Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:(NSNumber*)[projectDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (project){
-                [project updateFromDictionary:projectDict];
-            } else {
+            if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [project populateFromDictionary:projectDict];
             }
-            
+            [project populateFromDictionary:projectDict];
             if ([project.hidden isEqualToNumber:@YES]) [hiddenSet addObject:project];
             else if (project.group)[groupSet addObject:project];
             else [projectSet addObject:project];
@@ -393,16 +385,14 @@
     _currentUser.company.hiddenProjects = projectSet;
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     if (searching) {
         return 1;
     } else {
@@ -616,9 +606,13 @@
 }
 
 - (void)confirmSynch:(UIButton*)button{
-    if (_projects.count){
-        projectToSynch = [_projects objectAtIndex:button.tag];
-        [[[UIAlertView alloc] initWithTitle:@"Confirm synchronization" message:@"This will download all project data onto your device, which may take several minutes." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Synchronize", nil] show];
+    if (delegate.connected){
+        if (_projects.count){
+            projectToSynch = [_projects objectAtIndex:button.tag];
+            [[[UIAlertView alloc] initWithTitle:@"Confirm synchronization" message:@"This will download all project data onto your device, which may take several minutes." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Synchronize", nil] show];
+        }
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Downloading from the cloud is disabled while your device is offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
 
@@ -669,15 +663,76 @@
 }
 
 - (void)synchronize {
-    [BHAlert show:[NSString stringWithFormat:@"Downloading the latest data for \"%@\"",projectToSynch.name] withTime:3.3f];
+    delegate.syncController.syncDelegate = self;
+    [BHAlert show:[NSString stringWithFormat:@"Downloading the latest data for \"%@\"",projectToSynch.name] withTime:3.3f persist:NO];
+    [projectToSynch setSaved:@NO];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    [self freezeRowForProject:projectToSynch];
     [manager GET:[NSString stringWithFormat:@"projects/%@/synch",projectToSynch.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success synch-loading full project: %@",responseObject);
+        //NSLog(@"Success synch-loading full project: %@",responseObject);
+        [projectToSynch populateFromDictionary:[responseObject objectForKey:@"project"]];
+        [projectToSynch setSaved:@YES];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            NSLog(@"Done synch saving %@",projectToSynch.name);
+            SDWebImageManager *imageManager = [SDWebImageManager sharedManager];
+            [projectToSynch.documents enumerateObjectsUsingBlock:^(Photo *photo, NSUInteger idx, BOOL *stop) {
+                if (IDIOM == IPAD){
+                    [imageManager downloadImageWithURL:[NSURL URLWithString:photo.urlLarge] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+    
+                    }];
+                } else {
+                    [imageManager downloadImageWithURL:[NSURL URLWithString:photo.urlSmall] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                        
+                    }];
+                }
+                [imageManager downloadImageWithURL:[NSURL URLWithString:photo.original] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                    photo.image = image;
+                }];
+            }];
+            [self unfreezeRowForProject:projectToSynch];
+        }];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error loading full project: %@",error.description);
     }];
 }
 
--(void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
+- (void)freezeRowForProject:(Project*)project {
+    [delegate.syncController update];
+    [delegate displayStatusMessage:[NSString stringWithFormat:@"Updating %@...",projectToSynch.name]];
+    NSIndexPath *indexPath;
+    if (searching){
+        indexPath = [NSIndexPath indexPathForRow:[filteredProjects indexOfObject:project] inSection:0];
+    } else {
+        indexPath = [NSIndexPath indexPathForRow:[self.projects indexOfObject:project] inSection:0];
+    }
+    BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:indexPath];
+    [cell.scrollView setContentOffset:CGPointZero animated:YES];
+    [cell setAlpha:.5];
+    [cell setUserInteractionEnabled:NO];
+}
+
+- (void)unfreezeRowForProject:(Project*)project {
+    NSIndexPath *indexPath;
+    if (searching){
+        indexPath = [NSIndexPath indexPathForRow:[filteredProjects indexOfObject:project] inSection:0];
+    } else {
+        indexPath = [NSIndexPath indexPathForRow:[self.projects indexOfObject:project] inSection:0];
+    }
+    BHDashboardProjectCell *cell = (BHDashboardProjectCell*)[self.tableView cellForRowAtIndexPath:indexPath];
+    [cell setAlpha:1];
+    [cell setUserInteractionEnabled:YES];
+    [delegate.syncController update];
+}
+
+- (void)cancelSync {
+    NSArray *projectArray = searching ? filteredProjects : _projects;
+    for (Project *project in projectArray){
+        NSLog(@"should be unfreezing: %@",project.name);
+        [self unfreezeRowForProject:project];
+    }
+}
+
+- (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
     searching = YES;
     [self.searchBar setShowsCancelButton:YES animated:YES];
 }

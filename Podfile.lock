@@ -20,7 +20,6 @@ PODS:
   - AFNetworking/UIKit (2.5.0):
     - AFNetworking/NSURLConnection
     - AFNetworking/NSURLSession
-  - CTAssetsPickerController (2.8.0)
   - DateTools (1.4.3)
   - LDProgressView (1.2.1)
   - MagicalRecord (2.2):
@@ -37,7 +36,6 @@ PODS:
 
 DEPENDENCIES:
   - AFNetworking
-  - CTAssetsPickerController
   - DateTools
   - LDProgressView
   - MagicalRecord
@@ -48,7 +46,6 @@ DEPENDENCIES:
 
 SPEC CHECKSUMS:
   AFNetworking: 0f54cb5d16ce38c1b76948faffb8d5fb705021c7
-  CTAssetsPickerController: 32b02079e2dd41c76fbc63740f4638ced71b7d1b
   DateTools: 7c2d233ea2d4bda3a717d0cd5f58da926a5998d0
   LDProgressView: e0ee70a7cd858ac8c04b319ef87854e7250fb357
   MagicalRecord: 2b471584fc9e3137f3d0a56967917baa4979e224

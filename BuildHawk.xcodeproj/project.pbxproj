@@ -32,6 +32,20 @@
 		503CD58B1A70A36500F4FF85 /* hide@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD5881A70A36500F4FF85 /* hide@2x.png */; };
 		503CD58C1A70A36500F4FF85 /* hide@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 503CD5891A70A36500F4FF85 /* hide@3x.png */; };
 		5099E0651A368012007778AD /* Crashlytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5099E0641A368012007778AD /* Crashlytics.framework */; };
+		50AB42881AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 50AB42871AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m */; };
+		50AB428B1AB7CE3F00C4EF5A /* BHImagePickerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 50AB428A1AB7CE3F00C4EF5A /* BHImagePickerController.m */; };
+		50AB428E1AB7CE8900C4EF5A /* BHImagePickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 50AB428D1AB7CE8900C4EF5A /* BHImagePickerCell.m */; };
+		50AB42911AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 50AB42901AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m */; };
+		50AB42951AB876A800C4EF5A /* blueCheck@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50AB42921AB876A800C4EF5A /* blueCheck@2x.png */; };
+		50AB42961AB876A800C4EF5A /* blueCheck.png in Resources */ = {isa = PBXBuildFile; fileRef = 50AB42931AB876A800C4EF5A /* blueCheck.png */; };
+		50AB42971AB876A800C4EF5A /* blueCheck@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50AB42941AB876A800C4EF5A /* blueCheck@3x.png */; };
+		50AB429A1AB8CC2F00C4EF5A /* ALAsset+date.m in Sources */ = {isa = PBXBuildFile; fileRef = 50AB42991AB8CC2F00C4EF5A /* ALAsset+date.m */; };
+		50B642CD1AA625CB00661E02 /* minis&c.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B642CA1AA625CB00661E02 /* minis&c.png */; };
+		50B642CE1AA625CB00661E02 /* minis&c@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B642CB1AA625CB00661E02 /* minis&c@2x.png */; };
+		50B642CF1AA625CB00661E02 /* minis&c@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B642CC1AA625CB00661E02 /* minis&c@3x.png */; };
+		50B642D31AA6284000661E02 /* minis&cWhite.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B642D01AA6284000661E02 /* minis&cWhite.png */; };
+		50B642D41AA6284000661E02 /* minis&cWhite@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B642D11AA6284000661E02 /* minis&cWhite@2x.png */; };
+		50B642D51AA6284000661E02 /* minis&cWhite@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B642D21AA6284000661E02 /* minis&cWhite@3x.png */; };
 		50B7BDF81A944BD20005F8A4 /* calendar.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B7BDF51A944BD20005F8A4 /* calendar.png */; };
 		50B7BDF91A944BD20005F8A4 /* calendar@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B7BDF61A944BD20005F8A4 /* calendar@2x.png */; };
 		50B7BDFA1A944BD20005F8A4 /* calendar@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50B7BDF71A944BD20005F8A4 /* calendar@3x.png */; };
@@ -433,6 +447,25 @@
 		503CD5881A70A36500F4FF85 /* hide@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "hide@2x.png"; sourceTree = "<group>"; };
 		503CD5891A70A36500F4FF85 /* hide@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "hide@3x.png"; sourceTree = "<group>"; };
 		5099E0641A368012007778AD /* Crashlytics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Crashlytics.framework; sourceTree = "<group>"; };
+		50AB42861AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHAssetGroupPickerViewController.h; sourceTree = "<group>"; };
+		50AB42871AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHAssetGroupPickerViewController.m; sourceTree = "<group>"; };
+		50AB42891AB7CE3F00C4EF5A /* BHImagePickerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHImagePickerController.h; sourceTree = "<group>"; };
+		50AB428A1AB7CE3F00C4EF5A /* BHImagePickerController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHImagePickerController.m; sourceTree = "<group>"; };
+		50AB428C1AB7CE8900C4EF5A /* BHImagePickerCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHImagePickerCell.h; sourceTree = "<group>"; };
+		50AB428D1AB7CE8900C4EF5A /* BHImagePickerCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHImagePickerCell.m; sourceTree = "<group>"; };
+		50AB428F1AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHAssetGroupPickerCell.h; sourceTree = "<group>"; };
+		50AB42901AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHAssetGroupPickerCell.m; sourceTree = "<group>"; };
+		50AB42921AB876A800C4EF5A /* blueCheck@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "blueCheck@2x.png"; sourceTree = "<group>"; };
+		50AB42931AB876A800C4EF5A /* blueCheck.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = blueCheck.png; sourceTree = "<group>"; };
+		50AB42941AB876A800C4EF5A /* blueCheck@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "blueCheck@3x.png"; sourceTree = "<group>"; };
+		50AB42981AB8CC2F00C4EF5A /* ALAsset+date.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ALAsset+date.h"; sourceTree = "<group>"; };
+		50AB42991AB8CC2F00C4EF5A /* ALAsset+date.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "ALAsset+date.m"; sourceTree = "<group>"; };
+		50B642CA1AA625CB00661E02 /* minis&c.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "minis&c.png"; sourceTree = "<group>"; };
+		50B642CB1AA625CB00661E02 /* minis&c@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "minis&c@2x.png"; sourceTree = "<group>"; };
+		50B642CC1AA625CB00661E02 /* minis&c@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "minis&c@3x.png"; sourceTree = "<group>"; };
+		50B642D01AA6284000661E02 /* minis&cWhite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "minis&cWhite.png"; sourceTree = "<group>"; };
+		50B642D11AA6284000661E02 /* minis&cWhite@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "minis&cWhite@2x.png"; sourceTree = "<group>"; };
+		50B642D21AA6284000661E02 /* minis&cWhite@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "minis&cWhite@3x.png"; sourceTree = "<group>"; };
 		50B7BDF51A944BD20005F8A4 /* calendar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = calendar.png; sourceTree = "<group>"; };
 		50B7BDF61A944BD20005F8A4 /* calendar@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "calendar@2x.png"; sourceTree = "<group>"; };
 		50B7BDF71A944BD20005F8A4 /* calendar@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "calendar@3x.png"; sourceTree = "<group>"; };
@@ -1015,6 +1048,8 @@
 				F2EA2637190ED38800EEF2CC /* UIImage+ImageEffects.m */,
 				F26D84C01980C92700494149 /* NSString+EmailAddresses.h */,
 				F26D84C11980C92700494149 /* NSString+EmailAddresses.m */,
+				50AB42981AB8CC2F00C4EF5A /* ALAsset+date.h */,
+				50AB42991AB8CC2F00C4EF5A /* ALAsset+date.m */,
 				50C3F1251A8D77E700F09E11 /* NSArray+toSentence.h */,
 				50C3F1261A8D77E700F09E11 /* NSArray+toSentence.m */,
 				F21110BB19C9EBDB00CC255D /* UIFontDescriptor+Custom.h */,
@@ -1044,8 +1079,6 @@
 				F2C2009A18FDF816003C401A /* BHDeselectableSegmentedControl.m */,
 				F2094FE3192AC09E00329A54 /* BHReportTableView.h */,
 				F2094FE4192AC09E00329A54 /* BHReportTableView.m */,
-				F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */,
-				F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */,
 				F226817818732C3900D78BDD /* BHPhotosHeaderView.h */,
 				F226817918732C3900D78BDD /* BHPhotosHeaderView.m */,
 				F2139D781939736600EE5C96 /* BHReportPhotoScrollView.h */,
@@ -1118,6 +1151,12 @@
 				F25EDAA3195D0B21009C4386 /* BHActivityCell.xib */,
 				50C3F1221A8D73DB00F09E11 /* BHLocationCell.h */,
 				50C3F1231A8D73DB00F09E11 /* BHLocationCell.m */,
+				50AB428C1AB7CE8900C4EF5A /* BHImagePickerCell.h */,
+				50AB428D1AB7CE8900C4EF5A /* BHImagePickerCell.m */,
+				50AB428F1AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.h */,
+				50AB42901AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m */,
+				F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */,
+				F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */,
 				F26D84B1197E25E100494149 /* Reports */,
 				F2F0579E19D5B92A00A66A53 /* BHSyncCell.h */,
 				F2F0579F19D5B92A00A66A53 /* BHSyncCell.m */,
@@ -1315,10 +1354,10 @@
 		F26D84B1197E25E100494149 /* Reports */ = {
 			isa = PBXGroup;
 			children = (
-				F239BB9D17D877C7003097E6 /* BHReportSectionCell.h */,
-				F239BB9E17D877C7003097E6 /* BHReportSectionCell.m */,
 				F239BBA017D877D9003097E6 /* BHReportPickerCell.h */,
 				F239BBA117D877D9003097E6 /* BHReportPickerCell.m */,
+				F239BB9D17D877C7003097E6 /* BHReportSectionCell.h */,
+				F239BB9E17D877C7003097E6 /* BHReportSectionCell.m */,
 				F28F9A02189C4140000A46D4 /* BHReportWeatherCell.h */,
 				F28F9A03189C4140000A46D4 /* BHReportWeatherCell.m */,
 				F28F3100180F1A120066320B /* BHReportPhotoCell.h */,
@@ -1472,6 +1511,15 @@
 		F2B29FF617D0FAB900F09C6F /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				50AB42921AB876A800C4EF5A /* blueCheck@2x.png */,
+				50AB42931AB876A800C4EF5A /* blueCheck.png */,
+				50AB42941AB876A800C4EF5A /* blueCheck@3x.png */,
+				50B642D01AA6284000661E02 /* minis&cWhite.png */,
+				50B642D11AA6284000661E02 /* minis&cWhite@2x.png */,
+				50B642D21AA6284000661E02 /* minis&cWhite@3x.png */,
+				50B642CA1AA625CB00661E02 /* minis&c.png */,
+				50B642CB1AA625CB00661E02 /* minis&c@2x.png */,
+				50B642CC1AA625CB00661E02 /* minis&c@3x.png */,
 				50B7BE101A950B330005F8A4 /* calendarWhite.png */,
 				50B7BE111A950B330005F8A4 /* calendarWhite@2x.png */,
 				50B7BE121A950B330005F8A4 /* calendarWhite@3x.png */,
@@ -1652,6 +1700,10 @@
 				F252F5EA1940F5E600515471 /* BHAddPersonnelViewController.m */,
 				F298A1C019526249005B13EA /* BHAddressBookPickerViewController.h */,
 				F298A1C119526249005B13EA /* BHAddressBookPickerViewController.m */,
+				50AB42861AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.h */,
+				50AB42871AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m */,
+				50AB42891AB7CE3F00C4EF5A /* BHImagePickerController.h */,
+				50AB428A1AB7CE3F00C4EF5A /* BHImagePickerController.m */,
 			);
 			name = Project;
 			sourceTree = "<group>";
@@ -1836,6 +1888,7 @@
 				50B7BE051A944C6C0005F8A4 /* plus@2x.png in Resources */,
 				F2EA264F190EF12700EEF2CC /* downWhiteArrow@2x.png in Resources */,
 				F260F7FF19CD6235000DD028 /* reportsScreenshot.png in Resources */,
+				50B642CD1AA625CB00661E02 /* minis&c.png in Resources */,
 				502CE1DD1A413A1F0024BFFD /* folderWhite@2x.png in Resources */,
 				502CE1DA1A413A1F0024BFFD /* folder@2x.png in Resources */,
 				50B7BE151A950B330005F8A4 /* calendarWhite@3x.png in Resources */,
@@ -1847,6 +1900,7 @@
 				F2EA26A2190F1FB600EEF2CC /* BHChecklistCell.xib in Resources */,
 				F2EA2650190EF12700EEF2CC /* downWhiteArrow.png in Resources */,
 				F260F81419CDF30C000DD028 /* tasklistiPad@2x.png in Resources */,
+				50AB42951AB876A800C4EF5A /* blueCheck@2x.png in Resources */,
 				50FB5FA41A3F4134004D6062 /* reports@3x.png in Resources */,
 				50FB5FD81A40E440004D6062 /* logo@3x.png in Resources */,
 				F2EA264B190EE5CE00EEF2CC /* welcome.png in Resources */,
@@ -1882,8 +1936,10 @@
 				F226815418622D8100D78BDD /* communicateOutlineDark.png in Resources */,
 				50BC67E11A5F34400029AA3D /* chatWhite@3x.png in Resources */,
 				50FB5FBB1A3F43AB004D6062 /* miniChat@2x.png in Resources */,
+				50B642D41AA6284000661E02 /* minis&cWhite@2x.png in Resources */,
 				F285E95518E5E532008FFEC1 /* miniLibraryButton.png in Resources */,
 				50FB5FFB1A40E9BB004D6062 /* Lato-LigIta.ttf in Resources */,
+				50B642D31AA6284000661E02 /* minis&cWhite.png in Resources */,
 				F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */,
 				50BC67E01A5F34400029AA3D /* chatWhite@2x.png in Resources */,
 				502CE1E31A413AF80024BFFD /* camera@2x.png in Resources */,
@@ -1893,6 +1949,7 @@
 				F260F7F519CD5EAF000DD028 /* taskklistScreenshot.png in Resources */,
 				F20EBBED19BBCEE500A97F3A /* success.png in Resources */,
 				F22681A7187FB0ED00D78BDD /* wind@2x.png in Resources */,
+				50AB42971AB876A800C4EF5A /* blueCheck@3x.png in Resources */,
 				F203964E17D3CDD9001CFF61 /* empty.png in Resources */,
 				F2D7D2281A002DDA00210D9D /* Default@2x.png in Resources */,
 				F28F9A4D18A45989000A46D4 /* zoom@2x.png in Resources */,
@@ -1939,6 +1996,7 @@
 				F292AC1217F9F2DE0020DE13 /* textButton@2x.png in Resources */,
 				F260F81919CDF30C000DD028 /* dashboardiPad.png in Resources */,
 				F260F80119CD6235000DD028 /* dashboardScreenshot.png in Resources */,
+				50B642D51AA6284000661E02 /* minis&cWhite@3x.png in Resources */,
 				F29EF2E81815BE1B00F737B7 /* navBarBackground.png in Resources */,
 				50FB5FA21A3F4134004D6062 /* reports.png in Resources */,
 				50FB5FB01A3F41F0004D6062 /* checklists@3x.png in Resources */,
@@ -1958,10 +2016,12 @@
 				F292ABFA17F9E6130020DE13 /* BHCommentCell.xib in Resources */,
 				50B7BE001A944C100005F8A4 /* sort@3x.png in Resources */,
 				F227B65319457265007DE86F /* menu.png in Resources */,
+				50B642CE1AA625CB00661E02 /* minis&c@2x.png in Resources */,
 				F29579D017F7729B0082DE5A /* settings@2x.png in Resources */,
 				F28F9A0D189D890C000A46D4 /* empty100.png in Resources */,
 				F260F81319CDF30C000DD028 /* tasklistiPad.png in Resources */,
 				F2D6A2FA196E3FA7004A9742 /* redDisclosure.png in Resources */,
+				50B642CF1AA625CB00661E02 /* minis&c@3x.png in Resources */,
 				50FB5FFC1A40E9BB004D6062 /* Lato-Reg.ttf in Resources */,
 				50FB5FC01A3F443E004D6062 /* miniChatWhite.png in Resources */,
 				F28F9A3D18A34E04000A46D4 /* icon-40.png in Resources */,
@@ -1987,6 +2047,7 @@
 				F28F9A2918A33F5E000A46D4 /* icon-120.png in Resources */,
 				F2139D37193816A800EE5C96 /* BHChoosePersonnelCell.xib in Resources */,
 				F252F5E2193FF3EC00515471 /* blackX@2x.png in Resources */,
+				50AB42961AB876A800C4EF5A /* blueCheck.png in Resources */,
 				50FB5FF81A40E9BB004D6062 /* Lato-Hai.ttf in Resources */,
 				50FB5FBA1A3F43AB004D6062 /* miniChat.png in Resources */,
 				50FB5FB21A3F41F0004D6062 /* documents@2x.png in Resources */,
@@ -2095,6 +2156,7 @@
 				F28BF561190A29ED00392471 /* Phase+helper.m in Sources */,
 				F2B1F0ED17D7D3760007A4E3 /* BHSearchBar.m in Sources */,
 				F2B29FDC17D0F31B00F09C6F /* BHChecklistViewController.m in Sources */,
+				50AB429A1AB8CC2F00C4EF5A /* ALAsset+date.m in Sources */,
 				F2B29FE317D0F31B00F09C6F /* BHDocumentsViewController.m in Sources */,
 				F2139D351938169100EE5C96 /* BHChoosePersonnelCell.m in Sources */,
 				F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */,
@@ -2111,6 +2173,7 @@
 				F28F311A18109CFD0066320B /* BHRecentDocumentCell.m in Sources */,
 				F2D3DBD219783A61005133AC /* Project.m in Sources */,
 				F2B8178718FA305E002168FD /* BHSettingsViewController.m in Sources */,
+				50AB428E1AB7CE8900C4EF5A /* BHImagePickerCell.m in Sources */,
 				F25EDA99195C7BF4009C4386 /* Activity+helper.m in Sources */,
 				F228707517DFBCC300A88475 /* BHPhotoPickerCell.m in Sources */,
 				F227B64E194571D6007DE86F /* BHMessageCell.m in Sources */,
@@ -2166,11 +2229,13 @@
 				F2FAE44B18F5AFAE005E582B /* BHHiddenProjectsViewController.m in Sources */,
 				F28F9A04189C4140000A46D4 /* BHReportWeatherCell.m in Sources */,
 				F252F5E5193FFF6300515471 /* Group.m in Sources */,
+				50AB428B1AB7CE3F00C4EF5A /* BHImagePickerController.m in Sources */,
 				F20D2E8B19E98E9A00CA54C0 /* Activity.m in Sources */,
 				F2EA2685190F04BF00EEF2CC /* Cat+helper.m in Sources */,
 				F2C4451F1966016F0079AF62 /* Alternate.m in Sources */,
 				F2D3DBD519783F49005133AC /* BHMapViewController.m in Sources */,
 				F292ABFD17F9E8E40020DE13 /* BHListItemPhotoCell.m in Sources */,
+				50AB42911AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m in Sources */,
 				F2B8178A18FA31E2002168FD /* BHDemoProjectsViewController.m in Sources */,
 				F2C4450719654A940079AF62 /* User.m in Sources */,
 				F2EA2638190ED38800EEF2CC /* UIImage+ImageEffects.m in Sources */,
@@ -2209,6 +2274,7 @@
 				F2C444FE19654A670079AF62 /* Photo.m in Sources */,
 				50C3F1181A8D66FF00F09E11 /* BHLocationsViewController.m in Sources */,
 				F203965C17D3DD6B001CFF61 /* BHTasksViewController.m in Sources */,
+				50AB42881AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m in Sources */,
 				F2139D2F1938101500EE5C96 /* ReportUser+helper.m in Sources */,
 				F21110BD19C9EBDB00CC255D /* UIFontDescriptor+Custom.m in Sources */,
 				F2EA26BD1910BFE000EEF2CC /* Checklist+helper.m in Sources */,

@@ -45,7 +45,7 @@
     UIImageView *hideImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"hide"]];
     [hideImageView setFrame:CGRectMake(hideRect.size.width/2-9, hideRect.size.height/2-18, 16, 16)];
     [_hideButton addSubview:hideImageView];
-    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_hideButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     [_hideButton.titleLabel setNumberOfLines:0];
     [_hideButton setTitle:@"Hide" forState:UIControlStateNormal];
     [_hideButton setTitleEdgeInsets:UIEdgeInsetsMake(23, 0, 0, 0)];
@@ -57,7 +57,7 @@
     UIImageView *localImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"local"]];
     [localImageView setFrame:CGRectMake(localRect.size.width/2-10, localRect.size.height/2-20, 20, 20)];
     [_localButton addSubview:localImageView];
-    [_localButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_localButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     [_localButton.titleLabel setNumberOfLines:0];
     [_localButton setTitle:@"Local" forState:UIControlStateNormal];
     [_localButton setTitleEdgeInsets:UIEdgeInsetsMake(23, 0, 0, 0)];
@@ -72,12 +72,16 @@
     [_progressButton setHidden:NO];
     [_scrollView setUserInteractionEnabled:YES];
     
-    NSMutableAttributedString *nameString = [[NSMutableAttributedString alloc] initWithString:project.name attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]}];
-    
-    //don't crash if there's no address
-    if (project.address.formattedAddress.length){
-        NSAttributedString *addressString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@",project.address.formattedAddress] attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProLight] size:0], NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-        [nameString appendAttributedString:addressString];
+    NSMutableAttributedString *nameString;
+    if (project.name.length){
+        nameString = [[NSMutableAttributedString alloc] initWithString:project.name attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]}];
+        //don't crash if there's no address
+        if (project.address.formattedAddress.length){
+            NSAttributedString *addressString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\n%@",project.address.formattedAddress] attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProLight] size:0], NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+            [nameString appendAttributedString:addressString];
+        }
+    } else {
+        nameString = [[NSMutableAttributedString alloc] initWithString:@"No project name" attributes:@{NSFontAttributeName:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProItalic] size:0],NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
     }
     [_nameLabel setAttributedText:nameString];
     

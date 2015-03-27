@@ -12,6 +12,8 @@
 #import "BHTabBarViewController.h"
 #import "Constants.h"
 #import "UIFontDescriptor+Custom.h"
+#import "BHAlert.h"
+#import "BHSyncViewController.h"
 //#import "GAI.h"
 
 @interface BHAppDelegate : UIResponder <UIApplicationDelegate>
@@ -22,6 +24,7 @@
 @property (strong, nonatomic) User *currentUser;
 @property (strong, nonatomic) NSString *bundleName;
 @property (strong, nonatomic) BHSyncController *syncController;
+@property (strong, nonatomic) BHSyncViewController *synchViewController;
 @property (strong, nonatomic) BHTabBarViewController *activeTabBarController;
 @property BOOL connected;
 @property BOOL synching;
@@ -34,6 +37,7 @@
 - (void)setToBuildHawkAppearances;
 - (void)displayStatusMessage:(NSString*)string;
 - (void)showSyncController;
+- (void)hideSyncController;
 - (void)removeStatusMessage;
 - (void)prepareStatusLabelForTab;
 - (void)notifyError:(NSError*)error andOperation:(AFHTTPRequestOperation*)operation andObject:(id)object;

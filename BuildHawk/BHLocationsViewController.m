@@ -16,25 +16,23 @@
     AFHTTPRequestOperationManager *manager;
     NSMutableOrderedSet *_locations;
     NSMutableOrderedSet *_filteredLocations;
-    Task *_task;
     BOOL searching;
     UIBarButtonItem *cancelButton;
     NSString *searchText;
-    Project *_project;
 }
-
+@property (strong, nonatomic) Project *project;
+@property (strong, nonatomic) Task *task;
 @end
 
 @implementation BHLocationsViewController
-@synthesize taskId = _taskId;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = delegate.manager;
-    _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId  inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId  inContext:[NSManagedObjectContext MR_defaultContext]];
     if (_projectId){
-        _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+        self.project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier == %@",_project.identifier];
     _locations = [NSMutableOrderedSet orderedSetWithArray:[Location MR_findAllWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]]];
@@ -81,7 +79,7 @@
     } else {
         Location *location = searching ? _filteredLocations[indexPath.item] : _locations[indexPath.item];
         [cell configureForLocation:location];
-        if ([_task.locations containsObject:location]){
+        if ([self.task.locations containsObject:location]){
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
         } else {
             cell.accessoryType = UITableViewCellAccessoryNone;
@@ -100,12 +98,11 @@
         Location *newLocation = [Location MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [newLocation populateFromDictionary:[responseObject objectForKey:@"location"]];
         [_locations addObject:newLocation];
-        [_task addLocation:newLocation];
+        [self.task addLocation:newLocation];
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             searching = NO;
             [ProgressHUD dismiss];
-            [self.searchBar setText:@""];
-            [self.searchBar endEditing:YES];
+            [self endSearch];
             [self.tableView reloadData];
         }];
         
@@ -121,14 +118,15 @@
     if (searching && _filteredLocations.count == 0 && searchText.length){
         [self createNewLocation];
     } else {
-        Location *location = searching ? _filteredLocations[indexPath.item] : _locations[indexPath.item];
-        if ([_task.locations containsObject:location]){
-            [_task removeLocation:location];
+        Location *l = searching ? _filteredLocations[indexPath.item] : _locations[indexPath.item];
+        Location *location = [l MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+        if ([self.task.locations containsObject:location]){
+            [self.task removeLocation:location];
             if (self.locationsDelegate && [self.locationsDelegate respondsToSelector:@selector(locationRemoved:)]){
                 [self.locationsDelegate locationRemoved:location];
             }
         } else {
-            [_task addLocation:location];
+            [self.task addLocation:location];
             if (self.locationsDelegate && [self.locationsDelegate respondsToSelector:@selector(locationAdded:)]){
                 [self.locationsDelegate locationAdded:location];
             }
@@ -174,5 +172,6 @@
     searching = NO;
     [self.searchBar resignFirstResponder];
     [self.searchBar endEditing:YES];
+    self.navigationItem.rightBarButtonItem = nil;
 }
 @end

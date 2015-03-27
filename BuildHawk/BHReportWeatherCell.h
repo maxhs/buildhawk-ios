@@ -9,15 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @interface BHReportWeatherCell : UITableViewCell
-@property (weak, nonatomic) IBOutlet UIView *weatherContainerView;
 @property (weak, nonatomic) IBOutlet UITextView *dailySummaryTextView;
-@property (weak, nonatomic) IBOutlet UILabel *windLabel;
-@property (weak, nonatomic) IBOutlet UILabel *tempLabel;
-@property (weak, nonatomic) IBOutlet UILabel *precipLabel;
-@property (weak, nonatomic) IBOutlet UILabel *humidityLabel;
-@property (weak, nonatomic) IBOutlet UITextField *windTextField;
-@property (weak, nonatomic) IBOutlet UITextField *precipTextField;
-@property (weak, nonatomic) IBOutlet UITextField *tempTextField;
-@property (weak, nonatomic) IBOutlet UITextField *humidityTextField;
-@property (weak, nonatomic) IBOutlet UIImageView *weatherImageView;
+@property (weak, nonatomic) IBOutlet UILabel *label;
+@property (weak, nonatomic) IBOutlet UITextField *textField;
 @end

@@ -10,8 +10,7 @@
 
 @implementation BHReportPersonnelCell
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
-{
+- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
         // Initialization code
@@ -25,13 +24,22 @@
     [_personLabel setTextColor:[UIColor blackColor]];
     [_countTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     [_countTextField setTextColor:[UIColor blackColor]];
+    
+    if (IDIOM == IPAD){
+        
+    } else {
+        CGFloat differential = 414.f - screenWidth();
+        CGRect removeFrame = _removeButton.frame;
+        removeFrame.origin.x -= differential;
+        [_removeButton setFrame:removeFrame];
+        CGRect countFrame = _countTextField.frame;
+        countFrame.origin.x -= differential;
+        [_countTextField setFrame:countFrame];
+    }
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
 }
 
 @end

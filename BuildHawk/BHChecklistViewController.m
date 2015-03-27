@@ -338,7 +338,9 @@
             
         }];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failed to get phase: %@",error.description);
+        if (delegate.connected){
+            NSLog(@"Failed to get phase: %@",error.description);
+        }
     }];
 }
 
@@ -350,7 +352,9 @@
             
         }];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failed to get category: %@",error.description);
+        if (delegate.connected){
+            NSLog(@"Failed to get category: %@",error.description);
+        }
     }];
 }
 
@@ -456,7 +460,7 @@
         if ([item.type isEqualToString:@"Com"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
         } else if ([item.type isEqualToString:@"S&C"]) {
-            [cell.imageView setImage:[UIImage imageNamed:@"s&c"]];
+            [cell.imageView setImage:[UIImage imageNamed:@"minis&c"]];
         } else {
             [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
         }
@@ -497,7 +501,9 @@
             //calculate the progress percentage
             float count = phase.completedCount.floatValue + phase.notApplicableCount.floatValue;
             NSString *progressPercentage;
-            if ((count/phase.itemCount.floatValue) == 1.f){
+            if ([phase.itemCount isEqualToNumber:@0]){
+                progressPercentage = kBlankProgressPercentage;
+            } else if ((count/phase.itemCount.floatValue) == 1.f){
                 progressPercentage = @"100%";
             } else if ((count/phase.itemCount.floatValue) == 0.f){
                 progressPercentage = @"0%";
@@ -600,7 +606,7 @@
                     if ([item.type isEqualToString:@"Com"]) {
                         [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
                     } else if ([item.type isEqualToString:@"S&C"]) {
-                        [cell.imageView setImage:[UIImage imageNamed:@"s&cWhite"]];
+                        [cell.imageView setImage:[UIImage imageNamed:@"minis&cWhite"]];
                     } else {
                         [cell.imageView setImage:[UIImage imageNamed:@"folderWhite"]];
                     }
@@ -872,7 +878,7 @@
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
-    [ProgressHUD dismiss];
+    //[ProgressHUD dismiss];
     [super viewWillDisappear:animated];
 }
 
@@ -908,8 +914,7 @@
     [self condenseTableView];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
 

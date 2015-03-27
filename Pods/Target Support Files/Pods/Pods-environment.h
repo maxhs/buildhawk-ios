@@ -48,12 +48,6 @@
 #define COCOAPODS_VERSION_MINOR_AFNetworking_UIKit 5
 #define COCOAPODS_VERSION_PATCH_AFNetworking_UIKit 0
 
-// CTAssetsPickerController
-#define COCOAPODS_POD_AVAILABLE_CTAssetsPickerController
-#define COCOAPODS_VERSION_MAJOR_CTAssetsPickerController 2
-#define COCOAPODS_VERSION_MINOR_CTAssetsPickerController 8
-#define COCOAPODS_VERSION_PATCH_CTAssetsPickerController 0
-
 // DateTools
 #define COCOAPODS_POD_AVAILABLE_DateTools
 #define COCOAPODS_VERSION_MAJOR_DateTools 1

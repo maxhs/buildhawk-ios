@@ -30,6 +30,7 @@
     [_timestampLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
 }
+
 - (void)prepareForReuse {
     [super prepareForReuse];
     [_activityLabel setAlpha:0.0];
@@ -46,11 +47,10 @@
     } else {
         [_activityLabel setText:activity.body];
     }
+    
     CGRect frame = _activityLabel.frame;
     frame.origin.x = 10;
-    if (IDIOM != IPAD){
-        frame.size.width = screenWidth()-30-_timestampLabel.frame.size.width;
-    }
+    frame.size.width = screenWidth() - 30 -_timestampLabel.frame.size.width;
     [_activityLabel setFrame:frame];
     [UIView animateWithDuration:.23 animations:^{
         [_activityLabel setAlpha:1.0];
@@ -60,26 +60,16 @@
 - (void)configureForComment:(Comment*)comment {
     [self.imageView setImage:nil];
     [_activityLabel setText:[NSString stringWithFormat:@"\"%@\" - %@",comment.body,comment.user.fullname]];
-    CGRect frame = _activityLabel.frame;
-    frame.origin.x = 10;
-    if (IDIOM != IPAD){
-        frame.size.width = screenWidth()-20-_timestampLabel.frame.size.width;
-    }
-    [_activityLabel setFrame:frame];
+    CGRect labelFrame = _activityLabel.frame;
+    labelFrame.origin.x = 10;
+    labelFrame.size.width = screenWidth() - 20 - _timestampLabel.frame.size.width;
+    [_activityLabel setFrame:labelFrame];
     [UIView animateWithDuration:.23 animations:^{
         [_activityLabel setAlpha:1.0];
     }];
 }
 
-- (void)configureActivityForSynopsis:(Activity *)activity {
-    //NSLog(@"Configure for activity synopsis: %@",activity);
-//    CGRect frame = _activityLabel.frame;
-//    frame.origin.x = origX;
-//    if (IDIOM != IPAD){
-//        frame.size.width = origWidth;
-//    }
-//    [_activityLabel setFrame:frame];
-    
+- (void)configureActivityForSynopsis:(Activity *)activity {    
     if ([activity.activityType isEqualToString:kComment]) {
         [self.imageView setImage:[UIImage imageNamed:@"miniChat"]];
         NSString *activityObject;
@@ -198,6 +188,13 @@
         [_activityLabel setText:activity.body];
     }
     
+    [UIView animateWithDuration:.23 animations:^{
+        [_activityLabel setAlpha:1.0];
+    }];
+    CGRect frame = _activityLabel.frame;
+    frame.origin.x = 44;
+    frame.size.width = screenWidth() - 60 - _timestampLabel.frame.size.width;
+    [_activityLabel setFrame:frame];
     [UIView animateWithDuration:.23 animations:^{
         [_activityLabel setAlpha:1.0];
     }];

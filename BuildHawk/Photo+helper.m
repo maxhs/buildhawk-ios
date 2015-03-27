@@ -21,6 +21,20 @@
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
+    if (!self.localFilePath && [dictionary objectForKey:@"image_content_type"] && [dictionary objectForKey:@"image_content_type"] != [NSNull null]) {
+        if ([[dictionary objectForKey:@"image_content_type"] rangeOfString:@"pdf"].location != NSNotFound && [dictionary objectForKey:@"image_file_name"]){
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //Get path directory
+            NSString *resourceDocPath = [paths objectAtIndex:0];
+            NSString *filePath = [resourceDocPath stringByAppendingPathComponent:[dictionary objectForKey:@"image_file_name"]];
+            self.localFilePath = filePath;
+            dispatch_queue_t queue = dispatch_queue_create("com.buildhawk.pdfqueue", NULL);
+            dispatch_async(queue, ^{
+                NSLog(@"dispatching a pdf save to the background on initial update");
+                NSData *pdfData = [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:[dictionary objectForKey:@"original"]]];
+                [pdfData writeToFile:filePath atomically:NO];
+            });
+        }
+    }
     if ([dictionary objectForKey:@"image_file_name"] && [dictionary objectForKey:@"image_file_name"] != [NSNull null]) {
         self.fileName = [dictionary objectForKey:@"image_file_name"];
     }
@@ -29,9 +43,6 @@
     }
     if ([dictionary objectForKey:@"url_large"] && [dictionary objectForKey:@"url_large"] != [NSNull null]) {
         self.urlLarge = [dictionary objectForKey:@"url_large"];
-    }
-    if ([dictionary objectForKey:@"url_medium"] && [dictionary objectForKey:@"url_medium"] != [NSNull null]) {
-        self.urlMedium = [dictionary objectForKey:@"url_medium"];
     }
     if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];
@@ -44,17 +55,6 @@
     }
     if ([dictionary objectForKey:@"phase"] && [dictionary objectForKey:@"phase"] != [NSNull null]) {
         self.photoPhase = [dictionary objectForKey:@"phase"];
-    }
-
-    if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
-        NSDictionary *dict = [dictionary objectForKey:@"folder"];
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
-        Folder *folder = [Folder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!folder){
-            folder = [Folder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-        [folder populateFromDictionary:dict];
-        self.folder = folder;
     }
     if ([dictionary objectForKey:@"user_name"] && [dictionary objectForKey:@"user_name"] !=[NSNull null]) {
         self.userName = [dictionary objectForKey:@"user_name"];
@@ -70,12 +70,47 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_taken"] doubleValue];
         self.takenAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
+    if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"project_id"]];
+        Project *project = [Project MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!project){
+            project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        [project setIdentifier:[dictionary objectForKey:@"project_id"]];
+        self.project = project;
+    }
+    if ([dictionary objectForKey:@"folder"] && [dictionary objectForKey:@"folder"] != [NSNull null]) {
+        NSDictionary *dict = [dictionary objectForKey:@"folder"];
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
+        Folder *folder = [Folder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (!folder){
+            folder = [Folder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        }
+        [folder populateFromDictionary:dict];
+        self.folder = folder;
+    }
 }
 
 - (void)updateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"update photo dict: %@",dictionary);
     if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
+    }
+    if ([dictionary objectForKey:@"image_content_type"] && [dictionary objectForKey:@"image_content_type"] != [NSNull null]) {
+        if (!self.localFilePath.length && [[dictionary objectForKey:@"image_content_type"] rangeOfString:@"pdf"].location != NSNotFound){
+            NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); //Get path directory
+            NSString *resourceDocPath = [paths objectAtIndex:0];
+            NSString *filePath = [resourceDocPath stringByAppendingPathComponent:[dictionary objectForKey:@"image_file_name"]];
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+                NSData *pdfData = [[NSData alloc] initWithContentsOfURL:[NSURL URLWithString:[dictionary objectForKey:@"original"]]];
+                NSLog(@"dispatching a pdf save to the background");
+                [pdfData writeToFile:filePath atomically:YES];
+            });
+            self.localFilePath = filePath;
+        }
+    }
+    if ([dictionary objectForKey:@"image_file_name"] && [dictionary objectForKey:@"image_file_name"] != [NSNull null]) {
+        self.fileName = [dictionary objectForKey:@"image_file_name"];
     }
     if ([dictionary objectForKey:@"epoch_time"] && [dictionary objectForKey:@"epoch_time"] != [NSNull null]) {
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_time"] doubleValue];
@@ -85,17 +120,11 @@
         NSTimeInterval _interval = [[dictionary objectForKey:@"epoch_taken"] doubleValue];
         self.takenAt = [NSDate dateWithTimeIntervalSince1970:_interval];
     }
-    if ([dictionary objectForKey:@"image_file_name"] && [dictionary objectForKey:@"image_file_name"] != [NSNull null]) {
-        self.fileName = [dictionary objectForKey:@"image_file_name"];
-    }
     if ([dictionary objectForKey:@"url_small"] && [dictionary objectForKey:@"url_small"] != [NSNull null]) {
         self.urlSmall = [dictionary objectForKey:@"url_small"];
     }
     if ([dictionary objectForKey:@"url_large"] && [dictionary objectForKey:@"url_large"] != [NSNull null]) {
         self.urlLarge = [dictionary objectForKey:@"url_large"];
-    }
-    if ([dictionary objectForKey:@"url_medium"] && [dictionary objectForKey:@"url_medium"] != [NSNull null]) {
-        self.urlMedium = [dictionary objectForKey:@"url_medium"];
     }
     if ([dictionary objectForKey:@"original"] && [dictionary objectForKey:@"original"] != [NSNull null]) {
         self.original = [dictionary objectForKey:@"original"];
@@ -119,19 +148,17 @@
         [folder populateFromDictionary:dict];
         self.folder = folder;
     }
-    if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {
-        self.caption = [dictionary objectForKey:@"description"];
-    }
+//    if ([dictionary objectForKey:@"description"] && [dictionary objectForKey:@"description"] != [NSNull null]) {
+//        self.caption = [dictionary objectForKey:@"description"];
+//    }
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
-    //only need to synch if it's a new image, i.e. its identifier is 0
-    if (self.image && [self.identifier isEqualToNumber:@0]){
-        NSData *imageData = UIImageJPEGRepresentation(self.image, 1);
+    if (self.image && [self.saved isEqualToNumber:@NO]){
+        NSData *imageData = UIImageJPEGRepresentation(self.image, .5);
         NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
         [photoParameters setObject:@YES forKey:@"mobile"];
         
-        // Standard Stuff //
         if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
             [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
         }
@@ -142,7 +169,6 @@
             [photoParameters setObject:self.project.identifier forKey:@"project_id"];
         }
         [photoParameters setObject:[NSNumber numberWithDouble:[self.takenAt timeIntervalSince1970]] forKey:@"taken_at"];
-        // *** //
         
         if (self.report && ![self.report.identifier isEqualToNumber:@0]){
             [photoParameters setObject:self.report.identifier forKey:@"report_id"];
@@ -159,23 +185,19 @@
         }
         
         BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
-
-        [[delegate manager] POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
+        [delegate.manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:self.fileName mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success synching image with API: %@",responseObject);
-            //[self populateFromDictionary:[responseObject objectForKey:@"photo"]];
-            Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"photo"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-            [photo updateFromDictionary:[responseObject objectForKey:@"photo"]];
+            //NSLog(@"Success synching image with API: %@",responseObject);
+            Photo *photo = [self MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+            [photo populateFromDictionary:[responseObject objectForKey:@"photo"]];
             [photo setSaved:@YES];
-            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                complete(YES);
-            }];
-            
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            complete(YES);
+            [delegate.syncController update];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Failure synching image with API: %@",error.description);
             complete(NO);
-            [delegate notifyError:error andOperation:operation andObject:self];
         }];
     }
 }

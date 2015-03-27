@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6254" systemVersion="14C109" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6751" systemVersion="14C1514" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="Activity" representedClassName="Activity" syncable="YES">
         <attribute name="activityType" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
@@ -163,6 +163,7 @@
         <attribute name="fileName" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="image" optional="YES" attributeType="Transformable" syncable="YES"/>
+        <attribute name="localFilePath" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="original" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="phase" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="photoPhase" optional="YES" attributeType="String" syncable="YES"/>
@@ -170,7 +171,6 @@
         <attribute name="source" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="takenAt" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="urlLarge" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="urlMedium" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="urlSmall" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="userName" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="activities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="photo" inverseEntity="Activity" syncable="YES"/>
@@ -190,6 +190,7 @@
         <attribute name="notifications" optional="YES" attributeType="Transformable" syncable="YES"/>
         <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="progressPercentage" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="saved" optional="YES" attributeType="Boolean" defaultValueString="YES" syncable="YES"/>
         <attribute name="synchronized" optional="YES" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
         <relationship name="activities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="project" inverseEntity="Activity" syncable="YES"/>
         <relationship name="address" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Address" inverseName="project" inverseEntity="Address" syncable="YES"/>
@@ -208,7 +209,7 @@
         <relationship name="recentItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="project" inverseEntity="ChecklistItem" syncable="YES"/>
         <relationship name="reminders" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Reminder" inverseName="project" inverseEntity="Reminder" syncable="YES"/>
         <relationship name="reports" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Report" inverseName="project" inverseEntity="Report" syncable="YES"/>
-        <relationship name="tasklist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Tasklist" inverseName="project" inverseEntity="Tasklist" syncable="YES"/>
+        <relationship name="tasklists" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Tasklist" inverseName="project" inverseEntity="Tasklist" syncable="YES"/>
         <relationship name="tasks" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Task" inverseName="project" inverseEntity="Task" syncable="YES"/>
         <relationship name="upcomingItems" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="ChecklistItem" inverseName="upcomingItems" inverseEntity="ChecklistItem" syncable="YES"/>
         <relationship name="userHider" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="hiddenProjects" inverseEntity="User" syncable="YES"/>
@@ -219,6 +220,7 @@
         <attribute name="createdDate" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="reminderDate" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="saved" optional="YES" attributeType="Boolean" defaultValueString="YES" syncable="YES"/>
         <relationship name="checklistItem" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ChecklistItem" inverseName="reminders" inverseEntity="ChecklistItem" syncable="YES"/>
         <relationship name="pastDueProject" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="pastDueReminders" inverseEntity="Project" syncable="YES"/>
         <relationship name="pastDueUser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="pastDueReminders" inverseEntity="User" syncable="YES"/>
@@ -304,7 +306,7 @@
     <entity name="Tasklist" representedClassName="Tasklist" syncable="YES">
         <attribute name="identifier" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <relationship name="activities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="tasklist" inverseEntity="Activity" syncable="YES"/>
-        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="tasklist" inverseEntity="Project" syncable="YES"/>
+        <relationship name="project" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Project" inverseName="tasklists" inverseEntity="Project" syncable="YES"/>
         <relationship name="tasks" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Task" inverseName="tasklist" inverseEntity="Task" syncable="YES"/>
     </entity>
     <entity name="User" representedClassName="User" syncable="YES">
@@ -329,6 +331,7 @@
         <attribute name="photoUrlSmall" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="photoUrlThumb" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="pushPermissions" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="saved" optional="YES" attributeType="Boolean" defaultValueString="YES" syncable="YES"/>
         <attribute name="textPermissions" optional="YES" attributeType="Boolean" syncable="YES"/>
         <attribute name="uberAdmin" optional="YES" attributeType="Boolean" defaultValueString="NO" syncable="YES"/>
         <relationship name="activities" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Activity" inverseName="user" inverseEntity="Activity" syncable="YES"/>
@@ -362,8 +365,8 @@
         <element name="Notification" positionX="27" positionY="153" width="128" height="195"/>
         <element name="Phase" positionX="45" positionY="180" width="128" height="240"/>
         <element name="Photo" positionX="36" positionY="171" width="128" height="390"/>
-        <element name="Project" positionX="0" positionY="0" width="128" height="510"/>
-        <element name="Reminder" positionX="45" positionY="171" width="128" height="195"/>
+        <element name="Project" positionX="0" positionY="0" width="128" height="525"/>
+        <element name="Reminder" positionX="45" positionY="171" width="128" height="210"/>
         <element name="Report" positionX="0" positionY="0" width="128" height="420"/>
         <element name="ReportSub" positionX="36" positionY="162" width="128" height="118"/>
         <element name="ReportUser" positionX="27" positionY="153" width="128" height="120"/>
@@ -371,6 +374,6 @@
         <element name="Subcontractor" positionX="27" positionY="153" width="128" height="118"/>
         <element name="Task" positionX="160" positionY="192" width="128" height="300"/>
         <element name="Tasklist" positionX="160" positionY="192" width="128" height="103"/>
-        <element name="User" positionX="0" positionY="0" width="128" height="600"/>
+        <element name="User" positionX="0" positionY="0" width="128" height="615"/>
     </elements>
 </model>

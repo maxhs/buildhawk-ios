@@ -9,6 +9,7 @@
 #import "BHTabBarViewController.h"
 #import "Photo.h"
 #import "BHAppDelegate.h"
+#import "BHDocumentsViewController.h"
 
 @interface BHTabBarViewController () {
     BHAppDelegate *delegate;
@@ -47,9 +48,10 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [delegate.syncController update];
+    if (![self.selectedViewController isKindOfClass:[BHDocumentsViewController class]]){
+        [delegate.syncController update];
+    }
     if (delegate.syncController.synchCount > 0 || !delegate.connected){
-        NSLog(@"synch count now? %lu",(unsigned long)delegate.syncController.synchCount);
         [delegate prepareStatusLabelForTab];
     }
 }

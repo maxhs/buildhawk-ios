@@ -127,7 +127,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [ProgressHUD show:@"Fetching personnel..."];
     [manager GET:[NSString stringWithFormat:@"projects/%@/users",_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success loading project personnel: %@",responseObject);
-        [_project updateFromDictionary:responseObject];
+        [_project populateFromDictionary:responseObject];
         loading = NO;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [ProgressHUD dismiss];
@@ -522,9 +522,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"AddPersonnel"]){
         BHAddPersonnelViewController *vc = [segue destinationViewController];
-        [vc setTask:_task];
-        [vc setReport:_report];
-        [vc setProject:_project];
+        [vc setTask:self.task];
+        [vc setReport:self.report];
+        [vc setProject:self.project];
 
         if ([sender isKindOfClass:[Company class]]){
             [vc setTitle:[NSString stringWithFormat:@"Add to: %@",[(Company*)sender name]]];
@@ -659,9 +659,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 NSLog(@"selectedUser: %@",selectedUser);
                 
                 if (indexPath.row == filteredUsers.count){
-                    
-                   [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
-
+                    [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
                 } else if (self.phone) {
                     if (selectedUser.phone.length) {
                         [self.navigationController popViewControllerAnimated:YES];
@@ -684,7 +682,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"That user does not have an email address on file." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                     }
                 } else  {
-                    
                     if (selectedUser && _task){
                         if ([selectedUser isKindOfClass:[User class]]){
                             [[NSNotificationCenter defaultCenter] postNotificationName:@"AssignTask" object:nil userInfo:@{@"user":selectedUser}];
@@ -918,13 +915,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [self.tableView reloadData];
 }
 
-- (void)save {
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
-        [self.navigationController popViewControllerAnimated:YES];
-    }];
-}
-
 - (void)registerKeyboardNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willShowKeyboard:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willHideKeyboard:) name:UIKeyboardWillHideNotification object:nil];
@@ -967,7 +957,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
-    [self save];
     self.email = NO;
     self.phone = NO;
 }

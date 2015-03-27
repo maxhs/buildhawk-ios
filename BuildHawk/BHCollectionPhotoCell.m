@@ -31,18 +31,27 @@
 
 - (void)prepareForReuse {
     [super prepareForReuse];
-    [_photoButton setAlpha:0.f];
+    [self.photoButton setAlpha:0.f];
+    [self.photoButton setImage:nil forState:UIControlStateNormal];
 }
 
 - (void)configureForPhoto:(Photo*)photo{
-    [self.photoButton setBackgroundColor:[UIColor clearColor]];
-    [self.photoButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-        [UIView animateWithDuration:.23 animations:^{
-            [self.photoButton setAlpha:1.0];
-        }];
+    [self.photoButton setBackgroundColor:[UIColor colorWithWhite:1 alpha:.07]];
+    [UIView animateWithDuration:.23 animations:^{
+        [self.photoButton setAlpha:1.0];
     }];
     self.photoButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.photoButton.imageView.clipsToBounds = YES;
+    
+    [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:photo.urlSmall] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+        
+    } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+        [UIView transitionWithView:self.photoButton duration:.23 options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            [self.photoButton setImage:image forState:UIControlStateNormal];
+        } completion:^(BOOL finished) {
+            
+        }];
+    }];
 }
 
 @end

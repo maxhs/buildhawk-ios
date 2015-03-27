@@ -28,6 +28,7 @@
 @property (nonatomic, retain) NSString * fullname;
 @property (nonatomic, retain) NSNumber * hours;
 @property (nonatomic, retain) NSNumber * identifier;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) id image;
 @property (nonatomic, retain) NSString * lastName;
 @property (nonatomic, retain) NSString * phone;

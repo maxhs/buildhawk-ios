@@ -13,6 +13,7 @@
 #import "SafetyTopic+helper.h"
 #import "MWPhotoBrowser.h"
 #import "Activity+helper.h"
+#import "BHReportPhotoScrollView.h"
 
 @protocol BHReportCellDelegate <NSObject>
 @required
@@ -28,11 +29,13 @@
 - (void)choosePhoto;
 - (void)takePhoto;
 - (void)showPhotoBrowserWithPhotos:(NSMutableArray*)browserPhotos withCurrentIndex:(NSUInteger)idx;
-- (void)showActivityWithId:(NSNumber *)activityId;
+- (void)showActivity:(Activity *)activity;
 @end
 
 @interface BHReportsCollectionCell : UICollectionViewCell
-@property (strong, nonatomic) UIScrollView *photoScrollView;
+
+@property (strong, nonatomic) NSNumber *projectId;
+@property (strong, nonatomic) UICollectionView *collectionView;
 @property (weak, nonatomic) IBOutlet BHReportTableView *reportTableView;
 @property (weak, nonatomic) id <BHReportCellDelegate> delegate;
 @property BOOL canPrefill;

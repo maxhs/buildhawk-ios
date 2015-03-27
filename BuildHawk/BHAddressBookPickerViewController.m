@@ -134,8 +134,7 @@
     }
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     BHAddressBookCell *cell = [tableView dequeueReusableCellWithIdentifier:@"AddressBookCell"];
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHAddressBookCell" owner:self options:nil] lastObject];
@@ -153,6 +152,8 @@
         } else {
             [cell.nameLabel setText:user.firstName];
         }
+    } else {
+        [cell.nameLabel setText:@""];
     }
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];

@@ -21,22 +21,14 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_windLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_windTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_precipLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_precipTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_humidityLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_humidityTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_tempLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_tempTextField setFont:[UIFont fontWithName:kMyriadPro size:15]];
-    [_dailySummaryTextView setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_label setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    [_textField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    [_dailySummaryTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    [_dailySummaryTextView setBackgroundColor:[UIColor clearColor]];
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
 }
 
 @end

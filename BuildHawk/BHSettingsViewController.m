@@ -13,7 +13,7 @@
 
 @interface BHSettingsViewController () <UITextFieldDelegate, UIAlertViewDelegate> {
     UIBarButtonItem *backButton;
-    User *currentUser;
+    BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     UIBarButtonItem *saveButton;
     UIBarButtonItem *doneButton;
@@ -26,7 +26,7 @@
     CGFloat width;
     CGFloat height;
 }
-
+@property (strong, nonatomic) User *currentUser;
 @end
 
 @implementation BHSettingsViewController
@@ -34,7 +34,8 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = delegate.manager;
     
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth();
@@ -50,9 +51,9 @@
     self.navigationItem.rightBarButtonItem = saveButton;
     doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStylePlain target:self action:@selector(doneEditing)];
     
-    currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     self.tableView.rowHeight = 60;
-    //content inset woes
+
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, self.navigationController.navigationBar.frame.size.height, 0);
     
     UILabel *footerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, width, 88)];
@@ -66,10 +67,18 @@
     [self registerForKeyboardNotifications];
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (delegate.connected) {
+        
+    } else {
+        [BHAlert show:@"The ability to save settings is disabled while your device is offline." withTime:3.3f persist:NO];
+    }
 }
 
 #pragma mark - Table view data source
@@ -85,7 +94,7 @@
             return 4;
             break;
         case 1:
-            return currentUser.alternates.count + 1;
+            return self.currentUser.alternates.count + 1;
             break;
         case 2:
             return 3;
@@ -114,8 +123,8 @@
         switch (indexPath.row) {
             case 0:
             {
-                if (currentUser.firstName.length){
-                    [cell.textField setText:currentUser.firstName];
+                if (self.currentUser.firstName.length){
+                    [cell.textField setText:self.currentUser.firstName];
                 }
                 [cell.textField setPlaceholder:@"Your first name"];
                 [cell.textField setKeyboardType:UIKeyboardTypeDefault];
@@ -125,8 +134,8 @@
                 break;
             case 1:
             {
-                if (currentUser.lastName.length){
-                    [cell.textField setText:currentUser.lastName];
+                if (self.currentUser.lastName.length){
+                    [cell.textField setText:self.currentUser.lastName];
                 }
                 [cell.textField setKeyboardType:UIKeyboardTypeDefault];
                 [cell.textField setPlaceholder:@"Your last name"];
@@ -136,7 +145,7 @@
                 break;
             case 2:
             {
-                [cell.textField setText:currentUser.email];
+                [cell.textField setText:self.currentUser.email];
                 [cell.textField setPlaceholder:@"Your email address"];
                 [cell.textField setKeyboardType:UIKeyboardTypeEmailAddress];
                 cell.textField.returnKeyType = UIReturnKeyNext;
@@ -145,8 +154,8 @@
                 break;
             case 3:
             {
-                if (currentUser.formattedPhone.length){
-                    [cell.textField setText:currentUser.formattedPhone];
+                if (self.currentUser.formattedPhone.length){
+                    [cell.textField setText:self.currentUser.formattedPhone];
                 }
                 [cell.textField setKeyboardType:UIKeyboardTypePhonePad];
                 [cell.textField setPlaceholder:@"Your phone number"];
@@ -160,7 +169,7 @@
         }
     } else if (indexPath.section == 1){
         [cell.textField setEnabled:YES];
-        if (indexPath.row == currentUser.alternates.count){
+        if (indexPath.row == self.currentUser.alternates.count){
             cell.textField.placeholder = @"Any alternate email addresses?";
             [cell.actionButton addTarget:self action:@selector(createAlternate) forControlEvents:UIControlEventTouchUpInside];;
             addAlternateTextField = cell.textField;
@@ -168,7 +177,7 @@
             [cell.actionButton setHidden:NO];
             [cell.textLabel setText:@""];
         } else {
-            Alternate *alternate = currentUser.alternates[indexPath.row];
+            Alternate *alternate = self.currentUser.alternates[indexPath.row];
             if (alternate.email.length){
                 [cell.textLabel setText:alternate.email];
             }
@@ -187,19 +196,19 @@
             case 0:
             {
                 [cell.textLabel setText:@"Emails"];
-                [settingsSwitch setOn:currentUser.emailPermissions.boolValue];
+                [settingsSwitch setOn:self.currentUser.emailPermissions.boolValue];
             }
                 break;
             case 1:
             {
                 [cell.textLabel setText:@"Push notifications"];
-                [settingsSwitch setOn:currentUser.pushPermissions.boolValue];
+                [settingsSwitch setOn:self.currentUser.pushPermissions.boolValue];
             }
                 break;
             case 2:
             {
                 [cell.textLabel setText:@"Text notifications"];
-                [settingsSwitch setOn:currentUser.textPermissions.boolValue];
+                [settingsSwitch setOn:self.currentUser.textPermissions.boolValue];
             }
                 break;
                 
@@ -246,17 +255,17 @@
     switch (settingsSwitch.tag) {
         case 0:
         {
-            currentUser.emailPermissions = [NSNumber numberWithBool:settingsSwitch.isOn];
+            self.currentUser.emailPermissions = [NSNumber numberWithBool:settingsSwitch.isOn];
         }
             break;
         case 1:
         {
-            currentUser.pushPermissions = [NSNumber numberWithBool:settingsSwitch.isOn];
+            self.currentUser.pushPermissions = [NSNumber numberWithBool:settingsSwitch.isOn];
         }
             break;
         case 2:
         {
-            currentUser.textPermissions = [NSNumber numberWithBool:settingsSwitch.isOn];
+            self.currentUser.textPermissions = [NSNumber numberWithBool:settingsSwitch.isOn];
         }
             break;
             
@@ -268,7 +277,7 @@
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
     self.navigationItem.rightBarButtonItem = doneButton;
     if (textField == addAlternateTextField){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:currentUser.alternates.count inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:self.currentUser.alternates.count inSection:1] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     }
 }
 
@@ -282,40 +291,23 @@
 }
 
 - (void)save {
-    [ProgressHUD show:@"Updating your settings..."];
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    [parameters setObject:currentUser.emailPermissions forKey:@"email_permissions"];
-    [parameters setObject:currentUser.textPermissions forKey:@"text_permissions"];
-    [parameters setObject:currentUser.pushPermissions forKey:@"push_permissions"];
-    
-    if (![firstNameTextField.text isEqualToString:currentUser.firstName]){
-        [parameters setObject:firstNameTextField.text forKey:@"first_name"];
-    }
-    
-    if (![lastNameTextField.text isEqualToString:currentUser.lastName]){
-        [parameters setObject:lastNameTextField.text forKey:@"last_name"];
-    }
-    
-    if (![phoneTextField.text isEqualToString:currentUser.formattedPhone] && phoneTextField.text.length){
-        [parameters setObject:phoneTextField.text forKey:@"phone"];
-    }
-    
-    if (![emailTextField.text isEqualToString:currentUser.email] && emailTextField.text.length){
-        [parameters setObject:emailTextField.text forKey:@"email"];
-    }
-    
-    NSLog(@"user parameters: %@",parameters);
-    
-    [manager PATCH:[NSString stringWithFormat:@"%@/users/%@",kApiBaseUrl,currentUser.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success updating user: %@",responseObject);
-        [currentUser populateFromDictionary:[responseObject objectForKey:@"user"]];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [ProgressHUD dismiss];
-            [self back];
+    [self.currentUser setSaved:@NO];
+    if (delegate.connected){
+        [ProgressHUD show:@"Updating your settings..."];
+        [self.currentUser synchWithServer:^(BOOL completed) {
+            if (completed){
+                [ProgressHUD dismiss];
+                [self back];
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Error saving settings" message:@"Something went wrong while trying to save your settings. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                [ProgressHUD dismiss];
+                [self back];
+            }
         }];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failure updating user settings: %@",error.description);
-    }];
+    } else {
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+        [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Saving settings is disabled while your device is offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 }
 
 - (void)createAlternate{
@@ -328,9 +320,9 @@
             NSLog(@"Success creating alternate: %@",responseObject);
             Alternate *alternate = [Alternate MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [alternate populateFromDictionary:[responseObject objectForKey:@"alternate"]];
-            NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:currentUser.alternates];
+            NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:self.currentUser.alternates];
             [set addObject:alternate];
-            currentUser.alternates = set;
+            self.currentUser.alternates = set;
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 [self.tableView beginUpdates];
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
@@ -352,9 +344,8 @@
 
 
 // Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (indexPath.section == 1 && indexPath.row != currentUser.alternates.count){
+- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.section == 1 && indexPath.row != self.currentUser.alternates.count){
         return YES;
     } else {
         return NO;
@@ -382,7 +373,7 @@
 }
 
 - (void)deleteAlternate {
-    Alternate *alternate = currentUser.alternates[alternateIndexPathForDeletion.row];
+    Alternate *alternate = self.currentUser.alternates[alternateIndexPathForDeletion.row];
     if (alternate){
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         if (![alternate.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
@@ -396,12 +387,12 @@
             NSLog(@"Failed to delete alternate");
         }];
         
-        NSMutableOrderedSet *alternates = [NSMutableOrderedSet orderedSetWithOrderedSet:currentUser.alternates];
+        NSMutableOrderedSet *alternates = [NSMutableOrderedSet orderedSetWithOrderedSet:self.currentUser.alternates];
         [alternates removeObject:alternate];
-        currentUser.alternates = alternates;
+        self.currentUser.alternates = alternates;
         [alternate MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         
-        if (currentUser.alternates.count > 1){
+        if (self.currentUser.alternates.count > 1){
             [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[alternateIndexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
@@ -433,8 +424,7 @@
     return YES;
 }
 
-- (void)registerForKeyboardNotifications
-{
+- (void)registerForKeyboardNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification object:nil];
@@ -462,8 +452,7 @@
     }
 }
 
-- (void)keyboardWillHide:(NSNotification *)note
-{
+- (void)keyboardWillHide:(NSNotification *)note {
     NSDictionary* info = [note userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];

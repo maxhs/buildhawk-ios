@@ -309,7 +309,7 @@
             if ([[checklistItem type] isEqualToString:@"Com"]) {
                 [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
             } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-                [cell.imageView setImage:[UIImage imageNamed:@"s&c"]];
+                [cell.imageView setImage:[UIImage imageNamed:@"minis&c"]];
             } else {
                 [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
             }
@@ -339,7 +339,11 @@
             [cell.itemLabel setText:phase.name];
             CGFloat progress_count = [phase.progressCount floatValue];
             CGFloat all = [phase.itemCount floatValue];
-            [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
+            if ([phase.itemCount isEqualToNumber:@0]){
+                [cell.progressLabel setText:kBlankProgressPercentage];
+            } else {
+                [cell.progressLabel setText:[NSString stringWithFormat:@"%.1f%%",(100*progress_count/all)]];
+            }
         
             CGFloat progressBarHeight = 7.f;
             if (IDIOM == IPAD) {
@@ -828,14 +832,14 @@
         BHTaskViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
         if ([sender isKindOfClass:[Task class]]){
-            [vc setTaskId:[(Task*)sender identifier]];
+            [vc setTaskId:[(Task*)sender objectID]];
         }
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[Report class]]){
-            [vc setInitialReportId:[(Report*)sender identifier]];
+            [vc setReport:(Report*)sender];
         }
-        [vc setProjectId:_project.identifier];
+        [vc setProject:self.project];
     } else if ([segue.identifier isEqualToString:@"Activities"]) {
         BHActivitiesViewController *vc = [segue destinationViewController];
         [vc setProject:_project];
@@ -857,8 +861,7 @@
 }
 
 - (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    [super didReceiveMemoryWarning]; // Dispose of any resources that can be recreated.
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

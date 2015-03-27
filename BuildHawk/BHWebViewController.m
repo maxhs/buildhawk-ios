@@ -16,8 +16,6 @@
 
 @implementation BHWebViewController
 
-@synthesize url = _url;
-@synthesize photo = _photo;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -28,15 +26,19 @@
     return self;
 }
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     if (_photo){
-        [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:_photo.original]]];
-    } else if (_url) {
+        self.photo = [self.photo MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+        if (self.photo.localFilePath.length){
+            [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL fileURLWithPath:self.photo.localFilePath]]];
+        } else {
+            [self.webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:self.photo.original]]];
+        }
+    } else if (self.url) {
         xButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(dismiss)];
         self.navigationItem.leftBarButtonItem = xButton;
-        [self.webView loadRequest:[NSURLRequest requestWithURL:_url]];
+        [self.webView loadRequest:[NSURLRequest requestWithURL:self.url]];
     }
 }
 

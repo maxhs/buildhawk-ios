@@ -21,7 +21,7 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_notificationLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_notificationLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated {

@@ -9,6 +9,5 @@
 #import <UIKit/UIKit.h>
 
 @interface BHChooseReportPersonnelCell : UITableViewCell
-@property (weak, nonatomic) IBOutlet UIButton *choosePersonnelButton;
-@property (weak, nonatomic) IBOutlet UIButton *prefillButton;
+
 @end

@@ -132,7 +132,7 @@
         if (!report){
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
-        [report populateWithDict:dict];
+        [report populateFromDictionary:dict];
         self.report = report;
     } else if ([dictionary objectForKey:@"report_id"] && [dictionary objectForKey:@"report_id"] != [NSNull null]) {
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dictionary objectForKey:@"report_id"]];

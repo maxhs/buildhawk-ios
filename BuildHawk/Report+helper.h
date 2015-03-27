@@ -22,8 +22,8 @@ typedef void(^synchCompletion)(BOOL completed);
 
 @interface Report (helper)
 
-- (void) populateWithDict:(NSDictionary*)dictionary;
-- (void) updateWithDict:(NSDictionary*)dictionary;
+- (void) populateFromDictionary:(NSDictionary*)dictionary;
+//- (void) updateWithDict:(NSDictionary*)dictionary;
 
 - (void) addSafetyTopic:(SafetyTopic*)topic;
 - (void) removeSafetyTopic:(SafetyTopic*)topic;

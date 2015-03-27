@@ -22,7 +22,6 @@
 #import <Crashlytics/Crashlytics.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <RESideMenu/RESideMenu.h>
-#import "BHSyncViewController.h"
 
 #define MIXPANEL_TOKEN @"2e57104ead72acdd8a77ca963e32e74a"
 
@@ -35,49 +34,37 @@
 
 @implementation BHAppDelegate
 
-@synthesize activeTabBarController = _activeTabBarController;
-@synthesize menu = _menu;
-@synthesize bundleName = _bundleName;
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [MagicalRecord setShouldDeleteStoreOnModelMismatch:YES];
     [MagicalRecord setupAutoMigratingCoreDataStack];
     [self setupThirdPartyAnalytics];
-    
     [self hackForPreloadingKeyboard];
-    
-    //create the sync controller singleton
-    _syncController = [BHSyncController sharedController];
-    
-    //assume we're connected to start
-    _connected = YES;
-    
+    self.syncController = [BHSyncController sharedController]; //create the sync controller singleton
+    self.connected = YES; //assume we're connected to start
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
     [[AFNetworkReachabilityManager sharedManager] setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
         switch (status) {
             case AFNetworkReachabilityStatusReachableViaWWAN:
                 NSLog(@"Connected via WWAN");
-                _connected = YES;
-                if (statusButton)
-                    [self removeStatusMessage];
-                [_syncController syncAll];
+                self.connected = YES;
+                [self.syncController update];
+                [self.syncController syncAll];
                 break;
             case AFNetworkReachabilityStatusReachableViaWiFi:
                 NSLog(@"Connected via WIFI");
-                _connected = YES;
-                if (statusButton)
-                    [self removeStatusMessage];
-                [_syncController syncAll];
+                self.connected = YES;
+                [self.syncController update];
+                [self.syncController syncAll];
                 break;
             case AFNetworkReachabilityStatusUnknown:
                 NSLog(@"Reachability not known");
                 [self offlineNotification];
-                _connected = NO;
+                self.connected = NO;
                 break;
             case AFNetworkReachabilityStatusNotReachable:
                 NSLog(@"Not online");
                 [self offlineNotification];
-                _connected = NO;
+                self.connected = NO;
                 break;
             default:
                 break;
@@ -88,9 +75,7 @@
     _manager = [[AFHTTPRequestOperationManager manager] initWithBaseURL:[NSURL URLWithString:kApiBaseUrl]];
     [_manager.requestSerializer setAuthorizationHeaderFieldWithUsername:@"buildhawk_mobile" password:@"aca344dc4b27b82f994094d8c9bab0af"];
     [_manager.requestSerializer setValue:(IDIOM == IPAD) ? @"2" : @"1" forHTTPHeaderField:@"device_type"];
-    
-    // set the delegate's logged in/logged out flag
-    [self updateLoggedInStatus];
+    [self updateLoggedInStatus]; // set the delegate's logged in/logged out flag
     
     _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
     RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:self.window.rootViewController
@@ -262,7 +247,7 @@
                         [item populateFromDictionary:[responseObject objectForKey:@"task"]];
                         BHTaskViewController *taskVC = [nav.storyboard instantiateViewControllerWithIdentifier:@"Task"];
                         [taskVC setProject:item.project];
-                        [taskVC setTaskId:item.identifier];
+                        [taskVC setTaskId:item.objectID];
                         [nav pushViewController:taskVC animated:YES];
                     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                         //NSLog(@"Failed to load task: %@",error.description);
@@ -287,8 +272,7 @@
     return dict;
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application
-{
+- (void)applicationWillResignActive:(UIApplication *)application {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
 }
@@ -310,8 +294,7 @@
     [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
 }
 
-- (void)applicationWillTerminate:(UIApplication *)application
-{
+- (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     [MagicalRecord cleanUp];
 }
@@ -322,63 +305,84 @@
     }
 
     [ProgressHUD dismiss];
-    [self displayStatusMessage:@"Your device is currently offline"];
+    [self displayStatusMessage:kDeviceOfflineMessage];
 }
 
 - (void)displayStatusMessage:(NSString*)string {
-    /*CGFloat statusHeight = kOfflineStatusHeight;
     if (!statusButton){
         statusButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [statusButton setFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
+        [statusButton setFrame:CGRectMake(0, screenHeight(), screenWidth(), kOfflineStatusHeight)];
         [statusButton setBackgroundColor:kDarkerGrayColor];
         [statusButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
         [statusButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [statusButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
         [statusButton addTarget:self action:@selector(showSyncController) forControlEvents:UIControlEventTouchUpInside];
+        
         [self.window addSubview:statusButton];
     }
     [statusButton setTitle:string forState:UIControlStateNormal];
     
     UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
     CGRect tabFrame = _activeTabBarController.tabBar.frame;
-    tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - statusHeight;
+    tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - kOfflineStatusHeight;
     
     [UIView animateWithDuration:.5 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.00001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [statusButton setFrame:CGRectMake(0, screenHeight()-statusHeight, screenWidth(), statusHeight)];
+        [statusButton setFrame:CGRectMake(0, screenHeight()-kOfflineStatusHeight, screenWidth(), kOfflineStatusHeight)];
         [_activeTabBarController.tabBar setFrame:tabFrame];
     } completion:^(BOOL finished) {
         
-    }];*/
+    }];
 }
 
 - (void)showSyncController {
-    //UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
-    //BHSyncViewController *vc = [nav.storyboard instantiateViewControllerWithIdentifier:@"SynchView"];
+    if (self.syncController.synchCount > 0){
+        UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+        self.synchViewController = [nav.storyboard instantiateViewControllerWithIdentifier:@"SynchView"];
+        NSMutableOrderedSet *itemsToSynch = [NSMutableOrderedSet orderedSetWithArray:_syncController.tasks];
+        [itemsToSynch addObjectsFromArray:_syncController.reports];
+        [itemsToSynch addObjectsFromArray:_syncController.checklistItems];
+        [itemsToSynch addObjectsFromArray:_syncController.tasks];
+        [itemsToSynch addObjectsFromArray:_syncController.users];
+        [itemsToSynch addObjectsFromArray:_syncController.comments];
+        [itemsToSynch addObjectsFromArray:_syncController.reminders];
+        [itemsToSynch addObjectsFromArray:_syncController.projects];
+        [self.synchViewController setItemsToSync:itemsToSynch];
+        UINavigationController *newNav = [[UINavigationController alloc] initWithRootViewController:self.synchViewController];
+        [nav.viewControllers.lastObject presentViewController:newNav animated:YES completion:^{
+            
+        }];
+    }
+}
+
+- (void)hideSyncController {
+    UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
+    [nav.viewControllers.lastObject dismissViewControllerAnimated:YES completion:^{
+        
+    }];
 }
 
 - (void)prepareStatusLabelForTab {
-    /*CGFloat statusHeight = kOfflineStatusHeight;
+    CGFloat statusHeight = kOfflineStatusHeight;
     UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
-    CGRect tabFrame = _activeTabBarController.tabBar.frame;
+    CGRect tabFrame = self.activeTabBarController.tabBar.frame;
     tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height - statusHeight;
-    [_activeTabBarController.tabBar setFrame:tabFrame];*/
+    [self.activeTabBarController.tabBar setFrame:tabFrame];
+    [_syncController syncAll];
 }
 
 - (void)removeStatusMessage{
-    /*CGFloat statusHeight = kOfflineStatusHeight;
     UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
     CGRect tabFrame = _activeTabBarController.tabBar.frame;
     tabFrame.origin.y = screenHeight() - tabFrame.size.height - [[UIApplication sharedApplication] statusBarFrame].size.height - nav.navigationBar.frame.size.height;
     [UIView animateWithDuration:.5 delay:0 usingSpringWithDamping:.9 initialSpringVelocity:.00001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [statusButton setFrame:CGRectMake(0, screenHeight(), screenWidth(), statusHeight)];
+        [statusButton setFrame:CGRectMake(0, screenHeight(), screenWidth(), kOfflineStatusHeight)];
         [_activeTabBarController.tabBar setFrame:tabFrame];
     } completion:^(BOOL finished) {
         
-    }];*/
+    }];
 }
 
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage
-{
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)pushMessage {
     [[Mixpanel sharedInstance] trackPushNotification:pushMessage];
 }
 
@@ -390,55 +394,54 @@
 - (void)application:(UIApplication*)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceToken {
     [[NSUserDefaults standardUserDefaults] setObject:deviceToken forKey:kUserDefaultsDeviceToken];
     [[NSUserDefaults standardUserDefaults] synchronize];
-    if (_connected && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        [parameters setObject:deviceToken forKey:@"token"];
-        [_manager DELETE:[NSString stringWithFormat:@"%@/users/%@/remove_push_token",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success with removing push token: %@",responseObject);
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failed to remove push token: %@",error.description);
-        }];
-    }
+//    if (_connected && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+//        NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+//        [parameters setObject:deviceToken forKey:@"token"];
+//        [_manager DELETE:[NSString stringWithFormat:@"%@/users/%@/remove_push_token",kApiBaseUrl,[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
+//            //NSLog(@"Success with removing push token: %@",responseObject);
+//        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//            NSLog(@"Failed to remove push token: %@",error.description);
+//        }];
+//    }
     //NSLog(@"device token: %@",[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsDeviceToken]);
 }
 
-- (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error
-{
+- (void)application:(UIApplication*)application didFailToRegisterForRemoteNotificationsWithError:(NSError*)error {
     
 }
 
 - (void)notifyError:(NSError*)error andOperation:(AFHTTPRequestOperation *)operation andObject:(id)object {
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-    }
-    if (error){
-        [parameters setObject:error.localizedDescription forKey:@"body"];
-    }
-    if (operation){
-        [parameters setObject:[NSNumber numberWithInteger:operation.response.statusCode] forKey:@"status_code"];
-    }
-    if (object){
-        if ([object isKindOfClass:[Photo class]] && [(Photo*)object identifier]){
-            [parameters setObject:[(Photo*)object identifier] forKey:@"photo"];
-        } else if ([object isKindOfClass:[Report class]] && [(Report*)object identifier]){
-            [parameters setObject:[(Report*)object identifier] forKey:@"report_id"];
-        } else if ([object isKindOfClass:[ChecklistItem class]] && [(ChecklistItem*)object identifier]) {
-            [parameters setObject:[(ChecklistItem*)object identifier] forKey:@"checklist_item"];
-        } else if ([object isKindOfClass:[Task class]] && [(Task*)object identifier]){
-            [parameters setObject:[(Task*)object identifier] forKey:@"task"];
-        } else if ([object isKindOfClass:[Message class]] && [(Message*)object identifier]) {
-            [parameters setObject:[(Message*)object identifier] forKey:@"message"];
-        }
-    }
-    
-    if (parameters.count){
-        [_manager POST:[NSString stringWithFormat:@"%@/errors",kApiBaseUrl] parameters:@{@"error":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success creating an error log: %@",responseObject);
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error creating an error :( %@", error.description);
-        }];
-    }
+//    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+//    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+//        [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+//    }
+//    if (error){
+//        [parameters setObject:error.localizedDescription forKey:@"body"];
+//    }
+//    if (operation){
+//        [parameters setObject:[NSNumber numberWithInteger:operation.response.statusCode] forKey:@"status_code"];
+//    }
+//    if (object){
+//        if ([object isKindOfClass:[Photo class]] && [(Photo*)object identifier]){
+//            [parameters setObject:[(Photo*)object identifier] forKey:@"photo"];
+//        } else if ([object isKindOfClass:[Report class]] && [(Report*)object identifier]){
+//            [parameters setObject:[(Report*)object identifier] forKey:@"report_id"];
+//        } else if ([object isKindOfClass:[ChecklistItem class]] && [(ChecklistItem*)object identifier]) {
+//            [parameters setObject:[(ChecklistItem*)object identifier] forKey:@"checklist_item"];
+//        } else if ([object isKindOfClass:[Task class]] && [(Task*)object identifier]){
+//            [parameters setObject:[(Task*)object identifier] forKey:@"task"];
+//        } else if ([object isKindOfClass:[Message class]] && [(Message*)object identifier]) {
+//            [parameters setObject:[(Message*)object identifier] forKey:@"message"];
+//        }
+//    }
+//    
+//    if (parameters.count){
+//        [_manager POST:[NSString stringWithFormat:@"%@/errors",kApiBaseUrl] parameters:@{@"error":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+//            NSLog(@"Success creating an error log: %@",responseObject);
+//        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//            NSLog(@"Error creating an error :( %@", error.description);
+//        }];
+//    }
 }
 
 - (void)hackForPreloadingKeyboard {

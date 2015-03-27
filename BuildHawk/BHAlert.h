@@ -13,7 +13,7 @@
 + (BHAlert *)shared;
 
 + (void)dismiss;
-+ (void)show:(NSString *)status withTime:(CGFloat)time;
++ (void)show:(NSString *)status withTime:(CGFloat)time persist:(BOOL)persist;
 + (void)show:(NSString *)status withTime:(CGFloat)time andOffset:(CGPoint)centerOffset;
 + (void)showSuccess:(NSString *)status;
 + (void)showError:(NSString *)status;

@@ -50,13 +50,10 @@
             NSMutableOrderedSet *hiddenProjectSet = [NSMutableOrderedSet orderedSet];
             for (NSDictionary *projectDict in [responseObject objectForKey:@"projects"]){
                 Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[projectDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-                if (project){
-                    [project updateFromDictionary:projectDict];
-                } else {
+                if (!project){
                     project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                    [project populateFromDictionary:projectDict];
                 }
-                
+                [project populateFromDictionary:projectDict];
                 [hiddenProjectSet addObject:project];
             }
             _currentUser.hiddenProjects = hiddenProjectSet;

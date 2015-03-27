@@ -51,8 +51,6 @@
 @end
 
 @implementation BHTasksViewController
-@synthesize project = _project;
-@synthesize tasks = _tasks;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -60,12 +58,12 @@
     manager = [delegate manager];
     
     //set the project to be the tab bar project IF the project wasn't already set, i.e. if it was a buildhawk connect thing
-    if (!_project){
-        _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
+    if (!self.project){
+        self.project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
     //set the project title
-    self.navigationItem.title = [NSString stringWithFormat:@"Tasks: %@",_project.name];
+    self.navigationItem.title = [NSString stringWithFormat:@"Tasks: %@",self.project.name];
     
     //adjust the inset so that there's some space in between the segmented control (at the top) and the tab bar (at the bottom)
     //CGFloat topInset = IDIOM == IPAD ? 14 : 14;
@@ -95,21 +93,19 @@
     [self.tableView addSubview:refreshControl];
     
     if (_connectMode){
-        _tasks = _project.userConnectItems.array.mutableCopy;
+        _tasks = self.project.userConnectItems.array.mutableCopy;
         [self drawTasklist];
-    } else if ([_project.tasklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+    } else if ([self.project.tasklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         [ProgressHUD show:@"Getting tasks..."];
         loading = YES;
         [self loadTasklist];
     } else {
         loading = YES;
-        _tasks = _project.tasklist.tasks.array.mutableCopy;
+        _tasks = self.project.tasklist.tasks.array.mutableCopy;
         [self drawTasklist];
         [self loadTasklist];
     }
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadTask:) name:@"ReloadTask" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(addTask:) name:@"AddTask" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -131,18 +127,17 @@
     [self performSegueWithIdentifier:@"CreateItem" sender:nil];
 }
 
-- (void)newTaskCreated:(Task *)newTask {
-    [_tasks insertObject:newTask atIndex:0];
+- (void)taskCreated:(Task *)t {
+    Task *task = [t MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+    [self.tasks addObject:task];
     [self drawTasklist];
 }
 
-- (void)reloadTask:(NSNotification*)notification {
-    NSDictionary *userInfo = notification.userInfo;
-    Task *notificationTask = [userInfo objectForKey:@"task"];
-    //NSLog(@"notification task: %@",notificationTask);
-    if ([notificationTask.completed isEqualToNumber:@YES]){
-        if (![completedListItems containsObject:notificationTask]){
-            [completedListItems insertObject:notificationTask atIndex:0];
+- (void)taskUpdated:(Task *)t {
+    Task *task = [t MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+    if ([task.completed isEqualToNumber:@YES]){
+        if (![completedListItems containsObject:task]){
+            [completedListItems insertObject:task atIndex:0];
         }
         [_segmentedControl setSelectedSegmentIndex:3];
         [self resetSegments];
@@ -154,20 +149,21 @@
         [self resetSegments];
         showActive = YES;
         
-        if (![_tasks containsObject:notificationTask]){
-            [_tasks addObject:notificationTask];
+        if (![self.tasks containsObject:task]){
+            [self.tasks addObject:task];
         }
         [self filterActive];
     }
     
-    //add the location to the list of possible locations:
-    if (notificationTask.locations.count){
-        [locationSet addObjectsFromArray:notificationTask.locations.array];
+    if (task.locations.count){
+        [task.locations enumerateObjectsUsingBlock:^(Location *location, NSUInteger idx, BOOL *stop) {
+            [locationSet addObject:location];  //add the location to the list of possible locations:
+        }];
     }
 }
 
 - (void)drawTasklist {
-    if (_tasks.count > 0){
+    if (self.tasks.count > 0){
         [activeListItems removeAllObjects];
         [completedListItems removeAllObjects];
         [locationSet removeAllObjects];
@@ -298,8 +294,8 @@
 
 - (void)connectRefresh {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if ([(Task*)_tasks.firstObject project]){
-        [parameters setObject:[[(Task*)_tasks.firstObject project] identifier] forKey:@"project_id"];
+    if ([(Task*)self.tasks.firstObject project]){
+        [parameters setObject:[[(Task*)self.tasks.firstObject project] identifier] forKey:@"project_id"];
     }
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
@@ -308,7 +304,6 @@
     [_tasks removeAllObjects];
     [manager GET:[NSString stringWithFormat:@"%@/connect",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         NSLog(@"Success with connect refresh: %@",responseObject);
-        
         for (NSDictionary *dict in [responseObject objectForKey:@"tasks"]){
             Task *item = [Task MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!item){
@@ -334,7 +329,7 @@
         if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
             locationAlertController = [UIAlertController alertControllerWithTitle:@"Filter by location:" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
             
-            for (Location *location in locationSet.allObjects) {
+            for (Location *location in locationSet) {
                 UIAlertAction *locationAction = [UIAlertAction actionWithTitle:location.name style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
                     [_tasks enumerateObjectsUsingBlock:^(Task *task, NSUInteger idx, BOOL *stop) {
                         if ([task.locations containsObject:location]){
@@ -358,7 +353,7 @@
             [self presentViewController:locationAlertController animated:YES completion:nil];
         } else {
             locationActionSheet = [[UIActionSheet alloc] initWithTitle:@"Location" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:nil];
-            for (Location *location in locationSet.allObjects) {
+            for (Location *location in locationSet) {
                 [locationActionSheet addButtonWithTitle:location.name];
             }
             if (IDIOM != IPAD){
@@ -491,7 +486,7 @@
 
 - (void)loadTasklist {
     if (delegate.connected)
-    [manager GET:[NSString stringWithFormat:@"%@/tasklists", kApiBaseUrl] parameters:@{@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"%@/tasklists", kApiBaseUrl] parameters:@{@"project_id":self.project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success loading tasklist: %@",responseObject);
         if ([responseObject objectForKey:@"tasklist"]) {
             [self updateTasklist:[responseObject objectForKey:@"tasklist"]];
@@ -510,16 +505,16 @@
         tasklist = [Tasklist MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
     }
     [tasklist populateFromDictionary:dictionary];
-    if (_project.tasklist.tasks.count > 0){
-        for (Task *item in _project.tasklist.tasks) {
+    if (self.project.tasklist.tasks.count > 0){
+        for (Task *item in self.project.tasklist.tasks) {
             if (![tasklist.tasks containsObject:item]) {
                 NSLog(@"Deleting a task that no longer exists: %@",item.body);
                 [item MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
     }
-    if (_project){
-        _project.tasklist = tasklist;
+    if (self.project){
+        self.project.tasklists = [NSOrderedSet orderedSetWithObject:tasklist];
         _tasks = tasklist.tasks.array.mutableCopy;
     }
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
@@ -539,12 +534,12 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (_tasks.count > 0){
+    if (self.tasks.count > 0){
         if (showCompleted) return completedListItems.count;
         else if (showActive) return activeListItems.count;
         else if (showByLocation) return locationListItems.count;
         else if (showByAssignee) return assigneeListItems.count;
-        else return _tasks.count;
+        else return self.tasks.count;
     } else {
         if (loading) return 0;
         else return 1;
@@ -552,7 +547,7 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (_tasks.count > 0){
+    if (self.tasks.count > 0){
         static NSString *CellIdentifier = @"TaskCell";
         BHTaskCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
         Task *task = nil;
@@ -565,10 +560,9 @@
         } else if (showByAssignee) {
             task = [assigneeListItems objectAtIndex:indexPath.row];
         } else {
-            task = [_tasks objectAtIndex:indexPath.row];
+            task = [self.tasks objectAtIndex:indexPath.row];
         }
         [cell configureForTask:task];
-        
         if (!dateFormatter){
             [self setupDateFormatter];
         }
@@ -595,7 +589,7 @@
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     if([indexPath row] == ((NSIndexPath*)[[tableView indexPathsForVisibleRows] lastObject]).row && tableView == self.tableView){
         //end of loading
-        if (!loading && _tasks.count){
+        if (!loading && self.tasks.count){
             [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
             //[ProgressHUD dismiss];
         }
@@ -603,22 +597,26 @@
 }
 
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (_tasks.count){
+    if (self.tasks.count){
         Task *task;
-        if (showCompleted) {
+        if (showCompleted && completedListItems.count > indexPath.row) {
             task = [completedListItems objectAtIndex:indexPath.row];
-        } else if (showActive) {
+        } else if (showActive && activeListItems.count > indexPath.row) {
             task = [activeListItems objectAtIndex:indexPath.row];
-        } else if (showByLocation) {
+        } else if (showByLocation && locationListItems.count > indexPath.row) {
             task = [locationListItems objectAtIndex:indexPath.row];
-        } else if (showByAssignee) {
+        } else if (showByAssignee && assigneeListItems.count > indexPath.row) {
             task = [assigneeListItems objectAtIndex:indexPath.row];
         } else {
             task = [_tasks objectAtIndex:indexPath.row];
         }
-        //ensure there's a signed in user and that the user is the owner of the current item/task
-        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([task.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
-            return YES;
+        if (task){
+            //ensure there's a signed in user and that the user is the owner of the current item/task
+            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([task.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
+                return YES;
+            } else {
+                return NO;
+            }
         } else {
             return NO;
         }
@@ -630,7 +628,7 @@
 #pragma mark - Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (_tasks.count){
+    if (self.tasks.count){
         [self performSegueWithIdentifier:@"Task" sender:self];
     }
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -643,7 +641,7 @@
     BHTaskViewController *vc = segue.destinationViewController;
     vc.delegate = self;
     
-    [vc setProject:_project];
+    [vc setProject:self.project];
     [vc setLocationSet:locationSet];
     
     if ([segue.identifier isEqualToString:@"CreateItem"]) {
@@ -658,10 +656,10 @@
             item = [assigneeListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         } else if (showCompleted && completedListItems.count > self.tableView.indexPathForSelectedRow.row) {
             item = [completedListItems objectAtIndex:self.tableView.indexPathForSelectedRow.row];
-        } else if (_tasks.count > self.tableView.indexPathForSelectedRow.row) {
+        } else if (self.tasks.count > self.tableView.indexPathForSelectedRow.row) {
             item = [_tasks objectAtIndex:self.tableView.indexPathForSelectedRow.row];
         }
-        [vc setTaskId:item.identifier];
+        [vc setTaskId:item.objectID];
         if (_connectMode){
             [vc setConnectMode:YES];
         } else {
@@ -693,6 +691,7 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self deleteItem];
+        [self.tableView setUserInteractionEnabled:NO];
     } else {
         indexPathForDeletion = nil;
     }
@@ -726,15 +725,13 @@
         
         //ensure that object is removed from datasource, then delete it from the local database
         [_tasks removeObject:task];
-        [_project.tasklist removeTask:task];
+        [self.project.tasklist removeTask:task];
         [task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         
-        //check if view is loaded first
-        if (self.isViewLoaded && self.view.window) {
-            [self.tableView beginUpdates];
-            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
-        }
+        [self.tableView beginUpdates];
+        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView endUpdates];
+        [self.tableView setUserInteractionEnabled:YES];
         
         //NSLog(@"Success deleting task: %@",responseObject);
         [ProgressHUD dismiss];

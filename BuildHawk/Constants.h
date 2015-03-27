@@ -43,6 +43,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kcompleted @"completed"
 #define kInProgress @"In-Progress"
 #define kNotApplicable @"Not Applicable"
+#define kBlankProgressPercentage @" -- "
 
 #define kChecklist @"Checklist"
 #define kTasklist @"Tasklist"
@@ -72,6 +73,7 @@ static inline int screenWidth(){ return [UIScreen mainScreen].bounds.size.width;
 #define kAddCommentPlaceholder @"Add a comment..."
 #define kChoosePersonnelPlaceholder @"ADD / EDIT"
 #define kPrefillPersonnelPlaceholder @"PRE-FILL FROM LAST REPORT"
+#define kDeviceOfflineMessage @"Your device is currently offline"
 
 #define kHelveticaNeueLight @"HelveticaNeue-Light"
 #define kHelveticaNeueMedium @"HelveticaNeue-Medium"

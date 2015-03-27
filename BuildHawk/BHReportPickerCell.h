@@ -10,8 +10,4 @@
 
 @interface BHReportPickerCell : UITableViewCell <UIActionSheetDelegate>
 
-@property (weak, nonatomic) IBOutlet UIButton *typePickerButton;
-@property (weak, nonatomic) IBOutlet UIButton *datePickerButton;
-
--(void)configure;
 @end

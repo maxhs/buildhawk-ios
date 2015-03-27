@@ -34,14 +34,6 @@
 
 @implementation BHAddPersonnelViewController
 
-@synthesize task = _task;
-@synthesize project = _project;
-@synthesize report = _report;
-@synthesize company = _company;
-@synthesize firstName = _firstName;
-@synthesize companyName = _companyName;
-@synthesize lastName = _lastName;
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.rowHeight = 60.f;
@@ -56,6 +48,8 @@
     
     //[self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
     [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+    
+    NSLog(@"did load");
 }
 
 #pragma mark - Navigation
@@ -73,6 +67,9 @@
         [parameters setObject:phone forKey:@"phone"];
     } else if (email.length) {
         [parameters setObject:email forKey:@"email"];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Oops" message:@"Please add either an email address or phone number before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        return;
     }
     
     if (_firstStepComplete){
@@ -82,7 +79,6 @@
         [manager POST:[NSString stringWithFormat:@"%@/projects/%@/find_user",kApiBaseUrl,_project.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success finding user: %@",responseObject);
             [ProgressHUD dismiss];
-            
             if ([[responseObject objectForKey:@"success"] isEqualToNumber:@0]){
                 //success => false means the API searched for, but could not find, a match
                 [self moveForward];
@@ -96,12 +92,12 @@
                     [user updateFromDictionary:userDict];
                 }
                 
-                if (_task){
+                if (self.task){
                     NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
                     [assignees addObject:user];
-                    _task.assignees = assignees;
+                    self.task.assignees = assignees;
                     [self saveAndExit];
-                } else if (_report) {
+                } else if (self.report) {
                     selectedReportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     selectedReportUser.userId = user.identifier;
                     selectedReportUser.fullname = user.fullname;
@@ -140,10 +136,8 @@
 - (void)selectReportUserWithCount:(NSNumber*)count {
     if (selectedReportUser){
         selectedReportUser.hours = count;
-        [_report addReportUser:selectedReportUser];
-        [self saveAndExit];
-    } else {
-        
+        [self.report addReportUser:selectedReportUser];
+        //[self saveAndExit];
     }
 }
 
@@ -190,18 +184,19 @@
 - (void)saveAndExit {
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         [ProgressHUD dismiss];
-        if (_report){
+        if (self.report){
             [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
                 if ([vc isKindOfClass:[BHReportViewController class]]){
-                    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReportPersonnel" object:nil];
+                    BHReportViewController *reportvc = (BHReportViewController*)vc;
+                    [reportvc.collectionView reloadData];
                     [self.navigationController popToViewController:vc animated:YES];
                     *stop = YES;
                 }
             }];
-        } else if (_task){
+        } else if (self.task){
             [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
                 if ([vc isKindOfClass:[BHTaskViewController class]]){
-                    [(BHTaskViewController*)vc setTaskId:_task.identifier];
+                    [(BHTaskViewController*)vc setTaskId:self.task.objectID];
                     [(BHTaskViewController*)vc drawItem];
                     [self.navigationController popToViewController:vc animated:YES];
                     *stop = YES;
@@ -215,18 +210,15 @@
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 1;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return 4;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"AddPersonnel";
     BHAddPersonnelCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
@@ -236,7 +228,6 @@
     [cell.personnelTextField setUserInteractionEnabled:YES];
     
     if (tableView == self.tableView){
-    
         switch (indexPath.row) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
@@ -351,8 +342,8 @@
         if (_company && ![_company.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [parameters setObject:_company.identifier forKey:@"company_id"];
         }
-        if (_task && ![_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [parameters setObject:_task.identifier forKey:@"task_id"];
+        if (self.task && ![self.task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [parameters setObject:self.task.identifier forKey:@"task_id"];
         }
         
         NSMutableDictionary *userParameters = [NSMutableDictionary dictionary];
@@ -391,10 +382,10 @@
                 }
                 [user populateFromDictionary:userDict];
                 
-                if (_task){
+                if (self.task){
                     NSMutableOrderedSet *assignees = [NSMutableOrderedSet orderedSet];
                     [assignees addObject:user];
-                    _task.assignees = assignees;
+                    self.task.assignees = assignees;
                     
                     //Check if the user is active or not. If not, then they're a "connect user"
                     if ([user.active isEqualToNumber:@NO]){
@@ -407,11 +398,11 @@
                         [[[UIAlertView alloc] initWithTitle:@"BuildHawk Connect" message:alertMessage delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
                     }
     
-                } else if (_report) {
+                } else if (self.report) {
                     ReportUser *reportUser = [ReportUser MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
                     reportUser.userId = user.identifier;
                     reportUser.fullname = user.fullname;
-                    [_report addReportUser:reportUser];
+                    [self.report addReportUser:reportUser];
                 }
             }
             
@@ -487,8 +478,8 @@
         } else {
             [vc setTitle:@"Address Book"];
         }
-        if (_task){
-            [vc setTask:_task];
+        if (self.task){
+            [vc setTask:self.task];
         }
     }
 }

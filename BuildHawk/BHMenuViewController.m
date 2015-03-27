@@ -28,13 +28,12 @@ static NSString *textPlaceholder = @"Text Message";
 
 @interface BHMenuViewController () <UIActionSheetDelegate, UIAlertViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
     BHAppDelegate *delegate;
-    User *_currentUser;
     User *selectedCoworker;
-    BOOL iPhone5;
     BOOL iPad;
     NSDateFormatter *dateFormatter;
     NSIndexPath *indexPathForDeletion;
 }
+@property (strong, nonatomic) User *currentUser;
 @property (strong, nonatomic) UISwitch *emailPermissionsSwitch;
 @property (strong, nonatomic) UISwitch *pushPermissionsSwitch;
 
@@ -52,18 +51,11 @@ static NSString *textPlaceholder = @"Text Message";
     
     [_logoutButton setFrame:CGRectMake(0, screen.size.height-88, self.tableView.frame.size.width, 88)];
     [_logoutButton setBackgroundColor:kDarkGrayColor];
-    [_logoutButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
-    
-    if (screen.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        iPhone5 = YES;
-    } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        iPhone5 = NO;
-    } else {
-        iPad = YES;
-    }
-    
+    [_logoutButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+  
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     _currentUser = [delegate currentUser];
+    
     if (!_currentUser && [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
@@ -85,8 +77,8 @@ static NSString *textPlaceholder = @"Text Message";
 }
 
 - (void)loadNotifications {
-    if (delegate.connected && delegate.loggedIn && _currentUser.managedObjectContext != nil){
-        [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    if (delegate.connected && delegate.loggedIn){
+        [delegate.manager GET:[NSString stringWithFormat:@"%@/notifications/messages",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success getting messages: %@",responseObject);
             [self updateNotifications:[responseObject objectForKey:@"notifications"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -98,7 +90,7 @@ static NSString *textPlaceholder = @"Text Message";
 - (void)updateNotifications:(NSArray*)array {
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         //refetch the user in case there's a CoreData fault
-        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+        self.currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
         NSMutableOrderedSet *notifications = [NSMutableOrderedSet orderedSet];
         for (NSDictionary *dict in array){
             Notification *notification = [Notification MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -109,19 +101,20 @@ static NSString *textPlaceholder = @"Text Message";
             [notifications addObject:notification];
         }
         
-        for (Notification *notification in _currentUser.notifications) {
+        for (Notification *notification in self.currentUser.notifications) {
             if (![notifications containsObject:notification]) {
                 //NSLog(@"Deleting a notification that no longer exists: %@",notification.body);
                 [notification MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
     
-        _currentUser.notifications = notifications;
+        [self.currentUser setNotifications:notifications];
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             //NSLog(@"Success saving notifications: %u",success);
-            [self.tableView beginUpdates];
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
-            [self.tableView endUpdates];
+            [self.tableView reloadData];
+//            [self.tableView beginUpdates];
+//            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationFade];
+//            [self.tableView endUpdates];
         }];
     }
 }
@@ -151,8 +144,7 @@ static NSString *textPlaceholder = @"Text Message";
     else return _currentUser.notifications.count;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
         static NSString *CellIdentifier = @"UserCell";
         UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
@@ -209,17 +201,9 @@ static NSString *textPlaceholder = @"Text Message";
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0 && indexPath.row == 0) {
-        if (iPhone5 || iPad){
-            return 100;
-        } else {
-            return 90;
-        }
+       return 100;
     } else {
-        if (iPhone5 || iPad){
-            return 88;
-        } else {
-            return 66;
-        }
+        return 88;
     }
 }
 

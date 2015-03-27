@@ -59,5 +59,6 @@
 @dynamic subcontractor;
 @dynamic tasks;
 @dynamic alternates;
+@dynamic saved;
 
 @end

@@ -185,7 +185,7 @@
         _previousButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:arrowPathFormat, @"Left"]] style:UIBarButtonItemStylePlain target:self action:@selector(gotoPreviousPage)];
         _nextButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:[NSString stringWithFormat:arrowPathFormat, @"Right"]] style:UIBarButtonItemStylePlain target:self action:@selector(gotoNextPage)];
     }
-    if (self.displayActionButton) {
+    if (self.displayActionButton && [(BHAppDelegate*)[UIApplication sharedApplication].delegate connected]) {
         _actionButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"zoom"] style:UIBarButtonItemStylePlain target:self action:@selector(actionButtonPressed:)];
         _actionButton.imageInsets = UIEdgeInsetsMake(0, 0, 0, -10);
         
@@ -210,6 +210,7 @@
 - (void)confirmRemove {
     [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to delete this document?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
 }
+
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]) {
         [self removePhoto];
@@ -229,16 +230,20 @@
         }
         
         [[NSNotificationCenter defaultCenter] postNotificationName:@"RemovePhoto" object:nil userInfo:userInfo];
-        if ([photo.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        if ([photo.identifier isEqualToNumber:@0]){
             
-            [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            if (self.delegate && [self.delegate respondsToSelector:@selector(deletedPhoto:)]){
+                [self.delegate deletedPhoto:photo];
+            }
             [self.navigationController popViewControllerAnimated:YES];
             
         } else {
             [ProgressHUD show:@"Deleting photo..."];
             [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,photo.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 [ProgressHUD dismiss];
-                [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                if (self.delegate && [self.delegate respondsToSelector:@selector(deletedPhoto:)]){
+                    [self.delegate deletedPhoto:photo];
+                }
                 [self.navigationController popViewControllerAnimated:YES];
                 
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -297,7 +302,7 @@
     // Toolbar items
     BOOL hasItems = NO;
     UIBarButtonItem *fixedSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:self action:nil];
-    fixedSpace.width = 32; // To balance action button
+    fixedSpace.width = 40; // To balance action button
     UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:self action:nil];
     NSMutableArray *items = [[NSMutableArray alloc] init];
     
@@ -746,14 +751,17 @@
     }
 }
 
-- (UIImage *)imageForPhoto:(id<MWPhoto>)photo {
+- (UIImage *)imageForPhoto:(MWPhoto*)photo {
 	if (photo) {
-		// Get image or obtain in background
-		if ([photo underlyingImage]) {
-			return [photo underlyingImage];
-		} else {
+        // Get image or obtain in background
+        if (![(BHAppDelegate*)[UIApplication sharedApplication].delegate connected] && [photo.photo.original rangeOfString:@"pdf"].location != NSNotFound){
+            [self showWebViewForPdf];
+            return nil;
+        } else if ([photo underlyingImage]) {
+            return [photo underlyingImage];
+        } else {
             [photo loadUnderlyingImageAndNotify];
-		}
+        }
 	}
 	return nil;
 }
@@ -1082,8 +1090,6 @@
 #pragma mark - Navigation
 
 - (void)updateNavigation {
-    
-	// Title
     NSUInteger numberOfPhotos = [self numberOfPhotos];
     if (_gridController) {
         if (_gridController.selectionMode) {
@@ -1106,8 +1112,11 @@
 	// Buttons
 	_previousButton.enabled = (_currentPageIndex > 0);
 	_nextButton.enabled = (_currentPageIndex < numberOfPhotos - 1);
-    _actionButton.enabled = [[self photoAtIndex:_currentPageIndex] underlyingImage] != nil;
-	
+    MWPhoto *photoAtIndex = [self photoAtIndex:_currentPageIndex];
+    _actionButton.enabled = [photoAtIndex underlyingImage] != nil;
+    if ([photoAtIndex.photo.original rangeOfString:@"pdf"].location != NSNotFound){
+        [_actionButton setEnabled:YES];
+    }
 }
 
 - (void)jumpToPageAtIndex:(NSUInteger)index animated:(BOOL)animated {
@@ -1206,7 +1215,6 @@
 }
 
 - (void)hideGrid {
-    
     if (!_gridController) return;
     
     // Remember previous content offset
@@ -1393,8 +1401,7 @@
     return UIStatusBarAnimationSlide;
 }
 
-- (void)cancelControlHiding {
-	// If a timer exists then cancel and release
+- (void)cancelControlHiding {  // If a timer exists then cancel and release
 	if (_controlVisibilityTimer) {
 		[_controlVisibilityTimer invalidate];
 		_controlVisibilityTimer = nil;
@@ -1438,8 +1445,35 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
-#pragma mark - Actions
+- (void)showWebViewForPdf {
+    zoom = YES;
+    _alwaysShowControls = YES;
+    CGRect frame = self.view.frame;
+    frame.size.height -= 64;
+    frame.origin.y += 64;
+    webView = [[UIWebView alloc] initWithFrame:frame];
+    webView.scalesPageToFit = YES;
+    webView.delegate = self;
+    [self.view addSubview:webView];
+    MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
+    if (photo.photo.localFilePath.length){
+        if ([[NSFileManager defaultManager] fileExistsAtPath:photo.photo.localFilePath]){
+            NSURL *url = [NSURL fileURLWithPath:photo.photo.localFilePath isDirectory:YES];
+            [webView loadRequest:[NSURLRequest requestWithURL:url]];
+        } else if ([(BHAppDelegate*)[UIApplication sharedApplication].delegate connected]) {
+            NSURL *url = [NSURL URLWithString:photo.photo.original];
+            [webView loadRequest:[NSURLRequest requestWithURL:url]];
+        } else {
+            [BHAlert show:@"Something went wrong while trying to draw this PDF in offline mode. Please try again when you have an internet connection." withTime:3.3f persist:NO];
+        }
+        NSURL *url = [NSURL fileURLWithPath:photo.photo.localFilePath isDirectory:YES];
+        [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    } else {
+        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:photo.photo.original]]];
+    }
+}
 
+#pragma mark - Actions
 - (void)actionButtonPressed:(id)sender {
     if (zoom){
         [UIView animateWithDuration:.2 animations:^{
@@ -1450,16 +1484,7 @@
             zoom = NO;
         }];
     } else {
-        zoom = YES;
-        _alwaysShowControls = YES;
-        CGRect frame = self.view.frame;
-        frame.size.height -= 64;
-        frame.origin.y += 64;
-        webView = [[UIWebView alloc] initWithFrame:frame];
-        webView.scalesPageToFit = YES;
-        MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
-        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:photo.photo.original]]];
-        [self.view addSubview:webView];
+        [self showWebViewForPdf];
     }
     /*if (_actionsSheet) {
         
@@ -1534,9 +1559,12 @@
             
             // Keep controls hidden
             [self setControlsHidden:NO animated:YES permanent:YES];
-            
         }
     }*/
+}
+
+- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+    NSLog(@"Web view failed: %@",error.description);
 }
 
 #pragma mark - Action Sheet Delegate
@@ -1559,7 +1587,6 @@
 }
 
 #pragma mark - Action Progress
-
 - (void)showProgressHUDWithMessage:(NSString *)message {
     [ProgressHUD show:message];
     self.navigationController.navigationBar.userInteractionEnabled = NO;

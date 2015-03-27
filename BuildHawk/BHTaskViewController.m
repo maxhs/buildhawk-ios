@@ -19,13 +19,15 @@
 #import "BHAddCommentCell.h"
 #import "BHCommentCell.h"
 #import "BHTasksViewController.h"
-#import <CTAssetsPickerController/CTAssetsPickerController.h>
+#import "BHAssetGroupPickerViewController.h"
+#import "BHImagePickerController.h"
 #import "Task+helper.h"
 #import "Tasklist+helper.h"
 #import "Comment+helper.h"
 #import "BHAppDelegate.h"
 #import "BHActivityCell.h"
 #import "BHLocationsViewController.h"
+#import "BHUtilities.h"
 
 static NSString *assigneePlaceholder = @"Assign task";
 static NSString *locationPlaceholder = @"Select location";
@@ -36,7 +38,7 @@ typedef void(^OperationFailure)(AFHTTPRequestOperation *operation, NSError *erro
 typedef void(^RequestFailure)(NSError *error);
 typedef void(^RequestSuccess)(id result);
 
-@interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, CTAssetsPickerControllerDelegate, BHLocationsDelegate, BHPersonnelPickerDelegate> {
+@interface BHTaskViewController () <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UIScrollViewDelegate, UITextViewDelegate, MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate, MWPhotoBrowserDelegate, BHImagePickerControllerDelegate, BHLocationsDelegate, BHPersonnelPickerDelegate> {
     BOOL saveToLibrary;
     UIActionSheet *locationActionSheet;
     BHAppDelegate *appDelegate;
@@ -60,8 +62,10 @@ typedef void(^RequestSuccess)(id result);
     CGFloat width;
     CGFloat height;
     UIEdgeInsets originalInsets;
-    Task *_task;
 }
+
+@property (strong, nonatomic) User *currentUser;
+@property (strong, nonatomic) Task *task;
 
 - (IBAction)assigneeButtonTapped;
 - (IBAction)locationButtonTapped;
@@ -73,51 +77,45 @@ typedef void(^RequestSuccess)(id result);
 
 @implementation BHTaskViewController
 
-@synthesize taskId = _taskId;
-@synthesize locationSet;
-@synthesize project = _project;
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     appDelegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [appDelegate manager];
-    
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth(); height = screenHeight();
     } else {
         width = screenHeight(); height = screenWidth();
     }
-    
-    //show comments for this task by default (by setting activities to NO)
-    activities = NO;
-    
+    activities = NO; //show comments for this task by default (by setting activities to NO)
     commentFormatter = [[NSDateFormatter alloc] init];
     [commentFormatter setDateStyle:NSDateFormatterShortStyle];
     [commentFormatter setTimeStyle:NSDateFormatterShortStyle];
     
-    if (_taskId && ![_taskId isEqualToNumber:@0]) {
-        _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        self.currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     
-    if (!_task || [_task.identifier isEqualToNumber:@0]){
-        _task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(sendItem)];
-        [self.navigationItem setRightBarButtonItem:createButton];
-    } else {
+    if (self.taskId) {
+        self.task = (Task*)[[NSManagedObjectContext MR_defaultContext] objectWithID:self.taskId];
         [self redrawScrollView];
         [self loadItem];
-        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(sendItem)];
+        saveButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave target:self action:@selector(postTask)];
         [self.navigationItem setRightBarButtonItem:saveButton];
         
-        if (IDIOM == IPAD && _task.user.fullname){
-            if (_task.user.company.name.length){
-                [self.navigationItem setTitle:[NSString stringWithFormat:@"%@ (%@) - %@",_task.user.fullname,_task.user.company.name,[commentFormatter stringFromDate:_task.createdAt]]];
+        if (IDIOM == IPAD && self.task.user.fullname){
+            if (self.task.user.company.name.length){
+                [self.navigationItem setTitle:[NSString stringWithFormat:@"%@ (%@) - %@",self.task.user.fullname,self.task.user.company.name,[commentFormatter stringFromDate:self.task.createdAt]]];
             } else {
-                [self.navigationItem setTitle:[NSString stringWithFormat:@"%@ - %@",_task.user.fullname,[commentFormatter stringFromDate:_task.createdAt]]];
+                [self.navigationItem setTitle:[NSString stringWithFormat:@"%@ - %@",self.task.user.fullname,[commentFormatter stringFromDate:self.task.createdAt]]];
             }
         } else {
-            [self.navigationItem setTitle:[NSString stringWithFormat:@"%@",[commentFormatter stringFromDate:_task.createdAt]]];
+            [self.navigationItem setTitle:[NSString stringWithFormat:@"%@",[commentFormatter stringFromDate:self.task.createdAt]]];
         }
+    } else {
+        self.task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(postTask)];
+        [self.navigationItem setRightBarButtonItem:createButton];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
     }
     
     //override standard back navigation so we can ask the user if they want to save their changes
@@ -186,13 +184,13 @@ typedef void(^RequestSuccess)(id result);
     [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
     [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
     
-    if (_task.body.length) {
-        [self.itemTextView setText:_task.body];
+    if (self.task.body.length) {
+        [self.itemTextView setText:self.task.body];
     } else {
         [self.itemTextView setTextColor:[UIColor lightGrayColor]];
     }
     [self.completionButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    if ([_task.completed isEqualToNumber:@YES]) {
+    if ([self.task.completed isEqualToNumber:@YES]) {
         [self.completionButton setBackgroundColor:kDarkGrayColor];
         [self.completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [self.completionButton setTitle:@"COMPLETED" forState:UIControlStateNormal];
@@ -221,9 +219,9 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)loadItem {
     if ([(BHAppDelegate*)[UIApplication sharedApplication].delegate connected]){
-        [manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,_task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl,self.task.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success getting task: %@",responseObject);
-            [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
+            [self.task populateFromDictionary:[responseObject objectForKey:@"task"]];
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
@@ -238,14 +236,14 @@ typedef void(^RequestSuccess)(id result);
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+    if ([self.task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         return 0;
     } else return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (activities) return _task.activities.count;
-    else return _task.comments.count + 1;
+    if (activities) return self.task.activities.count;
+    else return self.task.comments.count + 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -267,7 +265,7 @@ typedef void(^RequestSuccess)(id result);
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
         }
-        Activity *activity = [_task.activities objectAtIndex:indexPath.row];
+        Activity *activity = [self.task.activities objectAtIndex:indexPath.row];
         [cell configureForActivity:activity];
         [cell.timestampLabel setText:[commentFormatter stringFromDate:activity.createdDate]];
         return cell;
@@ -276,7 +274,7 @@ typedef void(^RequestSuccess)(id result);
         if (cell == nil) {
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
         }
-        Comment *comment = [_task.comments objectAtIndex:indexPath.row - 1];
+        Comment *comment = [self.task.comments objectAtIndex:indexPath.row - 1];
         [cell configureForComment:comment];
         [cell.timestampLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
         return cell;
@@ -289,7 +287,7 @@ typedef void(^RequestSuccess)(id result);
 
 #pragma mark - UITextView delegate methods
 - (void)textViewDidBeginEditing:(UITextView *)textView {
-    [_task setSaved:@NO];
+    [self.task setSaved:@NO];
     if ([textView.text isEqualToString:kAddCommentPlaceholder] || [textView.text isEqualToString:itemPlaceholder]) {
         [textView setText:@""];
         [textView setTextColor:[UIColor blackColor]];
@@ -311,15 +309,15 @@ typedef void(^RequestSuccess)(id result);
         if (textView.text.length) {
             addCommentTextView = textView;
         } else {
-            [_task setSaved:@YES];
+            [self.task setSaved:@YES];
             [textView setText:kAddCommentPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
     } else {
         if (textView.text.length) {
-            _task.body = textView.text;
+            self.task.body = textView.text;
         } else {
-            [_task setSaved:@YES];
+            [self.task setSaved:@YES];
             [textView setText:itemPlaceholder];
             [textView setTextColor:[UIColor lightGrayColor]];
         }
@@ -343,48 +341,45 @@ typedef void(^RequestSuccess)(id result);
 #pragma mark - Header & Comments Section
 
 - (void)submitComment {
+    [self doneEditing];
+    
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to submit comments for a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
-            [ProgressHUD show:@"Adding comment..."];
-            NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+            Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [comment setBody:addCommentTextView.text];
+            if (self.currentUser){
+                [comment setUser:self.currentUser];
             }
-            if (![_task.identifier isEqualToNumber:@0]){
-                [parameters setObject:_task.identifier forKey:@"task_id"];
-            }
-            if (addCommentTextView.text.length){
-                [parameters setObject:addCommentTextView.text forKey:@"body"];
-            }
-            [manager POST:[NSString stringWithFormat:@"%@/comments",kApiBaseUrl] parameters:@{@"comment":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                //NSLog(@"success creating a comment for task: %@",responseObject);
-
-                Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [comment populateFromDictionary:[responseObject objectForKey:@"comment"]];
-                NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSetWithOrderedSet:_task.comments];
-                [set insertObject:comment atIndex:0];
-                [_task setComments:set];
-                
-                //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:0];
-                
-                [self.tableView beginUpdates];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-                //[self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-                [self.tableView endUpdates];
-                
-                addCommentTextView.text = kAddCommentPlaceholder;
-                addCommentTextView.textColor = [UIColor lightGrayColor];
-                
-                [ProgressHUD dismiss];
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                [ProgressHUD dismiss];
-                NSLog(@"Failure creating a comment for task: %@",error.description);
+            [comment setCreatedAt:[NSDate date]];
+            [self.task addComment:comment];
+            [comment setSaved:@NO];
+            
+            [self.tableView beginUpdates];
+            //NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:0];
+            //[self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+            [self.tableView endUpdates];
+            
+            [comment synchWithServer:^(BOOL completed) {
+                if (completed){
+                    [comment setSaved:@YES];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        NSLog(@"Success synching comment with server");
+                    }];
+                } else {
+                    [comment setSaved:@NO];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        NSLog(@"Couldn't synch comment with server");
+                        [appDelegate.syncController update];
+                    }];
+                }
             }];
+            addCommentTextView.text = kAddCommentPlaceholder;
+            addCommentTextView.textColor = [UIColor lightGrayColor];
         }
     }
-    [self doneEditing];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
@@ -407,7 +402,7 @@ typedef void(^RequestSuccess)(id result);
     [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
     [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
     
-    NSString *commentsTitle = _task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_task.comments.count];
+    NSString *commentsTitle = self.task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)self.task.comments.count];
     [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
     if (activities){
         [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -425,7 +420,7 @@ typedef void(^RequestSuccess)(id result);
     [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
     [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
     
-    NSString *activitiesTitle = _task.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_task.activities.count];
+    NSString *activitiesTitle = self.task.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)self.task.activities.count];
     [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
     
     if (activities){
@@ -455,28 +450,28 @@ typedef void(^RequestSuccess)(id result);
 
 - (IBAction)completionTapped{
     [UIView animateWithDuration:.25 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        if ([_task.completed isEqualToNumber:@NO]){
+        if ([self.task.completed isEqualToNumber:@NO]){
             [_completionButton setBackgroundColor:kDarkGrayColor];
             [_completionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [_completionButton setTitle:@"Completed" forState:UIControlStateNormal];
-            _task.completed = @YES;
+            self.task.completed = @YES;
         } else {
             [_completionButton setBackgroundColor:[UIColor whiteColor]];
             [_completionButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
             [_completionButton setTitle:@"Mark Complete" forState:UIControlStateNormal];
-            _task.completed = @NO;
+            self.task.completed = @NO;
         }
     } completion:^(BOOL finished) {
-        if ([_task.completed isEqualToNumber:@YES]){
+        if ([self.task.completed isEqualToNumber:@YES]){
             [[[UIAlertView alloc] initWithTitle:@"Completion Photo" message:@"Can you take a photo of the completed task?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
         }
-        [_task setSaved:@NO];
+        [self.task setSaved:@NO];
     }];
 }
 
 - (void)doneEditing {
     [self.view endEditing:YES];
-    if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+    if ([self.task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
         self.navigationItem.rightBarButtonItem = createButton;
     } else {
         self.navigationItem.rightBarButtonItem = saveButton;
@@ -490,24 +485,6 @@ typedef void(^RequestSuccess)(id result);
 {
     photoIdx = button.tag;
     [self showPhotoDetail];
-}
-
-- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
-{
-    if (picker.selectedAssets.count >= 10){
-        [[[UIAlertView alloc] initWithTitle:nil message:@"We're unable to select more than 10 photos per batch." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }
-    // Allow 10 assets to be picked
-    return (picker.selectedAssets.count < 10);
-}
-
-
-- (IBAction)choosePhoto {
-    saveToLibrary = NO;
-    CTAssetsPickerController *controller = [[CTAssetsPickerController alloc] init];
-    controller.delegate = self;
-    //controller.maximumNumberOfSelections = 4;
-    [self presentViewController:controller animated:YES completion:NULL];
 }
 
 - (IBAction)takePhoto {
@@ -527,46 +504,30 @@ typedef void(^RequestSuccess)(id result);
     [self.photosScrollView setAlpha:0.0];
     [self dismissViewControllerAnimated:YES completion:nil];
     Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-    UIImage *image = [self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]];
+    [newPhoto setFileName:@"photo.jpg"];
+    UIImage *image = [BHUtilities fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [newPhoto setImage:image];
-    [_task addPhoto:newPhoto];
+    [self.task addPhoto:newPhoto];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
     [self redrawScrollView];
     [self saveImage:image forPhoto:newPhoto];
 }
 
-- (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
-    [self dismissViewControllerAnimated:YES completion:^{
-        for (id asset in assets) {
-            if (asset != nil) {
-                ALAssetRepresentation* representation = [asset defaultRepresentation];
-                
-                // Retrieve the image orientation from the ALAsset
-                UIImageOrientation orientation = UIImageOrientationUp;
-                NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
-                if (orientationValue != nil) {
-                    orientation = [orientationValue intValue];
-                }
-                
-                UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
-                                                     scale:[UIScreen mainScreen].scale orientation:orientation];
-                Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [newPhoto setImage:[self fixOrientation:image]];
-                
-                [_task addPhoto:newPhoto];
-                [self saveImage:newPhoto.image forPhoto:newPhoto];
-            }
-        }
-        [self redrawScrollView];
-    }];
+- (IBAction)choosePhoto {
+    saveToLibrary = NO;
+    [self performSegueWithIdentifier:@"AssetGroupPicker" sender:nil];
 }
 
-- (UIImage *)fixOrientation:(UIImage*)image {
-    if (image.imageOrientation == UIImageOrientationUp) return image;
-    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
-    [image drawInRect:(CGRect){0, 0, image.size}];
-    UIImage *correctedImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return correctedImage;
+- (void)didFinishPickingPhotos:(NSOrderedSet *)selectedPhotos {
+    for (Photo *p in selectedPhotos){
+        Photo *photo = [p MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+        [self.task addPhoto:photo];
+        [self saveImage:photo.image forPhoto:photo];
+    }
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    [self redrawScrollView];
+    [self.navigationController popToViewController:self animated:YES];
+    [ProgressHUD dismiss];
 }
 
 - (void)saveToLibrary:(UIImage*)originalImage {
@@ -575,9 +536,7 @@ typedef void(^RequestSuccess)(id result);
         UIImage *imageToSave = [UIImage imageWithCGImage:originalImage.CGImage scale:[UIScreen mainScreen].scale orientation:UIImageOrientationUp];
         library = [[ALAssetsLibrary alloc]init];
         [library addAssetsGroupAlbumWithName:albumName
-                                 resultBlock:^(ALAssetsGroup *group) {
-                                     
-                                 }
+                                 resultBlock:^(ALAssetsGroup *group) { }
                                 failureBlock:^(NSError *error) {
                                     NSLog(@"error adding album");
                                 }];
@@ -596,17 +555,14 @@ typedef void(^RequestSuccess)(id result);
         
         [library writeImageToSavedPhotosAlbum:imageToSave.CGImage orientation:ALAssetOrientationUp completionBlock:^(NSURL *assetURL, NSError *error) {
             if (error.code == 0) {
-                // try to get the asset
-                [library assetForURL:assetURL
+                [library assetForURL:assetURL // try to get the asset
                          resultBlock:^(ALAsset *asset) {
-                             // assign the photo to the album
-                             [groupToAddTo addAsset:asset];
+                             [groupToAddTo addAsset:asset]; // assign the photo to the album
                          }
                         failureBlock:^(NSError* error) {
                             NSLog(@"failed to retrieve image asset:\nError: %@ ", [error localizedDescription]);
                         }];
-            }
-            else {
+            } else {
                 NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
             }
         }];
@@ -614,41 +570,21 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)saveImage:(UIImage*)image forPhoto:(Photo*)photo {
-    if ([_project.demo isEqualToNumber:@YES]){
-        
-    } else {
+    if (![_project.demo isEqualToNumber:@YES]){
         [self saveToLibrary:image];
-        if (![_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            NSData *imageData = UIImageJPEGRepresentation(image,1);
-            NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
-            if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
-                [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
-            }
-            if (_project && _project.identifier){
-                [photoParameters setObject:_project.identifier forKey:@"project_id"];
-                [photo setProject:_project];
-            }
-            [photoParameters setObject:_task.identifier forKey:@"task_id"];
-            [photo setTask:_task];
-            [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-            [photoParameters setObject:kTasklist forKey:@"source"];
+        if (![self.task.identifier isEqualToNumber:@0]){
+            [photo setTask:self.task];
             [photo setSource:kTasklist];
-            [photoParameters setObject:@YES forKey:@"mobile"];
-            
-            //NSLog(@"photo parameters: %@",photoParameters);
-            [manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-                [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-            } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                NSLog(@"save task photo response object: %@",responseObject);
-                if ([responseObject objectForKey:@"task"]){
-                    [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        
-                    }];
+            [photo setProject:self.project];
+            [photo setSaved:@NO];
+            [photo synchWithServer:^(BOOL completed) {
+                if (completed){
+                    [photo setSaved:@YES];
+                    [appDelegate.syncController update];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+                } else {
+                    [appDelegate.syncController update];
                 }
-                
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                NSLog(@"failure posting image to API: %@",error.description);
             }];
         }
     }
@@ -657,15 +593,15 @@ typedef void(^RequestSuccess)(id result);
 -(void)removePhoto:(NSNotification*)notification {
     Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove.identifier){
-        for (Photo *photo in _task.photos){
+        for (Photo *photo in self.task.photos){
             if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
-                [_task removePhoto:photo];
+                [self.task removePhoto:photo];
                 [self redrawScrollView];
                 break;
             }
         }
     } else {
-        [_task removePhoto:photoToRemove];
+        [self.task removePhoto:photoToRemove];
         [self redrawScrollView];
     }
 }
@@ -675,19 +611,18 @@ typedef void(^RequestSuccess)(id result);
     CGRect libraryRect = _libraryButton.frame;
     CGRect photoRect = _photoButton.frame;
     if (IDIOM == IPAD && libraryRect.origin.x > _photosScrollView.frame.origin.x){
-        NSLog(@"need to reorient the photo and library buttons on ipad");
-        libraryRect.origin.x = 8;
-        photoRect.origin.x = 8 + photoRect.size.width + 8;
+        libraryRect.origin.x = 6;
+        photoRect.origin.x = 6 + photoRect.size.width + 6;
     }
     _photosScrollView.delegate = self;
     [_photosScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     _photosScrollView.showsHorizontalScrollIndicator=NO;
 
     float imageSize = _photosScrollView.frame.size.height;
-    float space = 1;
+    float space = 2.f;
 
     int index = 0;
-    for (Photo *photo in _task.photos) {
+    for (Photo *photo in self.task.photos) {
  
         UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
         if (photo.image) {
@@ -699,11 +634,12 @@ typedef void(^RequestSuccess)(id result);
         [_photosScrollView addSubview:imageButton];
         [imageButton setFrame:CGRectMake(((space+imageSize)*index),4,imageSize, imageSize)];
         imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageButton.imageView.layer.cornerRadius = 2.f;
+        imageButton.imageView.clipsToBounds = YES;
         imageButton.imageView.layer.shouldRasterize = YES;
         imageButton.imageView.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [imageButton setTag:[_task.photos indexOfObject:photo]];
+        [imageButton setTag:[self.task.photos indexOfObject:photo]];
         [imageButton addTarget:self action:@selector(existingPhotoButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
-        
         index++;
     }
     
@@ -716,15 +652,14 @@ typedef void(^RequestSuccess)(id result);
         [_libraryButton setFrame:libraryRect];
         [_photoButton setFrame:photoRect];
     } completion:^(BOOL finished) {
-        self.photosScrollView.layer.shouldRasterize = YES;
-        self.photosScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        //self.photosScrollView.layer.shouldRasterize = YES;
+        //self.photosScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     }];
-
 }
 
 - (void)showPhotoDetail {
     browserPhotos = [NSMutableArray new];
-    for (Photo *photo in _task.photos) {
+    for (Photo *photo in self.task.photos) {
         MWPhoto *mwPhoto;
         if (photo.image){
             mwPhoto = [MWPhoto photoWithImage:photo.image];
@@ -770,7 +705,7 @@ typedef void(^RequestSuccess)(id result);
     if (_connectMode){
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's assignees." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        [_task setSaved:@NO];
+        [self.task setSaved:@NO];
         [self performSegueWithIdentifier:@"PersonnelPicker" sender:nil];
     }
 }
@@ -779,7 +714,7 @@ typedef void(^RequestSuccess)(id result);
     if (_connectMode){
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"You don't have permission to change this task's location." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        [_task setSaved:@NO];
+        [self.task setSaved:@NO];
         [self performSegueWithIdentifier:@"SelectLocation" sender:nil];
     }
 }
@@ -790,17 +725,17 @@ typedef void(^RequestSuccess)(id result);
         BHPersonnelPickerViewController *vc = [segue destinationViewController];
         vc.personnelDelegate = self;
         [vc setProjectId:_project.identifier];
-        [vc setTaskId:_task.identifier];
+        [vc setTaskId:self.task.identifier];
     } else if ([segue.identifier isEqualToString:@"SelectLocation"]){
         BHLocationsViewController *vc = [segue destinationViewController];
         vc.locationsDelegate = self;
         [vc setProjectId:_project.identifier];
-        [vc setTaskId:_task.identifier];
+        [vc setTaskId:self.task.identifier];
     }
 }
 
 - (void)locationAdded:(Location *)location {
-    [_task addLocation:location];
+    [self.task addLocation:location];
     [self setLocationString];
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         
@@ -808,7 +743,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)locationRemoved:(Location *)location {
-    [_task removeLocation:location];
+    [self.task removeLocation:location];
     [self setLocationString];
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         
@@ -816,152 +751,130 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)setLocationString {
-    if (_task.locations.count == 1) {
-        [_locationButton setTitle:[(Location*)_task.locations.firstObject name] forState:UIControlStateNormal];
-    } else if (_task.locations.count) {
-        [_locationButton setTitle:_task.locationsToSentence forState:UIControlStateNormal];
+    if (self.task.locations.count == 1) {
+        [_locationButton setTitle:[(Location*)self.task.locations.firstObject name] forState:UIControlStateNormal];
+    } else if (self.task.locations.count) {
+        [_locationButton setTitle:self.task.locationsToSentence forState:UIControlStateNormal];
     } else {
         [_locationButton setTitle:locationPlaceholder forState:UIControlStateNormal];
     }
 }
 
 - (void)userAdded:(User *)user {
-    [_task addAssignee:user];
+    [self.task addAssignee:user];
     [self setLocationString];
 }
 
 - (void)userRemoved:(User *)user {
-    [_task removeAssignee:user];
+    [self.task removeAssignee:user];
     [self setAssigneeString];
 }
 
 - (void)setAssigneeString {
-    if (_task.assignees.count == 1) {
-        [_assigneeButton setTitle:[(User*)_task.assignees.firstObject fullname] forState:UIControlStateNormal];
-    } else if (_task.assignees.count) {
-        [_assigneeButton setTitle:_task.assigneesToSentence forState:UIControlStateNormal];
+    if (self.task.assignees.count == 1) {
+        [_assigneeButton setTitle:[(User*)self.task.assignees.firstObject fullname] forState:UIControlStateNormal];
+    } else if (self.task.assignees.count) {
+        [_assigneeButton setTitle:self.task.assigneesToSentence forState:UIControlStateNormal];
     } else {
         [_assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
     }
 }
 
--(void)sendItem {
+-(void)postTask {
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to save changes to a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    } else if (!appDelegate.connected){
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
-        [_task setSaved:@NO];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            [ProgressHUD showSuccess:@"Saved"];
-            [appDelegate.syncController update];
-        }];
     } else if ([_itemTextView.text isEqualToString:itemPlaceholder] || _itemTextView.text.length == 0){
         [[[UIAlertView alloc] initWithTitle:nil message:@"Please describe your task before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        
-        if (appDelegate.currentUser){
-            [_task setUser:appDelegate.currentUser];
-        }
         if (_connectMode){
-            [_task setApproved:@NO];
+            [self.task setApproved:@NO];
         }
-
-        
         BOOL isNew;
-        if ([_task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        if ([self.task.identifier isEqualToNumber:@0]){
             isNew = YES;
-            [ProgressHUD show:@"Adding task..."];
-            [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
+            [self.task setUser:self.currentUser];
         } else {
             isNew = NO;
-            [ProgressHUD show:@"Updating task..."];
         }
         
         if (_itemTextView.text && ![_itemTextView.text isEqualToString:itemPlaceholder]) {
             [parameters setObject:_itemTextView.text forKey:@"body"];
-            [_task setBody:_itemTextView.text];
+            [self.task setBody:_itemTextView.text];
         }
         
-        if (_task.assignees.count){
-            NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:_task.assignees.count];
-            [_task.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
+        if (self.task.assignees){
+            NSMutableArray *assigneeIds = [NSMutableArray arrayWithCapacity:self.task.assignees.count];
+            [self.task.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
                 [assigneeIds addObject:assignee.identifier];
             }];
-            [parameters setObject:[assigneeIds componentsJoinedByString:@","] forKey:@"assignee_ids"];
+            [parameters setObject:assigneeIds forKey:@"assignee_ids"];
         }
         
-        if ([_task.completed isEqualToNumber:@YES]){
+        if (self.task.locations){
+            NSMutableArray *locationIds = [NSMutableArray arrayWithCapacity:self.task.locations.count];
+            [self.task.locations enumerateObjectsUsingBlock:^(Location *location, NSUInteger idx, BOOL *stop) {
+                [locationIds addObject:location.identifier];
+            }];
+            [parameters setObject:locationIds forKey:@"location_ids"];
+        }
+        
+        if ([self.task.completed isEqualToNumber:@YES]){
             [parameters setObject:@YES forKey:@"completed"];
             [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"completed_by_user_id"];
         } else {
             [parameters setObject:@NO forKey:@"completed"];
         }
-        NSOrderedSet *photoSet = [NSOrderedSet orderedSetWithOrderedSet:_task.photos];
+        [self.task setProject:self.project];
         
-        if (isNew){
-            [manager POST:[NSString stringWithFormat:@"%@/tasks", kApiBaseUrl] parameters:@{@"task":parameters,@"project_id":_project.identifier} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                
-                //NSLog(@"Success creating a task: %@",responseObject);
-                [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
-                [_task setSaved:@YES];
-                for (Photo *photo in photoSet){
-                    photo.task = _task;
-                }
-                
-                if (self.delegate && [self.delegate respondsToSelector:@selector(newTaskCreated:)]) {
-                    [self.delegate newTaskCreated:_task];
-                }
-                
-                NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-                [parameters setObject:_task.identifier forKey:@"task_id"];
-                [parameters setObject:@YES forKey:@"mobile"];
-                [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-                if (_project.identifier)
-                    [parameters setObject:_project.identifier forKey:@"project_id"];
-                [parameters setObject:kTasklist forKey:@"source"];
-                
-                if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId])
-                    [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
-                
-                for (Photo *photo in _task.photos){
-                    NSData *imageData = UIImageJPEGRepresentation(photo.image, 1);
-                    [manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":parameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-                        [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-                    } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                        //NSLog(@"Success posting photo for new task: %@",responseObject);
-                        [_task populateFromDictionary:[responseObject objectForKey:@"task"]];
-                    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                        NSLog(@"Failure posting new task image to API: %@",error.description);
-                    }];
-                }
-                
-                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    [ProgressHUD showSuccess:@"Task created"];
-                    [self dismiss];
+        if (appDelegate.connected){
+            if (isNew){
+                [ProgressHUD show:@"Adding task..."];
+                [self.task synchWithServer:^(BOOL completed) {
+                    if (completed) {
+                        [self.task setSaved:@YES];
+                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                            [ProgressHUD showSuccess:@"Task Saved"];
+                            if (self.delegate && [self.delegate respondsToSelector:@selector(taskCreated:)]) {
+                                [self.delegate taskCreated:self.task];
+                            }
+                        }];
+                    } else {
+                        [self.task setSaved:@NO];
+                        [ProgressHUD dismiss];
+                    }
+                    [self dismiss]; // finally dismiss the task
                 }];
-                
-            } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                NSLog(@"Failed to create a task: %@",error.description);
-                [_task setSaved:@NO];
-                [ProgressHUD dismiss];
-            }];
+            } else {
+                [ProgressHUD show:@"Updating task..."];
+                [self.task synchWithServer:^(BOOL completed) {
+                    if (completed) {
+                        [self.task setSaved:@YES];
+                        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                            [ProgressHUD showSuccess:@"Task Saved"];
+                            if (self.delegate && [self.delegate respondsToSelector:@selector(taskUpdated:)]) {
+                                [self.delegate taskUpdated:self.task];
+                            }
+                        }];
+                    } else {
+                        [self.task setSaved:@NO];
+                        [ProgressHUD dismiss];
+                    }
+                }];
+            }
         } else {
-            [_task synchWithServer:^(BOOL completed) {
-                if (completed) {
-                    [_task setSaved:@YES];
-                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                        [ProgressHUD showSuccess:@"Task Saved"];
-                        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadTask" object:nil userInfo:@{@"task":_task}];
-                        //[self dismiss];
-                    }];
-                } else {
-                    [_task setSaved:@NO];
-                    [ProgressHUD dismiss];
+            [self.task setSaved:@NO];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            if (isNew){
+                if (self.delegate && [self.delegate respondsToSelector:@selector(taskCreated:)]) {
+                    [self.delegate taskCreated:self.task];
                 }
-            }];
-            
+            } else {
+                if (self.delegate && [self.delegate respondsToSelector:@selector(taskUpdated:)]) {
+                    [self.delegate taskUpdated:self.task];
+                }
+            }
+            [self dismiss];
         }
     }
 }
@@ -1021,7 +934,7 @@ typedef void(^RequestSuccess)(id result);
         //[(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
         MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
         controller.mailComposeDelegate = self;
-        [controller setSubject:[NSString stringWithFormat:@"%@ Task: \"%@\"",_project.name,_task.body]];
+        [controller setSubject:[NSString stringWithFormat:@"%@ Task: \"%@\"",_project.name,self.task.body]];
         [controller setToRecipients:@[destinationEmail]];
         if (controller) {
             [self presentViewController:controller animated:YES completion:^{
@@ -1094,7 +1007,7 @@ typedef void(^RequestSuccess)(id result);
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     //only allow editing if the cell represents a comment and IS NOT the add comment row (i.e. the first row)
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && indexPath.section == 0 && !activities && indexPath.row != 0){
-        Comment *comment = _task.comments[indexPath.row - 1];
+        Comment *comment = self.task.comments[indexPath.row - 1];
         if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin]){
             return YES;
         } else {
@@ -1117,11 +1030,11 @@ typedef void(^RequestSuccess)(id result);
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments on a demo project task." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         // the first row is actually the add comment text view, so make sure to take the correct one
-        Comment *comment = [_task.comments objectAtIndex:indexPathForDeletion.row - 1];
+        Comment *comment = [self.task.comments objectAtIndex:indexPathForDeletion.row - 1];
         if (![comment.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted comment: %@",responseObject);
-                [_task removeComment:comment];
+                [self.task removeComment:comment];
                 
                 [comment MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 
@@ -1133,7 +1046,7 @@ typedef void(^RequestSuccess)(id result);
                 NSLog(@"Failed to delete activity: %@",error.description);
             }];
         } else {
-            [_task removeComment:comment];
+            [self.task removeComment:comment];
             [self.tableView beginUpdates];
             [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
@@ -1143,11 +1056,11 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
-        [self sendItem];
+        [self postTask];
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
         // only get rid of it if it's a new task
-        if ([_task.identifier isEqualToNumber:@0]){
-            [_task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        if ([self.task.identifier isEqualToNumber:@0]){
+            [self.task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [self dismiss];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
@@ -1158,7 +1071,7 @@ typedef void(^RequestSuccess)(id result);
 }
 
 - (void)back {
-    if ([_task.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO] && appDelegate.connected) {
+    if ([self.task.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO] && appDelegate.connected) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self dismiss];
@@ -1183,7 +1096,7 @@ typedef void(^RequestSuccess)(id result);
         NSValue *keyboardValue = info[UIKeyboardFrameBeginUserInfoKey];
         CGRect convertedKeyboardFrame = [self.view convertRect:keyboardValue.CGRectValue fromView:self.view.window];
         CGFloat keyboardHeight = convertedKeyboardFrame.size.height;
-        if (!activities && _task.comments.count == 0){
+        if (!activities && self.task.comments.count == 0){
             keyboardHeight += 66.f;
         }
         [UIView animateWithDuration:duration

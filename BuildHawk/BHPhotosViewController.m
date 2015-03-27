@@ -31,13 +31,6 @@
 
 @implementation BHPhotosViewController
 
-@synthesize photosArray = _photosArray;
-@synthesize userNames = _userNames;
-@synthesize dates = _dates;
-@synthesize numberOfSections = _numberOfSections;
-@synthesize sectionTitles = _sectionTitles;
-@synthesize project = _project;
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -88,7 +81,6 @@
 }
 
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-
     if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Taken/Uploaded By"]) {
         if (browserArray.count) [browserArray removeAllObjects];
         if (sectionArray.count)[sectionArray removeAllObjects];
@@ -272,8 +264,7 @@
 }
 
 #pragma mark - UICollectionViewDelegate
-- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
-{
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     // TODO: Select Item
 }
 - (void)collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath {

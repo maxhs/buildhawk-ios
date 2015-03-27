@@ -28,13 +28,10 @@
             //NSLog(@"project dict: %@",projectDict);
             NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
             Project *project = [Project MR_findFirstWithPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (project){
-                [project updateFromDictionary:projectDict];
-            } else {
+            if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [project populateFromDictionary:projectDict];
             }
-            
+            [project populateFromDictionary:projectDict];
             //only add the project if it contains the current user, otherwise it means they haven't been assigned
             if (delegate.currentUser && [project.users containsObject:delegate.currentUser] && [project.hidden isEqualToNumber:@NO]){
                 [orderedProjects addObject:project];
@@ -58,13 +55,11 @@
             //NSLog(@"project dict: %@",projectDict);
             NSPredicate *projectPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
             Project *project = [Project MR_findFirstWithPredicate:projectPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
-            if (project){
-                [project updateFromDictionary:projectDict];
-            } else {
+            if (!project){
                 project = [Project MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                 [project populateFromDictionary:projectDict];
             }
-           
+            
+            [project populateFromDictionary:projectDict];
             //only add the project if it contains the current user, otherwise it means they haven't been assigned
             if (delegate.currentUser && [project.users containsObject:delegate.currentUser] && [project.hidden isEqualToNumber:@NO]){
                 [orderedProjects addObject:project];

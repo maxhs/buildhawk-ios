@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-
 @interface BHSyncViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-
+@property (strong, nonatomic) NSMutableOrderedSet *itemsToSync;
+@property (strong, nonatomic) UIBarButtonItem *cancelAllButton;
+- (void)dismiss;
 @end

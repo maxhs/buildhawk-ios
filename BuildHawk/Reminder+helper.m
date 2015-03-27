@@ -95,19 +95,38 @@
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
         [parameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
     }
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] POST:[NSString stringWithFormat:@"%@/reminders",kApiBaseUrl] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[self.reminderDate timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success creating a reminder: %@",responseObject);
-        if ([responseObject objectForKey:@"failure"]){
-            NSLog(@"Failed to create/synch checklist item: %@",responseObject);
+    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    if ([self.identifier isEqualToNumber:@0]){
+        [delegate.manager POST:@"reminders" parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[self.reminderDate timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success creating a reminder: %@",responseObject);
+            if ([responseObject objectForKey:@"failure"]){
+                completed(NO);
+            } else {
+                Reminder *reminder = [self MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+                [reminder updateFromDictionary:[responseObject objectForKey:@"reminder"]];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+                completed(YES);
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             completed(NO);
-        } else {
-            [self updateFromDictionary:[responseObject objectForKey:@"reminder"]];
-            completed(YES);
-        }
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        completed(NO);
-        NSLog(@"Error creating a checklist item reminder: %@",error.description);
-    }];
+            if (delegate.connected) NSLog(@"Error creating a checklist item reminder: %@",error.description);
+        }];
+    } else {
+        [delegate.manager PATCH:[NSString stringWithFormat:@"reminders/%@",self.identifier] parameters:@{@"reminder":parameters,@"date":[NSNumber numberWithDouble:[self.reminderDate timeIntervalSince1970]]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success updating a reminder: %@",responseObject);
+            if ([responseObject objectForKey:@"failure"]){
+                completed(NO);
+            } else {
+                Reminder *reminder = [self MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+                [reminder updateFromDictionary:[responseObject objectForKey:@"reminder"]];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+                completed(YES);
+            }
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            completed(NO);
+            if (delegate.connected) NSLog(@"Error creating a checklist item reminder: %@",error.description);
+        }];
+    }
 }
 
 @end

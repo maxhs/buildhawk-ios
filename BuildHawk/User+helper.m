@@ -10,6 +10,7 @@
 #import "Task+helper.h"
 #import "Company+helper.h"
 #import "Alternate+helper.h"
+#import "BHAppDelegate.h"
 
 @implementation User (helper)
 
@@ -256,5 +257,35 @@
     [set removeObject:project];
     self.projects = set;
 }
+
+- (void)synchWithServer:(synchCompletion)complete {
+    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    [parameters setObject:self.emailPermissions forKey:@"email_permissions"];
+    [parameters setObject:self.textPermissions forKey:@"text_permissions"];
+    [parameters setObject:self.pushPermissions forKey:@"push_permissions"];
+    [parameters setObject:self.firstName forKey:@"first_name"];
+    [parameters setObject:self.lastName forKey:@"last_name"];
+    [parameters setObject:self.phone forKey:@"phone"];
+    [parameters setObject:self.email forKey:@"email"];
+
+    [delegate.manager PATCH:[NSString stringWithFormat:@"users/%@", self.identifier] parameters:@{@"user":parameters,@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Success synching user: %@",responseObject);
+        [self populateFromDictionary:[responseObject objectForKey:@"user"]];
+        [self setSaved:@YES];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            complete(YES);
+        }];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        if (!delegate.connected){
+            [self setSaved:@NO]; //only mark as unsaved if the failure is connectivity related
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+        }
+        complete(NO);
+        NSLog(@"Failed to synch-update user: %@",error.description);
+    }];
+
+}
+
 
 @end

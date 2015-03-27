@@ -28,6 +28,9 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
+    CGRect scrollFrame = _photoScrollView.frame;
+    scrollFrame.size.width = screenWidth()-_photoButtonContainerView.frame.size.width;
+    [_photoScrollView setFrame:scrollFrame];
 }
 
 @end

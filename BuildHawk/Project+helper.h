@@ -13,7 +13,7 @@
 
 @interface Project (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
-- (void)updateFromDictionary:(NSDictionary*)dictionary;
+//- (void)updateFromDictionary:(NSDictionary*)dictionary;
 
 - (void)parseDocuments:(NSArray*)array;
 - (void)addPhoto:(Photo *)photo;
@@ -23,4 +23,5 @@
 - (void)clearReports;
 - (void)addCompany:(Company *)company;
 - (void)removeCompany:(Company *)company;
+- (Tasklist*)tasklist;
 @end

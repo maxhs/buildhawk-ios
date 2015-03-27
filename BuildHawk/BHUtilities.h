@@ -15,5 +15,5 @@
 + (NSDate*)parseDateTime:(id)value;
 + (NSString*)parseDateReturnString:(id)value;
 + (NSString*)parseDateTimeReturnString:(id)value;
-+ (BOOL)isIPhone5;
++ (UIImage *)fixOrientation:(UIImage*)image;
 @end

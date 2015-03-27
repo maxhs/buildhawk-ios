@@ -12,7 +12,7 @@
 
 + (NSDate*)parseDate:(id)value {
     NSDateFormatter *dateFormat = [[NSDateFormatter alloc] init];
-    [dateFormat setDateFormat:@"yyyy-mm-dd"];
+    [dateFormat setDateFormat:@"yyyy-MM-dd"];
     NSDate *theDate;
     NSError *error;
     if (![dateFormat getObjectValue:&theDate forString:value range:nil error:&error]) {
@@ -60,12 +60,8 @@
     return [stringFormatter stringFromDate:theDate];
 }
 
-+ (BOOL)isIPhone5{
-    if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return YES;
-    } else {
-        return NO;
-    }
++ (UIImage *)fixOrientation:(UIImage*)image {
+    return [UIImage imageWithCGImage:image.CGImage scale:[UIScreen mainScreen].scale orientation:UIImageOrientationUp];
 }
 
 @end

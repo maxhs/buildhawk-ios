@@ -7,7 +7,7 @@
 //
 
 #import "User.h"
-
+typedef void(^synchCompletion)(BOOL completed);
 @interface User (helper)
 - (void)populateFromDictionary:(NSDictionary*)dictionary;
 - (void)updateFromDictionary:(NSDictionary*)dictionary;
@@ -23,4 +23,5 @@
 - (void)activateProject:(Project*)project;
 - (void)addProject:(Project*)project;
 - (void)removeProject:(Project*)project;
+- (void)synchWithServer:(synchCompletion)complete;
 @end

@@ -13,7 +13,8 @@
 @protocol BHReportDelegate <NSObject>
 
 @required
-- (void)newReportCreated:(NSNumber*)reportId;
+- (void)reportCreated:(Report*)report;
+- (void)reportUpdated:(Report*)report;
 @end
 
 @interface BHReportViewController : UIViewController
@@ -21,8 +22,8 @@
 @property (weak, nonatomic) IBOutlet UICollectionView *collectionView;
 @property (strong, nonatomic) NSString *reportDateString;
 @property (strong, nonatomic) NSString *reportType;
-@property (strong, nonatomic) NSNumber *initialReportId;
-@property (strong, nonatomic) NSNumber *projectId;
+@property (strong, nonatomic) Report *report;
+@property (strong, nonatomic) Project *project;
 @property (weak, nonatomic) IBOutlet UIDatePicker *datePicker;
 @property (weak, nonatomic) IBOutlet UIView *datePickerContainer;
 @property (weak, nonatomic) IBOutlet UIButton *cancelButton;

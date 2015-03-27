@@ -86,7 +86,6 @@
     
     if ([dictionary objectForKey:@"reminders"] && [dictionary objectForKey:@"reminders"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
-        //NSLog(@"checklist item reminders %@",[dictionary objectForKey:@"reminders"]);
         for (id dict in [dictionary objectForKey:@"reminders"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
             Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -209,7 +208,6 @@
     
     if ([dictionary objectForKey:@"reminders"] && [dictionary objectForKey:@"reminders"] != [NSNull null]) {
         NSMutableOrderedSet *set = [NSMutableOrderedSet orderedSet];
-        //NSLog(@"checklist item reminders %@",[dictionary objectForKey:@"reminders"]);
         for (id dict in [dictionary objectForKey:@"reminders"]){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [dict objectForKey:@"id"]];
             Reminder *reminder = [Reminder MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
@@ -317,25 +315,23 @@
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
-    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    
-    // if we don't send a state, this will erase the checklist item's current state via the API
-    if (self.state){
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];    
+    if (self.state){ // if we don't send a state, this will erase the checklist item's current state via the API
         [parameters setObject:self.state forKey:@"state"];
     }
-    //re-fetch the item in case there are CoreData faulting issues
-    ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:self.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
+    ChecklistItem *item = [ChecklistItem MR_findFirstByAttribute:@"identifier" withValue:self.identifier inContext:[NSManagedObjectContext MR_defaultContext]]; //re-fetch the item in case there are CoreData faulting issues
     
     [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] PATCH:[NSString stringWithFormat:@"%@/checklist_items/%@", kApiBaseUrl,self.identifier] parameters:@{@"checklist_item":parameters, @"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success synching checklist item %@",responseObject);
-
-        [item setSaved:@YES];
         [item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
+        [item setSaved:@YES];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
         complete(YES);
         
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Failure synching checklist item: %@",error.description);
         [item setSaved:@NO];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
         complete(NO);
     }];
 }

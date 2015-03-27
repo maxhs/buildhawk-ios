@@ -35,12 +35,12 @@
     [[self shared] hideAlert];
 }
 
-+ (void)show:(NSString *)status withTime:(CGFloat)time {
-    [[self shared] make:status spin:YES hide:NO withTime:time];
++ (void)show:(NSString *)status withTime:(CGFloat)time persist:(BOOL)persist {
+    [[self shared] make:status spin:YES hide:NO withTime:time persist:persist];
 }
 
 + (void)show:(NSString *)status withTime:(CGFloat)time andOffset:(CGPoint)centerOffset {
-    [[self shared] make:status spin:YES hide:NO withTime:time];
+    [[self shared] make:status spin:YES hide:NO withTime:time persist:NO];
 }
 
 + (void)showSuccess:(NSString *)status {
@@ -79,13 +79,13 @@
     return self;
 }
 
-- (void)make:(NSString *)status spin:(BOOL)spin hide:(BOOL)hide withTime:(CGFloat)time {
+- (void)make:(NSString *)status spin:(BOOL)spin hide:(BOOL)hide withTime:(CGFloat)time persist:(BOOL)persist {
     dismissTime = time;
     [self create];
     label.text = status;
     label.hidden = (status == nil) ? YES : NO;
     [self orient];
-    [self showAlert];
+    [self showAlert:persist];
 }
 
 - (void)create {
@@ -99,7 +99,12 @@
     
     if (label == nil) {
         label = [[UILabel alloc] initWithFrame:CGRectZero];
-        label.font = [UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0];
+        if (IDIOM == IPAD) {
+            label.font = [UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0];
+        } else {
+            label.font = [UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0];
+        }
+        
         [label setTextColor:[UIColor whiteColor]];
         label.backgroundColor = [UIColor clearColor];
         label.textAlignment = NSTextAlignmentCenter;
@@ -145,7 +150,7 @@
     }
 }
 
-- (void)showAlert {
+- (void)showAlert:(BOOL)persist {
     [self.window addSubview:self];
     if (self.alpha == 0) {
         self.alpha = 1;
@@ -154,7 +159,12 @@
         [UIView animateWithDuration:0.3 delay:0 options:options animations:^{
             background.alpha = 1;
         } completion:^(BOOL finished){
-            [self performSelector:@selector(hideAlert) withObject:nil afterDelay:dismissTime];
+            if (persist){
+                NSLog(@"Dismiss gesture is disabled");
+                [dismissGesture setEnabled:NO];
+            } else {
+                [self performSelector:@selector(hideAlert) withObject:nil afterDelay:dismissTime];
+            }
         }];
     }
 }

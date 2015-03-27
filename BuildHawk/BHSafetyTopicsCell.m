@@ -22,13 +22,18 @@
 - (void)awakeFromNib {
     [super awakeFromNib];
     [_titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    if (IDIOM == IPAD){
+        
+    } else {
+        CGFloat differential = 414.f - screenWidth();
+        CGRect removeFrame = _removeButton.frame;
+        removeFrame.origin.x -= differential;
+        [_removeButton setFrame:removeFrame];
+    }
 }
 
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated
-{
+- (void)setSelected:(BOOL)selected animated:(BOOL)animated {
     [super setSelected:selected animated:animated];
-
-    // Configure the view for the selected state
 }
 
 - (void)configureTopic:(SafetyTopic*)topic{

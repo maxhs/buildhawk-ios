@@ -12,8 +12,7 @@
     return [[self alloc] initWithType:@"snapshot_response"];
 }
 
-- (void)setScreenshot:(UIImage *)screenshot
-{
+- (void)setScreenshot:(UIImage *)screenshot {
     id payloadObject = nil;
     id imageHash = nil;
     if (screenshot) {

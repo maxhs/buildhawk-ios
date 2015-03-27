@@ -117,17 +117,7 @@
     cell.backgroundColor = [UIColor clearColor];
 }
 
-/*- (NSString*)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    NSDictionary *dict = [_photoSet.allObjects objectAtIndex:section];
-    return [[dict allKeys] firstObject];
-}*/
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    /*NSDictionary *dict = [_photoSet.allObjects objectAtIndex:indexPath.section];
-    NSString *key = [[dict allKeys] firstObject];
-    Photo *photo = [[dict objectForKey:key] objectAtIndex:indexPath.row];
-    [self showBrowser:[_photosArray indexOfObject:photo]];
-    tapped = indexPath;*/
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     [self performSegueWithIdentifier:@"ProjectDocs" sender:indexPath];
 }

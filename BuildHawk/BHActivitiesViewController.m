@@ -30,13 +30,7 @@
 
 @implementation BHActivitiesViewController
 
-@synthesize project = _project;
-@synthesize activities = _activities;
-@synthesize reminders = _reminders;
-@synthesize deadlineItems = _deadlineItems;
-
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     formatter = [[NSDateFormatter alloc] init];
@@ -123,7 +117,7 @@
         if ([[checklistItem type] isEqualToString:@"Com"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
         } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
-            [cell.imageView setImage:[UIImage imageNamed:@"s&c"]];
+            [cell.imageView setImage:[UIImage imageNamed:@"minis&c"]];
         } else {
             [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
         }
@@ -176,7 +170,7 @@
     browser.alwaysShowControls = YES;
     browser.enableGrid = YES;
     browser.startOnGrid = NO;
-    [browser setProject:_project];
+    [browser setProject:self.project];
     
     [self.navigationController pushViewController:browser animated:YES];
     [browser showNextPhotoAnimated:YES];
@@ -261,16 +255,16 @@
         [vc setItem:item];
     } else if ([segue.identifier isEqualToString:@"Task"]) {
         BHTaskViewController *vc = [segue destinationViewController];
-        [vc setProject:_project];
+        [vc setProject:self.project];
         if ([sender isKindOfClass:[Task class]]){
-            [vc setTaskId:[(Task*)sender identifier]];
+            [vc setTaskId:[(Task*)sender objectID]];
         }
     } else if ([segue.identifier isEqualToString:@"Report"]) {
         BHReportViewController *vc = [segue destinationViewController];
         if ([sender isKindOfClass:[Report class]]){
-            [vc setInitialReportId:[(Report*)sender identifier]];
+            [vc setReport:(Report*)sender];
         }
-        [vc setProjectId:_project.identifier];
+        [vc setProject:self.project];
     }
 }
 @end

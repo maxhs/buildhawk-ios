@@ -27,6 +27,10 @@
     _itemLabel.minimumScaleFactor = 10.0;
     _itemLabel.adjustsFontSizeToFitWidth = YES;
     _itemLabel.numberOfLines = 1;
+    
+    CGRect itemLabelFrame = _itemLabel.frame;
+    itemLabelFrame.size.width = screenWidth() - itemLabelFrame.origin.x - _photoButton.frame.size.width - 14.f;
+    [_itemLabel setFrame:itemLabelFrame];
 }
 
 - (void)configureForTask:(Task *)task {

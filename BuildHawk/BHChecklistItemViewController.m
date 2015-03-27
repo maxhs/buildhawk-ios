@@ -22,7 +22,8 @@
 #import "UIButton+WebCache.h"
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhotoBrowser.h"
-#import <CTAssetsPickerController/CTAssetsPickerController.h>
+#import "BHImagePickerController.h"
+#import "BHAssetGroupPickerViewController.h"
 #import "BHPersonnelPickerViewController.h"
 #import "Project.h"
 #import "BHAppDelegate.h"
@@ -33,8 +34,9 @@
 #import "Activity+helper.h"
 #import "Reminder+helper.h"
 #import "BHItemDeadlineCell.h"
+#import "BHUtilities.h"
 
-@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, CTAssetsPickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
+@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, BHImagePickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *photosArray;
@@ -64,20 +66,16 @@
     NSDateFormatter *formatter;
     NSDateFormatter *deadlineFormatter;
     BHDatePicker *_datePicker;
-    Reminder *_reminder;
     BOOL activities; // for the activities/comments section to determine what to show
     UIButton *activityButton;
     UIButton *commentsButton;
     UIRefreshControl *refreshControl;
 }
-
+@property (strong, nonatomic) Reminder *reminder;
+@property (strong, nonatomic) User *currentUser;
 @end
 
 @implementation BHChecklistItemViewController
-
-@synthesize item = _item;
-@synthesize row = _row;
-@synthesize project = _project;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -92,9 +90,8 @@
     library = [[ALAssetsLibrary alloc]init];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
-
-    // load the item!
-    [self loadItem:YES];
+    self.currentUser = [delegate.currentUser MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+    [self loadItem:YES]; // load the item!
     activities = NO; // show comments by default (instead of activities)
 
     //setup communication notifications
@@ -140,7 +137,7 @@
     [formatter setDateStyle:NSDateFormatterShortStyle];
     [formatter setTimeStyle:NSDateFormatterShortStyle];
     
-    if (_item.criticalDate){
+    if (self.item.criticalDate){
         deadlineFormatter = [[NSDateFormatter alloc] init];
         [deadlineFormatter setDateStyle:NSDateFormatterFullStyle];
     }
@@ -152,27 +149,22 @@
 }
 
 #pragma mark - Table view data source
-
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 7;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 1){
-        /*if (_item.criticalDate) return 1;
-        else return 0;*/
-        return 0;
-    }
+    if (section == 1) return 0;
     else if (section == 2) return 3;
     else if (section == 6) {
-        if (activities) return _item.activities.count;
-        else return _item.comments.count + 1;
+        if (activities) return self.item.activities.count;
+        else return self.item.comments.count + 1;
     }
     return 1;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 1 && !_item.criticalDate)
+    if (section == 1 && !self.item.criticalDate)
         return 0;
     else
         return 40;
@@ -190,19 +182,10 @@
     [headerLabel setTextColor:[UIColor darkGrayColor]];
     switch (section) {
         case 0:
-            [headerLabel setText:_item.type];
+            [headerLabel setText:self.item.type];
             break;
         case 1:
-            
-            //temporarily hide the deadline section and just return nothing
-            return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
-            
-            /*if (_item.criticalDate){
-                [headerLabel setText:@"DEADLINE"];
-            } else {
-                //there's no critical date, so don't bother with a header
-                return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
-            }*/
+            return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)]; //temporarily hide the deadline section and just return nothing
             break;
         case 2:
             [headerLabel setText:@"STATUS"];
@@ -219,11 +202,10 @@
         case 6:
         {
             [headerLabel setText:@""];
-
             commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
             [commentsButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
-            NSString *commentsTitle = _item.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)_item.comments.count];
+            NSString *commentsTitle = self.item.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)self.item.comments.count];
             [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
             if (activities){
                 [commentsButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
@@ -240,7 +222,7 @@
             activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
             [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
             [activityButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
-            NSString *activitiesTitle = _item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)_item.activities.count];
+            NSString *activitiesTitle = self.item.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)self.item.activities.count];
             [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
             if (activities){
                 [activityButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
@@ -274,8 +256,9 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0){
         BHChecklistItemBodyCell *bodyCell = [tableView dequeueReusableCellWithIdentifier:@"ChecklistItemBodyCell"];
+        bodyCell.clipsToBounds = YES;
         [bodyCell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        [bodyCell.bodyTextView setText:_item.body];
+        [bodyCell.bodyTextView setText:self.item.body];
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
         [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
         CGSize size = [bodyCell.bodyTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
@@ -291,8 +274,8 @@
         [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
         [cell.deadlineLabel setTextColor:[UIColor blackColor]];
     
-        if (_item.criticalDate){
-            [cell.deadlineLabel setText:[deadlineFormatter stringFromDate:_item.criticalDate]];
+        if (self.item.criticalDate){
+            [cell.deadlineLabel setText:[deadlineFormatter stringFromDate:self.item.criticalDate]];
         } else {
             [cell.deadlineLabel setText:@"This item's critical date has been removed."];
         }
@@ -310,21 +293,21 @@
         cell.textLabel.highlightedTextColor = [UIColor whiteColor];
         switch (indexPath.row) {
             case 0:
-                if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
+                if (self.item.state && [self.item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
                     cell.backgroundColor = kBlueColor;
                     [cell.textLabel setTextColor:[UIColor whiteColor]];
                 }
                 [cell.textLabel setText:@"COMPLETED"];
                 break;
             case 1:
-                if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
+                if (self.item.state && [self.item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
                     cell.backgroundColor = kBlueColor;
                     [cell.textLabel setTextColor:[UIColor whiteColor]];
                 }
                 [cell.textLabel setText:@"IN-PROGRESS"];
                 break;
             case 2:
-                if (_item.state && [_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
+                if (self.item.state && [self.item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
                     cell.backgroundColor = kBlueColor;
                     [cell.textLabel setTextColor:[UIColor whiteColor]];
                 }
@@ -342,9 +325,7 @@
         [photoCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         photoScrollView = photoCell.scrollView;
         photoButtonContainer = photoCell.buttonContainer;
-        
-        if (_item.photos.count)
-            [self redrawScrollView];
+        [self redrawScrollView];
         
         [photoCell.takePhotoButton addTarget:self action:@selector(takePhoto) forControlEvents:UIControlEventTouchUpInside];
         [photoCell.choosePhotoButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
@@ -357,8 +338,8 @@
         }
         [reminderCell.reminderButton addTarget:self action:@selector(showDatePicker) forControlEvents:UIControlEventTouchUpInside];
         
-        if (_reminder){
-            [reminderCell.reminderLabel setText:[NSString stringWithFormat:@"Reminder: %@",[formatter stringFromDate:_reminder.reminderDate]]];
+        if (self.reminder){
+            [reminderCell.reminderLabel setText:[NSString stringWithFormat:@"Reminder: %@",[formatter stringFromDate:self.reminder.reminderDate]]];
         } else {
             [reminderCell.reminderLabel setText:@"Set a reminder"];
         }
@@ -367,14 +348,27 @@
     } else if (indexPath.section == 5) {
         BHItemContactCell *contactCell = [tableView dequeueReusableCellWithIdentifier:@"ContactCell"];
         [contactCell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        
         [contactCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
         [contactCell.callButton addTarget:self action:@selector(callAction) forControlEvents:UIControlEventTouchUpInside];
         [contactCell.textButton addTarget:self action:@selector(textAction) forControlEvents:UIControlEventTouchUpInside];
         
         if (IDIOM == IPAD) {
             [contactCell.callButton setHidden:YES];
+        } else {
+            CGFloat buttonWidth = contactCell.emailButton.frame.size.width;
+            CGFloat originEmail = (width - ((buttonWidth+7) * 3))/2;
+            
+            CGRect emailFrame = contactCell.emailButton.frame;
+            emailFrame.origin.x = originEmail;
+            [contactCell.emailButton setFrame:emailFrame];
+            CGRect callFrame = contactCell.callButton.frame;
+            callFrame.origin.x = originEmail + (buttonWidth+7);
+            [contactCell.callButton setFrame:callFrame];
+            CGRect textFrame = contactCell.textButton.frame;
+            textFrame.origin.x = originEmail + ((buttonWidth+7)*2);
+            [contactCell.textButton setFrame:textFrame];
         }
+        
         return contactCell;
     } else {
         if (!activities && indexPath.row == 0){
@@ -399,12 +393,11 @@
                 activityCell = [[[NSBundle mainBundle] loadNibNamed:@"BHActivityCell" owner:self options:nil] lastObject];
             }
             if (activities){
-                Activity *activity = _item.activities[indexPath.row];
+                Activity *activity = self.item.activities[indexPath.row];
                 [activityCell.timestampLabel setText:[formatter stringFromDate:activity.createdDate]];
                 [activityCell configureForActivity:activity];
             } else {
-                //offset the index becuase the first row is going to be an add comment cell
-                Comment *comment = _item.comments[indexPath.row-1];
+                Comment *comment = self.item.comments[indexPath.row-1]; //offset the index becuase the first row is going to be an add comment cell
                 [activityCell.timestampLabel setText:[commentFormatter stringFromDate:comment.createdAt]];
                 [activityCell configureForComment:comment];
             }
@@ -416,9 +409,9 @@
 - (CGFloat)calculateHeightForItemBody {
     UITextView *sizingTextView = [[UITextView alloc] init];
     [sizingTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
-    [sizingTextView setText:_item.body];
+    [sizingTextView setText:self.item.body];
     CGSize size = [sizingTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
-    return size.height+10.f; // add a little buffer
+    return size.height + 10.f; // add a little buffer
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -479,7 +472,7 @@
         [textView resignFirstResponder];
         return NO;
     }
-    [_item setSaved:@NO];
+    [self.item setSaved:@NO];
     return YES;
 }
 
@@ -528,33 +521,45 @@
 }
 
 - (void)submitComment {
+    [self doneEditing];
+    
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to add comments to a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
         if (addCommentTextView.text.length) {
             Comment *comment = [Comment MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             [comment setBody:addCommentTextView.text];
-            if (delegate.currentUser){
-                [comment setUser:delegate.currentUser];
+            if (self.currentUser){
+                [comment setUser:self.currentUser];
             }
             [comment setCreatedAt:[NSDate date]];
-            [_item addComment:comment];
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:6];
+            [self.item addComment:comment];
+            [comment setSaved:@NO];
+            
             [self.tableView beginUpdates];
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:6];
             [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+            //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationAutomatic];
             [self.tableView endUpdates];
             
             [comment synchWithServer:^(BOOL completed) {
                 if (completed){
-                    //NSLog(@"Success synching comment with server");
+                    [comment setSaved:@YES];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        NSLog(@"Success synching comment with server");
+                    }];
+                } else {
+                    [comment setSaved:@NO];
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                        NSLog(@"Couldn't synch comment with server");
+                        [delegate.syncController update];
+                    }];
                 }
             }];
             addCommentTextView.text = kAddCommentPlaceholder;
             addCommentTextView.textColor = [UIColor lightGrayColor];
         }
     }
-    
-    [self doneEditing];
 }
 
 - (void)doneEditing {
@@ -626,7 +631,7 @@
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
-            [controller setSubject:[NSString stringWithFormat:@"%@",_item.body]];
+            [controller setSubject:[NSString stringWithFormat:@"%@",self.item.body]];
             [controller setToRecipients:@[destinationEmail]];
             if (controller) {
                 [self presentViewController:controller animated:YES completion:^{
@@ -700,13 +705,6 @@
     }*/
 }
 
-- (void)choosePhoto {
-    saveToLibrary = NO;
-    CTAssetsPickerController *controller = [[CTAssetsPickerController alloc] init];
-    controller.delegate = self;
-    [self presentViewController:controller animated:YES completion:NULL];
-}
-
 - (void)takePhoto {
     saveToLibrary = YES;
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
@@ -722,53 +720,29 @@
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self dismissViewControllerAnimated:YES completion:NULL];
-    Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-    [newPhoto setImage:[self fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
-    [self savePhoto:newPhoto];
-    [_item addPhoto:newPhoto];
+    Photo *photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    [photo setFileName:@"photo.jpg"];
+    [photo setImage:[BHUtilities fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
+    [self savePhoto:photo];
+    [self.item addPhoto:photo];
     [self.tableView reloadData];
 }
 
-- (BOOL)assetsPickerController:(CTAssetsPickerController *)picker shouldSelectAsset:(ALAsset *)asset
-{
-    if (picker.selectedAssets.count >= 10){
-        [[[UIAlertView alloc] initWithTitle:nil message:@"We're unable to select more than 10 photos per batch." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-    }
-    // Allow 10 assets to be picked
-    return (picker.selectedAssets.count < 10);
+- (IBAction)choosePhoto {
+    saveToLibrary = NO;
+    [self performSegueWithIdentifier:@"AssetGroupPicker" sender:nil];
 }
 
-- (void)assetsPickerController:(CTAssetsPickerController *)picker didFinishPickingAssets:(NSArray *)assets {
-    [self dismissViewControllerAnimated:YES completion:NULL];
-    for (id asset in assets) {
-        if (asset != nil) {
-            ALAssetRepresentation* representation = [asset defaultRepresentation];
-            
-            // Retrieve the image orientation from the ALAsset
-            UIImageOrientation orientation = UIImageOrientationUp;
-            NSNumber* orientationValue = [asset valueForProperty:@"ALAssetPropertyOrientation"];
-            if (orientationValue != nil) {
-                orientation = [orientationValue intValue];
-            }
-            
-            UIImage* image = [UIImage imageWithCGImage:[representation fullResolutionImage]
-                                                 scale:[UIScreen mainScreen].scale orientation:orientation];
-            Photo *newPhoto = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [newPhoto setImage:[self fixOrientation:image]];
-            [_item addPhoto:newPhoto];
-            [self savePhoto:newPhoto];
-        }
+- (void)didFinishPickingPhotos:(NSOrderedSet *)selectedPhotos {
+    for (Photo *p in selectedPhotos){
+        Photo *photo = [p MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+        [self.item addPhoto:photo];
+        [self savePhoto:photo];
     }
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
     [self redrawScrollView];
-}
-
-- (UIImage *)fixOrientation:(UIImage*)image {
-    if (image.imageOrientation == UIImageOrientationUp) return image;
-    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
-    [image drawInRect:(CGRect){0, 0, image.size}];
-    UIImage *correctedImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return correctedImage;
+    [self.navigationController popToViewController:self animated:YES];
+    [ProgressHUD dismiss];
 }
 
 - (void)saveToCameraLibrary:(UIImage*)originalImage {
@@ -805,8 +779,7 @@
                         failureBlock:^(NSError* error) {
                             NSLog(@"failed to retrieve image asset:\nError: %@ ", [error localizedDescription]);
                         }];
-            }
-            else {
+            } else {
                 NSLog(@"saved image failed.\nerror code %li\n%@", (long)error.code, [error localizedDescription]);
             }
         }];
@@ -816,55 +789,38 @@
 -(void)removePhoto:(NSNotification*)notification {
     Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove.identifier){
-        for (Photo *photo in _item.photos){
+        for (Photo *photo in self.item.photos){
             if ([photo.identifier isEqualToNumber:photoToRemove.identifier]) {
-                [_item removePhoto:photo];
+                [self.item removePhoto:photo];
                 [self redrawScrollView];
                 break;
             }
         }
     } else {
-        [_item removePhoto:photoToRemove];
+        [self.item removePhoto:photoToRemove];
         [self redrawScrollView];
     }
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":self.item}];
 }
 
 - (void)savePhoto:(Photo*)photo {
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ![_project.demo isEqualToNumber:@YES]){
-       
-        [self saveToCameraLibrary:photo.image];
-
-        NSData *imageData = UIImageJPEGRepresentation(photo.image, 1);
-        NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
-        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
-            [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
+        if (self.project && self.project.identifier){
+            [photo setProject:self.project];
         }
-        if (_project && _project.identifier){
-            [photo setProject:_project];
-            [photoParameters setObject:_project.identifier forKey:@"project_id"];
+        if (self.currentUser){
+            [photo setUserName:self.currentUser.fullname];
         }
-        //modify the local photo object
-        if (delegate.currentUser){
-            [photo setUserName:delegate.currentUser.fullname];
-        }
-        [photo setChecklistItem:_item];
+        [photo setChecklistItem:self.item];
         [photo setSource:kChecklist];
         [photo setSaved:@NO];
-        
-        [photoParameters setObject:_item.identifier forKey:@"checklist_item_id"];
-        [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-        [photoParameters setObject:kChecklist forKey:@"source"];
-        [photoParameters setObject:@YES forKey:@"mobile"];
-        
-        [manager POST:[NSString stringWithFormat:@"%@/checklist_items/photo/",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
-        } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Save image from checklist response object: %@",responseObject);
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
-        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            //NSLog(@"Failure posting image to API: %@",error.description);
-            //[delegate.syncController updateStatusMessage:kIncrement];
+        [self saveToCameraLibrary:photo.image];
+        [photo synchWithServer:^(BOOL completed) {
+            if (completed){
+                if (self.itemDelegate && [self.itemDelegate respondsToSelector:@selector(itemUpdated:)]){
+                    [self.itemDelegate itemUpdated:self.item.identifier];
+                }
+            }
         }];
     }
 }
@@ -878,18 +834,7 @@
     float space = 5.0;
     int index = 0;
     
-    for (Photo *photo in _item.photos) {
-        /*__weak UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        if (photo.urlSmall.length){
-            [imageButton setAlpha:0.0];
-            [imageButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-                [UIView animateWithDuration:.25 animations:^{
-                    [imageButton setAlpha:1.0];
-                }];
-            }];
-        } else if (photo.image) {
-            [imageButton setImage:photo.image forState:UIControlStateNormal];
-        }*/
+    for (Photo *photo in self.item.photos) {
         UIButton *imageButton = [UIButton buttonWithType:UIButtonTypeCustom];
         if (photo.image) {
             [imageButton setImage:photo.image forState:UIControlStateNormal];
@@ -900,7 +845,7 @@
         }
         imageButton.imageView.contentMode = UIViewContentModeScaleAspectFill;
         imageButton.imageView.clipsToBounds = YES;
-        [imageButton setTag:[_item.photos indexOfObject:photo]];
+        [imageButton setTag:[self.item.photos indexOfObject:photo]];
         [imageButton.titleLabel setHidden:YES];
         imageButton.imageView.layer.cornerRadius = 2.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
@@ -917,14 +862,13 @@
     photoButtonRect.origin.x = (space+imageSize)*index;
     [photoButtonContainer setFrame:photoButtonRect];
     [photoScrollView addSubview:photoButtonContainer];
-    
     [photoScrollView setContentSize:CGSizeMake(((space*(index+1))+(imageSize*(index+1))+photoButtonContainer.frame.size.width),40)];
     
     [UIView animateWithDuration:.3 delay:.7 options:UIViewAnimationOptionCurveEaseInOut animations:^{
         [photoScrollView setAlpha:1.0];
     } completion:^(BOOL finished) {
-        photoScrollView.layer.shouldRasterize = YES;
-        photoScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
+        //photoScrollView.layer.shouldRasterize = YES;
+        //photoScrollView.layer.rasterizationScale = [UIScreen mainScreen].scale;
     }];
 }
 
@@ -932,23 +876,25 @@
 
 - (void)loadItem:(BOOL)shouldReload{
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,_item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+        [manager GET:[NSString stringWithFormat:@"%@/checklist_items/%@",kApiBaseUrl,self.item.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success getting checklist item: %@",[responseObject objectForKey:@"checklist_item"]);
-            [_item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
-            [_item.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
+            [self.item populateFromDictionary:[responseObject objectForKey:@"checklist_item"]];
+            [self.item.reminders enumerateObjectsUsingBlock:^(Reminder *reminder, NSUInteger idx, BOOL *stop) {
                 if ([reminder.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
-                    _reminder = reminder;
+                    self.reminder = reminder;
                     *stop = YES;
                 }
             }];
-            if (shouldReload)[[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+            if (shouldReload)[[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":self.item}];
             [ProgressHUD dismiss];
             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
             [self.tableView reloadData];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             [ProgressHUD dismiss];
-             if (refreshControl.isRefreshing) [refreshControl endRefreshing];
-            NSLog(@"failure getting checklist item: %@",error.description);
+            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            if (delegate.connected){
+                NSLog(@"failure getting checklist item: %@",error.description);
+            }
         }];
     }
 }
@@ -962,15 +908,15 @@
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to update checklist items on a demo project." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else if (!delegate.connected) {
-        [_item setSaved:@NO];
+        [self.item setSaved:@NO];
         [delegate.syncController update];
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":self.item}];
         [ProgressHUD showSuccess:@"Saved"];
     } else {
         [ProgressHUD show:@"Updating item..."];
-        [_item synchWithServer:^(BOOL completed) {
+        [self.item synchWithServer:^(BOOL completed) {
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":_item}];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadChecklistItem" object:nil userInfo:@{@"item":self.item}];
             }];
             
             if (completed){
@@ -987,7 +933,7 @@
             } else {
                 [ProgressHUD dismiss];
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while updating this item. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-                [_item setSaved:@NO];
+                [self.item setSaved:@NO];
             }
         }];
     }
@@ -995,7 +941,7 @@
 
 - (void)showPhotoDetail:(NSInteger)idx {
     browserPhotos = [NSMutableArray new];
-    for (Photo *photo in _item.photos) {
+    for (Photo *photo in self.item.photos) {
         MWPhoto *mwPhoto;
         if (photo.image){
             mwPhoto = [MWPhoto photoWithImage:photo.image];
@@ -1039,27 +985,27 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 2) {
-        [_item setSaved:@NO];
+        [self.item setSaved:@NO];
         switch (indexPath.row) {
             case 0:
-                if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
-                    _item.state = nil;
+                if ([self.item.state isEqualToNumber:[NSNumber numberWithInteger:kItemCompleted]]){
+                    self.item.state = nil;
                 } else {
-                    _item.state = [NSNumber numberWithInteger:kItemCompleted];
+                    self.item.state = [NSNumber numberWithInteger:kItemCompleted];
                 }
                 break;
             case 1:
-                if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
-                    [_item setState:nil];
+                if ([self.item.state isEqualToNumber:[NSNumber numberWithInteger:kItemInProgress]]){
+                    [self.item setState:nil];
                 } else {
-                    [_item setState:[NSNumber numberWithInteger:kItemInProgress]];
+                    [self.item setState:[NSNumber numberWithInteger:kItemInProgress]];
                 }
                 break;
             case 2:
-                if ([_item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
-                    [_item setState:nil];
+                if ([self.item.state isEqualToNumber:[NSNumber numberWithInteger:kItemNotApplicable]]){
+                    [self.item setState:nil];
                 } else {
-                    [_item setState:[NSNumber numberWithInteger:kItemNotApplicable]];
+                    [self.item setState:[NSNumber numberWithInteger:kItemNotApplicable]];
                 }
                 break;
             default:
@@ -1069,7 +1015,7 @@
         [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:2],[NSIndexPath indexPathForRow:1 inSection:2],[NSIndexPath indexPathForRow:2 inSection:2]] withRowAnimation:UITableViewRowAnimationNone];
         [UIView setAnimationsEnabled:YES];
     } else if (indexPath.section == 4){
-        if (_reminder){
+        if (self.reminder){
             
         } else {
             [self showDatePicker];
@@ -1080,16 +1026,16 @@
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 4) {
-        if (_reminder){
+        if (self.reminder){
             return YES;
         } else {
             return NO;
         }
 
-    } else if (indexPath.section == 6 && _item.comments.count && indexPath.row > 0 && !activities) {
+    } else if (indexPath.section == 6 && self.item.comments.count && indexPath.row > 0 && !activities) {
         
-        Comment *comment = _item.comments[indexPath.row-1];
-        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || (delegate.currentUser && delegate.currentUser.uberAdmin)){
+        Comment *comment = self.item.comments[indexPath.row-1];
+        if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || (self.currentUser && self.currentUser.uberAdmin)){
             return YES;
         } else {
             return NO;
@@ -1115,21 +1061,20 @@
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"We're unable to delete comments from a demo project checklist item." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        Comment *comment = _item.comments[indexPathForDeletion.row-1];
-        if ([comment.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [_item removeComment:comment];
+        Comment *comment = self.item.comments[indexPathForDeletion.row-1];
+        if ([comment.identifier isEqualToNumber:@0]){
+            [self.item removeComment:comment];
             [comment MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
             
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPathForDeletion.section] withRowAnimation:UITableViewRowAnimationFade];
-            //[self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         
-        } else {
+        } else if (delegate.connected) {
             [manager DELETE:[NSString stringWithFormat:@"%@/comments/%@",kApiBaseUrl,comment.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully deleted activity: %@",responseObject);
-                [_item removeComment:comment];
+                [self.item removeComment:comment];
                 [comment MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
                 [self.tableView beginUpdates];
@@ -1140,6 +1085,8 @@
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                 //NSLog(@"Failed to delete comment: %@",error.description);
             }];
+        }else {
+            [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Deleting comments is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
     }
 }
@@ -1189,7 +1136,7 @@
 
 - (IBAction)selectDate {
     [self cancelDatePicker];
-    [self setReminder:_datePicker.date];
+    [self setReminderDate:_datePicker.date];
 }
 
 - (IBAction)cancelDatePicker{
@@ -1206,51 +1153,57 @@
     }];
 }
 
-- (void)setReminder:(NSDate*)date {
+- (void)setReminderDate:(NSDate*)date {
     if ([_project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"Sorry, but we're unable to create reminders from demo checklist items." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        _reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        [_reminder setReminderDate:date];
-        if (delegate.currentUser){
-            [_reminder setUser:delegate.currentUser];
+        if (self.item.reminders.count){
+            self.reminder = self.item.reminders.firstObject;
+        } else {
+            self.reminder = [Reminder MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+            [self.item addReminder:self.reminder];
         }
-        [_reminder setChecklistItem:_item];
-        [_reminder setProject:_project];
-        NSLog(@"did we set the reminder proejct? %@",_reminder.project.name);
-        [_item addReminder:_reminder];
+        [self.reminder setSaved:@NO];
+        [self.reminder setReminderDate:date];
+        if (self.currentUser){
+            [self.reminder setUser:self.currentUser];
+        }
         
-        [_reminder synchWithServer:^(BOOL completed) {
+        [self.reminder setProject:self.project];
+        [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:4]] withRowAnimation:UITableViewRowAnimationFade];
+        [self.reminder synchWithServer:^(BOOL completed) {
             if (completed){
-                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-                    [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:4]] withRowAnimation:UITableViewRowAnimationFade];
-                }];
+                [self.reminder setSaved:@YES];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
             } else {
-                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to create a reminder." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                if (delegate.connected){
+                    [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to create a reminder." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                } else {
+                    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait]; //offline
+                }
             }
         }];
     }
 }
 
-
 - (void)deleteReminder {
-    if ([_project.demo isEqualToNumber:@YES]){
+    if ([self.project.demo isEqualToNumber:@YES]){
         [[[UIAlertView alloc] initWithTitle:@"Demo Project" message:@"Sorry, but we're unable to delete reminders from demo checklist items." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     } else {
-        if ([_reminder.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-            [_item removeReminder:_reminder];
-            [_reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            _reminder = nil;
+        if ([self.reminder.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+            [self.item removeReminder:self.reminder];
+            [self.reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            self.reminder = nil;
             
             [self.tableView beginUpdates];
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         } else {
-            [manager DELETE:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,_reminder.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            [manager DELETE:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,self.reminder.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
                 //NSLog(@"successfully delete reminder: %@",responseObject);
-                [_item removeReminder:_reminder];
-                [_reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-                _reminder = nil;
+                [self.item removeReminder:self.reminder];
+                [self.reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                self.reminder = nil;
                 [self.tableView beginUpdates];
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
@@ -1266,7 +1219,7 @@
     if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
         [self updateChecklistItem:YES];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
-        [_item setSaved:@YES];
+        [self.item setSaved:@YES];
         [self loadItem:NO];
         [self.navigationController popViewControllerAnimated:YES];
     }  else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Delete"]) {
@@ -1279,7 +1232,7 @@
 #pragma mark - Back Navigation and Cleanup
 
 - (void)back {
-    if ([_item.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO] && delegate.connected) {
+    if ([self.item.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO] && delegate.connected) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self dismiss];

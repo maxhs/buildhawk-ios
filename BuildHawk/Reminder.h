@@ -16,6 +16,7 @@
 @property (nonatomic, retain) NSDate * createdDate;
 @property (nonatomic, retain) NSNumber * identifier;
 @property (nonatomic, retain) NSNumber * active;
+@property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) NSDate * reminderDate;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
 @property (nonatomic, retain) Task *task;

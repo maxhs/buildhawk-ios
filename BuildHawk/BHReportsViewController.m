@@ -21,7 +21,6 @@
     AFHTTPRequestOperationManager *manager;
     CGFloat width;
     CGFloat height;
-    Project *_project;
     BOOL canLoadMoreReports;
     BOOL daily;
     BOOL safety;
@@ -35,6 +34,7 @@
     CGRect screen;
     NSIndexPath *indexPathForDeletion;
 }
+@property (strong, nonatomic) Project *project;
 - (IBAction)cancelDatePicker;
 - (IBAction)selectDate;
 @end
@@ -53,14 +53,14 @@
     
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
-    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:[(Project*)[(BHTabBarViewController*)self.tabBarController project] identifier] inContext:[NSManagedObjectContext MR_defaultContext]];
-    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",_project.identifier];
+    self.project = [(Project*)[(BHTabBarViewController*)self.tabBarController project] MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",self.project.identifier];
     _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
-
+    refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
     if (IDIOM == IPAD){
         
     } else {
-        refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(handleRefresh)];
+        
         [_sortButton addTarget:self action:@selector(showSort) forControlEvents:UIControlEventTouchUpInside];
         CGFloat segmentedHeight = _segmentedControl.frame.size.height;
         [_segmentedControl setFrame:CGRectMake(8+width, 12, width-16, segmentedHeight)];
@@ -87,7 +87,6 @@
         });
         [self loadReports];
     }
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadReports) name:@"ReloadReports" object:nil];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -96,7 +95,7 @@
 }
 
 - (void)reloadReports {
-    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_project.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.project = [Project MR_findFirstByAttribute:@"identifier" withValue:self.project.identifier inContext:[NSManagedObjectContext MR_defaultContext]];
     [self.tableView reloadData];
 }
 
@@ -106,7 +105,7 @@
     if (delegate.connected){
         loading = YES;
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        [parameters setObject:_project.identifier forKey:@"project_id"];
+        [parameters setObject:self.project.identifier forKey:@"project_id"];
         [parameters setObject:@10 forKey:@"count"];
         if (_reports.count){
             Report *lastReport = _reports.lastObject;
@@ -136,20 +135,27 @@
         Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:[obj objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (!report){
             report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-            [report populateWithDict:obj];
+            [report populateFromDictionary:obj];
         } else {
             if ([report.saved isEqualToNumber:@YES]){
-                [report updateWithDict:obj];
+                [report populateFromDictionary:obj];
             } else {
-                NSLog(@"Report %@ - %@ has unsaved local changes",report.type, report.dateString);
+                [report synchWithServer:^(BOOL completed) {
+                    if (completed){
+                        [report setSaved:@YES];
+                        NSLog(@"Done synching Report %@ – %@ with server", report.type, report.dateString);
+                    } else {
+                        [report setSaved:@NO];
+                        NSLog(@"Didn't synch Report %@ – %@ with server.", report.type, report.dateString);
+                    }
+                }];
             }
         }
         [reportSet addObject:report];
     }
-    _project.reports = reportSet;
+    self.project.reports = reportSet;
     _reports = reportSet.array.mutableCopy;
     
-    //save!
     [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
         loading = NO;
         if (self.isViewLoaded && self.view.window){
@@ -164,9 +170,7 @@
                 [self.tableView reloadData];
             }
         }
-        
         [ProgressHUD dismiss];
-        
     }];
 }
 
@@ -186,7 +190,7 @@
         // First, remove the report from all data sources
         [self.tableView beginUpdates];
         
-        [_project removeReport:report];
+        [self.project removeReport:report];
         if (safety || weekly || daily){
             [_filteredReports removeObject:report];
             //Then update the UI
@@ -408,6 +412,7 @@
         [ProgressHUD dismiss];
     }
 }
+
 -(BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
     Report *report;
     if (_filteredReports.count && (safety || weekly || daily)){
@@ -464,13 +469,20 @@
     }
 }
 
-- (void)newReportCreated:(NSNumber *)reportId {
-    NSLog(@"new report delegate method: %@",reportId);
-    Report *report = [Report MR_findFirstByAttribute:@"identifier" withValue:reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+- (void)reportCreated:(Report *)r {
+    Report *report = [r MR_inContext:[NSManagedObjectContext MR_defaultContext]];
     daily = NO;
     weekly = NO;
     safety = NO;
-    [_project addReport:report];
+    [self.project addReport:report];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    [self.tableView reloadData];
+}
+
+- (void)reportUpdated:(Report *)r {
+    //Report *report = [r MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",self.project.identifier];
+    _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     [self.tableView reloadData];
 }
 
@@ -491,11 +503,12 @@
     if ([[segue identifier] isEqualToString:@"Report"]){
         BHReportViewController *vc = [segue destinationViewController];
         vc.reportDelegate = self;
-        [vc setProjectId:_project.identifier];
+        [vc setProject:self.project];
         
         //seguing to an existing report
         if ([sender isKindOfClass:[Report class]]){
-            [vc setInitialReportId:[(Report*)sender identifier]];
+            Report *report = (Report*)sender;
+            [vc setReport:report];
             if (daily){
                 [vc setReportType:kDaily];
             } else if (safety){

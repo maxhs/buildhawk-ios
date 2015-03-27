@@ -23,13 +23,13 @@
 @dynamic identifier;
 @dynamic image;
 @dynamic fileName;
+@dynamic localFilePath;
 @dynamic original;
 @dynamic phase;
 @dynamic photoPhase;
 @dynamic source;
 @dynamic urlLarge;
 @dynamic urlSmall;
-@dynamic urlMedium;
 @dynamic userName;
 @dynamic checklistItem;
 @dynamic project;

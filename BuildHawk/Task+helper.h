@@ -29,4 +29,5 @@ typedef void(^synchCompletion)(BOOL completed);
 - (void)addActivity:(Activity *)activity;
 - (void)removeActivity:(Activity *)activity;
 - (void)synchWithServer:(synchCompletion)complete;
+- (void)synchImages:(NSMutableOrderedSet*)imageSet;
 @end

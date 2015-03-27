@@ -13,14 +13,13 @@
 @protocol BHTaskDelegate <NSObject>
 
 @required
-- (void)newTaskCreated:(Task*)task;
-//- (void)photoAdded;
+- (void)taskCreated:(Task*)task;
+- (void)taskUpdated:(Task*)task;
 @end
-
 
 @interface BHTaskViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
-@property (strong, nonatomic) NSNumber *taskId;
+@property (strong, nonatomic) NSManagedObjectID *taskId;
 @property (weak, nonatomic) IBOutlet UIButton *photoButton;
 @property (weak, nonatomic) IBOutlet UIButton *libraryButton;
 @property (weak, nonatomic) IBOutlet UILabel *locationLabel;

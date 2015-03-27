@@ -24,5 +24,6 @@
 @dynamic active;
 @dynamic user;
 @dynamic pastDueUser;
+@dynamic saved;
 
 @end

@@ -53,8 +53,9 @@
 @dynamic upcomingItems;
 @dynamic userHider;
 @dynamic users;
-@dynamic tasklist;
+@dynamic tasklists;
 @dynamic tasks;
+@dynamic saved;
 
 @synthesize userConnectItems;
 

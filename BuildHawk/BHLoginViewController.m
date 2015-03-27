@@ -133,13 +133,15 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 }
 
 - (void)loadDemo {
-    [self drawDemoButton];
-    [delegate.manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"success getting demo projects: %@",responseObject);
-        [self updateProjects:[responseObject objectForKey:@"projects"]];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        NSLog(@"Failed to get demo project: %@", error.description);
-    }];
+    if (delegate.connected){
+        [self drawDemoButton];
+        [delegate.manager GET:[NSString stringWithFormat:@"%@/projects/demo",kApiBaseUrl] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"success getting demo projects: %@",responseObject);
+            [self updateProjects:[responseObject objectForKey:@"projects"]];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Failed to get demo project: %@", error.description);
+        }];
+    }
 }
 
 - (void)updateProjects:(NSArray*)projectsArray {
@@ -251,59 +253,66 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 }
 
 - (void)login:(NSMutableDictionary*)parameters{
-    [ProgressHUD show:@"Logging in..."];
-    [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        //NSLog(@"Success logging in: %@",responseObject);
-        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
-        User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (!user) {
-            user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-        [user populateFromDictionary:[responseObject objectForKey:@"user"]];
-        [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
-        [[NSUserDefaults standardUserDefaults] setObject:user.mobileToken forKey:kUserDefaultsMobileToken];
-        [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
-        [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
-        [[NSUserDefaults standardUserDefaults] synchronize];
-        
-        //update the delegate's logged in / logged out flag
-        [delegate updateLoggedInStatus];
-        
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            delegate.currentUser = user;
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];
-            [UIView animateWithDuration:.3 animations:^{
-                _logoImageView.transform = CGAffineTransformIdentity;
-                [self.view endEditing:YES];
-            } completion:^(BOOL finished) {
-                [self.loginButton setUserInteractionEnabled:YES];
-                [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
-            }];
-            
-        }];
-
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        if (operation.response.statusCode == 401) {
-            if ([operation.responseString isEqualToString:@"Incorrect password"]){
-                [self addShakeAnimationForView:self.passwordTextField withDuration:.77];
-            } else if ([operation.responseString isEqualToString:@"User already exists"]) {
-                //[self addShakeAnimationForView:self.registerEmailTextField withDuration:.77];
-                //[self alert:@"An account with that email address already exists."];
-            } else if ([operation.responseString isEqualToString:@"No email"]) {
-                [self addShakeAnimationForView:self.emailTextField withDuration:.77];
-                //[self alert:@"Sorry, but we couldn't find an account for that email address."];
-            } else if ([operation.responseString isEqualToString:@"Invalid token"]) {
-                NSLog(@"Invalid token");
-            } else {
-                [[[UIAlertView alloc] initWithTitle:@"Uh oh" message:@"Something went wrong while trying to log you in." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    if (delegate.connected){
+        [ProgressHUD show:@"Logging in..."];
+        [delegate.manager POST:[NSString stringWithFormat:@"%@/sessions",kApiBaseUrl] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            //NSLog(@"Success logging in: %@",responseObject);
+            NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[responseObject objectForKey:@"user"] objectForKey:@"id"]];
+            User *user = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+            if (!user) {
+                user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
             }
-        } else {
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        }
-        [ProgressHUD dismiss];
-        [self showLoginStuff];
-        [self.loginButton setUserInteractionEnabled:YES];
-    }];
+            [user populateFromDictionary:[responseObject objectForKey:@"user"]];
+            [[NSUserDefaults standardUserDefaults] setObject:user.identifier forKey:kUserDefaultsId];
+            [[NSUserDefaults standardUserDefaults] setObject:user.mobileToken forKey:kUserDefaultsMobileToken];
+            [[NSUserDefaults standardUserDefaults] setObject:user.company.identifier forKey:kUserDefaultsCompanyId];
+            [[NSUserDefaults standardUserDefaults] setBool:user.uberAdmin.boolValue forKey:kUserDefaultsUberAdmin];
+            [[NSUserDefaults standardUserDefaults] synchronize];
+            
+            //update the delegate's logged in / logged out flag
+            [delegate updateLoggedInStatus];
+            
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                delegate.currentUser = user;
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"ReloadUser" object:nil];
+                [UIView animateWithDuration:.3 animations:^{
+                    _logoImageView.transform = CGAffineTransformIdentity;
+                    [self.view endEditing:YES];
+                } completion:^(BOOL finished) {
+                    [self.loginButton setUserInteractionEnabled:YES];
+                    [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+                }];
+                
+            }];
+
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            if (operation.response.statusCode == 401) {
+                if ([operation.responseString isEqualToString:@"Incorrect password"]){
+                    [self addShakeAnimationForView:self.passwordTextField withDuration:.77];
+                } else if ([operation.responseString isEqualToString:@"User already exists"]) {
+                    //[self addShakeAnimationForView:self.registerEmailTextField withDuration:.77];
+                    //[self alert:@"An account with that email address already exists."];
+                } else if ([operation.responseString isEqualToString:@"No email"]) {
+                    [self addShakeAnimationForView:self.emailTextField withDuration:.77];
+                    //[self alert:@"Sorry, but we couldn't find an account for that email address."];
+                } else if ([operation.responseString isEqualToString:@"Invalid token"]) {
+                    NSLog(@"Invalid token");
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Uh oh" message:@"Something went wrong while trying to log you in." delegate:self cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                }
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to log you in. Please try again." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
+            [ProgressHUD dismiss];
+            [self showLoginStuff];
+            [self.loginButton setUserInteractionEnabled:YES];
+        }];
+    } else if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
+        NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == [c] %@", [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]];
+        delegate.currentUser = [User MR_findFirstWithPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]];
+        [BHAlert show:@"Your device is currently offline. You're being logged into BuildHawk's offline mode. Note that project data may be outdated." withTime:3.3f persist:NO];
+        [self performSegueWithIdentifier:@"LoginSuccessful" sender:self];
+    }
 }
 
 #pragma mark - Shake Animation

@@ -21,13 +21,13 @@
 @property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) id image;
 @property (nonatomic, retain) NSString * fileName;
+@property (nonatomic, retain) NSString * localFilePath;
 @property (nonatomic, retain) NSString * original;
 @property (nonatomic, retain) NSString * phase;
 @property (nonatomic, retain) NSString * photoPhase;
 @property (nonatomic, retain) NSString * source;
 @property (nonatomic, retain) NSString * urlLarge;
 @property (nonatomic, retain) NSString * urlSmall;
-@property (nonatomic, retain) NSString * urlMedium;
 @property (nonatomic, retain) NSString * userName;
 @property (nonatomic, retain) NSOrderedSet * activities;
 @property (nonatomic, retain) ChecklistItem *checklistItem;
