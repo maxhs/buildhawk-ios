@@ -43,7 +43,6 @@
     NSMutableArray *filteredProjects;
     AFHTTPRequestOperationManager *manager;
     BHAppDelegate *delegate;
-    User *_currentUser;
     NSMutableArray *recentChecklistItems;
     NSMutableArray *recentlyCompletedTasks;
     NSMutableArray *upcomingChecklistItems;
@@ -60,13 +59,12 @@
     NSMutableOrderedSet *connectItems;
     NSMutableOrderedSet *connectProjects;
 }
-
+@property (strong, nonatomic) User *currentUser;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem *leftMenuButton;
 
 @end
 
 @implementation BHDashboardViewController
-@synthesize projects = _projects;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -97,7 +95,7 @@
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+        self.currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
     }
     [delegate updateLoggedInStatus];
     
@@ -117,7 +115,7 @@
     self.tableView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
     
     loading = YES;
-    if (_currentUser && _currentUser.projects.count == 0){
+    if (self.currentUser && self.currentUser.projects.count == 0){
         [ProgressHUD show:@"Fetching projects..."];
     }
     [self loadProjects];
@@ -193,7 +191,7 @@
     NSMutableOrderedSet *groupSet = [NSMutableOrderedSet orderedSet];
     NSMutableOrderedSet *hiddenSet = [NSMutableOrderedSet orderedSet];
     
-    for (Project *p in _currentUser.projects){
+    for (Project *p in self.currentUser.projects){
         if ([p.hidden isEqualToNumber:@YES]){
             [hiddenSet addObject:p];
         } else if (p.group){
@@ -203,10 +201,10 @@
         }
     }
     
-    _currentUser.projects = projectSet;
-    _currentUser.hiddenProjects = hiddenSet;
+    self.currentUser.projects = projectSet;
+    self.currentUser.hiddenProjects = hiddenSet;
 
-    _projects = [_currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
+    _projects = [self.currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
         NSNumber *first = a.orderIndex;
         NSNumber *second = b.orderIndex;
         return [first compare:second];
@@ -220,7 +218,7 @@
         [self.tableView reloadData];
         [ProgressHUD dismiss];
     } else {
-        _currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
+        self.currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
         NSMutableOrderedSet *projectSet = [NSMutableOrderedSet orderedSet];
         NSMutableOrderedSet *groupSet = [NSMutableOrderedSet orderedSet];
         NSMutableOrderedSet *hiddenSet = [NSMutableOrderedSet orderedSet];
@@ -235,21 +233,21 @@
             else [projectSet addObject:project];
         }
     
-        for (Project *p in _currentUser.projects){
+        for (Project *p in self.currentUser.projects){
             if (![projectSet containsObject:p] && ![hiddenSet containsObject:p] && ![groupSet containsObject:p]){
                 NSLog(@"Deleting a project that no longer exists: %@",p.name);
-                [_currentUser removeProject:p];
+                [self.currentUser removeProject:p];
                 [p MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
             }
         }
         
-        _currentUser.projects = projectSet;
-        _currentUser.hiddenProjects = hiddenSet;
+        self.currentUser.projects = projectSet;
+        self.currentUser.hiddenProjects = hiddenSet;
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             //NSLog(@"What happened during dashboard save? %u",success);
             if (self.isViewLoaded && self.view.window){
-                _projects = [_currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
+                _projects = [self.currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
                     NSNumber *first = a.orderIndex;
                     NSNumber *second = b.orderIndex;
                     return [first compare:second];
@@ -340,15 +338,15 @@
                     
                     [groups addObject:group];
                 }
-                for (Group *group in _currentUser.company.groups) {
+                for (Group *group in self.currentUser.company.groups) {
                     if (![groups containsObject:group]) {
                         NSLog(@"Deleting a group that no longer exists: %@",group.name);
                         [group MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                     }
                 }
-                _currentUser.company.groups = groups;
+                self.currentUser.company.groups = groups;
             } else {
-                _currentUser.company.groups = nil;
+                self.currentUser.company.groups = nil;
             }
             
             loading = NO;
@@ -376,13 +374,13 @@
         [projectSet addObject:project];
     }
 
-    /*for (Project *p in _currentUser.company.hiddenProjects){
+    /*for (Project *p in self.currentUser.company.hiddenProjects){
         if (![projectSet containsObject:p] && ![currentUser.projects containsObject:p]){
             NSLog(@"deleting hidden project %@ because it no longer exists",p.name);
             [p MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
         }
     }*/
-    _currentUser.company.hiddenProjects = projectSet;
+    self.currentUser.company.hiddenProjects = projectSet;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -411,7 +409,7 @@
             return _projects.count;
         }
     } else if (section == 1) {
-        return _currentUser.company.groups.count;
+        return self.currentUser.company.groups.count;
     } else if (section == 2) {
         return connectProjects.count;
     } else if (section == 3) {
@@ -446,7 +444,7 @@
             } else {
                 project = [_projects objectAtIndex:indexPath.row];
             }
-            [cell configureForProject:project andUser:_currentUser];
+            [cell configureForProject:project andUser:self.currentUser];
             [cell.textLabel setText:@""];
             
             if (project.progressPercentage.length){
@@ -455,7 +453,7 @@
                 [cell.progressButton setTitle:@"-" forState:UIControlStateNormal];
             }
             [cell.progressButton setTag:indexPath.row];
-            [cell.progressButton addTarget:self action:@selector(goToProjectDetail:) forControlEvents:UIControlEventTouchUpInside];
+            [cell.progressButton addTarget:self action:@selector(goToSynopsis:) forControlEvents:UIControlEventTouchUpInside];
             [cell.projectButton setTag:indexPath.row];
             [cell.projectButton addTarget:self action:@selector(goToProject:) forControlEvents:UIControlEventTouchUpInside];
             [cell.hideButton setTag:indexPath.row];
@@ -475,7 +473,7 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardGroupCell" owner:self options:nil] lastObject];
         }
         
-        Group *group = [_currentUser.company.groups objectAtIndex:indexPath.row];
+        Group *group = [self.currentUser.company.groups objectAtIndex:indexPath.row];
         [cell.nameLabel setText:group.name];
         [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
     
@@ -559,7 +557,7 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 1 && _currentUser.company.groups.count == 0) return 0;
+    if (section == 1 && self.currentUser.company.groups.count == 0) return 0;
     else if (section == 2 && connectProjects.count == 0) return 0;
     else if (section == 3 || section == 4) return 0;
     else return 40;
@@ -577,15 +575,15 @@
     headerLabel.textAlignment = NSTextAlignmentCenter;
     switch (section) {
         case 0:
-            if (_currentUser.company.name.length){
-                [headerLabel setText:[NSString stringWithFormat:@"%@ Projects",_currentUser.company.name]];
+            if (self.currentUser.company.name.length){
+                [headerLabel setText:[NSString stringWithFormat:@"%@ Projects",self.currentUser.company.name]];
             } else {
                 [headerLabel setText:@"Projects"];
             }
             break;
         case 1:
-            if (_currentUser.company.groups.count){
-                [headerLabel setText:[NSString stringWithFormat:@"%@ Project Groups",_currentUser.company.name]];
+            if (self.currentUser.company.groups.count){
+                [headerLabel setText:[NSString stringWithFormat:@"%@ Project Groups",self.currentUser.company.name]];
             } else {
                 return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
             }
@@ -633,7 +631,7 @@
 
         NSIndexPath *indexPathToHide = [NSIndexPath indexPathForRow:[_projects indexOfObject:hiddenProject] inSection:0];
         [_projects removeObject:hiddenProject];
-        [_currentUser hideProject:hiddenProject];
+        [self.currentUser hideProject:hiddenProject];
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveOnlySelfAndWait];
         
@@ -727,13 +725,11 @@
 - (void)cancelSync {
     NSArray *projectArray = searching ? filteredProjects : _projects;
     for (Project *project in projectArray){
-        NSLog(@"should be unfreezing: %@",project.name);
         [self unfreezeRowForProject:project];
     }
 }
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar {
-    searching = YES;
     [self.searchBar setShowsCancelButton:YES animated:YES];
 }
 
@@ -770,7 +766,7 @@
             [self presentViewController:nav animated:YES completion:NULL];
         }
     } else if (indexPath.section == 1) {
-        Group *group = [_currentUser.company.groups objectAtIndex:indexPath.row];
+        Group *group = [self.currentUser.company.groups objectAtIndex:indexPath.row];
         
         //only segue to the group view if there's a project assigned to the current user
         if (group.projects.count)
@@ -815,7 +811,7 @@
         [vc setGroup:group];
     } else if ([segue.identifier isEqualToString:@"Demos"]){
         BHDemoProjectsViewController *vc = [segue destinationViewController];
-        [vc setCurrentUser:_currentUser];
+        [vc setCurrentUser:self.currentUser];
     } else if ([segue.identifier isEqualToString:@"Hidden"]){
         BHHiddenProjectsViewController *vc = [segue destinationViewController];
         [vc setTitle:@"Hidden Projects"];
@@ -845,12 +841,13 @@
     }
 }
 
-- (void)goToProjectDetail:(UIButton*)button {
-    Project *selectedProject = [_projects objectAtIndex:button.tag];
+- (void)goToSynopsis:(UIButton*)button {
+    Project *selectedProject = searching ? [filteredProjects objectAtIndex:button.tag] : [_projects objectAtIndex:button.tag];
     [self performSegueWithIdentifier:@"ProjectSynopsis" sender:selectedProject];
 }
 
 - (void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
+    searching = YES;
     [filteredProjects removeAllObjects]; // First clear the filtered array.
     for (Project *project in _projects){
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"(SELF contains[cd] %@)", searchText];
@@ -929,7 +926,7 @@
     nav.modalPresentationStyle = UIModalPresentationCustom;
     nav.transitioningDelegate = self;
     [vc setTitle:@"Demo Projects"];
-    [vc setCurrentUser:_currentUser];
+    [vc setCurrentUser:self.currentUser];
     [self presentViewController:nav animated:YES completion:^{
         
     }];

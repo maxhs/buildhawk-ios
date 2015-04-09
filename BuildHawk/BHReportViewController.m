@@ -346,8 +346,10 @@
 //for taking a photo
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self dismissViewControllerAnimated:YES completion:NULL];
-    UIImage *image = [BHUtilities fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]];
+    UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
     Photo *photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    NSString *fileName = [NSString stringWithFormat:@"%ld.jpg",(long)NSDate.date.timeIntervalSince1970];
+    [photo setFileName:fileName];
     [photo setTakenAt:[NSDate date]];
     [photo setImage:image];
     [self.report addPhoto:photo];

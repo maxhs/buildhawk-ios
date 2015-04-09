@@ -159,7 +159,12 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
             }
             [cell.textLabel setTextColor:[UIColor blackColor]];
         } else {
-            [cell.textLabel setText:[NSString stringWithFormat:@"%@ - %@",self.report.type, self.report.author.fullname]];
+            if (self.report.author){
+                [cell.textLabel setText:[NSString stringWithFormat:@"%@ - %@",self.report.type, self.report.author.fullname]];
+            } else {
+                [cell.textLabel setText:[NSString stringWithFormat:@"%@",self.report.type]];
+            }
+            
             if ([self.report.type isEqualToString:kDaily]){
                 [cell.textLabel setTextColor:kDailyReportColor];
             } else if ([self.report.type isEqualToString:kWeekly]){

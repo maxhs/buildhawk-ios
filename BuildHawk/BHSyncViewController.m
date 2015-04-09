@@ -36,6 +36,15 @@
     [self.navigationItem setTitle:[NSString stringWithFormat:@"Synching %lu items",(unsigned long)_itemsToSync.count]];
     
     self.tableView.rowHeight = 54.f;
+    [self.tableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.14]];
+    
+    [self.view setBackgroundColor:[UIColor clearColor]];
+    [self.tableView setBackgroundColor:[UIColor clearColor]];
+    UIToolbar *backgroundToolbar = [[UIToolbar alloc] initWithFrame:self.view.frame];
+    [backgroundToolbar setBarStyle:UIBarStyleBlackTranslucent];
+    [backgroundToolbar setTranslucent:YES];
+    [self.tableView setBackgroundView:backgroundToolbar];
+    
 }
 
 - (void)dismiss {
@@ -60,11 +69,12 @@
     return _itemsToSync.count;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"SyncCell";
     BHSyncCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+    [cell setBackgroundColor:[UIColor clearColor]];
     [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+    [cell.textLabel setTextColor:[UIColor whiteColor]];
     id object = self.itemsToSync[indexPath.row];
     if ([object isKindOfClass:[Report class]]){
         Report *r = (Report*)object;

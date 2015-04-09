@@ -22,6 +22,7 @@
 #import <Crashlytics/Crashlytics.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <RESideMenu/RESideMenu.h>
+#import "BHSyncTransition.h"
 
 #define MIXPANEL_TOKEN @"2e57104ead72acdd8a77ca963e32e74a"
 
@@ -29,6 +30,7 @@
     UIView *overlayView;
     CGRect screen;
     UIButton *statusButton;
+    BOOL showingSync;
 }
 @end
 
@@ -47,12 +49,14 @@
             case AFNetworkReachabilityStatusReachableViaWWAN:
                 NSLog(@"Connected via WWAN");
                 self.connected = YES;
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"Connected" object:nil];
                 [self.syncController update];
                 [self.syncController syncAll];
                 break;
             case AFNetworkReachabilityStatusReachableViaWiFi:
                 NSLog(@"Connected via WIFI");
                 self.connected = YES;
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"Connected" object:nil];
                 [self.syncController update];
                 [self.syncController syncAll];
                 break;
@@ -306,6 +310,7 @@
 
     [ProgressHUD dismiss];
     [self displayStatusMessage:kDeviceOfflineMessage];
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"DeviceOffline" object:nil];
 }
 
 - (void)displayStatusMessage:(NSString*)string {
@@ -335,7 +340,7 @@
 }
 
 - (void)showSyncController {
-    if (self.syncController.synchCount > 0){
+    if (self.syncController.synchCount > 0 && !showingSync){
         UINavigationController *nav = (UINavigationController*)[(RESideMenu*)self.window.rootViewController contentViewController];
         self.synchViewController = [nav.storyboard instantiateViewControllerWithIdentifier:@"SynchView"];
         NSMutableOrderedSet *itemsToSynch = [NSMutableOrderedSet orderedSetWithArray:_syncController.tasks];
@@ -348,10 +353,27 @@
         [itemsToSynch addObjectsFromArray:_syncController.projects];
         [self.synchViewController setItemsToSync:itemsToSynch];
         UINavigationController *newNav = [[UINavigationController alloc] initWithRootViewController:self.synchViewController];
+        newNav.transitioningDelegate = self;
+        newNav.modalPresentationStyle = UIModalPresentationCustom;
         [nav.viewControllers.lastObject presentViewController:newNav animated:YES completion:^{
             
         }];
     }
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForPresentedController:(UIViewController *)presented
+                                                                  presentingController:(UIViewController *)presenting
+                                                                      sourceController:(UIViewController *)source {
+    BHSyncTransition *animator = [BHSyncTransition new];
+    animator.presenting = YES;
+    showingSync = YES;
+    return animator;
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)animationControllerForDismissedController:(UIViewController *)dismissed {
+    BHSyncTransition *animator = [BHSyncTransition new];
+    showingSync = NO;
+    return animator;
 }
 
 - (void)hideSyncController {

@@ -16,7 +16,6 @@
 @interface BHAssetGroupPickerViewController () {
     ALAssetsLibrary *_assetsLibrary;
     NSMutableArray *_assetGroups;
-    UIImageView *navBarShadowView;
 }
 
 @end

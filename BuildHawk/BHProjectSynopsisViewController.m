@@ -310,6 +310,8 @@
                 [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
             } else if ([[checklistItem type] isEqualToString:@"S&C"]) {
                 [cell.imageView setImage:[UIImage imageNamed:@"minis&c"]];
+            } else if ([[checklistItem type] isEqualToString:@"Mile"]) {
+                [cell.imageView setImage:[UIImage imageNamed:@"minical"]];
             } else {
                 [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
             }

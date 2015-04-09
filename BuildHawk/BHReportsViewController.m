@@ -79,7 +79,15 @@
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
     [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
-    
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.tabBarController.navigationItem.rightBarButtonItem = refreshButton;
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
     if (delegate.connected){
         dispatch_async(dispatch_get_main_queue(), ^{
             NSString *message = _reports.count == 0 ? @"Fetching reports..." : @"Updating reports...";
@@ -87,11 +95,6 @@
         });
         [self loadReports];
     }
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-    self.tabBarController.navigationItem.rightBarButtonItem = refreshButton;
 }
 
 - (void)reloadReports {
@@ -176,52 +179,56 @@
 
 
 - (void)deleteReport{
-    [ProgressHUD show:@"Deleting..."];
-    Report *report;
-    if (daily || weekly || safety){
-        report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
-    } else {
-        report = [_reports objectAtIndex:indexPathForDeletion.row];
-    }
-    [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-
-        //NSLog(@"Success deleting report: %@",responseObject);
-        
-        // First, remove the report from all data sources
-        [self.tableView beginUpdates];
-        
-        [self.project removeReport:report];
-        if (safety || weekly || daily){
-            [_filteredReports removeObject:report];
-            //Then update the UI
-            if (_filteredReports.count){
-                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-            } else {
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-            }
+    if (delegate.connected){
+        [ProgressHUD show:@"Deleting..."];
+        Report *report;
+        if (daily || weekly || safety){
+            report = [_filteredReports objectAtIndex:indexPathForDeletion.row];
         } else {
-            [_reports removeObject:report];
-            //Then update the UI
-            if (_reports.count){
-                [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-            } else {
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
-            }
+            report = [_reports objectAtIndex:indexPathForDeletion.row];
         }
-        [self.tableView endUpdates];
-        
-        [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        [manager DELETE:[NSString stringWithFormat:@"%@/reports/%@",kApiBaseUrl, report.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+
+            //NSLog(@"Success deleting report: %@",responseObject);
+            
+            // First, remove the report from all data sources
+            [self.tableView beginUpdates];
+            
+            [self.project removeReport:report];
+            if (safety || weekly || daily){
+                [_filteredReports removeObject:report];
+                //Then update the UI
+                if (_filteredReports.count){
+                    [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+                } else {
+                    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+                }
+            } else {
+                [_reports removeObject:report];
+                //Then update the UI
+                if (_reports.count){
+                    [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+                } else {
+                    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationFade];
+                }
+            }
+            [self.tableView endUpdates];
+            
+            [report MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                [ProgressHUD dismiss];
+                indexPathForDeletion = nil;
+            }];
+            
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            //NSLog(@"Error deleting notification: %@",error.description);
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             [ProgressHUD dismiss];
             indexPathForDeletion = nil;
         }];
-        
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        //NSLog(@"Error deleting notification: %@",error.description);
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this report. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        [ProgressHUD dismiss];
-        indexPathForDeletion = nil;
-    }];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Report deletion is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 }
 
 - (void)handleRefresh {

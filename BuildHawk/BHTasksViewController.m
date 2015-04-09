@@ -91,21 +91,6 @@
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
-    
-    if (_connectMode){
-        _tasks = self.project.userConnectItems.array.mutableCopy;
-        [self drawTasklist];
-    } else if ([self.project.tasklist.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
-        [ProgressHUD show:@"Getting tasks..."];
-        loading = YES;
-        [self loadTasklist];
-    } else {
-        loading = YES;
-        _tasks = self.project.tasklist.tasks.array.mutableCopy;
-        [self drawTasklist];
-        [self loadTasklist];
-    }
-    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -120,6 +105,19 @@
     [super viewDidAppear:animated];
     if (!_connectMode){
         self.tabBarController.navigationItem.rightBarButtonItem = addButton;
+    }
+    if (_connectMode){
+        _tasks = self.project.userConnectItems.array.mutableCopy;
+        [self drawTasklist];
+    } else if ([self.project.tasklist.identifier isEqualToNumber:@0]){
+        [ProgressHUD show:@"Getting tasks..."];
+        loading = YES;
+        [self loadTasklist];
+    } else {
+        loading = YES;
+        _tasks = self.project.tasklist.tasks.array.mutableCopy;
+        [self drawTasklist];
+        [self loadTasklist];
     }
 }
 
@@ -228,8 +226,7 @@
             break;
         case 2:
             if (_connectMode){
-                //not necessary to show assignee during connect mode
-                if (showCompleted == YES){
+                if (showCompleted == YES){ //not necessary to show assignee during connect mode
                     [self resetSegments];
                     [sender setSelectedSegmentIndex:UISegmentedControlNoSegment];
                     [self.tableView reloadData];
@@ -303,7 +300,7 @@
         
     [_tasks removeAllObjects];
     [manager GET:[NSString stringWithFormat:@"%@/connect",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
-        NSLog(@"Success with connect refresh: %@",responseObject);
+        //NSLog(@"Success with connect refresh: %@",responseObject);
         for (NSDictionary *dict in [responseObject objectForKey:@"tasks"]){
             Task *item = [Task MR_findFirstByAttribute:@"identifier" withValue:[dict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (!item){
@@ -698,48 +695,52 @@
 }
 
 - (void)deleteItem{
-    [ProgressHUD show:@"Deleting..."];
-    Task *task;
-    if (showCompleted) {
-        task = [completedListItems objectAtIndex:indexPathForDeletion.row];
-    } else if (showActive) {
-        task = [activeListItems objectAtIndex:indexPathForDeletion.row];
-    } else if (showByLocation) {
-        task = [locationListItems objectAtIndex:indexPathForDeletion.row];
-    } else if (showByAssignee) {
-        task = [assigneeListItems objectAtIndex:indexPathForDeletion.row];
-    } else {
-        task = [_tasks objectAtIndex:indexPathForDeletion.row];
-    }
-    
-    [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl, task.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    if (delegate.connected){
+        [ProgressHUD show:@"Deleting..."];
+        Task *task;
         if (showCompleted) {
-            [completedListItems removeObject:task];
+            task = [completedListItems objectAtIndex:indexPathForDeletion.row];
         } else if (showActive) {
-            [activeListItems removeObject:task];
+            task = [activeListItems objectAtIndex:indexPathForDeletion.row];
         } else if (showByLocation) {
-            [locationListItems removeObject:task];
+            task = [locationListItems objectAtIndex:indexPathForDeletion.row];
         } else if (showByAssignee) {
-            [assigneeListItems removeObject:task];
+            task = [assigneeListItems objectAtIndex:indexPathForDeletion.row];
+        } else {
+            task = [_tasks objectAtIndex:indexPathForDeletion.row];
         }
         
-        //ensure that object is removed from datasource, then delete it from the local database
-        [_tasks removeObject:task];
-        [self.project.tasklist removeTask:task];
-        [task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        
-        [self.tableView beginUpdates];
-        [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
-        [self.tableView endUpdates];
-        [self.tableView setUserInteractionEnabled:YES];
-        
-        //NSLog(@"Success deleting task: %@",responseObject);
-        [ProgressHUD dismiss];
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-        [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this task. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
-        NSLog(@"Failed to delete task: %@",error.description);
-        [ProgressHUD dismiss];
-    }];
+        [[(BHAppDelegate*)[UIApplication sharedApplication].delegate manager] DELETE:[NSString stringWithFormat:@"%@/tasks/%@",kApiBaseUrl, task.identifier] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
+            if (showCompleted) {
+                [completedListItems removeObject:task];
+            } else if (showActive) {
+                [activeListItems removeObject:task];
+            } else if (showByLocation) {
+                [locationListItems removeObject:task];
+            } else if (showByAssignee) {
+                [assigneeListItems removeObject:task];
+            }
+            
+            //ensure that object is removed from datasource, then delete it from the local database
+            [_tasks removeObject:task];
+            [self.project.tasklist removeTask:task];
+            [task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+            
+            [self.tableView beginUpdates];
+            [self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView endUpdates];
+            [self.tableView setUserInteractionEnabled:YES];
+            
+            //NSLog(@"Success deleting task: %@",responseObject);
+            [ProgressHUD dismiss];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Something went wrong while trying to delete this task. Please try again soon." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            NSLog(@"Failed to delete task: %@",error.description);
+            [ProgressHUD dismiss];
+        }];
+    } else {
+        [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Task deletion is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+    }
 }
 
 - (void)setupDateFormatter {

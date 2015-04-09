@@ -68,8 +68,15 @@
     [super viewDidLoad];
     self.project = [[(BHTabBarViewController*)self.tabBarController project] MR_inContext:[NSManagedObjectContext MR_defaultContext]];
     self.tabBarController.navigationController.navigationItem.title = [NSString stringWithFormat:@"%@: Documents",self.project.name];
-    [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
-    [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    if (IDIOM == IPAD){
+        [self.view setBackgroundColor:[UIColor blackColor]];
+        [self.splitTableView setBackgroundColor:[UIColor colorWithWhite:0 alpha:1]];
+        [self.splitTableView setSeparatorColor:[UIColor colorWithWhite:1 alpha:.14]];
+    } else {
+        [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
+        [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
+    }
+    
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
         width = screenWidth();
         height = screenHeight();
@@ -100,11 +107,12 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     refreshControl = [[UIRefreshControl alloc] init];
     [refreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
-    [refreshControl setTintColor:[UIColor blackColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     if (IDIOM == IPAD){
+        [refreshControl setTintColor:[UIColor whiteColor]];
         [self.splitTableView addSubview:refreshControl];
     } else {
+        [refreshControl setTintColor:[UIColor blackColor]];
         [self.tableView addSubview:refreshControl];
     }
     if (self.project.documents.count > 0) [self drawDocuments:self.project.documents];
@@ -122,16 +130,17 @@
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     self.tabBarController.navigationItem.rightBarButtonItem = nil;
-    if (!loading) {
-        [self drawDocuments:self.project.documents];
-    }
-    if (delegate.connected && !self.project.documents.count){
-        [self loadPhotos];
-    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    if (self.project.documents.count){
+        [ProgressHUD show:@"Loading documents..."];
+        [self drawDocuments:self.project.documents];
+    } else {
+        [self loadPhotos];
+    }
+    
     CGRect tabFrame = self.tabBarController.tabBar.frame;
     tabFrame.origin.y = height-tabFrame.size.height - self.navigationController.navigationBar.frame.size.height - [UIApplication sharedApplication].statusBarFrame.size.height - (delegate.connected ? 0 : kOfflineStatusHeight);
     [UIView animateWithDuration:.25 animations:^{
@@ -141,10 +150,10 @@
 
 - (void)loadPhotos {
     if (delegate.connected){
-        [ProgressHUD show:@"Fetching documents..."];
+        [ProgressHUD show:@"Loading documents..."];
         loading = YES;
         [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,self.project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            //NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
+            NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
             [self.project parseDocuments:[responseObject objectForKey:@"photos"]];
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 [self drawDocuments:self.project.documents];
@@ -195,7 +204,12 @@
         if (photo.userName.length && ![userArray containsObject:photo.userName]) [userArray addObject:photo.userName];
     }
     
-    [self.tableView reloadData];
+    if (IDIOM == IPAD){
+        [self.photosCollectionView reloadData];
+        [self.splitTableView reloadData];
+    } else {
+        [self.tableView reloadData];
+    }
     if (refreshControl.isRefreshing) [refreshControl endRefreshing];
     loading = NO;
     [ProgressHUD dismiss];
@@ -243,6 +257,10 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     if (tableView == self.splitTableView){
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Folder"];
+        cell.userInteractionEnabled = YES;
+        [cell setBackgroundColor:[UIColor clearColor]];
+        [cell.textLabel setTextColor:[UIColor whiteColor]];
+        [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
         [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
         [cell.detailTextLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
         if (indexPath.section == 0){
@@ -300,9 +318,10 @@
                     } else if (reportsArray.count == 0) {
                         [cell.detailTextLabel setText:@"No documents"];
                         cell.userInteractionEnabled = NO;
-                    } else [cell.detailTextLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)reportsArray.count]];
+                    } else {
+                        [cell.detailTextLabel setText:[NSString stringWithFormat:@"%lu Items",(unsigned long)reportsArray.count]];
+                    }
                     break;
-                    
                 default:
                     break;
             }

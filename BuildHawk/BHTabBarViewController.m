@@ -19,9 +19,6 @@
 
 @implementation BHTabBarViewController
 
-@synthesize project;
-@synthesize checklistIndexPath = _checklistIndexPath;
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -48,11 +45,13 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    if (![self.selectedViewController isKindOfClass:[BHDocumentsViewController class]]){
-        [delegate.syncController update];
-    }
-    if (delegate.syncController.synchCount > 0 || !delegate.connected){
-        [delegate prepareStatusLabelForTab];
+    if (!_demo){
+        if (![self.selectedViewController isKindOfClass:[BHDocumentsViewController class]]){
+            [delegate.syncController update];
+        }
+        if (delegate.syncController.synchCount > 0 || !delegate.connected){
+            [delegate prepareStatusLabelForTab];
+        }
     }
 }
 

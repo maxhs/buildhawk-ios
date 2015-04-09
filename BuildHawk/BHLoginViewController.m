@@ -188,6 +188,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     if ([segue.identifier isEqualToString:@"DemoProject"]){
         BHTabBarViewController *vc = [segue destinationViewController];
         [vc setProject:projectSet.lastObject];
+        [vc setDemo:YES];
     }
 }
 

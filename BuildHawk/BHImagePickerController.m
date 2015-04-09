@@ -45,11 +45,9 @@ static NSString * const reuseIdentifier = @"PhotoCell";
     [self.collectionView setBackgroundView:backgroundToolbar];
     
     if (SYSTEM_VERSION >= 8.f){
-        width = screenWidth();
-        height = screenHeight();
+        width = screenWidth(); height = screenHeight();
     } else {
-        width = screenHeight();
-        height = screenWidth();
+        width = screenHeight(); height = screenWidth();
     }
     
     _assets = [NSMutableArray array];
@@ -68,11 +66,7 @@ static NSString * const reuseIdentifier = @"PhotoCell";
 
 - (void)toggleSelectMode {
     selectMode ? (selectMode = NO) : (selectMode = YES);
-    if (selectMode){
-        self.navigationItem.rightBarButtonItem = doneButton;
-    } else {
-        self.navigationItem.rightBarButtonItem = selectButton;
-    }
+    self.navigationItem.rightBarButtonItem = selectMode ? doneButton : selectButton;
 }
 
 - (void)loadPhotos {
@@ -193,8 +187,8 @@ static NSString * const reuseIdentifier = @"PhotoCell";
             [ProgressHUD show:@"Loading images..."];
         }
     });
-    double delayInSeconds = .07f;
-    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (double).07f * NSEC_PER_SEC);
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
         if (self.delegate && [self.delegate respondsToSelector:@selector(didFinishPickingPhotos:)]){
             NSMutableArray *photoArray = [NSMutableArray arrayWithCapacity:_selectedAssets.count];
@@ -219,34 +213,5 @@ static NSString * const reuseIdentifier = @"PhotoCell";
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
 }
-
-/*
- // Uncomment this method to specify if the specified item should be highlighted during tracking
- - (BOOL)collectionView:(UICollectionView *)collectionView shouldHighlightItemAtIndexPath:(NSIndexPath *)indexPath {
-	return YES;
- }
- */
-
-/*
- // Uncomment this method to specify if the specified item should be selected
- - (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath {
- return YES;
- }
- */
-
-/*
- // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
- - (BOOL)collectionView:(UICollectionView *)collectionView shouldShowMenuForItemAtIndexPath:(NSIndexPath *)indexPath {
-	return NO;
- }
- 
- - (BOOL)collectionView:(UICollectionView *)collectionView canPerformAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender {
-	return NO;
- }
- 
- - (void)collectionView:(UICollectionView *)collectionView performAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender {
-	
- }
- */
 
 @end

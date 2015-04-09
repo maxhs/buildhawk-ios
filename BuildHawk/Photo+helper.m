@@ -186,7 +186,8 @@
         
         BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
         [delegate.manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
-            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:self.fileName mimeType:@"image/jpg"];
+            NSString *fileName = self.fileName.length ? self.fileName : @"photo.jpg";
+            [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:fileName mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"Success synching image with API: %@",responseObject);
             Photo *photo = [self MR_inContext:[NSManagedObjectContext MR_defaultContext]];

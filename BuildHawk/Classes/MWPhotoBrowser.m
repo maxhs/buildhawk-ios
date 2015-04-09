@@ -13,6 +13,7 @@
 #import "SDImageCache.h"
 #import <AFNetworking/AFHTTPRequestOperationManager.h>
 #import "BHAppDelegate.h"
+#import "BHUtilities.h"
 
 #define PADDING                  10
 #define ACTION_SHEET_OLD_ACTIONS 2000
@@ -22,13 +23,11 @@
     UIWebView *webView;
 }
 
-@synthesize project = _project;
-
 #pragma mark - Init
 
 - (id)init {
     if ((self = [super init])) {
-        [self _initialisation];
+        [self initialization];
     }
     return self;
 }
@@ -49,12 +48,12 @@
 
 - (id)initWithCoder:(NSCoder *)decoder {
 	if ((self = [super initWithCoder:decoder])) {
-        [self _initialisation];
+        [self initialization];
 	}
 	return self;
 }
 
-- (void)_initialisation {
+- (void)initialization {
     
     // Defaults
     NSNumber *isVCBasedStatusBarAppearanceNum = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIViewControllerBasedStatusBarAppearance"];
@@ -198,7 +197,6 @@
             self.navigationItem.rightBarButtonItems = @[exportButton, _actionButton];
         }
     }
-
     [self reloadData];
     [super viewDidLoad];
 }

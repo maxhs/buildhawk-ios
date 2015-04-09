@@ -11,9 +11,9 @@
 #import "BHChecklistItemViewController.h"
 #import "BHAppDelegate.h"
 #import "Company+helper.h"
-#import "Subcontractor.h"
-#import "ReportSub.h"
-#import "ReportUser.h"
+#import "Subcontractor+helper.h"
+#import "ReportSub+helper.h"
+#import "ReportUser+helper.h"
 #import "Project+helper.h"
 #import "BHChoosePersonnelCell.h"
 #import "BHAddPersonnelViewController.h"
@@ -25,6 +25,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 // TO DO Rebuild this entire thing
 @interface BHPersonnelPickerViewController () <UIAlertViewDelegate, UIViewControllerTransitioningDelegate, BHCompaniesDelegate> {
     AFHTTPRequestOperationManager *manager;
+    BHAppDelegate *delegate;
     NSMutableArray *filteredUsers;
     NSMutableArray *filteredSubcontractors;
     UIAlertView *userAlertView;
@@ -39,10 +40,6 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     NSString *searchText;
     NSTimeInterval duration;
     UIViewAnimationOptions animationCurve;
-    Project *_project;
-    Report *_report;
-    Task *_task;
-    Company *_company;
 }
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) Task *task;
@@ -51,19 +48,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 @end
 
 @implementation BHPersonnelPickerViewController
-@synthesize phone, email;
-@synthesize projectId = _projectId;
-@synthesize companyId = _companyId;
-@synthesize taskId = _taskId;
-@synthesize reportId = _reportId;
-@synthesize report = _report;
-@synthesize project = _project;
-@synthesize company = _company;
-@synthesize task = _task;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
+    delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    manager = delegate.manager;
     [self.view setBackgroundColor:kDarkerGrayColor];
     self.tableView.rowHeight = 60;
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
@@ -73,17 +62,14 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         filteredUsers = [NSMutableArray array];
     }
     
-    _company = [Company MR_findFirstByAttribute:@"identifier" withValue:_companyId inContext:[NSManagedObjectContext MR_defaultContext]];
-    _project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.company = [Company MR_findFirstByAttribute:@"identifier" withValue:_companyId inContext:[NSManagedObjectContext MR_defaultContext]];
+    self.project = [Project MR_findFirstByAttribute:@"identifier" withValue:_projectId inContext:[NSManagedObjectContext MR_defaultContext]];
     if (_reportId) {
-        _report = [Report MR_findFirstByAttribute:@"identifier" withValue:_reportId inContext:[NSManagedObjectContext MR_defaultContext]];
+        self.report = [Report MR_findFirstByAttribute:@"identifier" withValue:_reportId inContext:[NSManagedObjectContext MR_defaultContext]];
     } else if (_taskId){
-        _task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
+        self.task = [Task MR_findFirstByAttribute:@"identifier" withValue:_taskId inContext:[NSManagedObjectContext MR_defaultContext]];
     }
-    
-    
     doneBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
-
     self.tableView.tableHeaderView = self.searchBar;
     
     //set the search bar tint color so you can see the cursor
@@ -98,22 +84,19 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             break;
         }
     }
-    if (_companyMode){
-        self.searchBar.placeholder = @"Search for / add a new company...";
-    } else {
-        self.searchBar.placeholder = @"Search for / add personnel...";
-    }
+    
+    self.searchBar.placeholder = _companyMode ? @"Search for / add a new company..." : @"Search for / add personnel...";
     companySet = [NSMutableOrderedSet orderedSet];
     [self pinParentCompanyToTop];
     [self registerKeyboardNotifications];
 }
 
 - (void)pinParentCompanyToTop {
-    for (Company *company in _project.companies){
+    for (Company *company in self.project.companies){
         [companySet addObject:company];
     }
-    [companySet removeObject:_project.company];
-    [companySet insertObject:_project.company atIndex:0];
+    [companySet removeObject:self.project.company];
+    [companySet insertObject:self.project.company atIndex:0];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -125,9 +108,9 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 
 - (void)loadPersonnel {
     [ProgressHUD show:@"Fetching personnel..."];
-    [manager GET:[NSString stringWithFormat:@"projects/%@/users",_project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:[NSString stringWithFormat:@"projects/%@/users",self.project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"success loading project personnel: %@",responseObject);
-        [_project populateFromDictionary:responseObject];
+        [self.project populateFromDictionary:responseObject];
         loading = NO;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [ProgressHUD dismiss];
@@ -144,13 +127,13 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     if (companySet){
         [companySet removeAllObjects];
     }
-    [_project.companies enumerateObjectsUsingBlock:^(Company *company, NSUInteger idx, BOOL *stop) {
+    [self.project.companies enumerateObjectsUsingBlock:^(Company *company, NSUInteger idx, BOOL *stop) {
         [companySet addObject:company];
     }];
     
     [self pinParentCompanyToTop];
     
-    [_project.users enumerateObjectsUsingBlock:^(User *user, NSUInteger idx, BOOL *stop) {
+    [self.project.users enumerateObjectsUsingBlock:^(User *user, NSUInteger idx, BOOL *stop) {
         if (!user.company.projectUsers){
             user.company.projectUsers = [NSMutableOrderedSet orderedSet];
         }
@@ -180,7 +163,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         [filteredSubcontractors addObjectsFromArray:companySet.array];
     } else {
         [filteredUsers removeAllObjects];
-        [filteredUsers addObjectsFromArray:_project.users.array];
+        [filteredUsers addObjectsFromArray:self.project.users.array];
     }
     if (shouldReload) [self.tableView reloadData];
     self.navigationItem.rightBarButtonItem = doneBarButtonItem;
@@ -564,7 +547,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     [vc setTitle:@"Did you mean?"];
     [vc setSearchTerm:searchText];
     [vc setSearchResults:array];
-    [vc setProject:_project];
+    [vc setProject:self.project];
     UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
     nav.transitioningDelegate = self;
     nav.modalPresentationStyle = UIModalPresentationCustom;
@@ -599,12 +582,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     if (searchText.length){
         [parameters setObject:searchText forKey:@"name"];
     }
-    [parameters setObject:_project.identifier forKey:@"project_id"];
+    [parameters setObject:self.project.identifier forKey:@"project_id"];
     [manager POST:[NSString stringWithFormat:@"%@/companies/add",kApiBaseUrl] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success adding a company to project companies: %@",responseObject);
         Company *company = [Company MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [company populateFromDictionary:[responseObject objectForKey:@"company"]];
-        [_project addCompany:company];
+        [self.project addCompany:company];
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [companySet insertObject:company atIndex:0];
@@ -644,7 +627,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             if (_companyMode){
                 [self performSearch];
             } else {
-                [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
+                if (delegate.connected){
+                    [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Sorry, but the ability to add new personnel is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                }
             }
         } else {
             if (_companyMode){
@@ -657,9 +644,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             } else {
                 selectedUser = filteredUsers[indexPath.row];
                 NSLog(@"selectedUser: %@",selectedUser);
-                
                 if (indexPath.row == filteredUsers.count){
-                    [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
+                    if (delegate.connected){
+                        [self performSegueWithIdentifier:@"AddPersonnel" sender:nil];
+                    } else {
+                        [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Sorry, but the ability to add new personnel is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                    }
                 } else if (self.phone) {
                     if (selectedUser.phone.length) {
                         [self.navigationController popViewControllerAnimated:YES];
@@ -706,7 +696,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPath.section] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         } else if (indexPath.row == selectedCompany.projectUsers.count+1){
-            [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+            if (delegate.connected){
+                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+            } else {
+                [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Sorry, but the ability to add new personnel is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
         } else {
             selectedUser = [selectedCompany.projectUsers objectAtIndex:indexPath.row-1];
             if (selectedUser){
@@ -753,7 +747,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
                 [self.tableView endUpdates];
             } else if (indexPath.row == selectedCompany.projectUsers.count+1){
                 //"add a contact" row for this company
-                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+                if (delegate.connected){
+                    [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Sorry, but the ability to add new personnel is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                }
             } else {
                 selectedUser = [selectedCompany.projectUsers objectAtIndex:indexPath.row-1];
                 [self selectUser];
@@ -775,7 +773,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         } else {
             //this is the "add a contact" row for each company
             if (indexPath.row == selectedCompany.projectUsers.count+1){
-                [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+                if (delegate.connected){
+                    [self performSegueWithIdentifier:@"AddPersonnel" sender:selectedCompany];
+                } else {
+                    [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Sorry, but the ability to add new personnel is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+                }
             } else {
                 selectedUser = selectedCompany.projectUsers[indexPath.row-1];
                 id precedingVC = [self.navigationController.viewControllers objectAtIndex:self.navigationController.viewControllers.count-2];
@@ -977,7 +979,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
     } else {
         if (text.length) [filteredUsers removeAllObjects];
-        for (User *user in _project.users){
+        for (User *user in self.project.users){
             NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF contains[cd] %@", text];
             if([predicate evaluateWithObject:user.fullname]) {
                 [filteredUsers addObject:user];

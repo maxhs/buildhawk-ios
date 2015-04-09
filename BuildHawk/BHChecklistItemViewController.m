@@ -721,8 +721,9 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self dismissViewControllerAnimated:YES completion:NULL];
     Photo *photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-    [photo setFileName:@"photo.jpg"];
-    [photo setImage:[BHUtilities fixOrientation:[info objectForKey:UIImagePickerControllerOriginalImage]]];
+    NSString *fileName = [NSString stringWithFormat:@"%ld.jpg",(long)NSDate.date.timeIntervalSince1970];
+    [photo setFileName:fileName];
+    [photo setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
     [self savePhoto:photo];
     [self.item addPhoto:photo];
     [self.tableView reloadData];

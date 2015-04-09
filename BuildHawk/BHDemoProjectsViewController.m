@@ -35,8 +35,7 @@
 @implementation BHDemoProjectsViewController
 @synthesize currentUser = _currentUser;
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     demoProjects = [NSMutableArray array];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     manager = [delegate manager];
@@ -117,7 +116,7 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
     }
-    [cell.nameLabel setText:[project name]];
+    [cell configureForProject:project andUser:nil];
     
     if (project.address.formattedAddress.length){
         [cell.addressLabel setText:project.address.formattedAddress];

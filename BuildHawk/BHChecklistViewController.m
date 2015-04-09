@@ -93,11 +93,13 @@
     searchButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSearch target:self action:@selector(activateSearch)];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadChecklistItem:) name:@"ReloadChecklistItem" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceOffline) name:@"DeviceOffline" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(connected) name:@"Connected" object:nil];
+    
     if ([(BHTabBarViewController*)self.tabBarController checklistIndexPath]){
         indexPathToExpand = [(BHTabBarViewController*)self.tabBarController checklistIndexPath];
     }
     [self.searchDisplayController.searchBar setBackgroundColor:kDarkerGrayColor];
-
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -132,6 +134,14 @@
             indexPathToExpand = nil;
         }
     }
+}
+
+- (void)deviceOffline {
+    [self.tableView setContentInset:UIEdgeInsetsMake(0, 0, 20, 0)];
+}
+
+- (void)connected {
+    [self.tableView setContentInset:UIEdgeInsetsMake(0, 0, 0, 0)];
 }
 
 - (void)resetSegments {
@@ -461,6 +471,8 @@
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
         } else if ([item.type isEqualToString:@"S&C"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"minis&c"]];
+        } else if ([item.type isEqualToString:@"Mile"]) {
+            [cell.imageView setImage:[UIImage imageNamed:@"minical"]];
         } else {
             [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
         }
@@ -607,6 +619,8 @@
                         [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
                     } else if ([item.type isEqualToString:@"S&C"]) {
                         [cell.imageView setImage:[UIImage imageNamed:@"minis&cWhite"]];
+                    } else if ([item.type isEqualToString:@"Mile"]) {
+                        [cell.imageView setImage:[UIImage imageNamed:@"minicalWhite"]];
                     } else {
                         [cell.imageView setImage:[UIImage imageNamed:@"folderWhite"]];
                     }
