@@ -34,6 +34,8 @@ typedef NS_ENUM(NSInteger, ItemState) {
 @property (nonatomic, retain) NSNumber * orderIndex;
 @property (nonatomic, retain) NSNumber * photosCount;
 @property (nonatomic, retain) NSString * type;
+@property (nonatomic, retain) NSString * link;
+@property (nonatomic, retain) NSString * linkTitle;
 @property (nonatomic, retain) Cat *category;
 @property (nonatomic, retain) Checklist *checklist;
 @property (nonatomic, retain) NSOrderedSet *comments;

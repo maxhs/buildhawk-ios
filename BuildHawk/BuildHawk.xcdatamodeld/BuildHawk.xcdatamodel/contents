@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6751" systemVersion="14C1514" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7549" systemVersion="14D131" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="Activity" representedClassName="Activity" syncable="YES">
         <attribute name="activityType" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="body" optional="YES" attributeType="String" syncable="YES"/>
@@ -63,6 +63,8 @@
         <attribute name="completedDate" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="criticalDate" optional="YES" attributeType="Date" syncable="YES"/>
         <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="link" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="linkTitle" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="orderIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="photosCount" optional="YES" attributeType="Integer 16" defaultValueString="0" syncable="YES"/>
         <attribute name="saved" optional="YES" attributeType="Boolean" defaultValueString="YES" syncable="YES"/>
@@ -355,7 +357,7 @@
         <element name="Alternate" positionX="27" positionY="153" width="128" height="118"/>
         <element name="Cat" positionX="54" positionY="189" width="128" height="195"/>
         <element name="Checklist" positionX="18" positionY="162" width="128" height="135"/>
-        <element name="ChecklistItem" positionX="9" positionY="153" width="128" height="343"/>
+        <element name="ChecklistItem" positionX="9" positionY="153" width="128" height="375"/>
         <element name="Comment" positionX="27" positionY="153" width="128" height="195"/>
         <element name="Company" positionX="0" positionY="0" width="128" height="180"/>
         <element name="Folder" positionX="36" positionY="162" width="128" height="103"/>

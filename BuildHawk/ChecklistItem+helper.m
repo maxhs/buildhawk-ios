@@ -57,6 +57,12 @@
     if ([dictionary objectForKey:@"comments_count"] && [dictionary objectForKey:@"comments_count"] != [NSNull null]) {
         self.commentsCount = [dictionary objectForKey:@"comments_count"];
     }
+    if ([dictionary objectForKey:@"link"] && [dictionary objectForKey:@"link"] != [NSNull null]) {
+        self.link = [dictionary objectForKey:@"link"];
+    }
+    if ([dictionary objectForKey:@"link_title"] && [dictionary objectForKey:@"link_title"] != [NSNull null]) {
+        self.linkTitle = [dictionary objectForKey:@"link_title"];
+    }
     if ([dictionary objectForKey:@"project_id"] && [dictionary objectForKey:@"project_id"] != [NSNull null]) {
         Project *project = [Project MR_findFirstByAttribute:@"identifier" withValue:[dictionary objectForKey:@"project_id"] inContext:[NSManagedObjectContext MR_defaultContext]];
         if (project){
@@ -162,6 +168,12 @@
         self.state = [dictionary objectForKey:@"state"];
     } else {
         self.state = nil;
+    }
+    if ([dictionary objectForKey:@"link"] && [dictionary objectForKey:@"link"] != [NSNull null]) {
+        self.link = [dictionary objectForKey:@"link"];
+    }
+    if ([dictionary objectForKey:@"link_title"] && [dictionary objectForKey:@"link_title"] != [NSNull null]) {
+        self.linkTitle = [dictionary objectForKey:@"link_title"];
     }
     if ([dictionary objectForKey:@"photos_count"] && [dictionary objectForKey:@"photos_count"] != [NSNull null]) {
         self.photosCount = [dictionary objectForKey:@"photos_count"];

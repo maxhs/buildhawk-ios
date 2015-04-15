@@ -461,8 +461,9 @@
             [cell.localButton setTag:indexPath.row];
             [cell.localButton addTarget:self action:@selector(confirmSynch:) forControlEvents:UIControlEventTouchUpInside];
             cell.scrollView.scrollEnabled = YES;
-            
+            //NSLog(@"%@ and order index: %@",project.name, project.orderIndex);
         }
+        
         return cell;
     } else if (indexPath.section == 1) {
         static NSString *CellIdentifier = @"GroupCell";

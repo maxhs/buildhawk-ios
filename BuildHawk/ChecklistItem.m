@@ -19,6 +19,8 @@
 @dynamic photosCount;
 @dynamic state;
 @dynamic type;
+@dynamic link;
+@dynamic linkTitle;
 @dynamic category;
 @dynamic checklist;
 @dynamic comments;

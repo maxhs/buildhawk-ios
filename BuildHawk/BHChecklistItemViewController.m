@@ -35,6 +35,8 @@
 #import "Reminder+helper.h"
 #import "BHItemDeadlineCell.h"
 #import "BHUtilities.h"
+#import "BHChecklistItemLinkCell.h"
+#import "BHWebViewController.h"
 
 @interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, BHImagePickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     BHAppDelegate *delegate;
@@ -80,11 +82,9 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
-        width = screenWidth();
-        height = screenHeight();
+        width = screenWidth(); height = screenHeight();
     } else {
-        width = screenHeight();
-        height = screenWidth();
+        width = screenHeight(); height = screenWidth();
     }
     
     library = [[ALAssetsLibrary alloc]init];
@@ -150,13 +150,15 @@
 
 #pragma mark - Table view data source
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 7;
+    return 8;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 1) return 0;
-    else if (section == 2) return 3;
-    else if (section == 6) {
+    if (section == 1 && !self.item.link.length){
+        return 0; // hide the link row if there's no link
+    } else if (section == 2) return 0; // hide deadlines for now
+    else if (section == 3) return 3;
+    else if (section == 7) {
         if (activities) return self.item.activities.count;
         else return self.item.comments.count + 1;
     }
@@ -164,9 +166,11 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 1 && !self.item.criticalDate)
+    if (section == 1 && !self.item.link.length){
         return 0;
-    else
+    } else if (section == 2 && !self.item.criticalDate){
+        return 0;
+    } else
         return 40;
 }
 
@@ -185,21 +189,28 @@
             [headerLabel setText:self.item.type];
             break;
         case 1:
-            return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)]; //temporarily hide the deadline section and just return nothing
+            if (self.item.link.length){
+                [headerLabel setText:@"MORE INFO"];
+            } else {
+                return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)]; //temporarily hide the deadline section and just return nothing
+            }
             break;
         case 2:
-            [headerLabel setText:@"STATUS"];
+            return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)]; //temporarily hide the deadline section and just return nothing
             break;
         case 3:
-            [headerLabel setText:@"PHOTOS"];
+            [headerLabel setText:@"STATUS"];
             break;
         case 4:
-            [headerLabel setText:@"REMINDERS"];
+            [headerLabel setText:@"PHOTOS"];
             break;
         case 5:
-            [headerLabel setText:@"CONTACT"];
+            [headerLabel setText:@"REMINDERS"];
             break;
         case 6:
+            [headerLabel setText:@"CONTACT"];
+            break;
+        case 7:
         {
             [headerLabel setText:@""];
             commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -245,12 +256,12 @@
 
 - (void)showActivities {
     activities = YES;
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationFade];
 }
 
 - (void)showComments {
     activities = NO;
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationFade];
+    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationFade];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -260,15 +271,18 @@
         [bodyCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [bodyCell.bodyTextView setText:self.item.body];
         [bodyCell.bodyTextView setUserInteractionEnabled:NO];
-        [bodyCell.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
-        CGSize size = [bodyCell.bodyTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
         
+        CGSize size = [bodyCell.bodyTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
         CGRect textViewRect = bodyCell.bodyTextView.frame;
         textViewRect.size = size;
         [bodyCell.bodyTextView setFrame:textViewRect];
         
         return bodyCell;
     } else if (indexPath.section == 1) {
+        BHChecklistItemLinkCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ItemLinkCell"];
+        [cell configureForChecklistItem:self.item];
+        return cell;
+    } else if (indexPath.section == 2) {
         BHItemDeadlineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ItemDeadlineCell"];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
@@ -281,7 +295,7 @@
         }
         
         return cell;
-    } else if (indexPath.section == 2) {
+    } else if (indexPath.section == 3) {
         static NSString *CellIdentifier = @"ActionCell";
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
         [cell.textLabel setTextAlignment:NSTextAlignmentCenter];
@@ -317,9 +331,9 @@
             default:
                 break;
         }
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
         return cell;
-    } else if (indexPath.section == 3) {
+    } else if (indexPath.section == 4) {
         
         BHListItemPhotoCell *photoCell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell"];
         [photoCell setSelectionStyle:UITableViewCellSelectionStyleNone];
@@ -331,7 +345,7 @@
         [photoCell.choosePhotoButton addTarget:self action:@selector(choosePhoto) forControlEvents:UIControlEventTouchUpInside];
         return photoCell;
         
-    } else if (indexPath.section == 4) {
+    } else if (indexPath.section == 5) {
         BHSetReminderCell *reminderCell = [tableView dequeueReusableCellWithIdentifier:@"SetReminderCell"];
         if (reminderCell == nil) {
             reminderCell = [[[NSBundle mainBundle] loadNibNamed:@"BHSetReminderCell" owner:self options:nil] lastObject];
@@ -345,7 +359,7 @@
         }
         
         return reminderCell;
-    } else if (indexPath.section == 5) {
+    } else if (indexPath.section == 6) {
         BHItemContactCell *contactCell = [tableView dequeueReusableCellWithIdentifier:@"ContactCell"];
         [contactCell setSelectionStyle:UITableViewCellSelectionStyleNone];
         [contactCell.emailButton addTarget:self action:@selector(emailAction) forControlEvents:UIControlEventTouchUpInside];
@@ -420,15 +434,22 @@
             return [self calculateHeightForItemBody];
             break;
         case 1:
-            return 60;
+            if (self.item.link.length){
+                return 54;
+            } else {
+                return  0;
+            }
             break;
         case 2:
-            return 54;
+            return 60;
             break;
         case 3:
+            return 54;
+            break;
+        case 4:
             return 100;
             break;
-        case 5:
+        case 6:
             return 88;
             break;
         default:
@@ -449,7 +470,7 @@
     [cancelButton setTitle:@"Cancel"];
     [[self navigationItem] setRightBarButtonItem:cancelButton];
     if (textView == addCommentTextView){
-        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:6] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:7] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     }
 }
 
@@ -537,9 +558,9 @@
             [comment setSaved:@NO];
             
             [self.tableView beginUpdates];
-            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:6];
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:1 inSection:7];
             [self.tableView insertRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-            //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:6] withRowAnimation:UITableViewRowAnimationAutomatic];
+            //[self.tableView reloadSections:[NSIndexSet indexSetWithIndex:7] withRowAnimation:UITableViewRowAnimationAutomatic];
             [self.tableView endUpdates];
             
             [comment synchWithServer:^(BOOL completed) {
@@ -696,13 +717,7 @@
         if ([buttonTitle isEqualToString:kUsers]) {
             
         }
-    }/* else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Choose Existing Photo"]) {
-        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypePhotoLibrary])
-            [self choosePhoto];
-    } else if ([[actionSheet buttonTitleAtIndex:buttonIndex] isEqualToString:@"Take Photo"]) {
-        if([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
-            [self takePhoto];
-    }*/
+    }
 }
 
 - (void)takePhoto {
@@ -985,7 +1000,22 @@
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 2) {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    if (indexPath.section == 1){
+        if (self.item.link.length){
+            BHWebViewController *webVC = [[self storyboard] instantiateViewControllerWithIdentifier:@"WebView"];
+            [webVC setUrl:[NSURL URLWithString:self.item.link]];
+            if (self.item.linkTitle.length){
+                [webVC setTitle:[NSString stringWithFormat:@"%@ – %@",self.item.linkTitle, self.item.body]];
+            } else {
+                [webVC setTitle:self.item.body];
+            }
+            UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:webVC];
+            [self presentViewController:nav animated:YES completion:^{
+                
+            }];
+        }
+    } else if (indexPath.section == 3) {
         [self.item setSaved:@NO];
         switch (indexPath.row) {
             case 0:
@@ -1013,27 +1043,26 @@
                 break;
         }
         [UIView setAnimationsEnabled:NO];
-        [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:2],[NSIndexPath indexPathForRow:1 inSection:2],[NSIndexPath indexPathForRow:2 inSection:2]] withRowAnimation:UITableViewRowAnimationNone];
+        [tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:3],[NSIndexPath indexPathForRow:1 inSection:3],[NSIndexPath indexPathForRow:2 inSection:3]] withRowAnimation:UITableViewRowAnimationNone];
         [UIView setAnimationsEnabled:YES];
-    } else if (indexPath.section == 4){
+    } else if (indexPath.section == 5){
         if (self.reminder){
             
         } else {
             [self showDatePicker];
         }
-        
     }
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 4) {
+    if (indexPath.section == 5) {
         if (self.reminder){
             return YES;
         } else {
             return NO;
         }
 
-    } else if (indexPath.section == 6 && self.item.comments.count && indexPath.row > 0 && !activities) {
+    } else if (indexPath.section == 7 && self.item.comments.count && indexPath.row > 0 && !activities) {
         
         Comment *comment = self.item.comments[indexPath.row-1];
         if ([comment.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || (self.currentUser && self.currentUser.uberAdmin)){
@@ -1049,7 +1078,7 @@
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     if (editingStyle == UITableViewCellEditingStyleDelete) {
-        if (indexPath.section == 4){
+        if (indexPath.section == 5){
             [[[UIAlertView alloc] initWithTitle:@"Please confirm" message:@"Are you sure you want to cancel this reminder?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil] show];
         } else if (!activities) {
             indexPathForDeletion = indexPath;
@@ -1080,7 +1109,6 @@
                 [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
                 [self.tableView beginUpdates];
                 [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:indexPathForDeletion.section] withRowAnimation:UITableViewRowAnimationFade];
-                //[self.tableView deleteRowsAtIndexPaths:@[indexPathForDeletion] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
                 
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -1171,7 +1199,7 @@
         }
         
         [self.reminder setProject:self.project];
-        [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:4]] withRowAnimation:UITableViewRowAnimationFade];
+        [self.tableView reloadRowsAtIndexPaths:@[[NSIndexPath indexPathForRow:0 inSection:5]] withRowAnimation:UITableViewRowAnimationFade];
         [self.reminder synchWithServer:^(BOOL completed) {
             if (completed){
                 [self.reminder setSaved:@YES];
@@ -1197,7 +1225,7 @@
             self.reminder = nil;
             
             [self.tableView beginUpdates];
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:5] withRowAnimation:UITableViewRowAnimationFade];
             [self.tableView endUpdates];
         } else {
             [manager DELETE:[NSString stringWithFormat:@"%@/reminders/%@",kApiBaseUrl,self.reminder.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -1206,7 +1234,7 @@
                 [self.reminder MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
                 self.reminder = nil;
                 [self.tableView beginUpdates];
-                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:4] withRowAnimation:UITableViewRowAnimationFade];
+                [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:5] withRowAnimation:UITableViewRowAnimationFade];
                 [self.tableView endUpdates];
                 
             } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -1253,10 +1281,8 @@
     [super viewWillDisappear:animated];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning]; // Dispose of any resources that can be recreated.
 }
 
 

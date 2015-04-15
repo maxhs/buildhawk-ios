@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		500A1C541AD82BFE00284212 /* BHChecklistItemLinkCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 500A1C531AD82BFE00284212 /* BHChecklistItemLinkCell.m */; };
 		502CE1CD1A4136DA0024BFFD /* s&cWhite.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1C71A4136DA0024BFFD /* s&cWhite.png */; };
 		502CE1CE1A4136DA0024BFFD /* s&cWhite@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1C81A4136DA0024BFFD /* s&cWhite@2x.png */; };
 		502CE1CF1A4136DA0024BFFD /* s&cWhite@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 502CE1C91A4136DA0024BFFD /* s&cWhite@3x.png */; };
@@ -435,6 +436,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		500A1C521AD82BFE00284212 /* BHChecklistItemLinkCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHChecklistItemLinkCell.h; sourceTree = "<group>"; };
+		500A1C531AD82BFE00284212 /* BHChecklistItemLinkCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHChecklistItemLinkCell.m; sourceTree = "<group>"; };
 		502CE1C71A4136DA0024BFFD /* s&cWhite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "s&cWhite.png"; sourceTree = "<group>"; };
 		502CE1C81A4136DA0024BFFD /* s&cWhite@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "s&cWhite@2x.png"; sourceTree = "<group>"; };
 		502CE1C91A4136DA0024BFFD /* s&cWhite@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "s&cWhite@3x.png"; sourceTree = "<group>"; };
@@ -1410,6 +1413,8 @@
 			children = (
 				F292ABF117F9E5590020DE13 /* BHChecklistItemBodyCell.h */,
 				F292ABF217F9E5590020DE13 /* BHChecklistItemBodyCell.m */,
+				500A1C521AD82BFE00284212 /* BHChecklistItemLinkCell.h */,
+				500A1C531AD82BFE00284212 /* BHChecklistItemLinkCell.m */,
 				F2A957EB19DF503700A3B471 /* BHItemDeadlineCell.h */,
 				F2A957EC19DF503700A3B471 /* BHItemDeadlineCell.m */,
 				F292ABFB17F9E8E40020DE13 /* BHListItemPhotoCell.h */,
@@ -2211,6 +2216,7 @@
 				F2B29FDC17D0F31B00F09C6F /* BHChecklistViewController.m in Sources */,
 				50AB429A1AB8CC2F00C4EF5A /* ALAsset+date.m in Sources */,
 				F2B29FE317D0F31B00F09C6F /* BHDocumentsViewController.m in Sources */,
+				500A1C541AD82BFE00284212 /* BHChecklistItemLinkCell.m in Sources */,
 				F2139D351938169100EE5C96 /* BHChoosePersonnelCell.m in Sources */,
 				F2B29FEF17D0F9DA00F09C6F /* BHLoginViewController.m in Sources */,
 				F2FAE44118F4DDB4005E582B /* MWCaptionView.m in Sources */,

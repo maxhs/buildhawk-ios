@@ -26,4 +26,8 @@
     // Configure the view for the selected state
 }
 
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    [self.bodyTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+}
 @end

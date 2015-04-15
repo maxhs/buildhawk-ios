@@ -44,6 +44,7 @@
     NSMutableArray *browserPhotos;
     CGRect screen;
     UIRefreshControl *refreshControl;
+    UIRefreshControl *collectionRefreshControl;
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     CGFloat height;
@@ -111,6 +112,9 @@
     if (IDIOM == IPAD){
         [refreshControl setTintColor:[UIColor whiteColor]];
         [self.splitTableView addSubview:refreshControl];
+        collectionRefreshControl = [[UIRefreshControl alloc] init];
+        [collectionRefreshControl addTarget:self action:@selector(handleRefresh) forControlEvents:UIControlEventValueChanged];
+        [self.photosCollectionView addSubview:collectionRefreshControl];
     } else {
         [refreshControl setTintColor:[UIColor blackColor]];
         [self.tableView addSubview:refreshControl];
@@ -123,7 +127,7 @@
         [ProgressHUD show:@"Refreshing..."];
         [self loadPhotos];
     } else {
-        if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+        [self endRefresh];
     }
 }
 
@@ -153,14 +157,13 @@
         [ProgressHUD show:@"Loading documents..."];
         loading = YES;
         [manager GET:[NSString stringWithFormat:@"%@/photos/%@",kApiBaseUrl,self.project.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success getting %i documents: %@",photosArray.count,responseObject);
             [self.project parseDocuments:[responseObject objectForKey:@"photos"]];
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
                 [self drawDocuments:self.project.documents];
             }];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             NSLog(@"Error getting photos: %@",error.description);
-            if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+            [self endRefresh];
             loading = NO;
             [ProgressHUD dismiss];
         }];
@@ -210,9 +213,14 @@
     } else {
         [self.tableView reloadData];
     }
-    if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    [self endRefresh];
     loading = NO;
     [ProgressHUD dismiss];
+}
+
+- (void)endRefresh {
+    if (refreshControl.isRefreshing) [refreshControl endRefreshing];
+    if (collectionRefreshControl.isRefreshing) [collectionRefreshControl endRefreshing];
 }
 
 - (void)removePhoto:(NSNotification*)notification {
