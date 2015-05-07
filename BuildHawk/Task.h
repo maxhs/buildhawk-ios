@@ -14,6 +14,7 @@
 @interface Task : NSManagedObject
 
 @property (nonatomic, retain) NSString * body;
+@property (nonatomic, retain) NSString * assigneeName;
 @property (nonatomic, retain) NSNumber * saved;
 @property (nonatomic, retain) NSNumber * completed;
 @property (nonatomic, retain) NSNumber * approved;

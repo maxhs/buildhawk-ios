@@ -82,12 +82,17 @@ typedef void(^synchCompletion)(BOOL);
         for (Task *taskForId in _tasks){
             synching = YES;
             Task *task = [taskForId MR_inContext:[NSManagedObjectContext MR_defaultContext]];
-            [task synchWithServer:^(BOOL completed) {
-                self.synchCount--;
-                if (completed){
-                    [self updateSynchCount];
-                }
-            }];
+            if (task.body.length){
+                [task synchWithServer:^(BOOL completed) {
+                    self.synchCount--;
+                    if (completed){
+                        [self updateSynchCount];
+                    }
+                }];
+            } else {
+                [task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            }
         }
     }
     

@@ -41,6 +41,7 @@
     CGFloat width;
     CGFloat height;
     NSMutableArray *filteredProjects;
+    NSMutableArray *_groups;
     AFHTTPRequestOperationManager *manager;
     BHAppDelegate *delegate;
     NSMutableArray *recentChecklistItems;
@@ -68,12 +69,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+    if (SYSTEM_VERSION >= 8.f){
         width = screenWidth();
         height = screenHeight();
+        [[UIApplication sharedApplication] registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
+        [[UIApplication sharedApplication] registerForRemoteNotifications]; //only ask for push notifications when a user has successfully logged in
     } else {
         width = screenHeight();
         height = screenWidth();
+        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
     }
     
     mixpanel = [Mixpanel sharedInstance];
@@ -82,14 +86,6 @@
     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleSingleLine];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.14]];
     self.tableView.tableFooterView = [UIView new];
-    
-    //only ask for push notifications when a user has successfully logged in
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
-        [[UIApplication sharedApplication] registerUserNotificationSettings:[UIUserNotificationSettings settingsForTypes:(UIUserNotificationTypeSound | UIUserNotificationTypeAlert | UIUserNotificationTypeBadge) categories:nil]];
-        [[UIApplication sharedApplication] registerForRemoteNotifications];
-    } else {
-        [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeAlert | UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound)];
-    }
     
     [self.view setBackgroundColor:kDarkerGrayColor];
     delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
@@ -129,7 +125,7 @@
     for (id subview in [self.searchBar.subviews.firstObject subviews]){
         if ([subview isKindOfClass:[UITextField class]]){
             UITextField *searchTextField = (UITextField*)subview;
-            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
             break;
         }
     }
@@ -245,17 +241,14 @@
         self.currentUser.hiddenProjects = hiddenSet;
         
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            //NSLog(@"What happened during dashboard save? %u",success);
-            if (self.isViewLoaded && self.view.window){
-                _projects = [self.currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
-                    NSNumber *first = a.orderIndex;
-                    NSNumber *second = b.orderIndex;
-                    return [first compare:second];
-                }].mutableCopy;
-                loading = NO;
-                [self.tableView reloadData];
-                [ProgressHUD dismiss];
-            }
+            _projects = [self.currentUser.projects.array sortedArrayUsingComparator:^NSComparisonResult(Project *a, Project *b) {
+                NSNumber *first = a.orderIndex;
+                NSNumber *second = b.orderIndex;
+                return [first compare:second];
+            }].mutableCopy;
+            loading = NO;
+            [self.tableView reloadData];
+            [ProgressHUD dismiss];
         }];
     }
 }
@@ -394,26 +387,35 @@
     if (searching) {
         return 1;
     } else {
+        _groups ? ([_groups removeAllObjects]) : (_groups = [NSMutableArray array]);
+        [self.currentUser.company.groups enumerateObjectsUsingBlock:^(Group *group, NSUInteger idx, BOOL *stop) {
+            if (group.projects.count){
+                [_groups addObject:group];
+            }
+        }];
         return 5;
     }
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (searching && section == 0) {
         return filteredProjects.count;
     } else if (section == 0){
-        if (_projects.count == 0 && !loading){
-            return 1;
+        if (!_projects.count && !loading){
+            if (_groups.count){
+                return 0;
+            } else {
+                return 1;
+            }
         } else {
             return _projects.count;
         }
     } else if (section == 1) {
-        return self.currentUser.company.groups.count;
+        return _groups.count;
     } else if (section == 2) {
         return connectProjects.count;
     } else if (section == 3) {
-        return 1;
+        return 0; // temporarily hide the demo project
     } else if (section == 4) {
         return 1;
     } else {
@@ -429,7 +431,7 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardProjectCell" owner:self options:nil] lastObject];
         }
 
-        if (_projects.count == 0 && !loading){
+        if (!_projects.count && !loading){
             [cell.scrollView setUserInteractionEnabled:NO];
             [cell.projectButton setUserInteractionEnabled:NO];
             [cell.progressButton setHidden:YES];
@@ -474,7 +476,7 @@
             cell = [[[NSBundle mainBundle] loadNibNamed:@"BHDashboardGroupCell" owner:self options:nil] lastObject];
         }
         
-        Group *group = [self.currentUser.company.groups objectAtIndex:indexPath.row];
+        Group *group = [_groups objectAtIndex:indexPath.row];
         [cell.nameLabel setText:group.name];
         [cell.nameLabel setTextAlignment:NSTextAlignmentLeft];
     
@@ -558,7 +560,8 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    if (section == 1 && self.currentUser.company.groups.count == 0) return 0;
+    if (section == 0 && !_projects.count && _groups.count) return 0;
+    else if (section == 1 && _groups.count == 0) return 0;
     else if (section == 2 && connectProjects.count == 0) return 0;
     else if (section == 3 || section == 4) return 0;
     else return 40;
@@ -583,7 +586,7 @@
             }
             break;
         case 1:
-            if (self.currentUser.company.groups.count){
+            if (_groups.count){
                 [headerLabel setText:[NSString stringWithFormat:@"%@ Project Groups",self.currentUser.company.name]];
             } else {
                 return [[UIView alloc] initWithFrame:CGRectMake(0, 0, 0, 0)];
@@ -669,26 +672,23 @@
     [self freezeRowForProject:projectToSynch];
     [manager GET:[NSString stringWithFormat:@"projects/%@/synch",projectToSynch.identifier] parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"Success synch-loading full project: %@",responseObject);
-        [projectToSynch populateFromDictionary:[responseObject objectForKey:@"project"]];
-        [projectToSynch setSaved:@YES];
+        Project *synchedProject = [Project MR_findFirstByAttribute:@"identifier" withValue:[[responseObject objectForKey:@"project"] objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
+        [synchedProject populateFromDictionary:[responseObject objectForKey:@"project"]];
+        [synchedProject setSaved:@YES];
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
-            NSLog(@"Done synch saving %@",projectToSynch.name);
+            NSLog(@"Done synch saving %@",synchedProject.name);
             SDWebImageManager *imageManager = [SDWebImageManager sharedManager];
             [projectToSynch.documents enumerateObjectsUsingBlock:^(Photo *photo, NSUInteger idx, BOOL *stop) {
-                if (IDIOM == IPAD){
-                    [imageManager downloadImageWithURL:[NSURL URLWithString:photo.urlLarge] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-    
-                    }];
-                } else {
-                    [imageManager downloadImageWithURL:[NSURL URLWithString:photo.urlSmall] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                        
-                    }];
-                }
-                [imageManager downloadImageWithURL:[NSURL URLWithString:photo.original] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                    photo.image = image;
+                
+                [imageManager downloadImageWithURL:[NSURL URLWithString:photo.urlSmall] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                    
                 }];
+                
+//                [imageManager downloadImageWithURL:[NSURL URLWithString:photo.original] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) { } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+//                    photo.image = image;
+//                }];
             }];
-            [self unfreezeRowForProject:projectToSynch];
+            [self unfreezeRowForProject:synchedProject];
         }];
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"Error loading full project: %@",error.description);
@@ -767,7 +767,7 @@
             [self presentViewController:nav animated:YES completion:NULL];
         }
     } else if (indexPath.section == 1) {
-        Group *group = [self.currentUser.company.groups objectAtIndex:indexPath.row];
+        Group *group = [_groups objectAtIndex:indexPath.row];
         
         //only segue to the group view if there's a project assigned to the current user
         if (group.projects.count)

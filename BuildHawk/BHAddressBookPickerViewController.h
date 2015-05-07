@@ -10,6 +10,12 @@
 #import "Subcontractor+helper.h"
 #import "Task.h"
 
+@protocol BHAddressBookPickerDelegate <NSObject>
+
+- (void)userSelected:(User*)user;
+
+@end
+
 @interface BHAddressBookPickerViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
@@ -18,4 +24,5 @@
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) Task *task;
+@property (weak, nonatomic) id<BHAddressBookPickerDelegate> addressBookPickerDelegate;
 @end

@@ -33,10 +33,8 @@
 }
 
 - (void)configureForPhoto:(Photo*)photo{
-    [[SDWebImageManager sharedManager] downloadImageWithURL:[NSURL URLWithString:photo.urlSmall] options:SDWebImageLowPriority progress:^(NSInteger receivedSize, NSInteger expectedSize) {
+    [self.photoButton sd_setImageWithURL:[NSURL URLWithString:photo.urlSmall] forState:UIControlStateNormal placeholderImage:nil options:0 completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
         
-    } completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-        [self.photoButton setImage:image forState:UIControlStateNormal];
     }];
 }
 

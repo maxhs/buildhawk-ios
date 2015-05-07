@@ -41,8 +41,9 @@
         self.checklistItem = item;
     }
     
-    if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null]) {
-        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[[dictionary objectForKey:@"user"] objectForKey:@"id"] isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
+    if ([dictionary objectForKey:@"user"] && [dictionary objectForKey:@"user"] != [NSNull null] && [[dictionary objectForKey:@"user"] isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *userDict = [dictionary objectForKey:@"user"];
+        if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && [[userDict objectForKey:@"id"] isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]]){
             User *currentUser = [User MR_findFirstByAttribute:@"identifier" withValue:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] inContext:[NSManagedObjectContext MR_defaultContext]];
             if (currentUser){
                 if ([self.reminderDate compare:[NSDate date]] == NSOrderedAscending){
@@ -53,13 +54,13 @@
             }
             self.user = currentUser;
         } else {
-            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [[dictionary objectForKey:@"user"] objectForKey:@"id"]];
+            NSPredicate *userPredicate = [NSPredicate predicateWithFormat:@"identifier == %@", [userDict objectForKey:@"id"]];
             User *user = [User MR_findFirstWithPredicate:userPredicate inContext:[NSManagedObjectContext MR_defaultContext]];
             if (user){
-                [user updateFromDictionary:[dictionary objectForKey:@"user"]];
+                [user updateFromDictionary:userDict];
             } else {
                 user = [User MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
-                [user populateFromDictionary:[dictionary objectForKey:@"user"]];
+                [user populateFromDictionary:userDict];
             }
             self.user = user;
         }

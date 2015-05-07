@@ -11,15 +11,10 @@
 
 @interface BHAddPersonnelViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
-@property (weak, nonatomic) IBOutlet UITableView *secondTableView;
 @property (strong, nonatomic) Company *company;
 @property (strong, nonatomic) Task *task;
 @property (strong, nonatomic) Report *report;
 @property (strong, nonatomic) Project *project;
-@property (strong, nonatomic) NSString *firstName;
-@property (strong, nonatomic) NSString *lastName;
-@property (strong, nonatomic) NSString *companyName;
 @property (strong, nonatomic) UITextField *emailTextField;
-@property (strong, nonatomic) UITextField *phoneTextField;
-@property BOOL firstStepComplete;
+@property (strong, nonatomic) UIButton *skipButton;
 @end

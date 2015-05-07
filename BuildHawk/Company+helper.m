@@ -13,7 +13,7 @@
 @implementation Company (helper)
 - (void)populateFromDictionary:(NSDictionary *)dictionary {
     //NSLog(@"company dict: %@",dictionary);
-    if ([dictionary objectForKey:@"id"]) {
+    if ([dictionary objectForKey:@"id"] && [dictionary objectForKey:@"id"] != [NSNull null]) {
         self.identifier = [dictionary objectForKey:@"id"];
     }
     if ([dictionary objectForKey:@"name"] && [dictionary objectForKey:@"name"] != [NSNull null]) {

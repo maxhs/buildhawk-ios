@@ -23,14 +23,10 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
+    [_itemLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kOpenSans] size:0]];
     _itemLabel.minimumScaleFactor = 10.0;
     _itemLabel.adjustsFontSizeToFitWidth = YES;
     _itemLabel.numberOfLines = 1;
-    
-    CGRect itemLabelFrame = _itemLabel.frame;
-    itemLabelFrame.size.width = screenWidth() - itemLabelFrame.origin.x - _photoButton.frame.size.width - 14.f;
-    [_itemLabel setFrame:itemLabelFrame];
 }
 
 - (void)configureForTask:(Task *)task {
@@ -62,14 +58,14 @@
         [_itemLabel setTextColor:[UIColor lightGrayColor]];
         [_createdLabel setTextColor:[UIColor lightGrayColor]];
         [_ownerLabel setTextColor:[UIColor lightGrayColor]];
-        [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
-        [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+        [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
+        [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
     } else {
         [_itemLabel setTextColor:[UIColor blackColor]];
         [_createdLabel setTextColor:[UIColor blackColor]];
         [_ownerLabel setTextColor:[UIColor blackColor]];
-        [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProItalic] size:0]];
-        [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProItalic] size:0]];
+        [_createdLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSansItalic] size:0]];
+        [_ownerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSansItalic] size:0]];
     }
 }
 

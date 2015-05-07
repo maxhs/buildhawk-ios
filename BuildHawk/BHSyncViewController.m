@@ -44,7 +44,6 @@
     [backgroundToolbar setBarStyle:UIBarStyleBlackTranslucent];
     [backgroundToolbar setTranslucent:YES];
     [self.tableView setBackgroundView:backgroundToolbar];
-    
 }
 
 - (void)dismiss {
@@ -110,30 +109,29 @@
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         id object = self.itemsToSync[indexPath.row];
         if ([object isKindOfClass:[Report class]]){
-            Report *r = (Report*)object;
+            Report *r = [(Report*)object MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [r setSaved:@YES];
         } else if ([object isKindOfClass:[Comment class]]) {
-            Comment *c = (Comment*)object;
+            Comment *c = [(Comment*)object MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [c setSaved:@YES];
         } else if ([object isKindOfClass:[ChecklistItem class]]) {
-            ChecklistItem *c = (ChecklistItem*)object;
+            ChecklistItem *c = [(ChecklistItem*)object MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [c setSaved:@YES];
         } else if ([object isKindOfClass:[Task class]]) {
-            Task *t = (Task*)object;
+            Task *t = [(Task*)object MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [t setSaved:@YES];
         } else if ([object isKindOfClass:[Task class]]) {
-            Reminder *r = (Reminder*)object;
+            Reminder *r = [(Reminder*)object MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [r setSaved:@YES];
         } else if ([object isKindOfClass:[Project class]]) {
-            Project *p = (Project*)object;
+            Project *p = [(Project*)object MR_inContext:[NSManagedObjectContext MR_defaultContext]];
             [p setSaved:@YES];
         }
-        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
         [self.tableView beginUpdates];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
         [self.itemsToSync removeObject:object];
         [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
         [self.tableView endUpdates];
-        
         [delegate.syncController update];
         [self.navigationItem setTitle:[NSString stringWithFormat:@"Synching %lu items",(unsigned long)_itemsToSync.count]];
     }

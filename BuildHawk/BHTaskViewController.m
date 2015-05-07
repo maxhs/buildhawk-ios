@@ -15,6 +15,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhotoBrowser.h"
 #import "BHTabBarViewController.h"
+#import "BHPeopleNavController.h"
 #import "BHPersonnelPickerViewController.h"
 #import "BHAddCommentCell.h"
 #import "BHCommentCell.h"
@@ -113,6 +114,7 @@ typedef void(^RequestSuccess)(id result);
         }
     } else {
         self.task = [Task MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        self.task.createdAt = [NSDate date];
         createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(postTask)];
         [self.navigationItem setRightBarButtonItem:createButton];
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
@@ -135,14 +137,14 @@ typedef void(^RequestSuccess)(id result);
     library = [[ALAssetsLibrary alloc] init];
     
     // set location and assignee titles and colors
-    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_locationButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
     [_locationButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_locationLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoLight] size:0]];
+    [_locationLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSansLight] size:0]];
     [_locationLabel setTextColor:[UIColor darkGrayColor]];
     [_locationLabel setText:@"LOCATION(S)"];
-    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_assigneeButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
     [_assigneeButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-    [_assigneeLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLatoLight] size:0]];
+    [_assigneeLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSansLight] size:0]];
     [_assigneeLabel setTextColor:[UIColor darkGrayColor]];
     [_assigneeLabel setText:@"ASSIGNEE(S)"];
     
@@ -153,24 +155,23 @@ typedef void(^RequestSuccess)(id result);
     [_photoBackgroundView setBackgroundColor:kLightestGrayColor];
     
     //notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(assignTask:) name:@"AssignTask" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     [self registerForKeyboardNotifications];
 }
 
 - (void)drawItem {
-    if (IDIOM == IPAD){
-        
-    } else {
-        CGFloat originX = width/2 - _locationButton.frame.size.width/2;
-        // reset action buttons, if necessary
-        CGFloat differential = _emailButton.frame.origin.x - originX;
-        if (differential > 0){
-            _emailButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
-            _callButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
-            _textButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
-        }
-    }
+//    if (IDIOM == IPAD){
+//        
+//    } else {
+//        CGFloat originX = width/2 - _locationButton.frame.size.width/2;
+//        // reset action buttons, if necessary
+//        CGFloat differential = _emailButton.frame.origin.x - originX;
+//        if (differential > 0){
+//            _emailButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+//            _callButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+//            _textButton.transform = CGAffineTransformMakeTranslation(-differential, 0);
+//        }
+//    }
     
     CGFloat completionButtonWidth = _completionButton.frame.size.width;
     CGRect itemTextViewRect = _itemTextView.frame;
@@ -181,8 +182,8 @@ typedef void(^RequestSuccess)(id result);
     completionButtonFrame.origin.x = itemTextViewRect.size.width;
     [_completionButton setFrame:completionButtonFrame];
     
-    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
-    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    [_completionButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
+    [_itemTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
     
     if (self.task.body.length) {
         [self.itemTextView setText:self.task.body];
@@ -256,7 +257,7 @@ typedef void(^RequestSuccess)(id result);
         
         addCommentTextView = addCommentCell.messageTextView;
         addCommentTextView.delegate = self;
-        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+        [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
         [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
         doneCommentButton = addCommentCell.doneButton;
         return addCommentCell;
@@ -393,14 +394,14 @@ typedef void(^RequestSuccess)(id result);
     headerLabel.layer.cornerRadius = 3.f;
     headerLabel.clipsToBounds = YES;
     [headerLabel setBackgroundColor:[UIColor clearColor]];
-    [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
+    [headerLabel setFont:[UIFont fontWithName:kOpenSans size:14]];
     [headerLabel setTextAlignment:NSTextAlignmentCenter];
     [headerLabel setTextColor:[UIColor darkGrayColor]];
     [headerLabel setText:@""];
     
     commentsButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [commentsButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
-    [commentsButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
+    [commentsButton.titleLabel setFont:[UIFont fontWithName:kOpenSans size:14]];
     
     NSString *commentsTitle = self.task.comments.count == 1 ? @"1 COMMENT" : [NSString stringWithFormat:@"%lu COMMENTS",(unsigned long)self.task.comments.count];
     [commentsButton setTitle:commentsTitle forState:UIControlStateNormal];
@@ -418,7 +419,7 @@ typedef void(^RequestSuccess)(id result);
     
     activityButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [activityButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-    [activityButton.titleLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
+    [activityButton.titleLabel setFont:[UIFont fontWithName:kOpenSans size:14]];
     
     NSString *activitiesTitle = self.task.activities.count == 1 ? @"1 ACTIVITY" : [NSString stringWithFormat:@"%lu ACTIVITIES",(unsigned long)self.task.activities.count];
     [activityButton setTitle:activitiesTitle forState:UIControlStateNormal];
@@ -771,8 +772,15 @@ typedef void(^RequestSuccess)(id result);
     [self setAssigneeString];
 }
 
+- (void)removeAllTaskAssignees {
+    self.task.assigneeName = nil;
+    self.task.assignees = nil;
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    [_assigneeButton setTitle:assigneePlaceholder forState:UIControlStateNormal];
+}
+
 - (void)setAssigneeString {
-    if (self.task.assignees.count == 1) {
+    if (self.task.assignees.count == 1 && !self.task.assigneeName.length) {
         [_assigneeButton setTitle:[(User*)self.task.assignees.firstObject fullname] forState:UIControlStateNormal];
     } else if (self.task.assignees.count) {
         [_assigneeButton setTitle:self.task.assigneesToSentence forState:UIControlStateNormal];
@@ -866,15 +874,11 @@ typedef void(^RequestSuccess)(id result);
         } else {
             [self.task setSaved:@NO];
             [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
-            if (isNew){
-                if (self.delegate && [self.delegate respondsToSelector:@selector(taskCreated:)]) {
-                    [self.delegate taskCreated:self.task];
-                }
-            } else {
-                if (self.delegate && [self.delegate respondsToSelector:@selector(taskUpdated:)]) {
-                    [self.delegate taskUpdated:self.task];
-                }
+            
+            if (self.delegate && ([self.delegate respondsToSelector:@selector(taskCreated:)] || [self.delegate respondsToSelector:@selector(taskUpdated:)])) {
+                isNew ? [self.delegate taskCreated:self.task] : [self.delegate taskUpdated:self.task];
             }
+            
             [self dismiss];
         }
     }

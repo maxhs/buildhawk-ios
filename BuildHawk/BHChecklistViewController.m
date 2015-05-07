@@ -55,7 +55,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     self.edgesForExtendedLayout = UIRectEdgeLeft | UIRectEdgeBottom | UIRectEdgeRight;
     screen = [[UIScreen mainScreen] bounds];
     if ([UIScreen mainScreen].bounds.size.height == 568 && [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {

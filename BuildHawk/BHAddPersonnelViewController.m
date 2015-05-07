@@ -14,20 +14,19 @@
 #import "BHReportViewController.h"
 #import "BHTaskViewController.h"
 
-@interface BHAddPersonnelViewController () <UITextFieldDelegate, UIAlertViewDelegate> {
+@interface BHAddPersonnelViewController () <UITextFieldDelegate, UIAlertViewDelegate, BHAddressBookPickerDelegate> {
+    CGFloat width;
+    CGFloat height;
     UIBarButtonItem *createButton;
     UIBarButtonItem *doneButton;
-    UIBarButtonItem *nextButton;
-    UIBarButtonItem *previousButton;
+    UIBarButtonItem *dismissButton;
     AFHTTPRequestOperationManager *manager;
     NSArray *peopleArray;
-    UITextField *_firstNameTextField;
-    UITextField *_lastNameTextField;
-    UITextField *_companyNameTextField;
     UIAlertView *userAlertView;
     NSString *email;
     NSString *phone;
     ReportUser *selectedReportUser;
+    UIAlertView *assigneeAlert;
 }
 
 @end
@@ -36,20 +35,41 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    if (SYSTEM_VERSION >= 8.f){
+        width = screenWidth();
+        height = screenHeight();
+    } else {
+        width = screenHeight();
+        height = screenWidth();
+    }
     self.tableView.rowHeight = 60.f;
-    self.secondTableView.rowHeight = 60.f;
-    previousButton = [[UIBarButtonItem alloc] initWithTitle:@"Previous" style:UIBarButtonItemStylePlain target:self action:@selector(previous)];
-    nextButton = [[UIBarButtonItem alloc] initWithTitle:@"Next" style:UIBarButtonItemStylePlain target:self action:@selector(next)];
+    
     createButton = [[UIBarButtonItem alloc] initWithTitle:@"Add" style:UIBarButtonItemStylePlain target:self action:@selector(create)];
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
-    self.navigationItem.rightBarButtonItem = nextButton;
+    self.navigationItem.rightBarButtonItem = createButton;
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
     [self registerForKeyboardNotifications];
-    
-    //[self.tableView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+
     [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+    [self.navigationController setNavigationBarHidden:NO animated:YES];
     
-    NSLog(@"did load");
+    if (self.task){
+        UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 66)];
+        _skipButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_skipButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
+        [_skipButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [_skipButton setTitle:@"DON'T NOTIFY ASSIGNEE" forState:UIControlStateNormal];
+        [_skipButton setFrame:CGRectMake(40, 10, width-80, 44)];
+        [_skipButton addTarget:self action:@selector(skip) forControlEvents:UIControlEventTouchUpInside];
+        [footerView addSubview:_skipButton];
+        self.tableView.tableFooterView = footerView;
+    }
+}
+
+- (void)skip {
+    assigneeAlert = [[UIAlertView alloc] initWithTitle:@"Assign a Task" message:@"Add custom text into the \"assignee\" field. No recipients will be notified." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
+    [assigneeAlert setAlertViewStyle:UIAlertViewStylePlainTextInput];
+    [assigneeAlert show];
 }
 
 #pragma mark - Navigation
@@ -58,23 +78,16 @@
     if (_emailTextField.text.length){
         email = _emailTextField.text;
     }
-    if (_phoneTextField.text.length){
-        phone = _phoneTextField.text;
-    }
     
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-    if (phone.length){
-        [parameters setObject:phone forKey:@"phone"];
-    } else if (email.length) {
+    if (email.length) {
         [parameters setObject:email forKey:@"email"];
     } else {
         [[[UIAlertView alloc] initWithTitle:@"Oops" message:@"Please add either an email address or phone number before continuing." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         return;
     }
-    
-    if (_firstStepComplete){
-        [self moveForward];
-    } else if (parameters){
+
+    if (parameters){
         [ProgressHUD show:@"Searching..."];
         [manager POST:[NSString stringWithFormat:@"%@/projects/%@/find_user",kApiBaseUrl,_project.identifier] parameters:@{@"user":parameters} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"Success finding user: %@",responseObject);
@@ -130,6 +143,28 @@
                 [self selectReportUserWithCount:hours];
             }
         }
+    } else if (alertView == assigneeAlert) {
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Add"]){
+            NSString *assigneeText = [[assigneeAlert textFieldAtIndex:0] text];
+            if (self.task){
+                [self.task setAssigneeName:assigneeText];
+                [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+            }
+            __block BHTaskViewController *taskVC;
+            [self.navigationController.viewControllers enumerateObjectsUsingBlock:^(UIViewController *vc, NSUInteger idx, BOOL *stop) {
+                if ([vc isKindOfClass:[BHTaskViewController class]]){
+                    taskVC = (BHTaskViewController*)vc;
+                    *stop = YES;
+                }
+            }];
+            if (taskVC){
+                [self.navigationController popToViewController:taskVC animated:YES];
+            } else {
+                [self.navigationController popViewControllerAnimated:YES];
+            }
+        } else {
+            [alertView dismissWithClickedButtonIndex:buttonIndex animated:YES];
+        }
     }
 }
 
@@ -142,39 +177,17 @@
 }
 
 - (void)moveForward {
-    self.navigationItem.hidesBackButton = YES;
-    self.navigationItem.leftBarButtonItem = previousButton;
-    self.navigationItem.rightBarButtonItem = createButton;
-    CGRect secondFrame = _secondTableView.frame;
-    secondFrame.origin.x = 0;
-    CGRect firstFrame = _tableView.frame;
-    firstFrame.origin.x = -screenWidth();
-    
-    [self.secondTableView reloadData];
-    
-    [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [_secondTableView setFrame:secondFrame];
-        [_tableView setFrame:firstFrame];
-    } completion:^(BOOL finished) {
-        [_tableView setHidden:YES];
-        if (_firstStepComplete == NO){
-            _firstStepComplete = YES;
-        }
-    }];
+    [self performSegueWithIdentifier:@"Details" sender:nil];
 }
 
 - (void)previous {
     [_tableView setHidden:NO];
     self.navigationItem.hidesBackButton = NO;
-    self.navigationItem.leftBarButtonItem = nil;
-    self.navigationItem.rightBarButtonItem = nextButton;
-    CGRect secondFrame = _secondTableView.frame;
-    secondFrame.origin.x = screenWidth();
+    self.navigationItem.rightBarButtonItem = createButton;
     CGRect firstFrame = _tableView.frame;
     firstFrame.origin.x = 0;
     //[self.tableView reloadData];
     [UIView animateWithDuration:.7 delay:0 usingSpringWithDamping:.8 initialSpringVelocity:.0001 options:UIViewAnimationOptionCurveEaseInOut animations:^{
-        [_secondTableView setFrame:secondFrame];
         [_tableView setFrame:firstFrame];
     } completion:^(BOOL finished) {
         
@@ -215,7 +228,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 4;
+    return 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -231,7 +244,7 @@
         switch (indexPath.row) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
-                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+                [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
                 [cell.imageView setImage:[UIImage imageNamed:@"contacts"]];
                 [cell.personnelTextField setUserInteractionEnabled:NO];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -246,88 +259,6 @@
                 [cell.imageView setImage:[UIImage imageNamed:@"email"]];
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 break;
-            case 2:
-                cell.personnelTextField.placeholder = @"And/or a phone number";
-                _phoneTextField = cell.personnelTextField;
-                [_phoneTextField setKeyboardType:UIKeyboardTypePhonePad];
-                [_phoneTextField setReturnKeyType:UIReturnKeyNext];
-                [_phoneTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-                [cell.imageView setImage:[UIImage imageNamed:@"phone"]];
-                cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                break;
-            default:
-                break;
-        }
-        
-    } else {
-        CGRect secondTableViewTextFieldFrame = cell.personnelTextField.frame;
-        secondTableViewTextFieldFrame.origin.x = 14;
-        secondTableViewTextFieldFrame.size.width = screenWidth()-20;
-        switch (indexPath.row) {
-            case 0:
-                cell.personnelTextField.placeholder = @"Company name (required)";
-                _companyNameTextField = cell.personnelTextField;
-                if (_company && _company.name.length){
-                    [_companyNameTextField setText:_company.name];
-                } else if (_companyName.length){
-                    [_companyNameTextField setText:_companyName];
-                }
-                [_companyNameTextField setKeyboardType:UIKeyboardTypeDefault];
-                [_companyNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
-                [_companyNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
-                [_companyNameTextField setFrame:secondTableViewTextFieldFrame];
-                break;
-            case 1:
-            {
-                cell.personnelTextField.placeholder = @"First name..";
-                if (_firstName.length){
-                    [_firstNameTextField setText:_firstName];
-                }
-                _firstNameTextField = cell.personnelTextField;
-                [_firstNameTextField setReturnKeyType:UIReturnKeyNext];
-                [_firstNameTextField setKeyboardType:UIKeyboardTypeDefault];
-                [_firstNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
-                [_firstNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
-                [_firstNameTextField setFrame:secondTableViewTextFieldFrame];
-            }
-                break;
-            case 2:
-                cell.personnelTextField.placeholder = @"Last name...";
-                if (_lastName.length){
-                    [_lastNameTextField setText:_lastName];
-                }
-                _lastNameTextField = cell.personnelTextField;
-                [_lastNameTextField setReturnKeyType:UIReturnKeyNext];
-                [_lastNameTextField setKeyboardType:UIKeyboardTypeDefault];
-                [_lastNameTextField setAutocapitalizationType:UITextAutocapitalizationTypeWords];
-                [_lastNameTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
-                [_lastNameTextField setFrame:secondTableViewTextFieldFrame];
-                break;
-            
-            case 3:
-                if (phone.length > 0 && email.length == 0){
-                    cell.personnelTextField.placeholder = @"Email address";
-                    [_emailTextField setText:email];
-                    _emailTextField = cell.personnelTextField;
-                    [_emailTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
-                    [_emailTextField setKeyboardType:UIKeyboardTypeEmailAddress];
-                    [_emailTextField setReturnKeyType:UIReturnKeyNext];
-                    [_emailTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-                    [cell.imageView setImage:[UIImage imageNamed:@"email"]];
-                    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                } else {
-                    cell.personnelTextField.placeholder = @"Phone number";
-                    [_phoneTextField setText:phone];
-                    _phoneTextField = cell.personnelTextField;
-                    [_phoneTextField setKeyboardType:UIKeyboardTypePhonePad];
-                    [_phoneTextField setReturnKeyType:UIReturnKeyNext];
-                    [_phoneTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-                    [cell.imageView setImage:[UIImage imageNamed:@"phone"]];
-                    cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                }
-                
-                break;
-                
             default:
                 break;
         }
@@ -336,8 +267,7 @@
 }
 
 - (void)create {
-    if (_companyNameTextField.text.length && (_emailTextField.text.length > 0 || _phoneTextField.text.length > 0)){
-    
+    if (_emailTextField.text.length > 0){
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
         if (_company && ![_company.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
             [parameters setObject:_company.identifier forKey:@"company_id"];
@@ -347,34 +277,16 @@
         }
         
         NSMutableDictionary *userParameters = [NSMutableDictionary dictionary];
-        [ProgressHUD show:@"Adding contact..."];
-
-        if (_firstNameTextField.text.length){
-            [userParameters setObject:_firstNameTextField.text forKey:@"first_name"];
-        }
-        if (_lastNameTextField.text.length){
-            [userParameters setObject:_lastNameTextField.text forKey:@"last_name"];
-        }
         if (_emailTextField.text.length){
             [userParameters setObject:_emailTextField.text forKey:@"email"];
         }
-        if (_phoneTextField.text.length){
-            NSString *cleanPhone = [_phoneTextField.text stringByReplacingOccurrencesOfString:@"+" withString:@""];
-            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@"-" withString:@""];
-            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@"(" withString:@""];
-            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@")" withString:@""];
-            cleanPhone = [cleanPhone stringByReplacingOccurrencesOfString:@" " withString:@""];
-            [userParameters setObject:cleanPhone forKey:@"phone"];
-        }
-        if (_companyNameTextField.text.length){
-            [userParameters setObject:_companyNameTextField.text forKey:@"company_name"];
-        }
-        [parameters setObject:userParameters forKey:@"user"];
+        [ProgressHUD show:@"Adding contact..."];
+        [parameters setObject:userParameters forKey:@"user"]; // wrap it in a "user" hash
         
         [manager POST:[NSString stringWithFormat:@"%@/projects/%@/add_user",kApiBaseUrl,_project.identifier] parameters:parameters success:^(AFHTTPRequestOperation *operation, id responseObject) {
             NSLog(@"success creating a new project sub user: %@",responseObject);
+            
             if ([responseObject objectForKey:@"user"]){
-                
                 NSDictionary *userDict = [responseObject objectForKey:@"user"];
                 User *user = [User MR_findFirstByAttribute:@"identifier" withValue:[userDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
                 if (!user){
@@ -414,7 +326,7 @@
             [[[UIAlertView alloc] initWithTitle:@"Unable to connect" message:@"Something went wrong while trying to add personnel." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }];
     } else {
-        [[[UIAlertView alloc] initWithTitle:@"Company Needed" message:@"Please make sure you've specified a company for this contact." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+        [[[UIAlertView alloc] initWithTitle:@"Email Needed" message:@"Please make sure you've added an email address for this recipient." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
 
@@ -430,7 +342,7 @@
         [contactInfoLabel setTextColor:[UIColor darkGrayColor]];
         [contactInfoLabel setText:@"CONTACT INFO"];
         [contactInfoLabel setTextAlignment:NSTextAlignmentCenter];
-        [contactInfoLabel setFont:[UIFont fontWithName:kMyriadPro size:16]];
+        [contactInfoLabel setFont:[UIFont fontWithName:kOpenSans size:16]];
         contactInfoLabel.numberOfLines = 0;
         [headerView addSubview:contactInfoLabel];
         
@@ -470,6 +382,7 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     if ([segue.identifier isEqualToString:@"AddressBook"]){
         BHAddressBookPickerViewController *vc = [segue destinationViewController];
+        vc.addressBookPickerDelegate = self;
         [vc setPeopleArray:peopleArray];
         [vc setCompany:_company];
         [vc setProject:_project];
@@ -481,6 +394,13 @@
         if (self.task){
             [vc setTask:self.task];
         }
+    }
+}
+
+- (void)userSelected:(User *)user {
+    if (user.email.length){
+        [_emailTextField setText:user.email];
+        [self.tableView reloadData];
     }
 }
 
@@ -496,29 +416,16 @@
 
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
     if ([text isEqualToString:@"\n"]) {
-        if (textField == _emailTextField || textField == _phoneTextField){
+        if (textField == _emailTextField){
             [textField resignFirstResponder];
             [self next];
-        } else if (textField == _firstNameTextField) {
-            [_lastNameTextField becomeFirstResponder];
-        } else if (textField == _lastNameTextField) {
-            if (_companyNameTextField.text.length == 0){
-                [_companyNameTextField becomeFirstResponder];
-            }
-        } else if (textField == _companyNameTextField) {
-            [self create];
         }
     }
     return YES;
 }
 
 - (void)doneEditing {
-    if (_emailTextField.text.length || _phoneTextField.text.length){
-        [self next];
-        self.navigationItem.rightBarButtonItem = createButton;
-    } else {
-        self.navigationItem.rightBarButtonItem = nextButton;
-    }
+    self.navigationItem.rightBarButtonItem = createButton;
     [self.view endEditing:YES];
 }
 
@@ -556,6 +463,12 @@
                          
                      }
                      completion:nil];
+}
+
+- (void)dismiss {
+    [self.presentingViewController dismissViewControllerAnimated:YES completion:^{
+        
+    }];
 }
 
 - (void)didReceiveMemoryWarning {

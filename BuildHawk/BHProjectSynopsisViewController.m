@@ -198,7 +198,7 @@
         case 4:
             if (_project.checklist.activities.count > 3){
                 return 3;
-            } else if (_project.checklist && _project.checklist.activities.count) {
+            } else if (_project.checklist.activities.count) {
                 return _project.checklist.activities.count;
             } else {
                 return 0;

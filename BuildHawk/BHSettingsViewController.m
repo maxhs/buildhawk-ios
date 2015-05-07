@@ -109,7 +109,7 @@
     static NSString *CellIdentifier = @"SettingsCell";
     BHSettingsCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
     [cell.textField setText:@""];
     [cell.textField setPlaceholder:@""];
     [cell.textLabel setText:@""];
@@ -230,7 +230,7 @@
     
     UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, width-10, 34)];
     [headerLabel setTextColor:[UIColor colorWithWhite:.77 alpha:1]];
-    [headerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption2 forFont:kLato] size:0]];
+    [headerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption2 forFont:kOpenSans] size:0]];
     switch (section) {
         case 0:
             headerLabel.text = @"Personal details".uppercaseString;

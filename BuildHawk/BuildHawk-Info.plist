@@ -28,15 +28,15 @@
 	<key>CFBundleIcons~ipad</key>
 	<dict/>
 	<key>CFBundleIdentifier</key>
-	<string>com.buildhawk</string>
+	<string>com.buildhawk.test</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>BuildHawk</string>
+	<string>BuildHawk Test</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.072</string>
+	<string>1.073221</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -55,7 +55,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.072</string>
+	<string>1.073221</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -78,6 +78,16 @@
 		<string>Lato-LigIta.ttf</string>
 		<string>Lato-Reg.ttf</string>
 		<string>Lato-RegIta.ttf</string>
+		<string>OpenSans-Bold-webfont.ttf</string>
+		<string>OpenSans-BoldItalic-webfont.ttf</string>
+		<string>OpenSans-ExtraBold-webfont.ttf</string>
+		<string>OpenSans-ExtraBoldItalic-webfont.ttf</string>
+		<string>OpenSans-Light-webfont.ttf</string>
+		<string>OpenSans-Italic-webfont.ttf</string>
+		<string>OpenSans-Regular-webfont.ttf</string>
+		<string>OpenSans-Semibold-webfont.ttf</string>
+		<string>OpenSans-SemiboldItalic-webfont.ttf</string>
+		<string>OpenSans-LightItalic-webfont.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

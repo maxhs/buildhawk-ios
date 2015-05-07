@@ -91,6 +91,20 @@
     [refreshControl setTintColor:[UIColor darkGrayColor]];
     refreshControl.attributedTitle = [[NSAttributedString alloc] initWithString:@"Pull to refresh"];
     [self.tableView addSubview:refreshControl];
+    
+    if (_connectMode){
+        self.tasks = self.project.userConnectItems.array.mutableCopy;
+        [self drawTasklist];
+    } else if ([self.project.tasklist.identifier isEqualToNumber:@0]){
+        [ProgressHUD show:@"Getting tasks..."];
+        loading = YES;
+        [self loadTasklist];
+    } else {
+        loading = YES;
+        self.tasks = self.project.tasklist.tasks.array.mutableCopy;
+        [self drawTasklist];
+        [self loadTasklist];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -105,19 +119,6 @@
     [super viewDidAppear:animated];
     if (!_connectMode){
         self.tabBarController.navigationItem.rightBarButtonItem = addButton;
-    }
-    if (_connectMode){
-        _tasks = self.project.userConnectItems.array.mutableCopy;
-        [self drawTasklist];
-    } else if ([self.project.tasklist.identifier isEqualToNumber:@0]){
-        [ProgressHUD show:@"Getting tasks..."];
-        loading = YES;
-        [self loadTasklist];
-    } else {
-        loading = YES;
-        _tasks = self.project.tasklist.tasks.array.mutableCopy;
-        [self drawTasklist];
-        [self loadTasklist];
     }
 }
 
@@ -161,21 +162,19 @@
 }
 
 - (void)drawTasklist {
-    if (self.tasks.count > 0){
-        [activeListItems removeAllObjects];
-        [completedListItems removeAllObjects];
-        [locationSet removeAllObjects];
-        [assigneeSet removeAllObjects];
-        
-        for (Task *task in _tasks){
-            for (Location *location in task.locations){
-                [locationSet addObject:location];
-            }
-           
-            if (!_connectMode) {
-                if (task.assignees.count > 0){
-                    [assigneeSet addObject:task.assignees.firstObject];
-                }
+    [activeListItems removeAllObjects];
+    [completedListItems removeAllObjects];
+    [locationSet removeAllObjects];
+    [assigneeSet removeAllObjects];
+    
+    for (Task *task in self.tasks){
+        for (Location *location in task.locations){
+            [locationSet addObject:location];
+        }
+       
+        if (!_connectMode) {
+            if (task.assignees.count > 0){
+                [assigneeSet addObject:task.assignees.firstObject];
             }
         }
     }
@@ -425,7 +424,7 @@
 
 - (void)filterActive {
     [activeListItems removeAllObjects];
-    for (Task *task in _tasks){
+    for (Task *task in self.tasks){
         if(![task.completed isEqualToNumber:@YES]) {
             [activeListItems addObject:task];
         }
@@ -607,7 +606,7 @@
         } else {
             task = [_tasks objectAtIndex:indexPath.row];
         }
-        if (task){
+        if (task && delegate.connected){
             //ensure there's a signed in user and that the user is the owner of the current item/task
             if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] && ([task.user.identifier isEqualToNumber:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]] || [[NSUserDefaults standardUserDefaults] boolForKey:kUserDefaultsUberAdmin])){
                 return YES;
@@ -688,7 +687,6 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
         [self deleteItem];
-        [self.tableView setUserInteractionEnabled:NO];
     } else {
         indexPathForDeletion = nil;
     }
@@ -696,6 +694,7 @@
 
 - (void)deleteItem{
     if (delegate.connected){
+        [self.tableView setUserInteractionEnabled:NO];
         [ProgressHUD show:@"Deleting..."];
         Task *task;
         if (showCompleted) {
@@ -739,6 +738,7 @@
             [ProgressHUD dismiss];
         }];
     } else {
+        [self.tableView setUserInteractionEnabled:YES];
         [[[UIAlertView alloc] initWithTitle:@"Offline" message:@"Task deletion is disabled while offline." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }

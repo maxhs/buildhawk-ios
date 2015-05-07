@@ -18,23 +18,25 @@
 @optional
 - (void)userAdded:(User*)user;
 - (void)userRemoved:(User*)user;
+- (void)removeAllTaskAssignees;
 - (void)reportSubAdded:(ReportSub*)reportSub;
 - (void)reportSubRemoved:(ReportSub*)reportSub;
 - (void)reportUserAdded:(ReportUser*)reportUser;
 - (void)reportUserRemoved:(ReportUser*)reportUser;
+- (void)sendEmail:(NSString*)email;
+- (void)sendText:(NSString*)phoneNumber;
+- (void)placeCall:(NSString*)phoneNumber;
 @end
 
 @interface BHPersonnelPickerViewController : UIViewController <UITableViewDataSource,UITableViewDelegate, UISearchBarDelegate>
 
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
-@property (weak, nonatomic) IBOutlet UIButton *addressBookButton;
 @property (strong, nonatomic) NSNumber *companyId;
 @property (strong, nonatomic) NSNumber *projectId;
 @property (strong, nonatomic) NSNumber *taskId;
 @property (strong, nonatomic) NSNumber *reportId;
 @property (weak, nonatomic) id<BHPersonnelPickerDelegate>personnelDelegate;
-@property BOOL phone;
 @property BOOL email;
 @property BOOL text;
 @property BOOL companyMode;

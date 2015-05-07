@@ -18,9 +18,9 @@
 #import <AFNetworking/AFNetworkReachabilityManager.h>
 #import <AddressBook/AddressBook.h>
 #import <AddressBookUI/AddressBookUI.h>
+#import <AssetsLibrary/AssetsLibrary.h>
 #import "BHTabBarViewController.h"
 #import "UIButton+WebCache.h"
-#import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhotoBrowser.h"
 #import "BHImagePickerController.h"
 #import "BHAssetGroupPickerViewController.h"
@@ -38,7 +38,7 @@
 #import "BHChecklistItemLinkCell.h"
 #import "BHWebViewController.h"
 
-@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, BHImagePickerControllerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
+@interface BHChecklistItemViewController () <UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMailComposeViewControllerDelegate, BHImagePickerControllerDelegate, BHPersonnelPickerDelegate, MFMessageComposeViewControllerDelegate, UIActionSheetDelegate, UIAlertViewDelegate, UITextViewDelegate, UIScrollViewDelegate, MWPhotoBrowserDelegate> {
     BHAppDelegate *delegate;
     AFHTTPRequestOperationManager *manager;
     NSMutableArray *photosArray;
@@ -81,7 +81,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || [[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+    if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) || SYSTEM_VERSION >= 8.f){
         width = screenWidth(); height = screenHeight();
     } else {
         width = screenHeight(); height = screenWidth();
@@ -94,10 +94,6 @@
     [self loadItem:YES]; // load the item!
     activities = NO; // show comments by default (instead of activities)
 
-    //setup communication notifications
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(placeCall:) name:@"PlaceCall" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendMail:) name:@"SendEmail" object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sendText:) name:@"SendText" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
     
     //hide the back button so we can override the popViewController method and implement a "do you want to save" thing
@@ -181,7 +177,7 @@
     headerLabel.layer.cornerRadius = 3.f;
     headerLabel.clipsToBounds = YES;
     [headerLabel setBackgroundColor:[UIColor clearColor]];
-    [headerLabel setFont:[UIFont fontWithName:kMyriadPro size:14]];
+    [headerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
     [headerLabel setTextAlignment:NSTextAlignmentCenter];
     [headerLabel setTextColor:[UIColor darkGrayColor]];
     switch (section) {
@@ -285,7 +281,7 @@
     } else if (indexPath.section == 2) {
         BHItemDeadlineCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ItemDeadlineCell"];
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-        [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+        [cell.deadlineLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
         [cell.deadlineLabel setTextColor:[UIColor blackColor]];
     
         if (self.item.criticalDate){
@@ -393,12 +389,9 @@
             [addCommentCell.messageTextView setText:kAddCommentPlaceholder];
             addCommentTextView = addCommentCell.messageTextView;
             addCommentTextView.delegate = self;
-            [addCommentTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
             
             [addCommentCell.doneButton addTarget:self action:@selector(submitComment) forControlEvents:UIControlEventTouchUpInside];
-            [addCommentCell.doneButton setBackgroundColor:kSelectBlueColor];
-            addCommentCell.doneButton.layer.cornerRadius = 4.f;
-            addCommentCell.doneButton.clipsToBounds = YES;
+            
             doneButton = addCommentCell.doneButton;
             return addCommentCell;
         } else {
@@ -422,7 +415,7 @@
 
 - (CGFloat)calculateHeightForItemBody {
     UITextView *sizingTextView = [[UITextView alloc] init];
-    [sizingTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [sizingTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
     [sizingTextView setText:self.item.body];
     CGSize size = [sizingTextView sizeThatFits:CGSizeMake(width, CGFLOAT_MAX)];
     return size.height + 10.f; // add a little buffer
@@ -616,10 +609,10 @@
     [super prepareForSegue:segue sender:sender];
     if ([segue.identifier isEqualToString:@"PersonnelPicker"]) {
         BHPersonnelPickerViewController *vc = [segue destinationViewController];
+        vc.personnelDelegate = self;
+        
         [vc setProjectId:_project.identifier];
-        if (phoneBool) {
-            [vc setPhone:YES];
-        } else if (emailBool) {
+        if (emailBool) {
             [vc setEmail:YES];
         } else if (textBool) {
             [vc setText:YES];
@@ -646,14 +639,13 @@
 
 #pragma mark - MFMailComposeViewControllerDelegate Methods
 
-- (void)sendMail:(NSNotification*)notification {
-    NSString *destinationEmail = [notification.userInfo objectForKey:@"email"];
-    if (destinationEmail && destinationEmail.length){
+- (void)sendEmail:(NSString *)email{
+    if (email.length){
         if ([MFMailComposeViewController canSendMail]) {
             MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
             [controller setSubject:[NSString stringWithFormat:@"%@",self.item.body]];
-            [controller setToRecipients:@[destinationEmail]];
+            [controller setToRecipients:@[email]];
             if (controller) {
                 [self presentViewController:controller animated:YES completion:^{
                     [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
@@ -667,6 +659,7 @@
         [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"Sorry, we don't have an email address for this contact." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
+
 - (void)mailComposeController:(MFMailComposeViewController*)controller
           didFinishWithResult:(MFMailComposeResult)result
                         error:(NSError*)error;
@@ -678,8 +671,7 @@
     }];
 }
 
-- (void)sendText:(NSNotification*)notification {
-    NSString *phone = [notification.userInfo objectForKey:@"number"];
+- (void)sendText:(NSString *)phone {
     [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
     MFMessageComposeViewController *viewController = [[MFMessageComposeViewController alloc] init];
     if ([MFMessageComposeViewController canSendText] && phone && phone.length){
@@ -736,6 +728,7 @@
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [self dismissViewControllerAnimated:YES completion:NULL];
     Photo *photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    photo.createdAt = [NSDate date];
     NSString *fileName = [NSString stringWithFormat:@"%ld.jpg",(long)NSDate.date.timeIntervalSince1970];
     [photo setFileName:fileName];
     [photo setImage:[info objectForKey:UIImagePickerControllerOriginalImage]];
@@ -846,8 +839,8 @@
     [photoScrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     photoScrollView.showsHorizontalScrollIndicator = NO;
     if (photoScrollView.isHidden) [photoScrollView setHidden:NO];
-    float imageSize = 70.0;
-    float space = 5.0;
+    float imageSize = 80.0;
+    float space = 2.0;
     int index = 0;
     
     for (Photo *photo in self.item.photos) {
@@ -863,12 +856,11 @@
         imageButton.imageView.clipsToBounds = YES;
         [imageButton setTag:[self.item.photos indexOfObject:photo]];
         [imageButton.titleLabel setHidden:YES];
-        imageButton.imageView.layer.cornerRadius = 2.0;
         [imageButton.imageView setBackgroundColor:[UIColor clearColor]];
         [imageButton.imageView.layer setBackgroundColor:[UIColor whiteColor].CGColor];
         imageButton.layer.shouldRasterize = YES;
         imageButton.layer.rasterizationScale = [UIScreen mainScreen].scale;
-        [imageButton setFrame:CGRectMake(space + (space + imageSize)*index,15,imageSize, imageSize)];
+        [imageButton setFrame:CGRectMake(space + (space + imageSize)*index,10,imageSize, imageSize)];
         [imageButton addTarget:self action:@selector(existingPhotoButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
         [photoScrollView addSubview:imageButton];
         index++;
@@ -1127,12 +1119,12 @@
     _selectButton.layer.borderWidth = 1.f;
     _selectButton.layer.cornerRadius = 3.f;
     _selectButton.clipsToBounds = YES;
-    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
     _cancelButton.layer.borderColor = [UIColor colorWithWhite:1 alpha:.7].CGColor;
     _cancelButton.layer.borderWidth = 1.f;
     _cancelButton.layer.cornerRadius = 3.f;
     _cancelButton.clipsToBounds = YES;
-    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
 }
 
 - (void)showDatePicker {
@@ -1261,7 +1253,7 @@
 #pragma mark - Back Navigation and Cleanup
 
 - (void)back {
-    if ([self.item.saved isEqualToNumber:@NO] && [_project.demo isEqualToNumber:@NO] && delegate.connected) {
+    if ([self.item.saved isEqualToNumber:@NO] && [self.project.demo isEqualToNumber:@NO] && delegate.connected) {
         [[[UIAlertView alloc] initWithTitle:@"Unsaved Changes" message:@"Do you want to save your unsaved changes?" delegate:self cancelButtonTitle:nil otherButtonTitles:@"Discard", @"Save", nil] show];
     } else {
         [self dismiss];

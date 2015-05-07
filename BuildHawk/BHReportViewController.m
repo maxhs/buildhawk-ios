@@ -98,9 +98,14 @@
     
     if (_reportDateString) {
         self.report = [Report MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+        self.report.createdAt = [NSDate date];
         self.report.author.identifier = [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId];
         self.report.project = self.project;
         self.report.dateString = _reportDateString;
+        NSDateFormatter *dateformat = [[NSDateFormatter alloc] init];
+        [dateformat setDateFormat:@"MM/dd/yyyy"];
+        NSDate *reportDate = [dateformat dateFromString:_reportDateString];
+        self.report.reportDate = reportDate;
         self.report.type = _reportType;
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
         [_reports insertObject:self.report atIndex:0];
@@ -348,6 +353,7 @@
     [self dismissViewControllerAnimated:YES completion:NULL];
     UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
     Photo *photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
+    photo.createdAt = [NSDate date];
     NSString *fileName = [NSString stringWithFormat:@"%ld.jpg",(long)NSDate.date.timeIntervalSince1970];
     [photo setFileName:fileName];
     [photo setTakenAt:[NSDate date]];
@@ -565,10 +571,15 @@
         }
     } else {
         [self.report setSaved:@NO];
+        
         [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
             [ProgressHUD showSuccess:@"Report saved"];
             [self.activeTableView reloadData];
             [appDelegate.syncController update];
+            
+            if (self.reportDelegate && ([self.reportDelegate respondsToSelector:@selector(reportCreated:)] || [self.reportDelegate respondsToSelector:@selector(reportUpdated:)])) {
+                [self.report.identifier isEqualToNumber:@0] ? [self.reportDelegate reportCreated:self.report] : [self.reportDelegate reportUpdated:self.report];
+            }
         }];
     }
 }
@@ -753,9 +764,9 @@
 - (void)setUpDatePicker {
     [_datePickerContainer setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     [_cancelButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_cancelButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSansSemibold] size:0]];
     [_selectButton setBackgroundImage:[UIImage imageNamed:@"wideButton"] forState:UIControlStateNormal];
-    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProSemibold] size:0]];
+    [_selectButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSansSemibold] size:0]];
 }
 
 - (void)showDatePicker{

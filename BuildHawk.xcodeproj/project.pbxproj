@@ -87,6 +87,20 @@
 		50C3F1271A8D77E700F09E11 /* NSArray+toSentence.m in Sources */ = {isa = PBXBuildFile; fileRef = 50C3F1261A8D77E700F09E11 /* NSArray+toSentence.m */; };
 		50D6EC1D1A82FE9D00DAE52E /* Location.m in Sources */ = {isa = PBXBuildFile; fileRef = 50D6EC1C1A82FE9C00DAE52E /* Location.m */; };
 		50D6EC201A82FEB200DAE52E /* Location+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = 50D6EC1F1A82FEB200DAE52E /* Location+helper.m */; };
+		50E2B6411AE1BC5200486A06 /* BHPeopleNavController.m in Sources */ = {isa = PBXBuildFile; fileRef = 50E2B6401AE1BC5200486A06 /* BHPeopleNavController.m */; };
+		50E2B64B1AE1F36900486A06 /* contacts.png in Resources */ = {isa = PBXBuildFile; fileRef = 50E2B6481AE1F36900486A06 /* contacts.png */; };
+		50E2B64C1AE1F36900486A06 /* contacts@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50E2B6491AE1F36900486A06 /* contacts@2x.png */; };
+		50E2B64D1AE1F36900486A06 /* contacts@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50E2B64A1AE1F36900486A06 /* contacts@3x.png */; };
+		50E760941AF8067A003F72AE /* OpenSans-Bold-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E7608A1AF8067A003F72AE /* OpenSans-Bold-webfont.ttf */; };
+		50E760951AF8067A003F72AE /* OpenSans-BoldItalic-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E7608B1AF8067A003F72AE /* OpenSans-BoldItalic-webfont.ttf */; };
+		50E760961AF8067A003F72AE /* OpenSans-ExtraBold-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E7608C1AF8067A003F72AE /* OpenSans-ExtraBold-webfont.ttf */; };
+		50E760971AF8067A003F72AE /* OpenSans-ExtraBoldItalic-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E7608D1AF8067A003F72AE /* OpenSans-ExtraBoldItalic-webfont.ttf */; };
+		50E760981AF8067A003F72AE /* OpenSans-Italic-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E7608E1AF8067A003F72AE /* OpenSans-Italic-webfont.ttf */; };
+		50E760991AF8067A003F72AE /* OpenSans-Light-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E7608F1AF8067A003F72AE /* OpenSans-Light-webfont.ttf */; };
+		50E7609A1AF8067A003F72AE /* OpenSans-LightItalic-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E760901AF8067A003F72AE /* OpenSans-LightItalic-webfont.ttf */; };
+		50E7609B1AF8067A003F72AE /* OpenSans-Regular-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E760911AF8067A003F72AE /* OpenSans-Regular-webfont.ttf */; };
+		50E7609C1AF8067A003F72AE /* OpenSans-Semibold-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E760921AF8067A003F72AE /* OpenSans-Semibold-webfont.ttf */; };
+		50E7609D1AF8067A003F72AE /* OpenSans-SemiboldItalic-webfont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50E760931AF8067A003F72AE /* OpenSans-SemiboldItalic-webfont.ttf */; };
 		50FB5FA21A3F4134004D6062 /* reports.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5F9F1A3F4134004D6062 /* reports.png */; };
 		50FB5FA31A3F4134004D6062 /* reports@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FA01A3F4134004D6062 /* reports@2x.png */; };
 		50FB5FA41A3F4134004D6062 /* reports@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FA11A3F4134004D6062 /* reports@3x.png */; };
@@ -112,16 +126,6 @@
 		50FB5FD61A40E440004D6062 /* logo.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FD31A40E440004D6062 /* logo.png */; };
 		50FB5FD71A40E440004D6062 /* logo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FD41A40E440004D6062 /* logo@2x.png */; };
 		50FB5FD81A40E440004D6062 /* logo@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FD51A40E440004D6062 /* logo@3x.png */; };
-		50FB5FF41A40E9BB004D6062 /* Lato-Bla.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FD91A40E6AD004D6062 /* Lato-Bla.ttf */; };
-		50FB5FF51A40E9BB004D6062 /* Lato-BlaIta.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FDA1A40E6AD004D6062 /* Lato-BlaIta.ttf */; };
-		50FB5FF61A40E9BB004D6062 /* Lato-Bol.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FDB1A40E6AD004D6062 /* Lato-Bol.ttf */; };
-		50FB5FF71A40E9BB004D6062 /* Lato-BolIta.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FDC1A40E6AD004D6062 /* Lato-BolIta.ttf */; };
-		50FB5FF81A40E9BB004D6062 /* Lato-Hai.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FDD1A40E6AD004D6062 /* Lato-Hai.ttf */; };
-		50FB5FF91A40E9BB004D6062 /* Lato-HaiIta.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FDE1A40E6AD004D6062 /* Lato-HaiIta.ttf */; };
-		50FB5FFA1A40E9BB004D6062 /* Lato-Lig.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FDF1A40E6AD004D6062 /* Lato-Lig.ttf */; };
-		50FB5FFB1A40E9BB004D6062 /* Lato-LigIta.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FE01A40E6AD004D6062 /* Lato-LigIta.ttf */; };
-		50FB5FFC1A40E9BB004D6062 /* Lato-Reg.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FE11A40E6AD004D6062 /* Lato-Reg.ttf */; };
-		50FB5FFD1A40E9BB004D6062 /* Lato-RegIta.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 50FB5FE21A40E6AD004D6062 /* Lato-RegIta.ttf */; };
 		EA0C2DDC9782430899F40E10 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B0CBF992ED9140A28D7EBD98 /* libPods.a */; };
 		F203962417D1300A001CFF61 /* BHProjectCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = F203962317D1300A001CFF61 /* BHProjectCollection.m */; };
 		F203963217D2C09F001CFF61 /* BHMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F203963117D2C09F001CFF61 /* BHMenuViewController.m */; };
@@ -383,8 +387,6 @@
 		F2C44522196601880079AF62 /* Alternate+helper.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C44521196601880079AF62 /* Alternate+helper.m */; };
 		F2C44525196607680079AF62 /* BHSettingsCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C44524196607680079AF62 /* BHSettingsCell.m */; };
 		F2C4452D1968CC790079AF62 /* BHSynopsisCell.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C4452C1968CC790079AF62 /* BHSynopsisCell.m */; };
-		F2C44559196B688C0079AF62 /* contacts.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C44557196B688C0079AF62 /* contacts.png */; };
-		F2C4455A196B688C0079AF62 /* contacts@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C44558196B688C0079AF62 /* contacts@2x.png */; };
 		F2C4455D196B69710079AF62 /* phone.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C4455B196B69710079AF62 /* phone.png */; };
 		F2C4455E196B69710079AF62 /* phone@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = F2C4455C196B69710079AF62 /* phone@2x.png */; };
 		F2C44571196BC9EC0079AF62 /* Folder.m in Sources */ = {isa = PBXBuildFile; fileRef = F2C44570196BC9EC0079AF62 /* Folder.m */; };
@@ -529,6 +531,21 @@
 		50D6EC1C1A82FE9C00DAE52E /* Location.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Location.m; sourceTree = "<group>"; };
 		50D6EC1E1A82FEB200DAE52E /* Location+helper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Location+helper.h"; sourceTree = "<group>"; };
 		50D6EC1F1A82FEB200DAE52E /* Location+helper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Location+helper.m"; sourceTree = "<group>"; };
+		50E2B63F1AE1BC5200486A06 /* BHPeopleNavController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHPeopleNavController.h; sourceTree = "<group>"; };
+		50E2B6401AE1BC5200486A06 /* BHPeopleNavController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHPeopleNavController.m; sourceTree = "<group>"; };
+		50E2B6481AE1F36900486A06 /* contacts.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = contacts.png; sourceTree = "<group>"; };
+		50E2B6491AE1F36900486A06 /* contacts@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "contacts@2x.png"; sourceTree = "<group>"; };
+		50E2B64A1AE1F36900486A06 /* contacts@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "contacts@3x.png"; sourceTree = "<group>"; };
+		50E7608A1AF8067A003F72AE /* OpenSans-Bold-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Bold-webfont.ttf"; sourceTree = "<group>"; };
+		50E7608B1AF8067A003F72AE /* OpenSans-BoldItalic-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-BoldItalic-webfont.ttf"; sourceTree = "<group>"; };
+		50E7608C1AF8067A003F72AE /* OpenSans-ExtraBold-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-ExtraBold-webfont.ttf"; sourceTree = "<group>"; };
+		50E7608D1AF8067A003F72AE /* OpenSans-ExtraBoldItalic-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-ExtraBoldItalic-webfont.ttf"; sourceTree = "<group>"; };
+		50E7608E1AF8067A003F72AE /* OpenSans-Italic-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Italic-webfont.ttf"; sourceTree = "<group>"; };
+		50E7608F1AF8067A003F72AE /* OpenSans-Light-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Light-webfont.ttf"; sourceTree = "<group>"; };
+		50E760901AF8067A003F72AE /* OpenSans-LightItalic-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-LightItalic-webfont.ttf"; sourceTree = "<group>"; };
+		50E760911AF8067A003F72AE /* OpenSans-Regular-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Regular-webfont.ttf"; sourceTree = "<group>"; };
+		50E760921AF8067A003F72AE /* OpenSans-Semibold-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semibold-webfont.ttf"; sourceTree = "<group>"; };
+		50E760931AF8067A003F72AE /* OpenSans-SemiboldItalic-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-SemiboldItalic-webfont.ttf"; sourceTree = "<group>"; };
 		50FB5F9F1A3F4134004D6062 /* reports.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = reports.png; sourceTree = "<group>"; };
 		50FB5FA01A3F4134004D6062 /* reports@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@2x.png"; sourceTree = "<group>"; };
 		50FB5FA11A3F4134004D6062 /* reports@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reports@3x.png"; sourceTree = "<group>"; };
@@ -554,16 +571,6 @@
 		50FB5FD31A40E440004D6062 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
 		50FB5FD41A40E440004D6062 /* logo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo@2x.png"; sourceTree = "<group>"; };
 		50FB5FD51A40E440004D6062 /* logo@3x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "logo@3x.png"; sourceTree = "<group>"; };
-		50FB5FD91A40E6AD004D6062 /* Lato-Bla.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Bla.ttf"; sourceTree = "<group>"; };
-		50FB5FDA1A40E6AD004D6062 /* Lato-BlaIta.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-BlaIta.ttf"; sourceTree = "<group>"; };
-		50FB5FDB1A40E6AD004D6062 /* Lato-Bol.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Bol.ttf"; sourceTree = "<group>"; };
-		50FB5FDC1A40E6AD004D6062 /* Lato-BolIta.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-BolIta.ttf"; sourceTree = "<group>"; };
-		50FB5FDD1A40E6AD004D6062 /* Lato-Hai.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Hai.ttf"; sourceTree = "<group>"; };
-		50FB5FDE1A40E6AD004D6062 /* Lato-HaiIta.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-HaiIta.ttf"; sourceTree = "<group>"; };
-		50FB5FDF1A40E6AD004D6062 /* Lato-Lig.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Lig.ttf"; sourceTree = "<group>"; };
-		50FB5FE01A40E6AD004D6062 /* Lato-LigIta.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-LigIta.ttf"; sourceTree = "<group>"; };
-		50FB5FE11A40E6AD004D6062 /* Lato-Reg.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Reg.ttf"; sourceTree = "<group>"; };
-		50FB5FE21A40E6AD004D6062 /* Lato-RegIta.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-RegIta.ttf"; sourceTree = "<group>"; };
 		B0CBF992ED9140A28D7EBD98 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E311D5BBD6D1F9CAE8258F01 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		EE8E54CA80546E568191BD46 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
@@ -941,8 +948,6 @@
 		F2C44524196607680079AF62 /* BHSettingsCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSettingsCell.m; sourceTree = "<group>"; };
 		F2C4452B1968CC790079AF62 /* BHSynopsisCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BHSynopsisCell.h; sourceTree = "<group>"; };
 		F2C4452C1968CC790079AF62 /* BHSynopsisCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BHSynopsisCell.m; sourceTree = "<group>"; };
-		F2C44557196B688C0079AF62 /* contacts.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = contacts.png; sourceTree = "<group>"; };
-		F2C44558196B688C0079AF62 /* contacts@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "contacts@2x.png"; sourceTree = "<group>"; };
 		F2C4455B196B69710079AF62 /* phone.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = phone.png; sourceTree = "<group>"; };
 		F2C4455C196B69710079AF62 /* phone@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "phone@2x.png"; sourceTree = "<group>"; };
 		F2C4456F196BC9EC0079AF62 /* Folder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Folder.h; sourceTree = "<group>"; };
@@ -1062,6 +1067,71 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		50E7609E1AF8080C003F72AE /* Tasks */ = {
+			isa = PBXGroup;
+			children = (
+				F228706717DE8DA600A88475 /* BHTaskCell.h */,
+				F228706817DE8DA600A88475 /* BHTaskCell.m */,
+				F23AD654193E5E1A00510290 /* BHTasklistConnectCell.h */,
+				F23AD655193E5E1A00510290 /* BHTasklistConnectCell.m */,
+				F23AD657193E5E2400510290 /* BHTasklistConnectCell.xib */,
+			);
+			name = Tasks;
+			sourceTree = "<group>";
+		};
+		50E7609F1AF8081A003F72AE /* Comments */ = {
+			isa = PBXGroup;
+			children = (
+				F292ABF617F9E6050020DE13 /* BHCommentCell.h */,
+				F292ABF717F9E6050020DE13 /* BHCommentCell.m */,
+				F292ABF917F9E6130020DE13 /* BHCommentCell.xib */,
+				F292AC0017F9EFE40020DE13 /* BHAddCommentCell.h */,
+				F292AC0117F9EFE40020DE13 /* BHAddCommentCell.m */,
+				F292AC0317F9EFF70020DE13 /* BHAddCommentCell.xib */,
+			);
+			name = Comments;
+			sourceTree = "<group>";
+		};
+		50E760A01AF80822003F72AE /* Reminders */ = {
+			isa = PBXGroup;
+			children = (
+				F23AD63D193E2C1A00510290 /* BHSetReminderCell.h */,
+				F23AD63E193E2C1A00510290 /* BHSetReminderCell.m */,
+				F23AD640193E2C2200510290 /* BHSetReminderCell.xib */,
+				F21DD5ED1964EA6F00EE1BD3 /* BHReminderCell.h */,
+				F21DD5EE1964EA6F00EE1BD3 /* BHReminderCell.m */,
+				F21DD5F01964EA7B00EE1BD3 /* BHReminderCell.xib */,
+				F2D6A2E3196E3426004A9742 /* BHPastDueReminderCell.h */,
+				F2D6A2E4196E3426004A9742 /* BHPastDueReminderCell.m */,
+				F2D6A2E6196E3432004A9742 /* BHPastDueReminderCell.xib */,
+			);
+			name = Reminders;
+			sourceTree = "<group>";
+		};
+		50E760A11AF80839003F72AE /* Dashboard & Synopsis */ = {
+			isa = PBXGroup;
+			children = (
+				F2C4452B1968CC790079AF62 /* BHSynopsisCell.h */,
+				F2C4452C1968CC790079AF62 /* BHSynopsisCell.m */,
+				F295B1C8183A8A26009121BA /* BHProgressCell.h */,
+				F295B1C9183A8A27009121BA /* BHProgressCell.m */,
+				F28F311818109CFD0066320B /* BHRecentDocumentCell.h */,
+				F28F311918109CFD0066320B /* BHRecentDocumentCell.m */,
+				F28F311B18109D0B0066320B /* BHRecentDocumentCell.xib */,
+				F277D45F18D4DBA400028ACD /* BHDashboardGroupCell.h */,
+				F277D46018D4DBA400028ACD /* BHDashboardGroupCell.m */,
+				F277D46218D4DBBC00028ACD /* BHDashboardGroupCell.xib */,
+				F203964017D3B483001CFF61 /* BHDashboardProjectCell.h */,
+				F203964117D3B484001CFF61 /* BHDashboardProjectCell.m */,
+				F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */,
+				F26364DF19D38D2B00E9966A /* BHDashboardButtonCell.h */,
+				F26364E019D38D2B00E9966A /* BHDashboardButtonCell.m */,
+				F2FAE44C18F5B012005E582B /* BHHiddenProjectCell.h */,
+				F2FAE44D18F5B012005E582B /* BHHiddenProjectCell.m */,
+			);
+			name = "Dashboard & Synopsis";
+			sourceTree = "<group>";
+		};
 		6DEFE290E6F1BE16D67E21A7 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -1123,15 +1193,11 @@
 			isa = PBXGroup;
 			children = (
 				F2A957EA19DF501A00A3B471 /* Checklists */,
-				F228706717DE8DA600A88475 /* BHTaskCell.h */,
-				F228706817DE8DA600A88475 /* BHTaskCell.m */,
-				F23AD654193E5E1A00510290 /* BHTasklistConnectCell.h */,
-				F23AD655193E5E1A00510290 /* BHTasklistConnectCell.m */,
-				F23AD657193E5E2400510290 /* BHTasklistConnectCell.xib */,
-				F2C4452B1968CC790079AF62 /* BHSynopsisCell.h */,
-				F2C4452C1968CC790079AF62 /* BHSynopsisCell.m */,
-				F295B1C8183A8A26009121BA /* BHProgressCell.h */,
-				F295B1C9183A8A27009121BA /* BHProgressCell.m */,
+				50E7609E1AF8080C003F72AE /* Tasks */,
+				50E760A11AF80839003F72AE /* Dashboard & Synopsis */,
+				F26D84B1197E25E100494149 /* Reports */,
+				50E7609F1AF8081A003F72AE /* Comments */,
+				50E760A01AF80822003F72AE /* Reminders */,
 				F2C44523196607680079AF62 /* BHSettingsCell.h */,
 				F2C44524196607680079AF62 /* BHSettingsCell.m */,
 				F2139D331938169100EE5C96 /* BHChoosePersonnelCell.h */,
@@ -1140,37 +1206,9 @@
 				F228707317DFBCC300A88475 /* BHPhotoPickerCell.h */,
 				F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */,
 				F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */,
-				F292ABF617F9E6050020DE13 /* BHCommentCell.h */,
-				F292ABF717F9E6050020DE13 /* BHCommentCell.m */,
-				F292ABF917F9E6130020DE13 /* BHCommentCell.xib */,
-				F292AC0017F9EFE40020DE13 /* BHAddCommentCell.h */,
-				F292AC0117F9EFE40020DE13 /* BHAddCommentCell.m */,
-				F292AC0317F9EFF70020DE13 /* BHAddCommentCell.xib */,
-				F23AD63D193E2C1A00510290 /* BHSetReminderCell.h */,
-				F23AD63E193E2C1A00510290 /* BHSetReminderCell.m */,
-				F23AD640193E2C2200510290 /* BHSetReminderCell.xib */,
-				F21DD5ED1964EA6F00EE1BD3 /* BHReminderCell.h */,
-				F21DD5EE1964EA6F00EE1BD3 /* BHReminderCell.m */,
-				F21DD5F01964EA7B00EE1BD3 /* BHReminderCell.xib */,
-				F2D6A2E3196E3426004A9742 /* BHPastDueReminderCell.h */,
-				F2D6A2E4196E3426004A9742 /* BHPastDueReminderCell.m */,
-				F2D6A2E6196E3432004A9742 /* BHPastDueReminderCell.xib */,
-				F28F311818109CFD0066320B /* BHRecentDocumentCell.h */,
-				F28F311918109CFD0066320B /* BHRecentDocumentCell.m */,
-				F28F311B18109D0B0066320B /* BHRecentDocumentCell.xib */,
-				F277D45F18D4DBA400028ACD /* BHDashboardGroupCell.h */,
-				F277D46018D4DBA400028ACD /* BHDashboardGroupCell.m */,
-				F277D46218D4DBBC00028ACD /* BHDashboardGroupCell.xib */,
-				F203964017D3B483001CFF61 /* BHDashboardProjectCell.h */,
-				F203964117D3B484001CFF61 /* BHDashboardProjectCell.m */,
-				F203964317D3B494001CFF61 /* BHDashboardProjectCell.xib */,
-				F26364DF19D38D2B00E9966A /* BHDashboardButtonCell.h */,
-				F26364E019D38D2B00E9966A /* BHDashboardButtonCell.m */,
 				F252F5EC1940FB4B00515471 /* BHAddPersonnelCell.h */,
 				F252F5ED1940FB4B00515471 /* BHAddPersonnelCell.m */,
 				F252F5EF1940FB5500515471 /* BHAddPersonnelCell.xib */,
-				F2FAE44C18F5B012005E582B /* BHHiddenProjectCell.h */,
-				F2FAE44D18F5B012005E582B /* BHHiddenProjectCell.m */,
 				F227B64C194571D6007DE86F /* BHMessageCell.h */,
 				F227B64D194571D6007DE86F /* BHMessageCell.m */,
 				F298A1C319526B34005B13EA /* BHAddressBookCell.h */,
@@ -1187,7 +1225,6 @@
 				50AB42901AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m */,
 				F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */,
 				F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */,
-				F26D84B1197E25E100494149 /* Reports */,
 				F2F0579E19D5B92A00A66A53 /* BHSyncCell.h */,
 				F2F0579F19D5B92A00A66A53 /* BHSyncCell.m */,
 			);
@@ -1608,11 +1645,12 @@
 				F2D6A2F9196E3FA7004A9742 /* redDisclosure@2x.png */,
 				F2C4455B196B69710079AF62 /* phone.png */,
 				F2C4455C196B69710079AF62 /* phone@2x.png */,
+				50E2B6481AE1F36900486A06 /* contacts.png */,
+				50E2B6491AE1F36900486A06 /* contacts@2x.png */,
+				50E2B64A1AE1F36900486A06 /* contacts@3x.png */,
 				50FB5FC31A3F448E004D6062 /* email.png */,
 				50FB5FC41A3F448E004D6062 /* email@2x.png */,
 				50FB5FC51A3F448E004D6062 /* email@3x.png */,
-				F2C44557196B688C0079AF62 /* contacts.png */,
-				F2C44558196B688C0079AF62 /* contacts@2x.png */,
 				F25EDAB2195DD1F6009C4386 /* info.png */,
 				F25EDAB3195DD1F6009C4386 /* info@2x.png */,
 				F28FE27D1A328D0E0010066D /* info@3x.png */,
@@ -1738,6 +1776,8 @@
 				F23AD648193E30EA00510290 /* BHSafetyTopicViewController.m */,
 				F226817B18734E0C00D78BDD /* BHPersonnelPickerViewController.h */,
 				F226817C18734E0C00D78BDD /* BHPersonnelPickerViewController.m */,
+				50E2B63F1AE1BC5200486A06 /* BHPeopleNavController.h */,
+				50E2B6401AE1BC5200486A06 /* BHPeopleNavController.m */,
 				F2D6A3091971929F004A9742 /* BHCompaniesViewController.h */,
 				F2D6A30A1971929F004A9742 /* BHCompaniesViewController.m */,
 				F252F5E91940F5E600515471 /* BHAddPersonnelViewController.h */,
@@ -1768,20 +1808,20 @@
 		F2D3DBDD1978F42F005133AC /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
+				50E7608A1AF8067A003F72AE /* OpenSans-Bold-webfont.ttf */,
+				50E7608B1AF8067A003F72AE /* OpenSans-BoldItalic-webfont.ttf */,
+				50E7608C1AF8067A003F72AE /* OpenSans-ExtraBold-webfont.ttf */,
+				50E7608D1AF8067A003F72AE /* OpenSans-ExtraBoldItalic-webfont.ttf */,
+				50E7608E1AF8067A003F72AE /* OpenSans-Italic-webfont.ttf */,
+				50E7608F1AF8067A003F72AE /* OpenSans-Light-webfont.ttf */,
+				50E760901AF8067A003F72AE /* OpenSans-LightItalic-webfont.ttf */,
+				50E760911AF8067A003F72AE /* OpenSans-Regular-webfont.ttf */,
+				50E760921AF8067A003F72AE /* OpenSans-Semibold-webfont.ttf */,
+				50E760931AF8067A003F72AE /* OpenSans-SemiboldItalic-webfont.ttf */,
 				F24D8498197E0C6E005E2EDF /* MyriadPro-It.otf */,
 				F24D8492197E0C4C005E2EDF /* MyriadPro-Light.otf */,
 				F24D8494197E0C56005E2EDF /* MyriadPro-Regular.otf */,
 				F24D8496197E0C5F005E2EDF /* MyriadPro-Semibold.otf */,
-				50FB5FD91A40E6AD004D6062 /* Lato-Bla.ttf */,
-				50FB5FDA1A40E6AD004D6062 /* Lato-BlaIta.ttf */,
-				50FB5FDB1A40E6AD004D6062 /* Lato-Bol.ttf */,
-				50FB5FDC1A40E6AD004D6062 /* Lato-BolIta.ttf */,
-				50FB5FDD1A40E6AD004D6062 /* Lato-Hai.ttf */,
-				50FB5FDE1A40E6AD004D6062 /* Lato-HaiIta.ttf */,
-				50FB5FDF1A40E6AD004D6062 /* Lato-Lig.ttf */,
-				50FB5FE01A40E6AD004D6062 /* Lato-LigIta.ttf */,
-				50FB5FE11A40E6AD004D6062 /* Lato-Reg.ttf */,
-				50FB5FE21A40E6AD004D6062 /* Lato-RegIta.ttf */,
 			);
 			name = Fonts;
 			sourceTree = "<group>";
@@ -1890,11 +1930,11 @@
 				F28F9A2D18A34CF2000A46D4 /* icon-100.png in Resources */,
 				F24D8495197E0C56005E2EDF /* MyriadPro-Regular.otf in Resources */,
 				F28FE2801A328D0E0010066D /* wideButton@3x.png in Resources */,
-				50FB5FFD1A40E9BB004D6062 /* Lato-RegIta.ttf in Resources */,
 				F25EDAB5195DD1F6009C4386 /* info@2x.png in Resources */,
 				F260F7F919CD607F000DD028 /* checklistScreenshot.png in Resources */,
 				F21F6EB21930F9A2003BC323 /* wideButton@2x.png in Resources */,
 				F226815518622D8100D78BDD /* communicateOutlineDark@2x.png in Resources */,
+				50E2B64B1AE1F36900486A06 /* contacts.png in Resources */,
 				F227B65419457265007DE86F /* menu@2x.png in Resources */,
 				50FB5FB41A3F41F0004D6062 /* tasks.png in Resources */,
 				F260F7FA19CD607F000DD028 /* checklistScreenshot@2x.png in Resources */,
@@ -1905,7 +1945,6 @@
 				F28F9A5318A49EF3000A46D4 /* miniCameraButton.png in Resources */,
 				F24D8493197E0C4C005E2EDF /* MyriadPro-Light.otf in Resources */,
 				50FB5FC21A3F443E004D6062 /* miniChatWhite@3x.png in Resources */,
-				F2C44559196B688C0079AF62 /* contacts.png in Resources */,
 				F20EBBEE19BBCEE500A97F3A /* success@2x.png in Resources */,
 				50B7BDFF1A944C100005F8A4 /* sort@2x.png in Resources */,
 				502CE1E21A413AF80024BFFD /* camera.png in Resources */,
@@ -1937,6 +1976,7 @@
 				50B7BE051A944C6C0005F8A4 /* plus@2x.png in Resources */,
 				F2EA264F190EF12700EEF2CC /* downWhiteArrow@2x.png in Resources */,
 				50AEF0931AD6752900EE4F88 /* minical.png in Resources */,
+				50E760941AF8067A003F72AE /* OpenSans-Bold-webfont.ttf in Resources */,
 				50AEF0941AD6752900EE4F88 /* minical@2x.png in Resources */,
 				F260F7FF19CD6235000DD028 /* reportsScreenshot.png in Resources */,
 				50B642CD1AA625CB00661E02 /* minis&c.png in Resources */,
@@ -1960,11 +2000,11 @@
 				F22681A6187FB0ED00D78BDD /* wind.png in Resources */,
 				F260F81119CDF30C000DD028 /* reportiPad.png in Resources */,
 				F252F5F01940FB5500515471 /* BHAddPersonnelCell.xib in Resources */,
-				50FB5FF51A40E9BB004D6062 /* Lato-BlaIta.ttf in Resources */,
 				F203963A17D2DD9C001CFF61 /* textField@2x.png in Resources */,
 				50B7BE0E1A9506750005F8A4 /* plusWhite.png in Resources */,
 				F28F9A3718A34D43000A46D4 /* icon-50.png in Resources */,
 				F28FE27F1A328D0E0010066D /* info@3x.png in Resources */,
+				50E760981AF8067A003F72AE /* OpenSans-Italic-webfont.ttf in Resources */,
 				502CE1CD1A4136DA0024BFFD /* s&cWhite.png in Resources */,
 				502CE1DB1A413A1F0024BFFD /* folder@3x.png in Resources */,
 				F23AD658193E5E2400510290 /* BHTasklistConnectCell.xib in Resources */,
@@ -1991,13 +2031,13 @@
 				50FB5FBB1A3F43AB004D6062 /* miniChat@2x.png in Resources */,
 				50B642D41AA6284000661E02 /* minis&cWhite@2x.png in Resources */,
 				F285E95518E5E532008FFEC1 /* miniLibraryButton.png in Resources */,
-				50FB5FFB1A40E9BB004D6062 /* Lato-LigIta.ttf in Resources */,
 				50B642D31AA6284000661E02 /* minis&cWhite.png in Resources */,
 				F292AC0F17F9F2DE0020DE13 /* cameraButton.png in Resources */,
 				50BC67E01A5F34400029AA3D /* chatWhite@2x.png in Resources */,
 				502CE1E31A413AF80024BFFD /* camera@2x.png in Resources */,
 				50B7BE131A950B330005F8A4 /* calendarWhite.png in Resources */,
 				50FB5FB61A3F41F0004D6062 /* tasks@3x.png in Resources */,
+				50E2B64C1AE1F36900486A06 /* contacts@2x.png in Resources */,
 				F2D6A2E7196E3432004A9742 /* BHPastDueReminderCell.xib in Resources */,
 				F260F7F519CD5EAF000DD028 /* taskklistScreenshot.png in Resources */,
 				F20EBBED19BBCEE500A97F3A /* success.png in Resources */,
@@ -2015,15 +2055,17 @@
 				502CE1F01A413CC70024BFFD /* cameraWhite@3x.png in Resources */,
 				F260F80019CD6235000DD028 /* reportsScreenshot@2x.png in Resources */,
 				F260F81619CDF30C000DD028 /* checklistiPad@2x.png in Resources */,
-				50FB5FF91A40E9BB004D6062 /* Lato-HaiIta.ttf in Resources */,
 				503CD58B1A70A36500F4FF85 /* hide@2x.png in Resources */,
 				F260F82619CE679F000DD028 /* reminders@2x.png in Resources */,
 				F25EDAA4195D0B21009C4386 /* BHActivityCell.xib in Resources */,
 				50AEF0901AD6752900EE4F88 /* calWhite.png in Resources */,
 				F291F4BE17F0B80900A27B46 /* communicateOutline.png in Resources */,
+				50E7609D1AF8067A003F72AE /* OpenSans-SemiboldItalic-webfont.ttf in Resources */,
+				50E760971AF8067A003F72AE /* OpenSans-ExtraBoldItalic-webfont.ttf in Resources */,
 				F24D8499197E0C6E005E2EDF /* MyriadPro-It.otf in Resources */,
 				F260F82819CE679F000DD028 /* reminderButton@2x.png in Resources */,
 				F25EDAB4195DD1F6009C4386 /* info.png in Resources */,
+				50E760991AF8067A003F72AE /* OpenSans-Light-webfont.ttf in Resources */,
 				F28F9A2518A33F5E000A46D4 /* icon-114.png in Resources */,
 				F28F9A5418A49EF3000A46D4 /* miniCameraButton@2x.png in Resources */,
 				F260F80619CD6441000DD028 /* detailScreenshot@2x.png in Resources */,
@@ -2043,7 +2085,7 @@
 				F260F7F619CD5EAF000DD028 /* tasklistScreenshot@2x.png in Resources */,
 				F28F9A3A18A34D5C000A46D4 /* icon-29.png in Resources */,
 				F29EF2E91815BE1B00F737B7 /* navBarBackground@2x.png in Resources */,
-				50FB5FF71A40E9BB004D6062 /* Lato-BolIta.ttf in Resources */,
+				50E760951AF8067A003F72AE /* OpenSans-BoldItalic-webfont.ttf in Resources */,
 				502CE1CF1A4136DA0024BFFD /* s&cWhite@3x.png in Resources */,
 				F20FB2DE1A240DA00007C905 /* whiteK@2x.png in Resources */,
 				F21F6EB61930FB82003BC323 /* Default-iPad@2x.png in Resources */,
@@ -2059,17 +2101,20 @@
 				50B7BE041A944C6C0005F8A4 /* plus.png in Resources */,
 				503CD5811A6F85FB00F4FF85 /* local.png in Resources */,
 				F260F82519CE679F000DD028 /* reminders.png in Resources */,
+				50E2B64D1AE1F36900486A06 /* contacts@3x.png in Resources */,
 				50B7BDFA1A944BD20005F8A4 /* calendar@3x.png in Resources */,
 				50AEF08F1AD6752900EE4F88 /* minicalWhite@3x.png in Resources */,
 				F20FB2E01A240DA00007C905 /* whiteK@3x.png in Resources */,
+				50E7609B1AF8067A003F72AE /* OpenSans-Regular-webfont.ttf in Resources */,
 				F228707717DFBCE900A88475 /* BHPhotoPickerCell.xib in Resources */,
 				F2C4455D196B69710079AF62 /* phone.png in Resources */,
 				F226815D186B699A00D78BDD /* backArrow@2x.png in Resources */,
 				50AEF08D1AD6752900EE4F88 /* minicalWhite.png in Resources */,
 				50FB5FC11A3F443E004D6062 /* miniChatWhite@2x.png in Resources */,
+				50E7609C1AF8067A003F72AE /* OpenSans-Semibold-webfont.ttf in Resources */,
 				502CE1D01A4136DA0024BFFD /* s&c.png in Resources */,
+				50E7609A1AF8067A003F72AE /* OpenSans-LightItalic-webfont.ttf in Resources */,
 				F24152CD1951E591007681A3 /* whiteTabBackground.png in Resources */,
-				50FB5FF61A40E9BB004D6062 /* Lato-Bol.ttf in Resources */,
 				F292ABFA17F9E6130020DE13 /* BHCommentCell.xib in Resources */,
 				50B7BE001A944C100005F8A4 /* sort@3x.png in Resources */,
 				F227B65319457265007DE86F /* menu.png in Resources */,
@@ -2079,7 +2124,6 @@
 				F260F81319CDF30C000DD028 /* tasklistiPad.png in Resources */,
 				F2D6A2FA196E3FA7004A9742 /* redDisclosure.png in Resources */,
 				50B642CF1AA625CB00661E02 /* minis&c@3x.png in Resources */,
-				50FB5FFC1A40E9BB004D6062 /* Lato-Reg.ttf in Resources */,
 				50FB5FC01A3F443E004D6062 /* miniChatWhite.png in Resources */,
 				F28F9A3D18A34E04000A46D4 /* icon-40.png in Resources */,
 				F285E95A18E5E5F6008FFEC1 /* libraryButton@2x.png in Resources */,
@@ -2096,7 +2140,7 @@
 				F21F6EB51930FB82003BC323 /* Default-iPad.png in Resources */,
 				F226815C186B699A00D78BDD /* backArrow.png in Resources */,
 				50FB5FC71A3F448E004D6062 /* email@2x.png in Resources */,
-				50FB5FFA1A40E9BB004D6062 /* Lato-Lig.ttf in Resources */,
+				50E760961AF8067A003F72AE /* OpenSans-ExtraBold-webfont.ttf in Resources */,
 				F252F5E1193FF3EC00515471 /* blackX.png in Resources */,
 				F203967617D3E361001CFF61 /* tabBarBackground@2x.png in Resources */,
 				F260F80219CD6235000DD028 /* dashboardScreenshot@2x.png in Resources */,
@@ -2106,13 +2150,11 @@
 				F2139D37193816A800EE5C96 /* BHChoosePersonnelCell.xib in Resources */,
 				F252F5E2193FF3EC00515471 /* blackX@2x.png in Resources */,
 				50AB42961AB876A800C4EF5A /* blueCheck.png in Resources */,
-				50FB5FF81A40E9BB004D6062 /* Lato-Hai.ttf in Resources */,
 				50FB5FBA1A3F43AB004D6062 /* miniChat.png in Resources */,
 				50FB5FB21A3F41F0004D6062 /* documents@2x.png in Resources */,
 				F291F4BD17F0B80900A27B46 /* communicateOutline@2x.png in Resources */,
 				502CE1D11A4136DA0024BFFD /* s&c@2x.png in Resources */,
 				F203967917D3E4F6001CFF61 /* reportsSelected.png in Resources */,
-				50FB5FF41A40E9BB004D6062 /* Lato-Bla.ttf in Resources */,
 				F203967A17D3E4F6001CFF61 /* reportsSelected@2x.png in Resources */,
 				503CD5821A6F85FB00F4FF85 /* local@2x.png in Resources */,
 				50FB5FC81A3F448E004D6062 /* email@3x.png in Resources */,
@@ -2121,7 +2163,6 @@
 				503CD58A1A70A36500F4FF85 /* hide.png in Resources */,
 				50FB5FB11A3F41F0004D6062 /* documents.png in Resources */,
 				F28F9A3618A34D43000A46D4 /* icon-76.png in Resources */,
-				F2C4455A196B688C0079AF62 /* contacts@2x.png in Resources */,
 				502CE1EE1A413CC70024BFFD /* cameraWhite.png in Resources */,
 				F2D7D2261A002DDA00210D9D /* Default-568h@2x.png in Resources */,
 				F2C4455E196B69710079AF62 /* phone@2x.png in Resources */,
@@ -2306,6 +2347,7 @@
 				F28F3102180F1A120066320B /* BHReportPhotoCell.m in Sources */,
 				F23AD64C193E313500510290 /* BHSafetyTopicTransition.m in Sources */,
 				F203963217D2C09F001CFF61 /* BHMenuViewController.m in Sources */,
+				50E2B6411AE1BC5200486A06 /* BHPeopleNavController.m in Sources */,
 				F2C44571196BC9EC0079AF62 /* Folder.m in Sources */,
 				F2EA26CF19116C3800EEF2CC /* Task+helper.m in Sources */,
 				F2A957ED19DF503700A3B471 /* BHItemDeadlineCell.m in Sources */,

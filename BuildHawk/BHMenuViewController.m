@@ -82,7 +82,7 @@ static NSString *textPlaceholder = @"Text Message";
             //NSLog(@"Success getting messages: %@",responseObject);
             [self updateNotifications:[responseObject objectForKey:@"notifications"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Error getting notifications: %@",error.description);
+            //NSLog(@"Error getting notifications: %@",error.description);
         }];
     }
 }

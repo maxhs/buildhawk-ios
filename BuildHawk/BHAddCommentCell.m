@@ -31,6 +31,11 @@
     _messageTextView.layer.borderColor = kLightGrayColor.CGColor;
     _messageTextView.layer.borderWidth = .5f;
     _messageTextView.clipsToBounds = YES;
+    [_messageTextView setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
+    
+    [_doneButton setBackgroundColor:kSelectBlueColor];
+    _doneButton.layer.cornerRadius = 4.f;
+    _doneButton.clipsToBounds = YES;
 }
 
 - (void)configure{

@@ -224,12 +224,6 @@
                 [set addObject:activity];
             }
         }
-        for (Activity *activity in self.activities){
-            if (![set containsObject:activity]){
-                NSLog(@"Deleting an activity that no longer exists.");
-                [activity MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-            }
-        }
         self.activities = set;
     }
     
@@ -311,20 +305,19 @@
     NSMutableOrderedSet *photos = [NSMutableOrderedSet orderedSet];
     for (NSDictionary *photoDict in array){
         Photo *photo = [Photo MR_findFirstByAttribute:@"identifier" withValue:[photoDict objectForKey:@"id"] inContext:[NSManagedObjectContext MR_defaultContext]];
-        if (photo){
-            [photo updateFromDictionary:photoDict];
-        } else {
+        if (!photo){
             photo = [Photo MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         }
         [photo populateFromDictionary:photoDict];
         [photos addObject:photo];
     }
-    for (Photo *photo in self.documents){
-        if (![photos containsObject:photo]){
-            NSLog(@"Deleting photo that no longer exists: %@",photo.dateString);
-            [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
-        }
-    }
+//    for (Photo *p in self.documents){
+//        Photo *photo = [p MR_inContext:[NSManagedObjectContext MR_defaultContext]];
+//        if (![photos containsObject:photo]){
+//            NSLog(@"Deleting photo that no longer exists: %@",photo.dateString);
+//            [photo MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+//        }
+//    }
     self.documents = photos;
 }
 

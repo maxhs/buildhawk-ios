@@ -11,6 +11,8 @@
 
 @interface BHMapViewController () <CLLocationManagerDelegate, MKMapViewDelegate> {
     UIBarButtonItem *backButton;
+    UIBarButtonItem *mapTypeBarButton;
+    BOOL mapMode;
     MKMapView *_mapView;
     MKPointAnnotation *annotation;
 }
@@ -23,8 +25,7 @@
 
 @synthesize locationManager = _locationManager;
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(dismiss)];
     self.navigationItem.leftBarButtonItem = backButton;
@@ -32,13 +33,14 @@
     self.title = _project.name;
     
     _locationManager = [[CLLocationManager alloc] init];
-    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 8.f){
+    if (SYSTEM_VERSION >= 8.f){
         [_locationManager requestAlwaysAuthorization];
         //[_locationManager requestWhenInUseAuthorization];
     }
     
     _mapView = [[MKMapView alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [_mapView setShowsUserLocation:YES];
+    [_mapView setMapType:MKMapTypeHybrid];
     
     [self.view addSubview:_mapView];
     CLLocationCoordinate2D location = CLLocationCoordinate2DMake([_project.address.latitude floatValue], [_project.address.longitude floatValue]);
@@ -46,8 +48,8 @@
     MKCoordinateRegion region;
     MKCoordinateSpan span;
     
-    span.latitudeDelta = 0.01;
-    span.longitudeDelta = 0.02;
+    span.latitudeDelta = 0.001;
+    span.longitudeDelta = 0.001;
     
     region.span = span;
     region.center = location;
@@ -63,11 +65,26 @@
     [annotation setTitle:_project.name];
     [annotation setSubtitle:_project.address.formattedAddress];
     [_mapView addAnnotation:annotation];
+    
+    mapTypeBarButton = [[UIBarButtonItem alloc] initWithTitle:@"Map" style:UIBarButtonItemStylePlain target:self action:@selector(toggleMapType)];
+    self.navigationItem.rightBarButtonItem = mapTypeBarButton;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [_mapView selectAnnotation:annotation animated:YES];
+}
+
+- (void)toggleMapType {
+    if (mapMode){
+        [_mapView setMapType:MKMapTypeSatellite];
+        [mapTypeBarButton setTitle:@"Map"];
+        mapMode = NO;
+    } else {
+        [_mapView setMapType:MKMapTypeStandard];
+        [mapTypeBarButton setTitle:@"Satellite"];
+        mapMode = YES;
+    }
 }
 
 - (void)dismiss {

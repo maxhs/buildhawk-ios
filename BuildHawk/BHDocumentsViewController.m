@@ -269,8 +269,8 @@
         [cell setBackgroundColor:[UIColor clearColor]];
         [cell.textLabel setTextColor:[UIColor whiteColor]];
         [cell.detailTextLabel setTextColor:[UIColor whiteColor]];
-        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
-        [cell.detailTextLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadPro] size:0]];
+        [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
+        [cell.detailTextLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
         if (indexPath.section == 0){
             Folder *folder = self.project.folders[indexPath.row];
             [cell.textLabel setText:folder.name];
@@ -361,11 +361,11 @@
         [cell.countLabel setFrame:countLabelFrame];
         
         if (IDIOM == IPAD){
-            [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kMyriadProLight] size:0]];
+            [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleHeadline forFont:kOpenSansLight] size:0]];
         } else {
-            [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+            [cell.bucketLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kOpenSansLight] size:0]];
         }
-        [cell.countLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+        [cell.countLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSansLight] size:0]];
         
         NSURL *imageUrl;
         switch (indexPath.row) {

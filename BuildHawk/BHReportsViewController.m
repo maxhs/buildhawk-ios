@@ -467,6 +467,7 @@
 }
 
 - (void)newReport {
+    NSLog(@"project reports before: %lu",(unsigned long)self.project.reports.count);
     if (weekly){
         [self performSegueWithIdentifier:@"Report" sender:kWeekly];
     } else if (safety){
@@ -477,12 +478,8 @@
 }
 
 - (void)reportCreated:(Report *)r {
-    Report *report = [r MR_inContext:[NSManagedObjectContext MR_defaultContext]];
-    daily = NO;
-    weekly = NO;
-    safety = NO;
-    [self.project addReport:report];
-    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreAndWait];
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"project.identifier = %@",self.project.identifier];
+    _reports = [Report MR_findAllSortedBy:@"reportDate" ascending:NO withPredicate:predicate inContext:[NSManagedObjectContext MR_defaultContext]].mutableCopy;
     [self.tableView reloadData];
 }
 

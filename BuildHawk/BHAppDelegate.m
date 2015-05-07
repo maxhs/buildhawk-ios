@@ -136,11 +136,7 @@
 }
 
 - (void)updateLoggedInStatus {
-    if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]){
-        self.loggedIn = YES;
-    } else {
-        self.loggedIn = NO;
-    }
+    self.loggedIn = [[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] ? YES : NO;
 }
 
 //the next two methods are so the damn message and mail navigation bars don't look like shit

@@ -274,9 +274,9 @@
 #pragma mark – UICollectionViewDelegateFlowLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     if (IDIOM == IPAD){
-        return CGSizeMake(screenWidth()/7,screenWidth()/7);
+        return CGSizeMake(width/7,width/7);
     } else {
-        return CGSizeMake(width/3,width/3);
+        return CGSizeMake(width/4,width/4);
     }
 }
 

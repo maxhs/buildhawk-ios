@@ -752,7 +752,7 @@
 - (UIImage *)imageForPhoto:(MWPhoto*)photo {
 	if (photo) {
         // Get image or obtain in background
-        if (![(BHAppDelegate*)[UIApplication sharedApplication].delegate connected] && [photo.photo.original rangeOfString:@"pdf"].location != NSNotFound){
+        if ([photo.photo.original rangeOfString:@"pdf"].location != NSNotFound){
             [self showWebViewForPdf];
             return nil;
         } else if ([photo underlyingImage]) {
@@ -1454,20 +1454,15 @@
     webView.delegate = self;
     [self.view addSubview:webView];
     MWPhoto *photo = [self photoAtIndex:_currentPageIndex];
-    if (photo.photo.localFilePath.length){
-        if ([[NSFileManager defaultManager] fileExistsAtPath:photo.photo.localFilePath]){
-            NSURL *url = [NSURL fileURLWithPath:photo.photo.localFilePath isDirectory:YES];
-            [webView loadRequest:[NSURLRequest requestWithURL:url]];
-        } else if ([(BHAppDelegate*)[UIApplication sharedApplication].delegate connected]) {
-            NSURL *url = [NSURL URLWithString:photo.photo.original];
-            [webView loadRequest:[NSURLRequest requestWithURL:url]];
-        } else {
-            [BHAlert show:@"Something went wrong while trying to draw this PDF in offline mode. Please try again when you have an internet connection." withTime:3.3f persist:NO];
-        }
+    BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
+    if (delegate.connected) {
+        NSURL *url = [NSURL URLWithString:photo.photo.original];
+        [webView loadRequest:[NSURLRequest requestWithURL:url]];
+    } else if ([[NSFileManager defaultManager] fileExistsAtPath:photo.photo.localFilePath]){
         NSURL *url = [NSURL fileURLWithPath:photo.photo.localFilePath isDirectory:YES];
         [webView loadRequest:[NSURLRequest requestWithURL:url]];
     } else {
-        [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:photo.photo.original]]];
+        [BHAlert show:@"Something went wrong while trying to draw this PDF in offline mode. Please try again when you have an internet connection." withTime:3.3f persist:NO];
     }
 }
 

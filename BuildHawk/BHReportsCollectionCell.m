@@ -1089,10 +1089,8 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
 
 - (void)chooseTopics:(id)sender {
     if (topicsFetched){
-        if (self.delegate && [self.delegate respondsToSelector:@selector(showTopicsActionSheet)]){
-            [self.delegate showTopicsActionSheet];
-        }
-    } else {
+        [self showTopicsActionSheet];
+    } else if (appDelegate.connected) {
         [ProgressHUD show:@"Fetching safety topics..."];
         [manager GET:[NSString stringWithFormat:@"%@/reports/options",kApiBaseUrl] parameters:@{@"user_id":[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId]} success:^(AFHTTPRequestOperation *operation, id responseObject) {
             //NSLog(@"success getting possible topics: %@",responseObject);
@@ -1114,16 +1112,21 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 }
             }
             self.project.company.safetyTopics = topicsSet;
-            
-            if (self.delegate && [self.delegate respondsToSelector:@selector(showTopicsActionSheet)]){
-                [self.delegate showTopicsActionSheet];
-            }
-            
+            [self showTopicsActionSheet];
             [ProgressHUD dismiss];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            [self showTopicsActionSheet];
             [ProgressHUD dismiss];
-            NSLog(@"failed to get possible topics: %@",error.description);
+            //NSLog(@"failed to get possible topics: %@",error.description);
         }];
+    } else {
+        [self showTopicsActionSheet];
+    }
+}
+
+- (void)showTopicsActionSheet {
+    if (self.delegate && [self.delegate respondsToSelector:@selector(showTopicsActionSheet)]){
+        [self.delegate showTopicsActionSheet];
     }
 }
 
@@ -1251,8 +1254,10 @@ static NSString * const kWeatherPlaceholder = @"Add your weather notes...";
                 [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find weather data for this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
             }
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failed to get the weather: %@",error.description);
-            [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find weather data for this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            if (appDelegate.connected){
+                NSLog(@"Failed to get the weather: %@",error.description);
+                [[[UIAlertView alloc] initWithTitle:@"Sorry" message:@"We couldn't find weather data for this report." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
+            }
         }];
     }
 }

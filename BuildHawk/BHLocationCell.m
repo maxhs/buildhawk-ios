@@ -20,12 +20,12 @@
 
 - (void)configureForLocation:(Location *)location {
     [self.textLabel setText:location.name];
-    [self.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    [self.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
     [self.textLabel setTextColor:[UIColor blackColor]];
 }
 
 - (void)configureToAdd:(NSString *)searchText {
-    [self.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProItalic] size:0]];
+    [self.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSansItalic] size:0]];
     [self.textLabel setTextColor:[UIColor lightGrayColor]];
     [self.textLabel setText:[NSString stringWithFormat:@"add \"%@\"",searchText]];
 }

@@ -18,6 +18,7 @@
 @implementation Task
 
 @dynamic body;
+@dynamic assigneeName;
 @dynamic completed;
 @dynamic approved;
 @dynamic completedAt;

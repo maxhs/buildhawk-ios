@@ -26,8 +26,8 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_activityLabel setFont:[UIFont fontWithName:kMyriadPro size:17]];
-    [_timestampLabel setFont:[UIFont fontWithName:kMyriadPro size:15]];
+    [_activityLabel setFont:[UIFont fontWithName:kOpenSans size:17]];
+    [_timestampLabel setFont:[UIFont fontWithName:kOpenSans size:15]];
     [_separatorView setBackgroundColor:kSeparatorColor];
 }
 

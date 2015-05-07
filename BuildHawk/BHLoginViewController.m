@@ -60,7 +60,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     [_loginButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_loginButton setEnabled:NO];
     [_loginButton setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
-    [_loginButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kLato] size:0]];
+    [_loginButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kOpenSans] size:0]];
     CGRect loginButtonFrame = _loginButton.frame;
     loginButtonFrame.origin.y = mainScreen.size.height;
     [_loginButton setFrame:loginButtonFrame];
@@ -84,7 +84,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     
     [_forgotPasswordButton setTitleColor:kPlaceholderTextColor forState:UIControlStateNormal];
     [_forgotPasswordButton setTitle:@"Forget your password?" forState:UIControlStateNormal];
-    [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kLato] size:0]];
+    [_forgotPasswordButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
     
     [_forgotPasswordButton setAlpha:0.0];
     [_emailTextField setAlpha:0.0];
@@ -139,7 +139,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
             //NSLog(@"success getting demo projects: %@",responseObject);
             [self updateProjects:[responseObject objectForKey:@"projects"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"Failed to get demo project: %@", error.description);
+            //NSLog(@"Failed to get demo project: %@", error.description);
         }];
     }
 }
@@ -170,7 +170,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
 - (void)drawDemoButton {
     demoButton = [UIButton buttonWithType:UIButtonTypeCustom];
     [demoButton setFrame:CGRectMake(0, screenHeight()-44, screenWidth(), 44)];
-    [demoButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+    [demoButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
     [demoButton setTitle:@"VIEW DEMO PROJECT" forState:UIControlStateNormal];
     [demoButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [demoButton setBackgroundColor:kBlueColor];
@@ -198,7 +198,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     UIView *paddingView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 5, 21)];
     textField.leftView = paddingView;
     textField.leftViewMode = UITextFieldViewModeAlways;
-    [textField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+    [textField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
 }
 
 - (IBAction)loginTapped {
@@ -239,7 +239,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
         forgotPasswordAlert.alertViewStyle = UIAlertViewStylePlainTextInput;
         UITextField *alertTextField = [forgotPasswordAlert textFieldAtIndex:0];
         [alertTextField setKeyboardType:UIKeyboardTypeEmailAddress];
-        [alertTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kLato] size:0]];
+        [alertTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
         [alertTextField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
         [alertTextField setAutocorrectionType:UITextAutocorrectionTypeNo];
         [forgotPasswordAlert show];
@@ -348,8 +348,7 @@ static NSString * const kShakeAnimationKey = @"BuildHawkLoginResponse";
     
 }
 
-- (void)registerForKeyboardNotifications
-{
+- (void)registerForKeyboardNotifications {
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(keyboardWillShow:)
                                                  name:UIKeyboardWillShowNotification object:nil];

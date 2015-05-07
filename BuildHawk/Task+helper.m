@@ -25,6 +25,9 @@
     if ([dictionary objectForKey:@"body"] && [dictionary objectForKey:@"body"] != [NSNull null]) {
         self.body = [dictionary objectForKey:@"body"];
     }
+    if ([dictionary objectForKey:@"assignee_name"] && [dictionary objectForKey:@"assignee_name"] != [NSNull null]) {
+        self.assigneeName = [dictionary objectForKey:@"assignee_name"];
+    }
     if ([dictionary objectForKey:@"project"] && [dictionary objectForKey:@"project"] != [NSNull null]) {
         NSDictionary *projectDict = [dictionary objectForKey:@"project"];
         NSPredicate *predicate = [NSPredicate predicateWithFormat:@"identifier == %@", [projectDict objectForKey:@"id"]];
@@ -81,6 +84,8 @@
             [orderedUsers addObject:user];
         }
         self.assignees = orderedUsers;
+    } else {
+        self.assignees = [NSOrderedSet orderedSet];
     }
     
     if ([dictionary objectForKey:@"locations"] && [dictionary objectForKey:@"locations"] != [NSNull null]) {
@@ -96,6 +101,8 @@
             [orderedLocations addObject:location];
         }
         self.locations = orderedLocations;
+    } else {
+        self.locations = [NSOrderedSet orderedSet];
     }
     
     if ([dictionary objectForKey:@"comments"] && [dictionary objectForKey:@"comments"] != [NSNull null]) {
@@ -111,6 +118,8 @@
             [orderedComments addObject:comment];
         }
         self.comments = orderedComments;
+    } else {
+        self.comments = [NSOrderedSet orderedSet];
     }
     
     if ([dictionary objectForKey:@"activities"] && [dictionary objectForKey:@"activities"] != [NSNull null]) {
@@ -131,6 +140,8 @@
             }
         }
         self.activities = orderedActivities;
+    } else {
+        self.activities = [NSOrderedSet orderedSet];
     }
     
     if ([dictionary objectForKey:@"completed"] && [dictionary objectForKey:@"completed"] != [NSNull null]) {
@@ -176,16 +187,19 @@
     [set insertObject:comment atIndex:0];
     self.comments = set;
 }
+
 -(void)removeComment:(Comment *)comment {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.comments];
     [set removeObject:comment];
     self.comments = set;
 }
+
 -(void)addPhoto:(Photo *)photo {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set addObject:photo];
     self.photos = set;
 }
+
 -(void)removePhoto:(Photo *)photo {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.photos];
     [set removeObject:photo];
@@ -197,6 +211,7 @@
     [set addObject:user];
     self.assignees = set;
 }
+
 -(void)removeAssignee:(User *)user {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.assignees];
     [set removeObject:user];
@@ -208,6 +223,9 @@
     [self.assignees enumerateObjectsUsingBlock:^(User *assignee, NSUInteger idx, BOOL *stop) {
         [names addObject:assignee.fullname];
     }];
+    if (self.assigneeName.length){
+        [names addObject:self.assigneeName];
+    }
     return [names toSentence];
 }
 
@@ -216,6 +234,7 @@
     [set addObject:activity];
     self.activities = set;
 }
+
 -(void)removeActivity:(Activity *)activity {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.activities];
     [set removeObject:activity];
@@ -227,6 +246,7 @@
     [set addObject:location];
     self.locations = set;
 }
+
 -(void)removeLocation:(Location *)location {
     NSMutableOrderedSet *set = [[NSMutableOrderedSet alloc] initWithOrderedSet:self.locations];
     [set removeObject:location];
@@ -242,6 +262,10 @@
 }
 
 - (void)synchWithServer:(synchCompletion)complete {
+    if (!self.body.length) {
+        return;
+    }
+    
     BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     [parameters setObject:self.body forKey:@"body"];
@@ -262,6 +286,10 @@
         }
     }];
     [parameters setObject:assigneeIds forKey:@"assignee_ids"];
+    
+    if (self.assigneeName.length){
+        [parameters setObject:self.assigneeName forKey:@"assignee_name"];
+    }
     
     if ([self.completed isEqualToNumber:@YES]){
         [parameters setObject:@YES forKey:@"completed"];

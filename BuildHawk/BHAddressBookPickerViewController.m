@@ -47,7 +47,7 @@
     for (id subview in [self.searchBar.subviews.firstObject subviews]){
         if ([subview isKindOfClass:[UITextField class]]){
             UITextField *searchTextField = (UITextField*)subview;
-            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
             break;
         }
     }
@@ -156,11 +156,11 @@
         [cell.nameLabel setText:@""];
     }
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadPro] size:0]];
+    [cell.nameLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kOpenSans] size:0]];
     [cell.emailLabel setText:user.email];
-    [cell.emailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    [cell.emailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSansLight] size:0]];
     [cell.phoneLabel setText:user.phone];
-    [cell.phoneLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadProLight] size:0]];
+    [cell.phoneLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSansLight] size:0]];
     
     return cell;
 }
@@ -172,25 +172,8 @@
 }
 
 - (void)createUser:(User*)user {
-    UIViewController *previousVC = [self.navigationController.viewControllers objectAtIndex:(self.navigationController.viewControllers.count-2)];
-    
-    if ([previousVC isKindOfClass:[BHAddPersonnelViewController class]]){
-        BHAddPersonnelViewController *vc = (BHAddPersonnelViewController*)previousVC;
-        [vc setFirstStepComplete:YES];
-        [vc.tableView reloadData];
-        
-        if (user.lastName.length){
-            vc.lastName = user.lastName;
-        }
-        if (user.firstName.length){
-            vc.firstName = user.firstName;
-        }
-        if (user.email.length){
-            [vc.emailTextField setText:user.email];
-        }
-        if (user.phone.length){
-            [vc.phoneTextField setText:user.phone];
-        }
+    if (self.addressBookPickerDelegate && [self.addressBookPickerDelegate respondsToSelector:@selector(userSelected:)]){
+        [self.addressBookPickerDelegate userSelected:user];
     }
     [self.navigationController popViewControllerAnimated:YES];
 }

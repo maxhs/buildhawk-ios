@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7531" systemVersion="14D131" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="4qn-JZ-wEX">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7702" systemVersion="14D136" targetRuntime="iOS.CocoaTouch.iPad" propertyAccessControl="none" initialViewController="4qn-JZ-wEX">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7520"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7701"/>
     </dependencies>
     <scenes>
         <!--Files-->
@@ -560,7 +560,7 @@
                                     <subviews>
                                         <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" text="Tasklist item..." id="ozM-yr-VWl">
                                             <rect key="frame" x="0.0" y="0.0" width="568" height="200"/>
-                                            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                             <color key="tintColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                             <inset key="contentInset" minX="8" minY="4" maxX="0.0" maxY="0.0"/>
@@ -2130,21 +2130,11 @@
                                     <outlet property="delegate" destination="RNc-Me-CVF" id="cMt-Lw-xas"/>
                                 </connections>
                             </tableView>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" id="sbL-jI-g36">
-                                <rect key="frame" x="768" y="0.0" width="768" height="960"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <connections>
-                                    <outlet property="dataSource" destination="RNc-Me-CVF" id="XXY-Qi-C4n"/>
-                                    <outlet property="delegate" destination="RNc-Me-CVF" id="gNv-4A-0lA"/>
-                                </connections>
-                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
                     <navigationItem key="navigationItem" id="rTS-EJ-FEh"/>
                     <connections>
-                        <outlet property="secondTableView" destination="sbL-jI-g36" id="C0H-KH-mDa"/>
                         <outlet property="tableView" destination="C8H-2u-PCs" id="vIJ-QO-QoV"/>
                         <segue destination="Iie-Rc-1Uy" kind="push" identifier="AddressBook" id="fWg-pt-M8P"/>
                     </connections>
@@ -2199,7 +2189,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="tKc-7g-NSS" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="8217" y="-1329"/>
+            <point key="canvasLocation" x="8251" y="-212"/>
         </scene>
         <!--Checklist Item-->
         <scene sceneID="1qJ-tg-PbS">
