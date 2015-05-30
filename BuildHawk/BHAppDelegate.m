@@ -23,6 +23,7 @@
 #import <SDWebImage/SDWebImageManager.h>
 #import <RESideMenu/RESideMenu.h>
 #import "BHSyncTransition.h"
+#import <MessageUI/MessageUI.h>
 
 #define MIXPANEL_TOKEN @"2e57104ead72acdd8a77ca963e32e74a"
 
@@ -81,7 +82,7 @@
     [_manager.requestSerializer setValue:(IDIOM == IPAD) ? @"2" : @"1" forHTTPHeaderField:@"device_type"];
     [self updateLoggedInStatus]; // set the delegate's logged in/logged out flag
     
-    _menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
+    self.menu = [self.window.rootViewController.storyboard instantiateViewControllerWithIdentifier:@"Menu"];
     RESideMenu *sideMenuViewController = [[RESideMenu alloc] initWithContentViewController:self.window.rootViewController
                                                                     leftMenuViewController:_menu
                                                                    rightMenuViewController:nil];
@@ -98,13 +99,8 @@
 - (void)customizeAppearance {
     [self.window setTintColor:[UIColor blackColor]];
     [self setToBuildHawkAppearances];
+    CGFloat tabFontSize = IDIOM == IPAD ? 17 : 15;
     
-    CGFloat tabFontSize;
-    if (IDIOM == IPAD){
-        tabFontSize = 17;
-    } else {
-        tabFontSize = 15;
-    }
     [[UITabBarItem appearance] setTitleTextAttributes: @{
                                                          //NSForegroundColorAttributeName : [UIColor whiteColor],
                                                          NSFontAttributeName : [UIFont fontWithName:kMyriadPro size:tabFontSize],
@@ -151,6 +147,7 @@
                                                            NSForegroundColorAttributeName : [UIColor blackColor]
                                                            } forState:UIControlStateNormal];
     [[UIBarButtonItem appearance] setTintColor:[UIColor blackColor]];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault animated:YES];
 }
 
 - (void)setToBuildHawkAppearances{
@@ -170,6 +167,7 @@
     
     [[UIBarButtonItem appearanceWhenContainedIn:[UISearchBar class], nil]
      setTitleTextAttributes:@{NSForegroundColorAttributeName:[UIColor blackColor]} forState:UIControlStateNormal];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:YES];
 }
 
 - (UIView*)addOverlayUnderNav:(BOOL)underNav {

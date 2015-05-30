@@ -48,18 +48,30 @@
     doneButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneEditing)];
     self.navigationItem.rightBarButtonItem = createButton;
     manager = [(BHAppDelegate*)[UIApplication sharedApplication].delegate manager];
-    [self registerForKeyboardNotifications];
+    //[self registerForKeyboardNotifications];
 
     [self.view setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
     [self.navigationController setNavigationBarHidden:NO animated:YES];
     
     if (self.task){
-        UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 66)];
+        UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, width, 144)];
+        
+        UILabel *emailLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 80, width, 50)];
+        [emailLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSansLight] size:0]];
+        [emailLabel setTextColor:[UIColor lightGrayColor]];
+        [emailLabel setTextAlignment:NSTextAlignmentCenter];
+        [emailLabel setText:@"(entering an email address above will send an email notification to the recipient)"];
+        emailLabel.numberOfLines = 0;
+        [footerView addSubview:emailLabel];
+        
         _skipButton = [UIButton buttonWithType:UIButtonTypeCustom];
-        [_skipButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
-        [_skipButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
-        [_skipButton setTitle:@"DON'T NOTIFY ASSIGNEE" forState:UIControlStateNormal];
-        [_skipButton setFrame:CGRectMake(40, 10, width-80, 44)];
+        [_skipButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kMyriadPro] size:0]];
+        [_skipButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        _skipButton.titleLabel.numberOfLines = 0;
+        _skipButton.layer.cornerRadius = 7.f;
+        [_skipButton setBackgroundColor:kDarkerGrayColor];
+        [_skipButton setTitle:@"Assign without notification" forState:UIControlStateNormal];
+        [_skipButton setFrame:CGRectMake(40, 24, width-80, 54)];
         [_skipButton addTarget:self action:@selector(skip) forControlEvents:UIControlEventTouchUpInside];
         [footerView addSubview:_skipButton];
         self.tableView.tableFooterView = footerView;
@@ -67,6 +79,7 @@
 }
 
 - (void)skip {
+    [self doneEditing];
     assigneeAlert = [[UIAlertView alloc] initWithTitle:@"Assign a Task" message:@"Add custom text into the \"assignee\" field. No recipients will be notified." delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
     [assigneeAlert setAlertViewStyle:UIAlertViewStylePlainTextInput];
     [assigneeAlert show];
@@ -224,11 +237,11 @@
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 2;
+    return 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -241,7 +254,7 @@
     [cell.personnelTextField setUserInteractionEnabled:YES];
     
     if (tableView == self.tableView){
-        switch (indexPath.row) {
+        switch (indexPath.section) {
             case 0:
                 [cell.textLabel setText:@"Pull from address book"];
                 [cell.textLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
@@ -266,13 +279,28 @@
     return cell;
 }
 
+- (UIView*)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    UIView *footerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 34)];
+    [footerView setBackgroundColor:[UIColor clearColor]];
+    
+    UILabel *footerLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 0, screenWidth()-40, 24)];
+    [footerLabel setTextColor:[UIColor lightGrayColor]];
+    [footerLabel setText:@"OR"];
+    [footerLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption2 forFont:kOpenSans] size:0]];
+    [footerLabel setTextAlignment:NSTextAlignmentCenter];
+    footerLabel.numberOfLines = 0;
+    [footerView addSubview:footerLabel];
+    
+    return footerView;
+}
+
 - (void)create {
     if (_emailTextField.text.length > 0){
         NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
-        if (_company && ![_company.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        if (_company && ![_company.identifier isEqualToNumber:@0]){
             [parameters setObject:_company.identifier forKey:@"company_id"];
         }
-        if (self.task && ![self.task.identifier isEqualToNumber:[NSNumber numberWithInt:0]]){
+        if (self.task && ![self.task.identifier isEqualToNumber:@0]){
             [parameters setObject:self.task.identifier forKey:@"task_id"];
         }
         
@@ -329,30 +357,26 @@
         [[[UIAlertView alloc] initWithTitle:@"Email Needed" message:@"Please make sure you've added an email address for this recipient." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
     }
 }
-
-- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    if (section == 0) {
-        UIView *emptyView = [[UIView alloc] initWithFrame:CGRectMake(0,0,0,0)];
-        return emptyView;
-    } else {
-        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 4)];
-        [headerView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
-        
-        UILabel *contactInfoLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 0, screenWidth()-40, 24)];
-        [contactInfoLabel setTextColor:[UIColor darkGrayColor]];
-        [contactInfoLabel setText:@"CONTACT INFO"];
-        [contactInfoLabel setTextAlignment:NSTextAlignmentCenter];
-        [contactInfoLabel setFont:[UIFont fontWithName:kOpenSans size:16]];
-        contactInfoLabel.numberOfLines = 0;
-        [headerView addSubview:contactInfoLabel];
-        
-        return headerView;
-    }
-}
-
-- (UIView*)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
-    return [UIView new];
-}
+//
+//- (UIView*)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+//    if (section == 0) {
+//        UIView *emptyView = [[UIView alloc] initWithFrame:CGRectMake(0,0,0,0)];
+//        return emptyView;
+//    } else {
+//        UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, screenWidth(), 4)];
+//        [headerView setBackgroundColor:[UIColor colorWithWhite:.95 alpha:1]];
+//        
+//        UILabel *contactInfoLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 0, screenWidth()-40, 24)];
+//        [contactInfoLabel setTextColor:[UIColor darkGrayColor]];
+//        [contactInfoLabel setText:@"CONTACT INFO"];
+//        [contactInfoLabel setTextAlignment:NSTextAlignmentCenter];
+//        [contactInfoLabel setFont:[UIFont fontWithName:kOpenSans size:16]];
+//        contactInfoLabel.numberOfLines = 0;
+//        [headerView addSubview:contactInfoLabel];
+//        
+//        return headerView;
+//    }
+//}
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0){
@@ -407,7 +431,7 @@
 #pragma mark - UITextField Delegate
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-    self.navigationItem.rightBarButtonItem = doneButton;
+    
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField {
@@ -417,7 +441,7 @@
 - (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)text {
     if ([text isEqualToString:@"\n"]) {
         if (textField == _emailTextField){
-            [textField resignFirstResponder];
+            //[textField resignFirstResponder];
             [self next];
         }
     }
@@ -443,11 +467,13 @@
     NSDictionary* info = [notification userInfo];
     NSTimeInterval duration = [info[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     UIViewAnimationOptions curve = [info[UIKeyboardAnimationDurationUserInfoKey] unsignedIntegerValue];
+    self.navigationItem.rightBarButtonItem = doneButton;
     
     [UIView animateWithDuration:duration
                           delay:0
                         options:curve | UIViewAnimationOptionBeginFromCurrentState
                      animations:^{
+                         
                      }
                      completion:nil];
 }

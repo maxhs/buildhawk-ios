@@ -87,8 +87,13 @@
     refreshButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(refreshReport)];
     
     if (self.navigationController.viewControllers.firstObject == self){
-        backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back:)];
+        backButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"whiteX"] style:UIBarButtonItemStylePlain target:self action:@selector(back)];
         self.navigationItem.leftBarButtonItems = @[backButton, refreshButton];
+    } else {
+        //override standard back navigation so we can ask the user if they want to save their changes
+        self.navigationItem.hidesBackButton = YES;
+        backButton = [[UIBarButtonItem alloc] initWithTitle:@"Back" style:UIBarButtonItemStylePlain target:self action:@selector(back:)];
+        self.navigationItem.leftBarButtonItem = backButton;
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(removePhoto:) name:@"RemovePhoto" object:nil];
@@ -280,7 +285,11 @@
         if (self.checkForUnsavedChanges){
             
         } else {
-            [self.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
+            if (self.navigationController.viewControllers.count > 1){
+                [self.navigationController popViewControllerAnimated:YES];
+            } else {
+                [self.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
+            }
         }
     }
 }
@@ -292,7 +301,7 @@
             unsavedCount ++;
         }
     }];
-    NSLog(@"unsaved changes count: %ld",(long)unsavedCount);
+    //NSLog(@"unsaved changes count: %ld",(long)unsavedCount);
     if (unsavedCount) {
         NSString *message;
         if (unsavedCount == 1){
@@ -643,7 +652,16 @@
             }
         }
     } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Discard"]) {
-        [self.navigationController popViewControllerAnimated:YES];
+        [_reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
+            if ([report.saved isEqualToNumber:@NO]){
+                [report setSaved:@YES];
+            }
+        }];
+        [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+            [self.navigationController popViewControllerAnimated:YES];
+        }];
+    } else if ([[alertView buttonTitleAtIndex: buttonIndex] isEqualToString:@"Save"]) {
+        [self saveUnsavedReports];
     } else if (alertView == newTopicAlertView) {
         SafetyTopic *topic = [SafetyTopic MR_createInContext:[NSManagedObjectContext MR_defaultContext]];
         [topic setTitle:[[alertView textFieldAtIndex:0] text]];
@@ -654,6 +672,19 @@
             [[[UIAlertView alloc] initWithTitle:nil message:@"Safety topic already added." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil] show];
         }
     }
+}
+
+- (void)saveUnsavedReports {
+    [_reports enumerateObjectsUsingBlock:^(Report *report, NSUInteger idx, BOOL *stop) {
+        if ([report.saved isEqualToNumber:@NO]){
+            [report synchWithServer:^(BOOL completed) {
+                [report setSaved:@YES];
+            }];
+        }
+    }];
+    [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+        [self.navigationController popViewControllerAnimated:YES];
+    }];
 }
 
 - (void)showReportTypePicker {

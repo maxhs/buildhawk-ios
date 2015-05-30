@@ -405,10 +405,10 @@
 - (void)synchImages:(NSMutableOrderedSet*)imageSet{
     BHAppDelegate *delegate = (BHAppDelegate*)[UIApplication sharedApplication].delegate;
     NSMutableDictionary *photoParameters = [NSMutableDictionary dictionary];
-    [photoParameters setObject:self.identifier forKey:@"task_id"];
+    [photoParameters setObject:self.identifier forKey:@"report_id"];
     [photoParameters setObject:@YES forKey:@"mobile"];
     [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsId] forKey:@"user_id"];
-    [photoParameters setObject:kTasklist forKey:@"source"];
+    [photoParameters setObject:kReports forKey:@"source"];
     
     if ([[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId]){
         [photoParameters setObject:[[NSUserDefaults standardUserDefaults] objectForKey:kUserDefaultsCompanyId] forKey:@"company_id"];
@@ -422,7 +422,7 @@
         [delegate.manager POST:[NSString stringWithFormat:@"%@/photos",kApiBaseUrl] parameters:@{@"photo":photoParameters} constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
             [formData appendPartWithFileData:imageData name:@"photo[image]" fileName:@"photo.jpg" mimeType:@"image/jpg"];
         } success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSLog(@"Success posting photo for new task: %@",responseObject);
+            NSLog(@"Success posting photo for report: %@",responseObject);
             [self populateFromDictionary:[responseObject objectForKey:@"task"]];
         } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
             //NSLog(@"Failure posting new task image to API: %@",error.description);

@@ -21,16 +21,10 @@
 
 @implementation BHProjectDocsViewController
 
-@synthesize photosArray = _photosArray;
-
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    if (IDIOM == IPAD){
-        self.tableView.rowHeight = 180.f;
-    } else {
-        self.tableView.rowHeight = 88.f;
-    }
+    self.tableView.rowHeight = IDIOM == IPAD ? 180.f : 88.f;
     [self.view setBackgroundColor:[UIColor colorWithWhite:.9 alpha:1]];
     [self.tableView setBackgroundColor:[UIColor colorWithWhite:1 alpha:1]];
     [self.tableView setSeparatorColor:[UIColor colorWithWhite:0 alpha:.1]];
@@ -40,7 +34,7 @@
 -(void)removePhoto:(NSNotification*)notification {
     Photo *photoToRemove = [notification.userInfo objectForKey:@"photo"];
     if (photoToRemove) {
-        [_photosArray removeObject:photoToRemove];
+        [self.photosArray removeObject:photoToRemove];
         [self.tableView reloadData];
     }
 }
@@ -60,7 +54,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return _photosArray.count;
+    return self.photosArray.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -71,7 +65,7 @@
     if (cell == nil) {
         cell = [[[NSBundle mainBundle] loadNibNamed:@"BHPhotoPickerCell" owner:self options:nil] lastObject];
     }
-    Photo *photo = [_photosArray objectAtIndex:indexPath.row];
+    Photo *photo = [self.photosArray objectAtIndex:indexPath.row];
     [cell.docLabel setText:photo.fileName];
     
     [cell.photoButton.imageView setContentMode:UIViewContentModeScaleAspectFill];
@@ -82,9 +76,8 @@
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     NSURL *imageUrl;
     if (IDIOM == IPAD){
-        
         imageUrl = [NSURL URLWithString:photo.urlLarge];
-    } else if (_photosArray.count > 0) {
+    } else if (self.photosArray.count > 0) {
         imageUrl = [NSURL URLWithString:photo.urlSmall];
     } else {
         imageUrl = nil;
@@ -125,7 +118,7 @@
     
     if ([segue.identifier isEqualToString:@"WebView"]){
         BHWebViewController *vc = [segue destinationViewController];
-        Photo *photo = [_photosArray objectAtIndex:indexPath.row];
+        Photo *photo = [self.photosArray objectAtIndex:indexPath.row];
         [vc setPhoto:photo];
         if (photo.fileName) [vc setTitle:photo.fileName];
     }
@@ -133,7 +126,7 @@
 
 - (void)showBrowser:(int)idx {
     browserPhotos = [NSMutableArray new];
-    for (Photo *photo in _photosArray) {
+    for (Photo *photo in self.photosArray) {
         MWPhoto *mwPhoto = [MWPhoto photoWithURL:[NSURL URLWithString:photo.urlLarge]];
         [mwPhoto setPhoto:photo];
         [browserPhotos addObject:mwPhoto];

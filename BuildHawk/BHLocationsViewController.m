@@ -42,12 +42,13 @@
     
     searching = NO;
     [self.searchBar setSearchBarStyle:UISearchBarStyleMinimal];
+    [self.searchBar setPlaceholder:@"Add a new location..."];
     self.tableView.tableHeaderView = self.searchBar;
     //reset the search bar font
     for (id subview in [self.searchBar.subviews.firstObject subviews]){
         if ([subview isKindOfClass:[UITextField class]]){
             UITextField *searchTextField = (UITextField*)subview;
-            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleBody forFont:kOpenSans] size:0]];
+            [searchTextField setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kOpenSans] size:0]];
             break;
         }
     }

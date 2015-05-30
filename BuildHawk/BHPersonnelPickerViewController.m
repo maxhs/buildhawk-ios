@@ -44,6 +44,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
     NSTimeInterval duration;
     UIViewAnimationOptions animationCurve;
     UIBarButtonItem *removeAllBarButton;
+    UIAlertView *addCompanyAlertView;
 }
 @property (strong, nonatomic) Project *project;
 @property (strong, nonatomic) Task *task;
@@ -210,14 +211,12 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 }
 
 - (void)endSearch {
-    searching = NO;
     //have to manually resign the first responder here
     [self.searchBar resignFirstResponder];
-    [self.view endEditing:YES];
-    [self.searchBar setText:@""];
+    [ProgressHUD dismiss];
     [filteredSubcontractors removeAllObjects];
     [filteredUsers removeAllObjects];
-    [self.tableView reloadData];
+    [self doneEditing];
 }
 
 - (void)doneEditing {
@@ -523,7 +522,14 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
 }
 
 - (void)invite {
-    [self addPersonnel:nil orCompany:nil];
+    if (_companyMode){
+        [self doneEditing];
+        addCompanyAlertView = [[UIAlertView alloc] initWithTitle:@"Add a company" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Add", nil];
+        addCompanyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [addCompanyAlertView show];
+    } else {
+        [self addPersonnel:nil orCompany:nil];
+    }
 }
 
 - (void)addPersonnel:(User*)user orCompany:(Company*)company {
@@ -842,6 +848,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
     }
     if (select){
+        [self doneEditing];
         companyAlertView = [[UIAlertView alloc] initWithTitle:@"# of personnel on-site" message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Submit", nil];
         companyAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
         [[companyAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
@@ -870,7 +877,7 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
         }
         
         //resign all other first responders, otherwise the keyboard may not come up properly because something else is mysteriously the first responder
-        [self.view endEditing:YES];
+        [self doneEditing];
         userAlertView.alertViewStyle = UIAlertViewStylePlainTextInput;
         [[userAlertView textFieldAtIndex:0] setKeyboardType:UIKeyboardTypeDecimalPad];
         [userAlertView show];
@@ -899,6 +906,11 @@ static NSString * const kAddPersonnelPlaceholder = @"    Add new personnel...";
             if (count.intValue > 0){
                 [self selectReportCompany:nil andCount:count];
             }
+        }
+    } else if (alertView == addCompanyAlertView) {
+        if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Add"]){
+            searchText = [[addCompanyAlertView textFieldAtIndex:0] text];
+            [self addCompany];
         }
     }
 }

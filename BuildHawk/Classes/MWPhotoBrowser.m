@@ -1444,6 +1444,7 @@
 }
 
 - (void)showWebViewForPdf {
+    NSLog(@"show web view, right bar button: %@",self.navigationItem.rightBarButtonItem);
     zoom = YES;
     _alwaysShowControls = YES;
     CGRect frame = self.view.frame;

@@ -642,15 +642,13 @@
 - (void)sendEmail:(NSString *)email{
     if (email.length){
         if ([MFMailComposeViewController canSendMail]) {
+            [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
             MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
             controller.mailComposeDelegate = self;
             [controller setSubject:[NSString stringWithFormat:@"%@",self.item.body]];
             [controller setToRecipients:@[email]];
-            if (controller) {
-                [self presentViewController:controller animated:YES completion:^{
-                    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-                }];
-            }
+            
+            [self presentViewController:controller animated:YES completion:NULL];
         } else {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we aren't able to send mail on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
             [alert show];
@@ -665,10 +663,8 @@
                         error:(NSError*)error;
 {
     //if (result == MFMailComposeResultSent) {}
-    //if (IDIOM != IPAD) [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
-    [self dismissViewControllerAnimated:YES completion:^{
-        //[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-    }];
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
+    [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
 - (void)sendText:(NSString *)phone {
@@ -677,9 +673,7 @@
     if ([MFMessageComposeViewController canSendText] && phone && phone.length){
         viewController.messageComposeDelegate = self;
         [viewController setRecipients:@[phone]];
-        [self presentViewController:viewController animated:YES completion:^{
-            
-        }];
+        [self presentViewController:viewController animated:YES completion:NULL];
     }
 }
 

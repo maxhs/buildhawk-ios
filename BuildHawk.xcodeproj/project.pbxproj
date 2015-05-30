@@ -1067,11 +1067,107 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		50DAA7121B19037000DBB001 /* Documents */ = {
+			isa = PBXGroup;
+			children = (
+				50AB42861AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.h */,
+				50AB42871AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m */,
+				50AB42891AB7CE3F00C4EF5A /* BHImagePickerController.h */,
+				50AB428A1AB7CE3F00C4EF5A /* BHImagePickerController.m */,
+				F2B29FE117D0F31B00F09C6F /* BHDocumentsViewController.h */,
+				F2B29FE217D0F31B00F09C6F /* BHDocumentsViewController.m */,
+				50AB428C1AB7CE8900C4EF5A /* BHImagePickerCell.h */,
+				50AB428D1AB7CE8900C4EF5A /* BHImagePickerCell.m */,
+				50AB428F1AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.h */,
+				50AB42901AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m */,
+				F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */,
+				F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */,
+				F2A594E917FBC13C00B818B5 /* BHPhotosViewController.h */,
+				F2A594EA17FBC13C00B818B5 /* BHPhotosViewController.m */,
+				F28F9A09189C6A27000A46D4 /* BHFoldersViewController.h */,
+				F28F9A0A189C6A27000A46D4 /* BHFoldersViewController.m */,
+				F28F9A4E18A45D43000A46D4 /* BHProjectDocsViewController.h */,
+				F28F9A4F18A45D43000A46D4 /* BHProjectDocsViewController.m */,
+			);
+			name = Documents;
+			sourceTree = "<group>";
+		};
+		50DAA7141B19041500DBB001 /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				F26364D619D2366C00E9966A /* BHSyncViewController.h */,
+				F26364D719D2366C00E9966A /* BHSyncViewController.m */,
+				F2F0579E19D5B92A00A66A53 /* BHSyncCell.h */,
+				F2F0579F19D5B92A00A66A53 /* BHSyncCell.m */,
+				F204CC9F19D5C16D009AC71B /* BHSyncController.h */,
+				F204CCA019D5C16D009AC71B /* BHSyncController.m */,
+			);
+			name = Sync;
+			sourceTree = "<group>";
+		};
+		50DAA7151B19042C00DBB001 /* Activities */ = {
+			isa = PBXGroup;
+			children = (
+				F261472C1964785B00E82DC5 /* BHActivitiesViewController.h */,
+				F261472D1964785B00E82DC5 /* BHActivitiesViewController.m */,
+				F25EDAA0195D0A74009C4386 /* BHActivityCell.h */,
+				F25EDAA1195D0A74009C4386 /* BHActivityCell.m */,
+				F25EDAA3195D0B21009C4386 /* BHActivityCell.xib */,
+			);
+			name = Activities;
+			sourceTree = "<group>";
+		};
+		50DAA7161B19043B00DBB001 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				F2B8178518FA305E002168FD /* BHSettingsViewController.h */,
+				F2B8178618FA305E002168FD /* BHSettingsViewController.m */,
+				F2C44523196607680079AF62 /* BHSettingsCell.h */,
+				F2C44524196607680079AF62 /* BHSettingsCell.m */,
+			);
+			name = Settings;
+			sourceTree = "<group>";
+		};
+		50DAA7171B19049500DBB001 /* Location(s) */ = {
+			isa = PBXGroup;
+			children = (
+				50C3F1161A8D66FF00F09E11 /* BHLocationsViewController.h */,
+				50C3F1171A8D66FF00F09E11 /* BHLocationsViewController.m */,
+				50C3F1221A8D73DB00F09E11 /* BHLocationCell.h */,
+				50C3F1231A8D73DB00F09E11 /* BHLocationCell.m */,
+			);
+			name = "Location(s)";
+			sourceTree = "<group>";
+		};
+		50DAA7181B19067F00DBB001 /* Safety */ = {
+			isa = PBXGroup;
+			children = (
+				F23AD647193E30EA00510290 /* BHSafetyTopicViewController.h */,
+				F23AD648193E30EA00510290 /* BHSafetyTopicViewController.m */,
+			);
+			name = Safety;
+			sourceTree = "<group>";
+		};
+		50DAA7191B19193900DBB001 /* Menu */ = {
+			isa = PBXGroup;
+			children = (
+				F203963017D2C09E001CFF61 /* BHMenuViewController.h */,
+				F203963117D2C09F001CFF61 /* BHMenuViewController.m */,
+				F227B64C194571D6007DE86F /* BHMessageCell.h */,
+				F227B64D194571D6007DE86F /* BHMessageCell.m */,
+			);
+			name = Menu;
+			sourceTree = "<group>";
+		};
 		50E7609E1AF8080C003F72AE /* Tasks */ = {
 			isa = PBXGroup;
 			children = (
 				F228706717DE8DA600A88475 /* BHTaskCell.h */,
 				F228706817DE8DA600A88475 /* BHTaskCell.m */,
+				F203965A17D3DD6B001CFF61 /* BHTasksViewController.h */,
+				F203965B17D3DD6B001CFF61 /* BHTasksViewController.m */,
+				F228707817DFC89300A88475 /* BHTaskViewController.h */,
+				F228707917DFC89300A88475 /* BHTaskViewController.m */,
 				F23AD654193E5E1A00510290 /* BHTasklistConnectCell.h */,
 				F23AD655193E5E1A00510290 /* BHTasklistConnectCell.m */,
 				F23AD657193E5E2400510290 /* BHTasklistConnectCell.xib */,
@@ -1111,6 +1207,14 @@
 		50E760A11AF80839003F72AE /* Dashboard & Synopsis */ = {
 			isa = PBXGroup;
 			children = (
+				F2B29FF017D0F9F000F09C6F /* BHDashboardViewController.h */,
+				F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */,
+				F2B29FF317D0F9FC00F09C6F /* BHProjectSynopsisViewController.h */,
+				F2B29FF417D0F9FC00F09C6F /* BHProjectSynopsisViewController.m */,
+				F2FAE44918F5AFAE005E582B /* BHHiddenProjectsViewController.h */,
+				F2FAE44A18F5AFAE005E582B /* BHHiddenProjectsViewController.m */,
+				F2B8178818FA31E2002168FD /* BHDemoProjectsViewController.h */,
+				F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */,
 				F2C4452B1968CC790079AF62 /* BHSynopsisCell.h */,
 				F2C4452C1968CC790079AF62 /* BHSynopsisCell.m */,
 				F295B1C8183A8A26009121BA /* BHProgressCell.h */,
@@ -1189,51 +1293,10 @@
 			name = "Custom Objects";
 			sourceTree = "<group>";
 		};
-		F228706617DE8C3200A88475 /* Cells */ = {
-			isa = PBXGroup;
-			children = (
-				F2A957EA19DF501A00A3B471 /* Checklists */,
-				50E7609E1AF8080C003F72AE /* Tasks */,
-				50E760A11AF80839003F72AE /* Dashboard & Synopsis */,
-				F26D84B1197E25E100494149 /* Reports */,
-				50E7609F1AF8081A003F72AE /* Comments */,
-				50E760A01AF80822003F72AE /* Reminders */,
-				F2C44523196607680079AF62 /* BHSettingsCell.h */,
-				F2C44524196607680079AF62 /* BHSettingsCell.m */,
-				F2139D331938169100EE5C96 /* BHChoosePersonnelCell.h */,
-				F2139D341938169100EE5C96 /* BHChoosePersonnelCell.m */,
-				F2139D36193816A800EE5C96 /* BHChoosePersonnelCell.xib */,
-				F228707317DFBCC300A88475 /* BHPhotoPickerCell.h */,
-				F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */,
-				F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */,
-				F252F5EC1940FB4B00515471 /* BHAddPersonnelCell.h */,
-				F252F5ED1940FB4B00515471 /* BHAddPersonnelCell.m */,
-				F252F5EF1940FB5500515471 /* BHAddPersonnelCell.xib */,
-				F227B64C194571D6007DE86F /* BHMessageCell.h */,
-				F227B64D194571D6007DE86F /* BHMessageCell.m */,
-				F298A1C319526B34005B13EA /* BHAddressBookCell.h */,
-				F298A1C419526B34005B13EA /* BHAddressBookCell.m */,
-				F298A1C619526B3D005B13EA /* BHAddressBookCell.xib */,
-				F25EDAA0195D0A74009C4386 /* BHActivityCell.h */,
-				F25EDAA1195D0A74009C4386 /* BHActivityCell.m */,
-				F25EDAA3195D0B21009C4386 /* BHActivityCell.xib */,
-				50C3F1221A8D73DB00F09E11 /* BHLocationCell.h */,
-				50C3F1231A8D73DB00F09E11 /* BHLocationCell.m */,
-				50AB428C1AB7CE8900C4EF5A /* BHImagePickerCell.h */,
-				50AB428D1AB7CE8900C4EF5A /* BHImagePickerCell.m */,
-				50AB428F1AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.h */,
-				50AB42901AB7CEAE00C4EF5A /* BHAssetGroupPickerCell.m */,
-				F2A594EC17FBC3C400B818B5 /* BHCollectionPhotoCell.h */,
-				F2A594ED17FBC3C400B818B5 /* BHCollectionPhotoCell.m */,
-				F2F0579E19D5B92A00A66A53 /* BHSyncCell.h */,
-				F2F0579F19D5B92A00A66A53 /* BHSyncCell.m */,
-			);
-			name = Cells;
-			sourceTree = "<group>";
-		};
 		F239BB9C17D875DE003097E6 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				F21110C119CA501E00CC255D /* BuildHawk.xcdatamodeld */,
 				F2C4451D1966016F0079AF62 /* Alternate.h */,
 				F2C4451E1966016F0079AF62 /* Alternate.m */,
 				F2C44520196601880079AF62 /* Alternate+helper.h */,
@@ -1421,6 +1484,10 @@
 		F26D84B1197E25E100494149 /* Reports */ = {
 			isa = PBXGroup;
 			children = (
+				F203965D17D3DD7C001CFF61 /* BHReportViewController.h */,
+				F203965E17D3DD7C001CFF61 /* BHReportViewController.m */,
+				F25699C619087B8800ED9032 /* BHReportsViewController.h */,
+				F25699C719087B8800ED9032 /* BHReportsViewController.m */,
 				F239BBA017D877D9003097E6 /* BHReportPickerCell.h */,
 				F239BBA117D877D9003097E6 /* BHReportPickerCell.m */,
 				F239BB9D17D877C7003097E6 /* BHReportSectionCell.h */,
@@ -1448,6 +1515,12 @@
 		F2A957EA19DF501A00A3B471 /* Checklists */ = {
 			isa = PBXGroup;
 			children = (
+				F2B29FDA17D0F31B00F09C6F /* BHChecklistViewController.h */,
+				F2B29FDB17D0F31B00F09C6F /* BHChecklistViewController.m */,
+				F29EF2EA1815C3BB00F737B7 /* BHChecklistNavigationController.h */,
+				F29EF2EB1815C3BB00F737B7 /* BHChecklistNavigationController.m */,
+				F291F4B417F0B33000A27B46 /* BHChecklistItemViewController.h */,
+				F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */,
 				F292ABF117F9E5590020DE13 /* BHChecklistItemBodyCell.h */,
 				F292ABF217F9E5590020DE13 /* BHChecklistItemBodyCell.m */,
 				500A1C521AD82BFE00284212 /* BHChecklistItemLinkCell.h */,
@@ -1521,38 +1594,36 @@
 				F2B29FD417D0F31B00F09C6F /* MainStoryboard_iPhone.storyboard */,
 				F2926C4218345F500090710A /* MainStoryboard_iPad.storyboard */,
 				50FB5FCB1A40D66A004D6062 /* LaunchScreen.xib */,
-				F21110C119CA501E00CC255D /* BuildHawk.xcdatamodeld */,
 				F239BB9C17D875DE003097E6 /* Models */,
-				F228706617DE8C3200A88475 /* Cells */,
-				F2B29FF717D0FACE00F09C6F /* Project */,
-				F2B29FED17D0F9DA00F09C6F /* BHLoginViewController.h */,
-				F2B29FEE17D0F9DA00F09C6F /* BHLoginViewController.m */,
+				50E760A11AF80839003F72AE /* Dashboard & Synopsis */,
+				50E760A01AF80822003F72AE /* Reminders */,
+				50DAA7151B19042C00DBB001 /* Activities */,
+				50E7609F1AF8081A003F72AE /* Comments */,
+				F2A957EA19DF501A00A3B471 /* Checklists */,
+				F26D84B1197E25E100494149 /* Reports */,
+				50E7609E1AF8080C003F72AE /* Tasks */,
+				50DAA7171B19049500DBB001 /* Location(s) */,
+				50DAA7181B19067F00DBB001 /* Safety */,
+				F2B29FF717D0FACE00F09C6F /* Personnel/Companies */,
+				50DAA7121B19037000DBB001 /* Documents */,
+				F228707317DFBCC300A88475 /* BHPhotoPickerCell.h */,
+				F228707417DFBCC300A88475 /* BHPhotoPickerCell.m */,
+				F228707617DFBCE900A88475 /* BHPhotoPickerCell.xib */,
 				F203967017D3E1E8001CFF61 /* BHTabBarViewController.h */,
 				F203967117D3E1E8001CFF61 /* BHTabBarViewController.m */,
-				F2B29FF017D0F9F000F09C6F /* BHDashboardViewController.h */,
-				F2B29FF117D0F9F000F09C6F /* BHDashboardViewController.m */,
+				F27889F318B9ADE300056AB2 /* BHWebViewController.h */,
+				F27889F418B9ADE300056AB2 /* BHWebViewController.m */,
 				F2D3DBD319783F49005133AC /* BHMapViewController.h */,
 				F2D3DBD419783F49005133AC /* BHMapViewController.m */,
-				F2B29FF317D0F9FC00F09C6F /* BHProjectSynopsisViewController.h */,
-				F2B29FF417D0F9FC00F09C6F /* BHProjectSynopsisViewController.m */,
-				F261472C1964785B00E82DC5 /* BHActivitiesViewController.h */,
-				F261472D1964785B00E82DC5 /* BHActivitiesViewController.m */,
 				F277D46418D4E0CD00028ACD /* BHGroupViewController.h */,
 				F277D46518D4E0CD00028ACD /* BHGroupViewController.m */,
-				F2FAE44918F5AFAE005E582B /* BHHiddenProjectsViewController.h */,
-				F2FAE44A18F5AFAE005E582B /* BHHiddenProjectsViewController.m */,
-				F2B8178818FA31E2002168FD /* BHDemoProjectsViewController.h */,
-				F2B8178918FA31E2002168FD /* BHDemoProjectsViewController.m */,
-				F203963017D2C09E001CFF61 /* BHMenuViewController.h */,
-				F203963117D2C09F001CFF61 /* BHMenuViewController.m */,
-				F2B8178518FA305E002168FD /* BHSettingsViewController.h */,
-				F2B8178618FA305E002168FD /* BHSettingsViewController.m */,
 				F2A9581519E2315D00A3B471 /* BHTourViewController.h */,
 				F2A9581619E2315D00A3B471 /* BHTourViewController.m */,
-				F26364D619D2366C00E9966A /* BHSyncViewController.h */,
-				F26364D719D2366C00E9966A /* BHSyncViewController.m */,
-				F204CC9F19D5C16D009AC71B /* BHSyncController.h */,
-				F204CCA019D5C16D009AC71B /* BHSyncController.m */,
+				50DAA7191B19193900DBB001 /* Menu */,
+				F2B29FED17D0F9DA00F09C6F /* BHLoginViewController.h */,
+				F2B29FEE17D0F9DA00F09C6F /* BHLoginViewController.m */,
+				50DAA7161B19043B00DBB001 /* Settings */,
+				50DAA7141B19041500DBB001 /* Sync */,
 				F2C1DCA019C01D8000B2B28E /* Transitions/Animators */,
 				F2139D771939735100EE5C96 /* Custom Objects */,
 				F2D3DBDD1978F42F005133AC /* Fonts */,
@@ -1743,39 +1814,17 @@
 			name = Images;
 			sourceTree = "<group>";
 		};
-		F2B29FF717D0FACE00F09C6F /* Project */ = {
+		F2B29FF717D0FACE00F09C6F /* Personnel/Companies */ = {
 			isa = PBXGroup;
 			children = (
-				F2B29FDA17D0F31B00F09C6F /* BHChecklistViewController.h */,
-				F2B29FDB17D0F31B00F09C6F /* BHChecklistViewController.m */,
-				F29EF2EA1815C3BB00F737B7 /* BHChecklistNavigationController.h */,
-				F29EF2EB1815C3BB00F737B7 /* BHChecklistNavigationController.m */,
-				F291F4B417F0B33000A27B46 /* BHChecklistItemViewController.h */,
-				F291F4B517F0B33000A27B46 /* BHChecklistItemViewController.m */,
-				F2B29FE117D0F31B00F09C6F /* BHDocumentsViewController.h */,
-				F2B29FE217D0F31B00F09C6F /* BHDocumentsViewController.m */,
-				F2A594E917FBC13C00B818B5 /* BHPhotosViewController.h */,
-				F2A594EA17FBC13C00B818B5 /* BHPhotosViewController.m */,
-				F28F9A09189C6A27000A46D4 /* BHFoldersViewController.h */,
-				F28F9A0A189C6A27000A46D4 /* BHFoldersViewController.m */,
-				F28F9A4E18A45D43000A46D4 /* BHProjectDocsViewController.h */,
-				F28F9A4F18A45D43000A46D4 /* BHProjectDocsViewController.m */,
-				F27889F318B9ADE300056AB2 /* BHWebViewController.h */,
-				F27889F418B9ADE300056AB2 /* BHWebViewController.m */,
-				F203965A17D3DD6B001CFF61 /* BHTasksViewController.h */,
-				F203965B17D3DD6B001CFF61 /* BHTasksViewController.m */,
-				F228707817DFC89300A88475 /* BHTaskViewController.h */,
-				F228707917DFC89300A88475 /* BHTaskViewController.m */,
-				F203965D17D3DD7C001CFF61 /* BHReportViewController.h */,
-				F203965E17D3DD7C001CFF61 /* BHReportViewController.m */,
-				F25699C619087B8800ED9032 /* BHReportsViewController.h */,
-				F25699C719087B8800ED9032 /* BHReportsViewController.m */,
-				50C3F1161A8D66FF00F09E11 /* BHLocationsViewController.h */,
-				50C3F1171A8D66FF00F09E11 /* BHLocationsViewController.m */,
-				F23AD647193E30EA00510290 /* BHSafetyTopicViewController.h */,
-				F23AD648193E30EA00510290 /* BHSafetyTopicViewController.m */,
 				F226817B18734E0C00D78BDD /* BHPersonnelPickerViewController.h */,
 				F226817C18734E0C00D78BDD /* BHPersonnelPickerViewController.m */,
+				F2139D331938169100EE5C96 /* BHChoosePersonnelCell.h */,
+				F2139D341938169100EE5C96 /* BHChoosePersonnelCell.m */,
+				F2139D36193816A800EE5C96 /* BHChoosePersonnelCell.xib */,
+				F252F5EC1940FB4B00515471 /* BHAddPersonnelCell.h */,
+				F252F5ED1940FB4B00515471 /* BHAddPersonnelCell.m */,
+				F252F5EF1940FB5500515471 /* BHAddPersonnelCell.xib */,
 				50E2B63F1AE1BC5200486A06 /* BHPeopleNavController.h */,
 				50E2B6401AE1BC5200486A06 /* BHPeopleNavController.m */,
 				F2D6A3091971929F004A9742 /* BHCompaniesViewController.h */,
@@ -1784,12 +1833,11 @@
 				F252F5EA1940F5E600515471 /* BHAddPersonnelViewController.m */,
 				F298A1C019526249005B13EA /* BHAddressBookPickerViewController.h */,
 				F298A1C119526249005B13EA /* BHAddressBookPickerViewController.m */,
-				50AB42861AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.h */,
-				50AB42871AB7CE2600C4EF5A /* BHAssetGroupPickerViewController.m */,
-				50AB42891AB7CE3F00C4EF5A /* BHImagePickerController.h */,
-				50AB428A1AB7CE3F00C4EF5A /* BHImagePickerController.m */,
+				F298A1C319526B34005B13EA /* BHAddressBookCell.h */,
+				F298A1C419526B34005B13EA /* BHAddressBookCell.m */,
+				F298A1C619526B3D005B13EA /* BHAddressBookCell.xib */,
 			);
-			name = Project;
+			name = Personnel/Companies;
 			sourceTree = "<group>";
 		};
 		F2C1DCA019C01D8000B2B28E /* Transitions/Animators */ = {

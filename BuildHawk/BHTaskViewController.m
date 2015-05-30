@@ -936,15 +936,13 @@ typedef void(^RequestSuccess)(id result);
 
 - (void)sendMail:(NSString*)destinationEmail {
     if ([MFMailComposeViewController canSendMail]) {
-        //[(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
+        [(BHAppDelegate*)[UIApplication sharedApplication].delegate setDefaultAppearances];
         MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
         controller.mailComposeDelegate = self;
         [controller setSubject:[NSString stringWithFormat:@"%@ Task: \"%@\"",_project.name,self.task.body]];
         [controller setToRecipients:@[destinationEmail]];
         if (controller) {
-            [self presentViewController:controller animated:YES completion:^{
-                [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
-            }];
+            [self presentViewController:controller animated:YES completion:NULL];
         }
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Sorry" message:@"But we weren't able to send mail on this device." delegate:nil cancelButtonTitle:@"Okay" otherButtonTitles:nil];
@@ -956,7 +954,7 @@ typedef void(^RequestSuccess)(id result);
                         error:(NSError*)error;
 {
     //if (result == MFMailComposeResultSent) {}
-    //[(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
+    [(BHAppDelegate*)[UIApplication sharedApplication].delegate setToBuildHawkAppearances];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
@@ -1066,6 +1064,11 @@ typedef void(^RequestSuccess)(id result);
         // only get rid of it if it's a new task
         if ([self.task.identifier isEqualToNumber:@0]){
             [self.task MR_deleteInContext:[NSManagedObjectContext MR_defaultContext]];
+        } else {
+            [self.task setSaved:@YES];
+            [[NSManagedObjectContext MR_defaultContext] MR_saveToPersistentStoreWithCompletion:^(BOOL success, NSError *error) {
+                
+            }];
         }
         [self dismiss];
     } else if ([[alertView buttonTitleAtIndex:buttonIndex] isEqualToString:@"Yes"]){
