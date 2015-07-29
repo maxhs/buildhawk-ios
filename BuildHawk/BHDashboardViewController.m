@@ -393,7 +393,7 @@
                 [_groups addObject:group];
             }
         }];
-        return 5;
+        return 4; // should be 5, but we're temporarily hiding the hidden projects
     }
 }
 

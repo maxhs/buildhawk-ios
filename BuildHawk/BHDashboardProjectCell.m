@@ -32,13 +32,16 @@
 
 - (void)awakeFromNib {
     [super awakeFromNib];
-    [_scrollView setContentSize:CGSizeMake(screenWidth()+176, 88)];
+    [_scrollView setContentSize:CGSizeMake(screenWidth() + 88, 88)]; // 176
     [_alertLabel setBackgroundColor:[UIColor redColor]];
     [_alertLabel.layer setBackgroundColor:[UIColor clearColor].CGColor];
     _alertLabel.layer.cornerRadius = 11.f;
     [_alertLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleCaption1 forFont:kMyriadProSemibold] size:0]];
     
     [_progressButton.titleLabel setFont:[UIFont fontWithDescriptor:[UIFontDescriptor preferredCustomFontForTextStyle:UIFontTextStyleSubheadline forFont:kMyriadProLight] size:0]];
+    
+    // TEMPORARILY HIDE THE HIDDEN BUTTON
+    [_hideButton setHidden:YES];
     
     // hide button
     CGRect hideRect = _hideButton.frame;

@@ -470,7 +470,7 @@
             [cell.imageView setImage:[UIImage imageNamed:@"communicateOutlineDark"]];
         } else if ([item.type isEqualToString:@"S&C"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"minis&c"]];
-        } else if ([item.type isEqualToString:@"Mile"]) {
+        } else if ([item.type isEqualToString:@"Milestone"]) {
             [cell.imageView setImage:[UIImage imageNamed:@"minical"]];
         } else {
             [cell.imageView setImage:[UIImage imageNamed:@"folder"]];
@@ -618,7 +618,7 @@
                         [cell.imageView setImage:[UIImage imageNamed:@"communicateOutline"]];
                     } else if ([item.type isEqualToString:@"S&C"]) {
                         [cell.imageView setImage:[UIImage imageNamed:@"minis&cWhite"]];
-                    } else if ([item.type isEqualToString:@"Mile"]) {
+                    } else if ([item.type isEqualToString:@"Milestone"]) {
                         [cell.imageView setImage:[UIImage imageNamed:@"minicalWhite"]];
                     } else {
                         [cell.imageView setImage:[UIImage imageNamed:@"folderWhite"]];
